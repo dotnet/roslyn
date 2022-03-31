@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<(int[], bool isFinalized)> ComputeSemanticTokensDataAsync(
+        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
@@ -144,15 +144,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // By default we calculate the tokens for the full document span, although the user 
             // can pass in a range if they wish.
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
-
-            // Razor uses isFinalized to determine whether to cache tokens. We should be able to remove it altogether once
-            // Roslyn implements workspace/semanticTokens/refresh: https://github.com/dotnet/roslyn/issues/60441
-            var isFinalized = false;
-            if (document.Project.TryGetCompilation(out _))
-            {
-                var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                isFinalized = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            }
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
@@ -168,7 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
-            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
+            return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
         private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
