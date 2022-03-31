@@ -604,7 +604,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalAtSequence">
         <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
-        <target state="translated">'@' karakterleri dizesine izin verilmiyor. Düz metin dizesi veya tanımlayıcı dizede yalnızca bir '@' karakteri olabilir, ham dizede hiç olamaz.</target>
+        <target state="translated">'@' karakterleri dizesine izin verilmiyor. Düz metin dizesi veya tanımlayıcı dizede yalnızca bir '@' karakteri olabilir, ham dizede ise hiç olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -794,7 +794,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
         <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
-        <target state="translated">Satır, sabit değerli ham dizenin kapanış satırındaki aynı boşlukla başlamıyor.</target>
+        <target state="translated">Satır, ham dize sabit değerinin kapanış satırındaki aynı boşlukla başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -1299,7 +1299,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyOpenBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
-        <target state="translated">Düz metin arasına kod ekli ham dize sabit değeri, bu kadar çok ardışık açma küme ayracı içerik olarak izin vermek için yeterli '$' karakterle başlamıyor.</target>
+        <target state="translated">Düz metin arasına kod ekli ham dize sabit değeri, bu kadar çok ardışık açma küme ayracına içerik olarak izin vermek için yeterli '$' karakterle başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
