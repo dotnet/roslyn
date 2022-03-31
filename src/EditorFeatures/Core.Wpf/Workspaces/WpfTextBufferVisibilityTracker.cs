@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             private void VisualElement_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
             {
+                Contract.ThrowIfFalse(_tracker._threadingContext.HasMainThread);
                 foreach (var callback in Callbacks)
                     callback.OnTextBufferVisibilityChanged();
             }
