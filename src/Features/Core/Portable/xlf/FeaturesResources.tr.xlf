@@ -1312,7 +1312,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Property_name_must_be_followed_by_a_colon">
         <source>Property name must be followed by a ':'</source>
-        <target state="translated">Özellik adından sonra ':' gelmelidir</target>
+        <target state="translated">Özellik adından sonra ':' olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -2577,7 +2577,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
-        <target state="translated">İçeri Aktarmaları veya using'ları sırala</target>
+        <target state="translated">İçeri Aktarmaları veya using'leri sırala</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
