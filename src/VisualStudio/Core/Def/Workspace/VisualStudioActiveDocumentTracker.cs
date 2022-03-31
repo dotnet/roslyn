@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -14,12 +13,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -211,9 +208,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsSelectionEvents.OnCmdUIContextChanged([ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")] uint dwCmdUICookie, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] int fActive)
             => VSConstants.E_NOTIMPL;
 
-        public bool IsVisible(ITextBuffer subjectBuffer)
-            => _visibleFrames.Any(f => f.AllTextBuffers.Contains(subjectBuffer));
-
         /// <summary>
         /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,
         /// then it automatically disconnects.
@@ -226,12 +220,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly uint _frameEventsCookie;
 
             internal ITextBuffer? TextBuffer { get; }
-
-            /// <summary>
-            /// Contains <see cref="TextBuffer"/> itself and any other buffers (transitively) parented by it in
-            /// projection scenarios.
-            /// </summary>
-            public readonly HashSet<ITextBuffer> AllTextBuffers = new();
 
             public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame)
             {
@@ -252,23 +240,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         {
                             TextBuffer.Changed += NonRoslynTextBuffer_Changed;
                         }
-
-                        AddAllBuffers(TextBuffer);
-                    }
-                }
-
-                return;
-
-                void AddAllBuffers(ITextBuffer? buffer)
-                {
-                    if (buffer is null)
-                        return;
-
-                    this.AllTextBuffers.Add(buffer);
-                    if (buffer is IProjectionBufferBase projectionBuffer)
-                    {
-                        foreach (var child in projectionBuffer.SourceBuffers)
-                            AddAllBuffers(child);
                     }
                 }
             }
