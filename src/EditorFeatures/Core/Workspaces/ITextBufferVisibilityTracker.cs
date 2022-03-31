@@ -22,9 +22,16 @@ namespace Microsoft.CodeAnalysis.Workspaces
         bool IsVisible(ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Registers to hear about visibility changes for this particular buffer.
+        /// Registers to hear about visibility changes for this particular buffer.  Not: registration will not trigger a
+        /// call to <see cref="ITextBufferVisibilityChangedCallback.OnTextBufferVisibilityChanged"/>.  If clients need
+        /// that information, they should check the <see cref="IsVisible"/> state of the <paramref
+        /// name="subjectBuffer"/> themselves.
         /// </summary>
         void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
+
+        /// <summary>
+        /// Unregister equivalent of <see cref="RegisterForVisibilityChanges"/>.
+        /// </summary>
         void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
     }
 
