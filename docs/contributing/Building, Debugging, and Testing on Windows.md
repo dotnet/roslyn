@@ -196,7 +196,7 @@ See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/
 `C:\Source\roslyn> cd ..`
 `C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
 
-## Replicating Failures in the Used Assemblies leg
+### Replicating Failures in the Used Assemblies leg
 
 In order to replicate test failures in that leg, there are a few options:
 
