@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Workspaces
             var views = _associatedViewService.GetAssociatedTextViews(subjectBuffer).ToImmutableArrayOrEmpty();
 
             // if any of the views were *not* wpf text views, assume the buffer is visible.  We don't know how to
-            // determine the visibility of this buffer.
+            // determine the visibility of this buffer.  While unlikely to happen, this is possible with VS's
+            // extensibility model, which allows for a plugin to host an ITextBuffer in their own impl of an ITextView.
+            // For those cases, just assume these buffers are visible.
             if (views.Any(v => v is not IWpfTextView))
                 return true;
 
