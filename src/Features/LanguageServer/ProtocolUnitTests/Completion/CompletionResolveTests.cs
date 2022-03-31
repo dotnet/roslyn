@@ -347,6 +347,30 @@ link text";
             Assert.NotNull(results.Description);
         }
 
+        [Fact]
+        public async Task TestResolveCompletionItemWithAdditionalEditsAsync()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    {|insert:|}Task M()
+    {
+        aw{|caret:|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "await").ConfigureAwait(false);
+
+            var result = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, clientCompletionItem).ConfigureAwait(false);
+            Assert.Equal("await", result.Label);
+            Assert.NotNull(result.Description);
+            Assert.Equal(testLspServer.GetLocations("caret").Single().Range.End, result.TextEdit.Range.End);
+            Assert.Equal("await", result.TextEdit.NewText);
+            Assert.Equal(testLspServer.GetLocations("insert").Single().Range, result.AdditionalTextEdits.Single().Range);
+        }
+
         private static async Task<LSP.CompletionItem> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
