@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification</source>
-        <target state="new">Add 'this' or 'Me' qualification</target>
+        <target state="translated">添加 “this” 或 “Me” 限定</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">

@@ -1399,7 +1399,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDisposalPattern">
         <source>pattern-based disposal</source>
-        <target state="new">pattern-based disposal</target>
+        <target state="translated">vyřazení na základě vzoru</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
