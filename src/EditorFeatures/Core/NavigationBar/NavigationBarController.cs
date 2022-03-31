@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
+        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
 
@@ -67,12 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
+            _visibilityTracker = visibilityTracker;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
