@@ -249,6 +249,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     this.State = context.State;
 
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
+
+                    // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
+                    // machine resources that the user won't even notice.
+                    if (_visibilityTracker != null && !_visibilityTracker.IsVisible(_subjectBuffer))
+                        Pause();
                 }
             }
 
