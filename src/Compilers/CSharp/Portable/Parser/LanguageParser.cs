@@ -3543,15 +3543,23 @@ parse_member_name:;
                 }
             }
 
-            // check for >>
+            // check for >> and >>>
             var opKind = opToken.Kind;
             var tk = this.CurrentToken;
-            if (opToken.Kind == SyntaxKind.GreaterThanToken && tk.Kind == SyntaxKind.GreaterThanToken)
+            if (opToken.Kind == SyntaxKind.GreaterThanToken && tk.Kind == SyntaxKind.GreaterThanToken &&
+                NoTriviaBetween(opToken, tk)) // no trailing trivia and no leading trivia
             {
-                // no trailing trivia and no leading trivia
-                if (NoTriviaBetween(opToken, tk))
+                var opToken2 = this.EatToken();
+                tk = this.CurrentToken;
+
+                if (tk.Kind == SyntaxKind.GreaterThanToken &&
+                    NoTriviaBetween(opToken2, tk)) // no trailing trivia and no leading trivia
                 {
-                    var opToken2 = this.EatToken();
+                    opToken2 = this.EatToken();
+                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
+                }
+                else
+                {
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
                 }
             }
@@ -10266,6 +10274,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.CoalesceExpression:
                     return true;
@@ -10321,6 +10330,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression:
                     return Precedence.Assignment;
                 case SyntaxKind.CoalesceExpression:
@@ -10352,6 +10362,7 @@ tryAgain:
                     return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                     return Precedence.Shift;
                 case SyntaxKind.AddExpression:
                 case SyntaxKind.SubtractExpression:
@@ -10639,25 +10650,42 @@ tryAgain:
                 var newPrecedence = GetPrecedence(opKind);
 
                 // check for >> or >>=
-                bool doubleOp = false;
+                int tokensToCombine = 1;
                 if (tk == SyntaxKind.GreaterThanToken
-                    && (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(1).Kind == SyntaxKind.GreaterThanEqualsToken))
+                    && (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(1).Kind == SyntaxKind.GreaterThanEqualsToken)
+                    && NoTriviaBetween(this.CurrentToken, this.PeekToken(1))) // check to see if they really are adjacent
                 {
-                    // check to see if they really are adjacent
-                    if (NoTriviaBetween(this.CurrentToken, this.PeekToken(1)))
+                    if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
                     {
-                        if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
+                        if ((this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(2).Kind == SyntaxKind.GreaterThanEqualsToken)
+                            && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
                         {
-                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                            if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+                            {
+                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                            }
+                            else
+                            {
+                                opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                                isAssignmentOperator = true;
+                            }
+
+                            tokensToCombine = 3;
                         }
                         else
                         {
-                            opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
-                            isAssignmentOperator = true;
+                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                            tokensToCombine = 2;
                         }
-                        newPrecedence = GetPrecedence(opKind);
-                        doubleOp = true;
                     }
+                    else
+                    {
+                        opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                        isAssignmentOperator = true;
+                        tokensToCombine = 2;
+                    }
+
+                    newPrecedence = GetPrecedence(opKind);
                 }
 
                 // Check the precedence to see if we should "take" this operator
@@ -10693,12 +10721,24 @@ tryAgain:
                     opToken = this.AddError(opToken, errorCode, opToken.Text);
                 }
 
-                if (doubleOp)
+                // Combine tokens into a single token if needed
+                if (tokensToCombine == 2)
                 {
-                    // combine tokens into a single token
                     var opToken2 = this.EatToken();
                     var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken;
                     opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                }
+                else if (tokensToCombine == 3)
+                {
+                    var opToken2 = this.EatToken();
+                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
+                    opToken2 = this.EatToken();
+                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                }
+                else if (tokensToCombine != 1)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
@@ -12128,6 +12168,7 @@ tryAgain:
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionToken:
                 case SyntaxKind.ColonToken:
                 case SyntaxKind.BarBarToken:
@@ -12144,6 +12185,7 @@ tryAgain:
                 case SyntaxKind.QuestionQuestionEqualsToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.PlusToken:
                 case SyntaxKind.MinusToken:
                 case SyntaxKind.AsteriskToken:

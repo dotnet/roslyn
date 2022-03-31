@@ -428,6 +428,306 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UnsignedRightShiftOperator_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >>>(C x, C y) => x;", options: options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(", ">").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
+                    // (1,15): error CS1003: Syntax error, '(' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(", ">").WithLocation(1, 15),
+                    // (1,15): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 15),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_04()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(", ">=").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 14),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void TrashAfterDeclaration()
         {

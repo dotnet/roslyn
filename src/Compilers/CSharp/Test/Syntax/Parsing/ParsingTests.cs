@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
-        protected void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        protected void UsingNode(string text, CSharpSyntaxNode node, params DiagnosticDescription[] expectedErrors)
         {
             Validate(text, node, expectedErrors);
             UsingNode(node);

@@ -28,3 +28,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(Microsoft.CodeAn
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(Microsoft.CodeAnalysis.SyntaxToken tryKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! block, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CatchClauseSyntax!> catches, Microsoft.CodeAnalysis.CSharp.Syntax.FinallyClauseSyntax? finally) -> Microsoft.CodeAnalysis.CSharp.Syntax.TryStatementSyntax!
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(Microsoft.CodeAnalysis.SyntaxToken tryKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! block, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CatchClauseSyntax!> catches, Microsoft.CodeAnalysis.CSharp.Syntax.FinallyClauseSyntax! finally) -> Microsoft.CodeAnalysis.CSharp.Syntax.TryStatementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.InterpolatedStringExpression(Microsoft.CodeAnalysis.SyntaxToken stringStartToken, Microsoft.CodeAnalysis.SyntaxToken stringEndToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.InterpolatedStringExpressionSyntax!
+
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken = 8287 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanToken = 8286 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftAssignmentExpression = 8726 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftExpression = 8692 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

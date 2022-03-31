@@ -4079,8 +4079,7 @@ top:
                     break;
                 case '>':
                     if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.GreaterThanEqualsToken;
-                    // GreaterThanGreaterThanToken is synthesized in the parser since it is ambiguous (with closing nested type parameter lists)
-                    // else if (AdvanceIfMatches('>')) info.Kind = SyntaxKind.GreaterThanGreaterThanToken;
+                    // GreaterThanGreaterThanToken/GreaterThanGreaterThanGreaterThanToken is synthesized in the parser since it is ambiguous (with closing nested type parameter lists)
                     else info.Kind = SyntaxKind.GreaterThanToken;
                     break;
                 case '<':

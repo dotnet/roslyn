@@ -271,6 +271,9 @@ breaks
             TestNormalizeExpression("a!=b", "a != b");
             TestNormalizeExpression("a<<b", "a << b");
             TestNormalizeExpression("a>>b", "a >> b");
+            TestNormalizeExpression("a>>>b", "a >>> b");
+            TestNormalizeExpression("a>>=b", "a >>= b");
+            TestNormalizeExpression("a>>>=b", "a >>>= b");
             TestNormalizeExpression("a??b", "a ?? b");
 
             TestNormalizeExpression("a<b>.c", "a<b>.c");
@@ -294,6 +297,7 @@ breaks
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+            TestNormalizeExpression("(IList<IList<IList<int>>>)args", "(IList<IList<IList<int>>>)args");
 
             TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }

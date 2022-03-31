@@ -1634,6 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ModuloExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LeftShiftExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.RightShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnsignedRightShiftExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LogicalOrExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LogicalAndExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.BitwiseOrExpression"/></description></item>
@@ -1720,6 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.OrAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LeftShiftAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.RightShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnsignedRightShiftAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CoalesceAssignmentExpression"/></description></item>
     /// </list>
     /// </remarks>
