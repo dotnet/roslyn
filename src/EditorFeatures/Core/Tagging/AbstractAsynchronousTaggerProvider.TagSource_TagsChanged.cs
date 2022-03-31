@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 var tagsChanged = this.TagsChanged;
                 if (tagsChanged == null)
-                    return default;
+                    return ValueTaskFactory.CompletedTask;
 
                 foreach (var collection in snapshotSpans)
                 {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }
 
-                return default;
+                return ValueTaskFactory.CompletedTask;
             }
         }
     }
