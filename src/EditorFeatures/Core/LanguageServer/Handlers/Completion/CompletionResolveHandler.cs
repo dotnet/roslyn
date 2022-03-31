@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -93,12 +95,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (selectedItem.IsComplexTextEdit)
             {
                 Contract.ThrowIfTrue(completionItem.InsertText != null);
-                Contract.ThrowIfTrue(completionItem.TextEdit != null);
 
                 var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-
-                completionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
+                var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                await AddTextEditAsync(completionItem, document, documentText, completionService, selectedItem, snippetsSupported, list.Span, itemDefaultSpan: null, cancellationToken).ConfigureAwait(false);
             }
 
             return completionItem;
@@ -126,20 +126,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return string.Equals(originalDisplayText, completionItem.DisplayText);
         }
 
-        // Internal for testing
-        internal static async Task<LSP.TextEdit> GenerateTextEditAsync(
+        internal static async Task AddTextEditAsync(
+            LSP.CompletionItem lspItem,
             Document document,
+            SourceText documentText,
             CompletionService completionService,
             CompletionItem selectedItem,
             bool snippetsSupported,
+            TextSpan listSpan,
+            TextSpan? itemDefaultSpan,
             CancellationToken cancellationToken)
         {
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             var completionChange = await completionService.GetChangeAsync(
                 document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var completionChangeSpan = completionChange.TextChange.Span;
-            var newText = completionChange.TextChange.NewText;
+
+            // Use CompletionChange.TextChanges so that we can get minimal edits around the cursor for better filtering.
+            // For the rest of the edits that are not around the cursor, classify them as additional edits.
+            var mainEdit = completionChange.TextChanges.Single(change => change.Span.IntersectsWith(listSpan));
+            var additionalEdits = completionChange.TextChanges.Remove(mainEdit);
+
+            var completionChangeSpan = mainEdit.Span;
+            var newText = mainEdit.NewText;
+            var editFormat = LSP.InsertTextFormat.Plaintext;
             Contract.ThrowIfNull(newText);
 
             // If snippets are supported, that means we can move the caret (represented by $0) to
@@ -159,17 +167,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (relativeCaretPosition >= 0 && relativeCaretPosition <= newText.Length)
                     {
                         newText = newText.Insert(relativeCaretPosition, "$0");
+                        editFormat = LSP.InsertTextFormat.Snippet;
                     }
                 }
             }
 
-            var textEdit = new LSP.TextEdit()
+            if (itemDefaultSpan != null && completionChangeSpan == itemDefaultSpan)
             {
-                NewText = newText,
-                Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-            };
+                // The span is the same as the default, we just need to store the new text as
+                // the insert text so the client can create the text edit from it and the default range.
+                lspItem.InsertText = newText;
+            }
+            else
+            {
+                var textEdit = new LSP.TextEdit
+                {
+                    NewText = newText,
+                    Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
+                };
+                lspItem.TextEdit = textEdit;
+            }
 
-            return textEdit;
+            if (!additionalEdits.IsEmpty)
+            {
+                lspItem.AdditionalTextEdits = additionalEdits.Select(edit => new LSP.TextEdit
+                {
+                    NewText = edit.NewText ?? string.Empty,
+                    Range = ProtocolConversions.TextSpanToRange(edit.Span, documentText)
+                }).ToArray();
+            }
+
+            lspItem.InsertTextFormat = editFormat;
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)

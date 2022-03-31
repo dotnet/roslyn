@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     CompletionListSetting = new LSP.CompletionListSetting
                     {
                         ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                    },
+                    CompletionItem = new LSP.CompletionItemSetting
+                    {
+                        SnippetSupport = true,
                     }
                 }
             }
@@ -1359,6 +1363,33 @@ class A
             results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);
             Assert.Empty(results.Items);
+        }
+
+        [Fact]
+        public async Task TestCrefCompletionIncludesCaretPosition()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// <se{|caret:|}
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, s_vsCompletionCapabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var result = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal("<see cref=\"$0\"/>", result.Items.First().InsertText);
+            Assert.Equal(LSP.InsertTextFormat.Snippet, result.Items.First().InsertTextFormat);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

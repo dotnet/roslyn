@@ -180,13 +180,16 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
-            var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+            var documentText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+            var lspItem = new LSP.CompletionItem();
+            await CompletionResolveHandler.AddTextEditAsync(
+                lspItem, document, documentText, new TestCaretOutOfScopeCompletionService(),
+                selectedItem, snippetsSupported: true, TextSpan.FromBounds(77, 77), itemDefaultSpan: null, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();
-    }", textEdit.NewText);
+    }", lspItem.TextEdit.NewText);
         }
 
         [Fact]

@@ -124,10 +124,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var item in list.Items)
             {
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
-                var lspCompletionItem = await CreateLSPCompletionItemAsync(
-                    request, document, item, completionItemResolveData, lspVSClientCapability, commitCharactersRuleCache,
-                    completionService, snippetsSupported, itemDefaultsSupported, stringBuilder, documentText,
-                    defaultSpan, cancellationToken).ConfigureAwait(false);
+
+                var lspCompletionItem = lspVSClientCapability ? new LSP.VSInternalCompletionItem() : new LSP.CompletionItem();
+
+                // Add basic properties like display text, filter text, icons, etc.
+                AddRoslynItemProperties(lspCompletionItem, item, stringBuilder, completionItemResolveData);
+
+                // Convert the roslyn edits to LSP text edits using the default item span where possible.
+                await AddTextEditsAsync(lspCompletionItem, item, document, documentText, completionService, snippetsSupported,
+                    itemDefaultsSupported, list.Span, defaultSpan, cancellationToken).ConfigureAwait(false);
+
+                // Convert the roslyn commit character rules to LSP commit characters.
+                AddCommitCharacters(lspCompletionItem, item, commitCharactersRuleCache, lspVSClientCapability);
+
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
@@ -176,97 +185,66 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return true;
             }
 
-            static async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(
-                LSP.CompletionParams request,
-                Document document,
-                CompletionItem item,
-                CompletionResolveData? completionResolveData,
-                bool supportsVSExtensions,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
-                CompletionService completionService,
-                bool snippetsSupported,
-                bool itemDefaultsSupported,
-                StringBuilder stringBuilder,
-                SourceText documentText,
-                TextSpan defaultSpan,
-                CancellationToken cancellationToken)
+            static void AddRoslynItemProperties(LSP.CompletionItem lspItem, CompletionItem roslynItem, StringBuilder stringBuilder, CompletionResolveData? completionResolveData)
             {
                 // Generate display text
-                stringBuilder.Append(item.DisplayTextPrefix);
-                stringBuilder.Append(item.DisplayText);
-                stringBuilder.Append(item.DisplayTextSuffix);
+                stringBuilder.Append(roslynItem.DisplayTextPrefix);
+                stringBuilder.Append(roslynItem.DisplayText);
+                stringBuilder.Append(roslynItem.DisplayTextSuffix);
                 var completeDisplayText = stringBuilder.ToString();
                 stringBuilder.Clear();
 
-                var completionItem = supportsVSExtensions ? new LSP.VSInternalCompletionItem() : new LSP.CompletionItem();
-                completionItem.Label = completeDisplayText;
-                completionItem.SortText = item.SortText;
-                completionItem.FilterText = item.FilterText;
-                completionItem.Kind = GetCompletionKind(item.Tags);
-                completionItem.Data = completionResolveData;
-                completionItem.Preselect = ShouldItemBePreselected(item);
+                lspItem.Label = completeDisplayText;
+                lspItem.SortText = roslynItem.SortText;
+                lspItem.FilterText = roslynItem.FilterText;
+                lspItem.Kind = GetCompletionKind(roslynItem.Tags);
+                lspItem.Data = completionResolveData;
+                lspItem.Preselect = ShouldItemBePreselected(roslynItem);
 
+                if (lspItem is LSP.VSInternalCompletionItem vsCompletionItem)
+                {
+                    vsCompletionItem.Icon = new ImageElement(roslynItem.Tags.GetFirstGlyph().GetImageId());
+                }
+            }
+
+            static async Task AddTextEditsAsync(
+                LSP.CompletionItem lspItem,
+                CompletionItem roslynItem,
+                Document document,
+                SourceText documentText,
+                CompletionService completionService,
+                bool snippetsSupported,
+                bool itemDefaultsSupported,
+                TextSpan listSpan,
+                TextSpan defaultTextEditSpan,
+                CancellationToken cancellationToken)
+            {
                 // Complex text edits (e.g. override and partial method completions) are always populated in the
                 // resolve handler, so we leave both TextEdit and InsertText unpopulated in these cases.
-                if (item.IsComplexTextEdit && completionItem is LSP.VSInternalCompletionItem vsItem)
+                if (roslynItem.IsComplexTextEdit && lspItem is LSP.VSInternalCompletionItem vsItem)
                 {
                     vsItem.VsResolveTextEditOnCommit = true;
                     // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
                     // We can enable it for regular C# once LSP is used for local completion.
                     if (snippetsSupported)
                     {
-                        completionItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
+                        lspItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                     }
                 }
                 else
                 {
-                    await AddTextEdit(
-                        document, item, completionItem, completionService, documentText, defaultSpan, itemDefaultsSupported, cancellationToken).ConfigureAwait(false);
+                    await CompletionResolveHandler.AddTextEditAsync(
+                        lspItem, document, documentText, completionService, roslynItem, snippetsSupported, listSpan, itemDefaultsSupported ? defaultTextEditSpan : null, cancellationToken).ConfigureAwait(false);
                 }
+            }
 
-                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
+            static void AddCommitCharacters(LSP.CompletionItem lspItem, CompletionItem roslynItem,
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache, bool supportsVSExtensions)
+            {
+                var commitCharacters = GetCommitCharacters(roslynItem, commitCharacterRulesCache, supportsVSExtensions);
                 if (commitCharacters != null)
                 {
-                    completionItem.CommitCharacters = commitCharacters;
-                }
-
-                if (completionItem is LSP.VSInternalCompletionItem vsCompletionItem)
-                {
-                    vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
-                }
-
-                return completionItem;
-
-                static async Task AddTextEdit(
-                    Document document,
-                    CompletionItem item,
-                    LSP.CompletionItem lspItem,
-                    CompletionService completionService,
-                    SourceText documentText,
-                    TextSpan defaultSpan,
-                    bool itemDefaultsSupported,
-                    CancellationToken cancellationToken)
-                {
-                    var completionChange = await completionService.GetChangeAsync(
-                        document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    var completionChangeSpan = completionChange.TextChange.Span;
-                    var newText = completionChange.TextChange.NewText ?? "";
-
-                    if (itemDefaultsSupported && completionChangeSpan == defaultSpan)
-                    {
-                        // The span is the same as the default, we just need to store the new text as
-                        // the insert text so the client can create the text edit from it and the default range.
-                        lspItem.InsertText = newText;
-                    }
-                    else
-                    {
-                        var textEdit = new LSP.TextEdit()
-                        {
-                            NewText = newText,
-                            Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-                        };
-                        lspItem.TextEdit = textEdit;
-                    }
+                    lspItem.CommitCharacters = commitCharacters;
                 }
             }
 
