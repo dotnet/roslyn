@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 switch (first)
                 {
                     case IPropertySymbol propertySymbol:
-                        if (IsTypeLessAccessibleThanOtherType(propertySymbol.Type, second))
+                        if (IsTypeLessAccessibleThanOtherType(propertySymbol.Type, second, new()))
                         {
                             return true;
                         }
@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         return false;
 
                     case IMethodSymbol methodSymbol:
-                        if (IsTypeLessAccessibleThanOtherType(methodSymbol.ReturnType, second))
+                        if (IsTypeLessAccessibleThanOtherType(methodSymbol.ReturnType, second, new()))
                         {
                             return true;
                         }
 
                         foreach (var parameter in methodSymbol.Parameters)
                         {
-                            if (IsTypeLessAccessibleThanOtherType(parameter.Type, second))
+                            if (IsTypeLessAccessibleThanOtherType(parameter.Type, second, new()))
                             {
                                 return true;
                             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                         foreach (var typeArg in methodSymbol.TypeArguments)
                         {
-                            if (IsTypeLessAccessibleThanOtherType(typeArg, second))
+                            if (IsTypeLessAccessibleThanOtherType(typeArg, second, new()))
                             {
                                 return true;
                             }
@@ -73,21 +73,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         return false;
 
                     case IEventSymbol eventSymbol:
-                        return IsTypeLessAccessibleThanOtherType(eventSymbol.Type, second);
+                        return IsTypeLessAccessibleThanOtherType(eventSymbol.Type, second, new());
 
                     default:
                         return false;
                 }
             }
 
-            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol? first, INamedTypeSymbol second, List<ITypeSymbol>? alreadyCheckingTypes = null)
+            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol? first, INamedTypeSymbol second, HashSet<ITypeSymbol> alreadyCheckingTypes)
             {
                 if (first is null)
                 {
                     return false;
                 }
 
-                alreadyCheckingTypes ??= new();
                 alreadyCheckingTypes.Add(first);
 
                 if (first is ITypeParameterSymbol typeParameter)
