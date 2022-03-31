@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
+            /// This is used in <see cref="GetTelemetryId(FixAllScope?)"/> to determine the appropriate type
+            /// name to log in the CodeAction telemetry.
             /// </summary>
             public bool CreatedFromFactoryMethod { get; }
         }
