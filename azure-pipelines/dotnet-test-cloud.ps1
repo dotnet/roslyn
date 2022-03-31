@@ -14,7 +14,7 @@ dotnet test $RepoRoot `
     -c $Configuration `
     --filter "TestCategory!=FailsInCloudTest" `
     -p:CollectCoverage=true `
-    --blame-hang-timeout 30s `
+    --blame-hang-timeout 60s `
     --blame-crash `
     -bl:"$ArtifactStagingFolder/build_logs/test.binlog" `
     --diag "$ArtifactStagingFolder/test_logs/diag.log;TraceLevel=info" `
