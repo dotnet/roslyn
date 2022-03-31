@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                     // We don't want to hang on to the compilation since this can be very expensive,
                     // but we do want to mark the compilation as being successfully retrieved.
-                    _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
+                    if (compilationTask.Result is not null)
+                    {
+                        _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
+                    }
                 }
             }
 
