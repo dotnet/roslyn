@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 
 #if CODE_STYLE
-        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
 #endif
         /// <summary>
         /// Method to update the identifier token for the local/parameter declaration or reference
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
 #if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
+            var provider = GetSyntaxFormatting();
             var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
 #else
             var provider = document.Project.Solution.Workspace.Services;
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
 #if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
+            var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
             var provider = document.Project.Solution.Workspace.Services;

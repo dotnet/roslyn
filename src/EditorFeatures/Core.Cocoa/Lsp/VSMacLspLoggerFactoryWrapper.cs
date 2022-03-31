@@ -29,9 +29,9 @@ internal class VSMacLspLoggerFactoryWrapper : ILspLoggerFactory
         _loggerFactory = loggerFactory;
     }
 
-    public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, string? clientName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+    public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
     {
-        var vsMacLogger = await _loggerFactory.CreateLoggerAsync(serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+        var vsMacLogger = await _loggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
         return new VSMacLspLoggerWrapper(vsMacLogger);
     }
 }

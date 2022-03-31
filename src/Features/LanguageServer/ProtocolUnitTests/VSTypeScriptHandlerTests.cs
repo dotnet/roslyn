@@ -103,7 +103,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             listenerProvider,
             NoOpLspLogger.Instance,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
-            clientName: null,
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 
         jsonRpc.StartListening();

@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             return ImmutableArray.Create<IRequestHandler>(
-                new DocumentPullDiagnosticHandler(serverKind, _diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource),
-                new WorkspacePullDiagnosticHandler(serverKind, _diagnosticService, _editAndContinueDiagnosticUpdateSource));
+                new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource),
+                new WorkspacePullDiagnosticHandler(_diagnosticService, _editAndContinueDiagnosticUpdateSource));
         }
     }
 }
