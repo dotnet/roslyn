@@ -26,6 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting
+            Get
+                Return VisualBasicSyntaxFormatting.Instance
+            End Get
+        End Property
+
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
@@ -36,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 lineToBeIndented As TextLine,
                 options As IndentationOptions,
                 baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter
-            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), baseIndentationRule).
+            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.IndentStyle), baseIndentationRule).
                                        AddRange(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
             Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
