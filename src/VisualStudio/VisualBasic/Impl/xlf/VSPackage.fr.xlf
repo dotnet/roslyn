@@ -30,18 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+        <target state="translated">Souligner les variables réaffectées; afficher les indications en ligne; insérer automatiquement les constructions de fin; modifier les paramètres du listing en mode pretty; modifier le mode de contournement; insérer automatiquement les membres Interface et MustOverride; afficher ou masquer les séparateurs de ligne de procédure; activer ou désactiver les suggestions de correction des erreurs; activer ou désactiver la mise en évidence des références et des mots-clés; 
 Regex;
-regular expressions;
-related components under cursor;
-Report invalid regular expressions;
+ expressions régulières; 
+composants associés sous le curseur; 
+Signaler les expressions régulières invalides; 
 regex;
-regular expression;
+ expression régulière; 
 JSON;
-Colorize JSON strings;
-Report invalid JSON strings;
-Detect and offer editor features for JSON strings;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
+ Coloriser les chaînes JSON; 
+Signaler les chaînes JSON invalides;
+ Détecter et proposer des fonctionnalités d'éditeur pour les chaînes JSON;
+ Utiliser des couleurs améliorées; Schéma de couleurs de l'éditeur; Marge d'héritage; Directives d'importation;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|CommandName">
         <source>AnalysisScopeNone</source>
-        <target state="new">AnalysisScopeNone</target>
+        <target state="translated">AnalysisScopeNone</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">

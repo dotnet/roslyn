@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Apply_isnot_preferences">
         <source>Apply IsNot preferences</source>
-        <target state="new">Apply IsNot preferences</target>
+        <target state="translated">IsNot 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_creation_preferences">
         <source>Apply object creation preferences</source>
-        <target state="new">Apply object creation preferences</target>
+        <target state="translated">개체 만들기 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
