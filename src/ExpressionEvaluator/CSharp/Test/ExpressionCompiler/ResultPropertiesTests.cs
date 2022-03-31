@@ -377,6 +377,8 @@ class C
     void Test()
     {
     }
+    static void F() { }
+    static void F(int i) { }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
@@ -385,7 +387,7 @@ class C
                 var context = CreateMethodContext(runtime, methodName: "C.Test");
 
                 VerifyErrorResultProperties(context, "x => x");
-                VerifyErrorResultProperties(context, "Test");
+                VerifyErrorResultProperties(context, "F");
                 VerifyErrorResultProperties(context, "Missing");
                 VerifyErrorResultProperties(context, "C");
             });

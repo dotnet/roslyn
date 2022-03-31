@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 transaction.Complete();
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
             {
                 throw ExceptionUtilities.Unreachable;
             }

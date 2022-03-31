@@ -134,6 +134,8 @@
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="System.Text.Encodings.Web" />
+      <_Dependency Remove="System.Text.Json" />
       <_Dependency Remove="System.Threading.AccessControl"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="System.Threading.Tasks.Extensions" />

@@ -838,6 +838,11 @@ done:
             {
                 compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
             }
+
+            foreach (var parameter in Parameters)
+            {
+                ParameterHelpers.ReportParameterNullCheckingErrors(diagnostics.DiagnosticBag, parameter);
+            }
         }
 
         // Consider moving this state to SourceMethodSymbol to emit NullableContextAttributes

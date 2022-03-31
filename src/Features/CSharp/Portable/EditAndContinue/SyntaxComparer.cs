@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IndexerDeclaration,                // tied to parent
             EventDeclaration,                  // tied to parent
             EnumMemberDeclaration,             // tied to parent
+            ArrowExpressionClause,             // tied to parent
 
             AccessorList,                      // tied to parent
             AccessorDeclaration,               // tied to parent
@@ -177,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.ConstructorDeclaration:
                 case Label.DestructorDeclaration:
                 case Label.PropertyDeclaration:
+                case Label.ArrowExpressionClause:
                 case Label.IndexerDeclaration:
                 case Label.EventDeclaration:
                 case Label.EnumMemberDeclaration:
@@ -604,6 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.IndexerDeclaration:
                     return Label.IndexerDeclaration;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    if (node.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
+                        return Label.ArrowExpressionClause;
+
+                    break;
 
                 case SyntaxKind.EventDeclaration:
                     return Label.EventDeclaration;
@@ -1411,6 +1419,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((PropertyDeclarationSyntax)node).Identifier;
 
                 case SyntaxKind.IndexerDeclaration:
+                    return null;
+
+                case SyntaxKind.ArrowExpressionClause:
                     return null;
 
                 case SyntaxKind.EventDeclaration:

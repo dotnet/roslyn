@@ -365,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out var nameObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty(folderItemID, (int)VsHierarchyPropID.Name, out var nameObj) == VSConstants.S_OK)
             {
                 // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
@@ -380,7 +380,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 }
             }
 
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty(folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
                 if (parentID is not ((uint)VSConstants.VSITEMID.Nil) and not ((uint)VSConstants.VSITEMID.Root))
@@ -443,7 +443,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return false;
             }
 
-            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+            propertyValue = bool.TryParse(stringPropertyValue, out var parsedBoolValue) ? parsedBoolValue : null;
             return true;
         }
     }

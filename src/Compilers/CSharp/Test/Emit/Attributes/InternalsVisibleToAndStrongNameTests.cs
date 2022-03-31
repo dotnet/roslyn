@@ -2894,5 +2894,280 @@ public class Class1 : TestBaseClass
             var c2 = CreateCompilation(new[] { source1, source2 }, new[] { libRef }, assemblyName: "WantsIVTAccess", options: TestOptions.SigningReleaseDll);
             c2.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
+        public void Issue57742_01()
+        {
+            string lib_cs = @"
+using System.Runtime.CompilerServices;
+
+[ assembly: InternalsVisibleTo(""Issue57742_01, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class PublicKeyConstants
+{
+	public const string PublicKey = ""Something"";
+}
+";
+            var lib = CreateCompilation(lib_cs, assemblyName: "Issue57742_01_Lib");
+
+            string source1 = @"
+[assembly: TestAttribute(""something"" + PublicKeyConstants.PublicKey)]
+
+class TestAttribute : System.Attribute
+{
+	public TestAttribute(string x) {} 
+}
+";
+
+            var comp = CreateCompilation(source1, new[] { lib.ToMetadataReference() }, assemblyName: "Issue57742_01");
+            var expected = new[]
+            {
+                // (2,40): error CS0281: Friend access was granted by 'Issue57742_01_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly
+                // [assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_01_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 40)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source1, new[] { lib.EmitToImageReference() }, assemblyName: "Issue57742_01");
+            comp.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
+        public void Issue57742_02()
+        {
+            string lib_cs = @"
+using System.Runtime.CompilerServices;
+
+[ assembly: InternalsVisibleTo(""Issue57742_02, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class PublicKeyConstants
+{
+	public const string PublicKey = ""Something"";
+}
+";
+            var lib = CreateCompilation(lib_cs, assemblyName: "Issue57742_02_Lib");
+
+            string source1 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""something"" + PublicKeyConstants.PublicKey)]
+";
+
+            var comp = CreateCompilation(source1, new[] { lib.ToMetadataReference() }, assemblyName: "Issue57742_02");
+            var expected = new[]
+            {
+                // (4,45): error CS0281: Friend access was granted by 'Issue57742_02_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_02_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(4, 45)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source1, new[] { lib.EmitToImageReference() }, assemblyName: "Issue57742_02");
+            comp.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
+        public void Issue57742_03()
+        {
+            string lib_cs = @"
+using System.Runtime.CompilerServices;
+
+[ assembly: InternalsVisibleTo(""Issue57742_03, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class PublicKeyConstants
+{
+	public const string PublicKey = ""Something"";
+}
+";
+            var lib = CreateCompilation(lib_cs, assemblyName: "Issue57742_03_Lib");
+
+            string source1 = @"
+using System.Reflection;
+
+[assembly: TestAttribute(""something"" + PublicKeyConstants.PublicKey)]
+[assembly: AssemblyKeyFile(""something"" + PublicKeyConstants.PublicKey)]
+
+class TestAttribute : System.Attribute
+{
+	public TestAttribute(string x) {} 
+}
+";
+
+            CompilationReference compilationReference = lib.ToMetadataReference();
+            var comp = CreateCompilation(source1, new[] { compilationReference }, assemblyName: "Issue57742_03");
+            var expected = new[]
+            {
+                // error CS7027: Error signing output with public key from file 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (4,40): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(4, 40),
+                // (5,42): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 42)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            MetadataReference imageReference = lib.EmitToImageReference();
+            comp = CreateCompilation(source1, new[] { imageReference }, assemblyName: "Issue57742_03");
+            comp.VerifyDiagnostics(expected);
+
+            string source2 = @"
+using System.Reflection;
+
+[assembly: TestAttribute(""something"" + PublicKeyConstants.PublicKey)]
+[assembly: AssemblyKeyName(""something"" + PublicKeyConstants.PublicKey)]
+
+class TestAttribute : System.Attribute
+{
+	public TestAttribute(string x) {} 
+}
+";
+
+            var comp2 = CreateCompilation(source2, new[] { compilationReference }, assemblyName: "Issue57742_03");
+            var expected2 = new[]
+            {
+                // error CS7028: Error signing output with public key from container 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (4,40): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(4, 40),
+                // (5,42): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 42)
+            };
+
+            comp2.VerifyDiagnostics(expected2);
+
+            comp2 = CreateCompilation(source2, new[] { imageReference }, assemblyName: "Issue57742_03");
+            comp2.VerifyDiagnostics(expected2);
+
+            string source3 = @"
+using System.Reflection;
+
+[assembly: AssemblyKeyFile(""something"" + PublicKeyConstants.PublicKey)]
+";
+
+            var comp3 = CreateCompilation(source3, new[] { compilationReference }, assemblyName: "Issue57742_03");
+            var expected3 = new[]
+            {
+                // error CS7027: Error signing output with public key from file 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (4,42): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(4, 42)
+            };
+
+            comp3.VerifyDiagnostics(expected3);
+
+            comp3 = CreateCompilation(source3, new[] { imageReference }, assemblyName: "Issue57742_03");
+            comp3.VerifyDiagnostics(expected3);
+
+            string source4 = @"
+using System.Reflection;
+
+[assembly: AssemblyKeyName(""something"" + PublicKeyConstants.PublicKey)]
+";
+
+            var comp4 = CreateCompilation(source4, new[] { compilationReference }, assemblyName: "Issue57742_03");
+            var expected4 = new[]
+            {
+                // error CS7028: Error signing output with public key from container 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_03, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (4,42): error CS0281: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(4, 42)
+            };
+
+            comp4.VerifyDiagnostics(expected4);
+
+            comp4 = CreateCompilation(source4, new[] { imageReference }, assemblyName: "Issue57742_03");
+            comp4.VerifyDiagnostics(expected4);
+        }
+
+        [Fact]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
+        public void Issue57742_04()
+        {
+            string lib_cs = @"
+using System.Runtime.CompilerServices;
+
+[ assembly: InternalsVisibleTo(""Issue57742_04, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class PublicKeyConstants
+{
+	public const string PublicKey = ""Something"";
+}
+";
+            var lib = CreateCompilation(lib_cs, assemblyName: "Issue57742_04_Lib");
+
+            string source1 = @"
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""something"" + PublicKeyConstants.PublicKey)]
+[assembly: AssemblyKeyFile(""something"" + PublicKeyConstants.PublicKey)]
+";
+
+            CompilationReference compilationReference = lib.ToMetadataReference();
+            var comp = CreateCompilation(source1, new[] { compilationReference }, assemblyName: "Issue57742_04");
+            var expected = new[]
+            {
+                // error CS7027: Error signing output with public key from file 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_04, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_04, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (5,45): error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 45),
+                // (6,42): error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 42)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            MetadataReference imageReference = lib.EmitToImageReference();
+            comp = CreateCompilation(source1, new[] { imageReference }, assemblyName: "Issue57742_04");
+            comp.VerifyDiagnostics(expected);
+
+            string source2 = @"
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""something"" + PublicKeyConstants.PublicKey)]
+[assembly: AssemblyKeyName(""something"" + PublicKeyConstants.PublicKey)]
+";
+
+            var comp2 = CreateCompilation(source2, new[] { compilationReference }, assemblyName: "Issue57742_04");
+            var expected2 = new[]
+            {
+                // error CS7028: Error signing output with public key from container 'somethingSomething' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("somethingSomething", "Assembly signing not supported.").WithLocation(1, 1),
+                // error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('Issue57742_04, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis).WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Issue57742_04, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // (5,45): error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 45),
+                // (6,42): error CS0281: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PublicKeyConstants").WithArguments("Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 42)
+            };
+
+            comp2.VerifyDiagnostics(expected2);
+
+            comp2 = CreateCompilation(source2, new[] { imageReference }, assemblyName: "Issue57742_04");
+            comp2.VerifyDiagnostics(expected2);
+        }
     }
 }

@@ -34,11 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// must be specified in <see cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>.
         /// </summary>
         public TextChangeRange? TextChangeRange { get; }
-        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// The state of the tagger.  Taggers can use this to keep track of information across calls
-        /// to <see cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag})"/>.  Note: state will
+        /// to <see cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.  Note: state will
         /// only be preserved if the tagger infrastructure fully updates itself with the tags that 
         /// were produced.  i.e. if that tagging pass is canceled, then the state set here will not
         /// be preserved and the previous preserved state will be used the next time ProduceTagsAsync
@@ -50,10 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal TaggerContext(
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
-            TextChangeRange? textChangeRange = null,
-            CancellationToken cancellationToken = default)
+            TextChangeRange? textChangeRange = null)
             : this(state: null, ImmutableArray.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
-                   caretPosition, textChangeRange, existingTags: null, cancellationToken)
+                   caretPosition, textChangeRange, existingTags: null)
         {
         }
 
@@ -62,14 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             ImmutableArray<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
-            CancellationToken cancellationToken)
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags)
         {
             this.State = state;
             this.SpansToTag = spansToTag;
             this.CaretPosition = caretPosition;
             this.TextChangeRange = textChangeRange;
-            this.CancellationToken = cancellationToken;
 
             _spansTagged = spansToTag;
             _existingTags = existingTags;

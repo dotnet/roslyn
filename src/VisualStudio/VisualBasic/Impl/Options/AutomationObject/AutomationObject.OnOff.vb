@@ -87,15 +87,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property UseEnhancedColorsForManagedLanguages As Integer
-            Get
-                Return GetOption(FeatureOnOffOptions.UseEnhancedColors)
-            End Get
-            Set(value As Integer)
-                SetOption(FeatureOnOffOptions.UseEnhancedColors, value)
-            End Set
-        End Property
-
         Public Property AddImportsOnPaste As Integer
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)

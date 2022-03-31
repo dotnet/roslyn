@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         private class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
-                Document document, int position, CancellationToken cancellationToken = default)
+                Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
             {
                 var text = (await document.GetTextAsync(cancellationToken)).ToString();
                 var braces = GetMatchingBraces(text, position);

@@ -1734,7 +1734,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome de classe&gt;</target>
+        <target state="translated">&lt;nome da classe&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">

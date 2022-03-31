@@ -427,6 +427,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (node.IsKind(SyntaxKind.QueryExpression))
                     {
+                        // There are some cases where "await" is allowed in a query context. See error CS1995 for details:
+                        // error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
+                        if (TargetToken.IsKind(SyntaxKind.InKeyword))
+                        {
+                            return TargetToken.Parent switch
+                            {
+                                FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause => queryExpression.FromClause == fromClause,
+                                JoinClauseSyntax => true,
+                                _ => false,
+                            };
+                        }
+
                         return false;
                     }
 

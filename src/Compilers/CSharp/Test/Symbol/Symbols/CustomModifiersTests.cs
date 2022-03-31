@@ -2815,5 +2815,188 @@ class CL3 : CL1
 @"Alice and Bob
 Charlie");
         }
+
+        [Fact]
+        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        public void Issue58520_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        string Method () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 6 (0x6)
+        .maxstack 8
+
+        IL_0000: ldstr ""Method""
+        IL_0005: ret
+    } // end of method C1`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<T>()
+    {
+        System.Func<string> x = C3<T>.Method;
+        System.Console.WriteLine(x());
+    }
+}
+";
+            var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Method");
+        }
+
+        [Fact]
+        [WorkItem(58520, "https://github.com/dotnet/roslyn/issues/58520")]
+        public void Issue58520_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C1`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        string Method () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 6 (0x6)
+        .maxstack 8
+
+        IL_0000: ldstr ""Method""
+        IL_0005: ret
+    } // end of method C1`1::Method
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C1`1::.ctor
+
+} // end of class C1`1
+
+.class public auto ansi beforefieldinit C2`1<T>
+    extends System.Object
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2057
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C2`1::.ctor
+
+} // end of class C2`1
+
+.class public auto ansi beforefieldinit C3`1<T>
+    extends class C1`1<int32 modopt(class C2`1<!T>)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x205f
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class C1`1<int32>::.ctor()
+        IL_0006: ret
+    } // end of method C3`1::.ctor
+
+} // end of class C3`1
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        M<int>();
+    }
+
+    static void M<T>()
+    {
+        System.Func<string> x0 = C1<int>.Method;
+        System.Func<string> x1 = C3<T>.Method;
+        System.Console.WriteLine(x0()+x1());
+    }
+}
+";
+            var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"MethodMethod");
+        }
     }
 }

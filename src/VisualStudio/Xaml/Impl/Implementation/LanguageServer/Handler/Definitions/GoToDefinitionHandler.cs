@@ -166,13 +166,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
             else
             {
-                var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
-                if (metadataLocation != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+                if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     var project = context.Document?.GetCodeProject();
                     if (project != null)
                     {
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

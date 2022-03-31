@@ -1902,12 +1902,15 @@ class myClass : alias::Uri
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'alias' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using alias=alias;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "alias").WithArguments("alias").WithLocation(2, 7),
                 // (2,1): error CS1537: The using alias 'alias' appeared previously in this namespace
                 // using alias=alias;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias"),
+                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias").WithLocation(2, 1),
                 // (3,17): error CS0104: 'alias' is an ambiguous reference between '<global namespace>' and '<global namespace>'
                 // class myClass : alias::Uri
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>").WithLocation(3, 17));
         }
 
         [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]

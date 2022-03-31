@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
 
+        public virtual ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken) => default;
+
         public virtual ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken) => default;
 
         public virtual ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;

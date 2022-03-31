@@ -174,7 +174,7 @@ interface i1
 {
     int bar(int x);
 }
-class c : i1
+class @c : i1
 {
     public int bar(int x)
     {
@@ -215,7 +215,7 @@ public interface i1
     float bar(string x);
     int bar(int x);
 }
-class c : i1
+class @c : i1
 {
     public int bar(int x)
     {

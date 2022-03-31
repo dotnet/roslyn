@@ -27,9 +27,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
+        Private ReadOnly _globalOptions As IGlobalOptionService
+
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(globalOptions As IGlobalOptionService)
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -56,9 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
-                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
-                If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
+                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
@@ -68,12 +69,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
+                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
+                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
                                                 documentOptions,
                                                 spanToFormat,
                                                 baseSnapshot, baseTree,
-                                                dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
+                                                dirtyRegion,
+                                                document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).

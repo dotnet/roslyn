@@ -304,9 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // actually X-->Y? in source for the purposes of determining the best target
                         // type of an operator.
                         //
-                        // We perpetuate this fiction here.
+                        // We perpetuate this fiction here, except for cases when Y is not a valid type
+                        // argument for Nullable<T>. This scenario should only be possible when the corlib
+                        // defines a type such as int or long to be a ref struct (see
+                        // LiftedConversion_InvalidTypeArgument02).
 
-                        if ((object)target != null && target.IsNullableType() && convertsTo.IsNonNullableValueType())
+                        if ((object)target != null && target.IsNullableType() && convertsTo.IsValidNullableTypeArgument())
                         {
                             convertsTo = MakeNullableType(convertsTo);
                             toConversion = allowAnyTarget ? Conversion.Identity :
@@ -315,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt, op, fromConversion, toConversion, convertsFrom, convertsTo));
                     }
-                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() &&
+                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument() &&
                         (allowAnyTarget || target.CanBeAssignedNull()))
                     {
                         // As mentioned above, here we diverge from the specification, in two ways.
@@ -334,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the answer to all those questions is "yes" then we lift to nullable
                         // and see if the resulting operator is applicable.
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
-                        TypeSymbol nullableTo = convertsTo.IsNonNullableValueType() ? MakeNullableType(convertsTo) : convertsTo;
+                        TypeSymbol nullableTo = convertsTo.IsValidNullableTypeArgument() ? MakeNullableType(convertsTo) : convertsTo;
                         Conversion liftedFromConversion = EncompassingImplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
                         Conversion liftedToConversion = !allowAnyTarget ?
                             EncompassingImplicitConversion(null, nullableTo, target, ref useSiteInfo) :

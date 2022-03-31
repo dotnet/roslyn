@@ -37,11 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 _asyncListener,
                 callback,
                 _searchPattern,
-                searchCurrentDocument: false,
                 NavigateToUtilities.GetKindsProvided(solution),
                 _threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
 
             return graphBuilder;
         }

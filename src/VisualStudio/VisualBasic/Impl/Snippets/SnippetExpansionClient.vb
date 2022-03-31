@@ -31,16 +31,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
-        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                languageServiceId As Guid,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))) As AbstractSnippetExpansionClient
+        Public Shared Function GetSnippetExpansionClient(
+                threadingContext As IThreadingContext,
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                signatureHelpControllerProvider As SignatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
+                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
+                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
             If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(threadingContext, Guids.VisualBasicDebuggerLanguageId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
+                expansionClient = New SnippetExpansionClient(
+                    threadingContext,
+                    Guids.VisualBasicDebuggerLanguageId,
+                    textView,
+                    subjectBuffer,
+                    signatureHelpControllerProvider,
+                    editorCommandHandlerServiceFactory,
+                    editorAdaptersFactoryService,
+                    argumentProviders,
+                    globalOptions)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 

@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referencedDocumentId = DocumentId.CreateFromSerialized(
                     ProjectId.CreateFromSerialized(descriptor.ProjectGuid), descriptor.DocumentGuid);
 
-                var document = solution.GetDocument(referencedDocumentId);
+                var document = await solution.GetDocumentAsync(referencedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
                     continue;

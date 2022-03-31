@@ -33,9 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
@@ -87,7 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 ' nop
             End Try
         End Function
-        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
+
+        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetTargetToken(position, cancellationToken)
 

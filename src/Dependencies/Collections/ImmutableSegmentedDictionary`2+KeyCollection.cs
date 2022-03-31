@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 => GetEnumerator();
 
             void ICollection<TKey>.CopyTo(TKey[] array, int arrayIndex)
-                => ((ICollection<TKey>)_dictionary._dictionary.Keys).CopyTo(array, arrayIndex);
+                => _dictionary._dictionary.Keys.CopyTo(array, arrayIndex);
 
             void ICollection.CopyTo(Array array, int index)
                 => ((ICollection)_dictionary._dictionary.Keys).CopyTo(array, index);
