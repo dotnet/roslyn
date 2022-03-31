@@ -1362,6 +1362,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
+        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node)
+            => ((CommonForEachStatementSyntax)node).Expression;
+
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 

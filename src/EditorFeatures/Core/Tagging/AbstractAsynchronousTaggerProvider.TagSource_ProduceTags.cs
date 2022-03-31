@@ -168,25 +168,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
-                using var stateRef = _tagSourceState.TryAddReference();
+                _eventChangeQueue.AddWork(initialTags);
+            }
 
-                // No point proceeding if we've been disposed.
-                if (stateRef is null)
+            private async ValueTask ProcessEventChangeAsync(ImmutableArray<bool> changes, CancellationToken cancellationToken)
+            {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
+                // about any prior disposal on the UI thread.
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
-                var state = stateRef.Target;
-
-                var cancellationToken = state.GetCancellationToken(initialTags);
-
-                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                // is completely done.
-                state.EnqueueWork(async () =>
-                {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                }, _dataSource.EventChangeDelay, _asyncListener, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
+                // If any of the requests was for the initial tags, then compute at that speed (normally faster than
+                // normal tags).
+                var initialTags = changes.Any(b => b);
+                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -217,6 +214,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var textChangeRange = this.AccumulatedTextChanges;
                     this.AccumulatedTextChanges = null;
 
+                    // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
+                    // consuming machine resources on work the user isn't likely to see.
+                    await RecomputationDelayIfNonVisibleAsync(spansToTag, cancellationToken).ConfigureAwait(false);
+
+                    // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
+                    // we're always moving to the threadpool here in case the above code ever changes.
                     await TaskScheduler.Default;
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -244,6 +247,26 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
                 }
+            }
+
+            private async Task RecomputationDelayIfNonVisibleAsync(ImmutableArray<DocumentSnapshotSpan> spansToTag, CancellationToken cancellationToken)
+            {
+                // If we're not associated with a workspace, then don't delay tagging.
+                var workspace = _workspaceRegistration.Workspace;
+                if (workspace == null)
+                    return;
+
+                // if we're tagging anything that doesn't have a document, or it's a document that doesn't correspond to
+                // the workspace we're looking at, then don't delay tagging.
+                var documents = spansToTag.SelectAsArray(ss => ss.Document);
+                if (documents.Any(d => d == null || d.Project.Solution.Workspace != workspace))
+                    return;
+
+                // Ok, add a large delay if none of the documents we're tagging are visible.  We still end up letting
+                // the tagging happen once enough time has passed.  This helps ensure we do always reach a fixed point.
+                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                await documentTrackingService.DelayWhileNonVisibleAsync(
+                    documents!, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
@@ -508,6 +531,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 this.AssertIsForeground();
 
+                // If we've been disposed, no need to proceed.
+                if (_disposalTokenSource.Token.IsCancellationRequested)
+                    return null;
+
                 // If this is the first time we're being asked for tags, and we're a tagger that
                 // requires the initial tags be available synchronously on this call, and the 
                 // computation of tags hasn't completed yet, then force the tags to be computed
@@ -517,14 +544,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    using var stateRef = _tagSourceState.TryAddReference();
-                    if (stateRef != null)
-                    {
-                        var disposalToken = stateRef.Target.DisposalToken;
-
-                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
-                    }
+                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;

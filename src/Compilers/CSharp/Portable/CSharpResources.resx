@@ -864,14 +864,14 @@
   <data name="WRN_UseDefViolationProperty_Title" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property</value>
   </data>
-  <data name="ERR_UnassignedThis" xml:space="preserve">
-    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  <data name="ERR_UnassignedThisUnsupportedVersion" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
-  <data name="WRN_UnassignedThis" xml:space="preserve">
-    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  <data name="WRN_UnassignedThisUnsupportedVersion" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
-  <data name="WRN_UnassignedThis_Title" xml:space="preserve">
-    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
+  <data name="WRN_UnassignedThisUnsupportedVersion_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</value>
   </data>
   <data name="ERR_AmbigQM" xml:space="preserve">
     <value>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</value>
@@ -939,14 +939,14 @@
   <data name="ERR_DefaultLiteralNotValid" xml:space="preserve">
     <value>Use of default literal is not valid in this context</value>
   </data>
-  <data name="ERR_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  <data name="ERR_UseDefViolationThisUnsupportedVersion" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</value>
   </data>
-  <data name="WRN_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  <data name="WRN_UseDefViolationThisUnsupportedVersion" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</value>
   </data>
-  <data name="WRN_UseDefViolationThis_Title" xml:space="preserve">
-    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
+  <data name="WRN_UseDefViolationThisUnsupportedVersion_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</value>
   </data>
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
@@ -2318,14 +2318,14 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_RecursivelyTypedVariable" xml:space="preserve">
     <value>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</value>
   </data>
-  <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  <data name="ERR_UnassignedThisAutoPropertyUnsupportedVersion" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
-  <data name="WRN_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  <data name="WRN_UnassignedThisAutoPropertyUnsupportedVersion" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
-  <data name="WRN_UnassignedThisAutoProperty_Title" xml:space="preserve">
-    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
+  <data name="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -6334,6 +6334,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
     <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
+  <data name="IDS_FeatureSpanCharConstantPattern" xml:space="preserve">
+    <value>pattern matching ReadOnly/Span&lt;char&gt; on constant string</value>
+  </data>
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
   </data>
@@ -6694,6 +6697,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
     <value>line span directive</value>
   </data>
+  <data name="IDS_FeatureAutoDefaultStructs" xml:space="preserve">
+    <value>auto default struct fields</value>
+  </data>
   <data name="ERR_LineSpanDirectiveInvalidValue" xml:space="preserve">
     <value>The #line directive value is missing or out of range</value>
   </data>
@@ -6766,6 +6772,63 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
   </data>
+
+  <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
+    <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+  <data name="WRN_UseDefViolationPropertySupportedVersion_Title" xml:space="preserve">
+    <value>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+
+  <data name="WRN_UseDefViolationFieldSupportedVersion" xml:space="preserve">
+    <value>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+  <data name="WRN_UseDefViolationFieldSupportedVersion_Title" xml:space="preserve">
+    <value>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+
+  <data name="WRN_UseDefViolationThisSupportedVersion" xml:space="preserve">
+    <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
+  </data>
+  <data name="WRN_UseDefViolationThisSupportedVersion_Title" xml:space="preserve">
+    <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
+  </data>
+
+  <data name="WRN_UnassignedThisAutoPropertySupportedVersion" xml:space="preserve">
+    <value>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoPropertySupportedVersion_Title" xml:space="preserve">
+    <value>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+
+  <data name="WRN_UnassignedThisSupportedVersion" xml:space="preserve">
+    <value>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+  <data name="WRN_UnassignedThisSupportedVersion_Title" xml:space="preserve">
+    <value>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
+  </data>
+
+  <data name="ERR_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
+  </data>
+  <data name="ERR_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
+  </data>
+
+  <data name="WRN_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
+  </data>
+  <data name="WRN_UseDefViolationFieldUnsupportedVersion_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</value>
+  </data>
+
+  <data name="WRN_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
+  </data>
+  <data name="WRN_UseDefViolationPropertyUnsupportedVersion_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</value>
+  </data>
+
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6961,6 +7024,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
+  </data>
+  <data name="ERR_PatternSpanCharCannotBeStringNull" xml:space="preserve">
+    <value>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</value>
   </data>
   <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
     <value>Cannot update because an inferred delegate type has changed.</value>

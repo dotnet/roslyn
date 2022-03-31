@@ -172,6 +172,11 @@
         <target state="translated">Calcul des dépendants...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="new">Call Hierarchy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Valeur du site d'appel :</target>
@@ -455,6 +460,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -827,6 +837,11 @@
         <target state="translated">Règles de nommage</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Accéder à « {0} »</target>
@@ -835,6 +850,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">Accéder aux sources externes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
@@ -1055,6 +1075,11 @@
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Préférer les fonctions locales statiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top level statements</source>
+        <target state="new">Prefer top level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">

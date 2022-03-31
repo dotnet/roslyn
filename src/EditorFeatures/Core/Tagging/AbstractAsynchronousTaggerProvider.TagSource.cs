@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly IAsynchronousOperationListener _asyncListener;
 
             /// <summary>
+            /// Information about what workspace the buffer we're tagging is associated with.
+            /// </summary>
+            private readonly WorkspaceRegistration _workspaceRegistration;
+
+            /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
@@ -68,11 +73,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
-            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
+            /// <summary>
+            /// Boolean specifies if this is the initial set of tags being computed or not.  This queue is used to batch
+            /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
+            /// to actually produce the latest set of tags.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
 
             #endregion
 
             #region Fields that can only be accessed from the foreground thread
+
+            /// <summary>
+            /// Cancellation token governing all our async work.  Canceled/disposed when we are <see cref="Dispose"/>'d.
+            /// </summary>
+            private readonly CancellationTokenSource _disposalTokenSource = new();
 
             private readonly ITextView _textViewOpt;
             private readonly ITextBuffer _subjectBuffer;
@@ -115,12 +130,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
+                _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
+
+                // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
+                // asked for initial tags or not
+                _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
+                    dataSource.EventChangeDelay.ComputeTimeDelay(),
+                    ProcessEventChangeAsync,
+                    EqualityComparer<bool>.Default,
+                    asyncListener,
+                    _disposalTokenSource.Token);
+
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _tagSourceState.Target.DisposalToken);
+                    _disposalTokenSource.Token);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -135,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _tagSourceState.Target.DisposalToken);
+                        _disposalTokenSource.Token);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -178,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                _tagSourceState.Dispose();
+                _disposalTokenSource.Cancel();
+                _disposalTokenSource.Dispose();
 
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);

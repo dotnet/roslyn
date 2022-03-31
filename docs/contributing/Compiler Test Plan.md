@@ -95,7 +95,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
@@ -360,6 +360,7 @@ __makeref( x )
 - Var Pattern
 - Declaration Pattern
 - Constant Pattern
+- Constant `string` matching `Span<char>`
 - Recursive Pattern
 - Parenthesized Pattern
 - `and` Pattern
