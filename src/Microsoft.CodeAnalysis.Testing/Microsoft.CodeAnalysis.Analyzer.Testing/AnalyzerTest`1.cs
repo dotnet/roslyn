@@ -1274,15 +1274,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
         protected (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string projectPathPrefix, string path)
         {
-            if (Path.IsPathRooted(path))
-            {
-                // If the user provides a rooted path as the file name, just use that as-is.
-                return (path, NoFoldersArray);
-            }
-
             // Normalize to platform path separators for simplicity later on
-            var normalizedPath = path.Replace('\\', Path.DirectorySeparatorChar);
-            var normalizedDefaultPathPrefix = projectPathPrefix.Replace('\\', Path.DirectorySeparatorChar);
+            var normalizedPath = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var normalizedDefaultPathPrefix = projectPathPrefix.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
             if (!Path.IsPathRooted(normalizedDefaultPathPrefix))
             {
                 // If our default path isn't rooted, then we assume that we don't have any rooted paths
@@ -1299,14 +1294,20 @@ namespace Microsoft.CodeAnalysis.Testing
             if (!normalizedPath.StartsWith(projectRootPath))
             {
                 // If our path doesn't start with the default path prefix, then the file is out of tree.
-                // To match VS behavior, we will report no folders and only the file name.
+                if (Path.IsPathRooted(normalizedPath))
+                {
+                    // If the user provides a rooted path as the file name, just use that as-is.
+                    return (path, NoFoldersArray);
+                }
+
+                // Otherwise, to match VS behavior we will report no folders and only the file name.
                 return (Path.GetFileName(normalizedPath), NoFoldersArray);
             }
 
             var subpath = normalizedPath.Substring(projectRootPath.Length);
 
             var fileName = Path.GetFileName(subpath);
-            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar);
             return (fileName, folders);
         }
 
