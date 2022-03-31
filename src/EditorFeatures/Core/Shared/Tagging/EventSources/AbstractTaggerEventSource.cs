@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -18,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public event EventHandler<TaggerEventArgs>? Changed;
 
-        protected virtual void RaiseChanged()
-            => this.Changed?.Invoke(this, new TaggerEventArgs());
+        protected void RaiseChanged()
+        {
+            this.Changed?.Invoke(this, new TaggerEventArgs());
+        }
     }
 }

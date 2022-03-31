@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -79,8 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #region Fields that can only be accessed from the foreground thread
 
-            private readonly ITextView _textViewOpt;
+            private readonly ITextView? _textView;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
             /// <summary>
             /// Our tagger event source that lets us know when we should call into the tag producer for
@@ -105,8 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             #endregion
 
             public TagSource(
-                ITextView textViewOpt,
+                ITextView? textView,
                 ITextBuffer subjectBuffer,
+                ITextBufferVisibilityTracker? visibilityTracker,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
@@ -115,8 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
+                _textView = textView;
                 _subjectBuffer = subjectBuffer;
-                _textViewOpt = textViewOpt;
+                _visibilityTracker = visibilityTracker;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
@@ -169,13 +172,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                     {
-                        if (_textViewOpt == null)
+                        if (_textView == null)
                         {
                             throw new ArgumentException(
                                 nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
                         }
 
-                        _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
+                        _textView.Caret.PositionChanged += OnCaretPositionChanged;
                     }
 
                     // Tell the interaction object to start issuing events.
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _tagSourceState.Dispose();
 
-                _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
+                _dataSource.RemoveTagSource(_textView, _subjectBuffer);
                 GC.SuppressFinalize(this);
 
                 Disconnect();
@@ -203,7 +206,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                     {
-                        _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                        Contract.ThrowIfNull(_textView);
+                        _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                     }
 
                     if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
@@ -217,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ITaggerEventSource CreateEventSource()
             {
-                var eventSource = _dataSource.CreateEventSource(_textViewOpt, _subjectBuffer);
+                var eventSource = _dataSource.CreateEventSource(_textView, _subjectBuffer);
 
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.

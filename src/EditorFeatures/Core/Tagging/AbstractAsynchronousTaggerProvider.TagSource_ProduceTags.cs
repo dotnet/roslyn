@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
-                var caret = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                var caret = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // thread to do the computation. Finally, once new tags have been computed, then we update our state
                     // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
-                    var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                    var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // TODO: Update to tag spans from all related documents.
 
                 using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
-                var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
+                var spansToTag = _dataSource.GetSpansToTag(_textView, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
                 {
@@ -563,6 +563,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
                 this.AssertIsForeground();
+
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
