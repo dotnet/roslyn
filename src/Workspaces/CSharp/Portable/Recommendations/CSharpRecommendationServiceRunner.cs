@@ -234,47 +234,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // So if we are validating an interface, then we can just check for 2 of this possible variants
                 return (namedType.Name == "IAsyncEnumerable" || namedType.Name == "IAsyncEnumerator") &&
                     namedType.TypeParameters.Length == 1 &&
-                    IsSymbolFromSystemRuntimeOrMscorlibAssembly(namedType);
+                    namedType.IsFromSystemRuntimeOrMscorlibAssembly();
             }
 
             if (namedType.TypeKind == TypeKind.Class &&
                 namedType.Name == "Task" &&
                 namedType.TypeParameters.Length < 2 &&
-                IsSymbolFromSystemRuntimeOrMscorlibAssembly(namedType))
+                namedType.IsFromSystemRuntimeOrMscorlibAssembly())
             {
                 return true;
             }
 
             var attributes = namedType.GetAttributes();
 
-            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && IsSymbolFromSystemRuntimeOrMscorlibAssembly(el.AttributeClass!)))
+            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && el.AttributeClass!.IsFromSystemRuntimeOrMscorlibAssembly()))
             {
                 return true;
             }
 
             return false;
-
-            static bool IsSymbolFromSystemRuntimeOrMscorlibAssembly(ISymbol symbol)
-            {
-                if ((symbol.ContainingAssembly.Name != "System.Runtime" && symbol.ContainingAssembly.Name != "mscorlib") ||
-                    !symbol.ContainingAssembly.Identity.IsStrongName ||
-                    symbol.ContainingAssembly.Identity.PublicKeyToken.Length != 8)
-                {
-                    return false;
-                }
-
-                var publicTokenKey = symbol.ContainingAssembly.Identity.PublicKeyToken;
-
-                // Left column - tokens for System.Runtime, right column - for mscorlib
-                return (publicTokenKey[0] == 176 || publicTokenKey[0] == 183) &&
-                       (publicTokenKey[1] == 63 || publicTokenKey[1] == 122) &&
-                       (publicTokenKey[2] == 95 || publicTokenKey[2] == 92) &&
-                       (publicTokenKey[3] == 127 || publicTokenKey[3] == 86) &&
-                       (publicTokenKey[4] == 17 || publicTokenKey[4] == 25) &&
-                       (publicTokenKey[5] == 213 || publicTokenKey[5] == 52) &&
-                       (publicTokenKey[6] == 10 || publicTokenKey[6] == 224) &&
-                       (publicTokenKey[7] == 58 || publicTokenKey[7] == 137);
-            }
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()

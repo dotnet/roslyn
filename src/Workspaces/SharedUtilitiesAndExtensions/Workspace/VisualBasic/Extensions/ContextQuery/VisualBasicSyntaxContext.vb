@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public Overrides ReadOnly Property IsAsyncMemberDeclarationContext As Boolean
             Get
                 ' In VB cursor placed in "Public Async Function MyFunc() As $$" is treated as within async method
-                Return MyBase.IsWithinAsyncMethod
+                Return MyBase.IsWithinAsyncMethod AndAlso TryCast(TargetToken.Parent.Parent, MethodStatementSyntax) IsNot Nothing
             End Get
         End Property
 

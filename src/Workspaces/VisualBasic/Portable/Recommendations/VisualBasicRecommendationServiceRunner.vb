@@ -404,7 +404,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
             End If
 
+            If _context.IsAsyncMemberDeclarationContext Then
+                Return symbols.WhereAsArray(Function(s) IsSymbolValidForAsyncDeclarationContext(s))
+            End If
+
             Return symbols
+        End Function
+
+        Private Shared Function IsSymbolValidForAsyncDeclarationContext(symbol As ISymbol) As Boolean
+            Dim namedType As INamedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
+            Return namedType IsNot Nothing AndAlso
+                namedType.TypeKind = TypeKind.Class AndAlso
+                namedType.Name = "Task" AndAlso
+                namedType.TypeParameters.Length < 2 AndAlso
+                namedType.IsFromSystemRuntimeOrMscorlibAssembly()
         End Function
 
         Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean

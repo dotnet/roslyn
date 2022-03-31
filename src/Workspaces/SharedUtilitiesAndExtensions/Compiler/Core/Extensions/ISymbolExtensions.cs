@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol.Name.StartsWith("_") &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
         /// <summary>
         /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
@@ -761,7 +761,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol.GetAttributes().Any(x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
-                ContainingNamespace: { Name: nameof(System) },
+                ContainingNamespace.Name: nameof(System),
             });
+
+        public static bool IsFromSystemRuntimeOrMscorlibAssembly(this ISymbol symbol)
+        {
+            if ((symbol.ContainingAssembly.Name != "System.Runtime" && symbol.ContainingAssembly.Name != "mscorlib") ||
+                !symbol.ContainingAssembly.Identity.IsStrongName ||
+                symbol.ContainingAssembly.Identity.PublicKeyToken.Length != 8)
+            {
+                return false;
+            }
+
+            var publicTokenKey = symbol.ContainingAssembly.Identity.PublicKeyToken;
+
+            // Left column - tokens for System.Runtime, right column - for mscorlib
+            return (publicTokenKey[0] == 176 || publicTokenKey[0] == 183) &&
+                   (publicTokenKey[1] == 63 || publicTokenKey[1] == 122) &&
+                   (publicTokenKey[2] == 95 || publicTokenKey[2] == 92) &&
+                   (publicTokenKey[3] == 127 || publicTokenKey[3] == 86) &&
+                   (publicTokenKey[4] == 17 || publicTokenKey[4] == 25) &&
+                   (publicTokenKey[5] == 213 || publicTokenKey[5] == 52) &&
+                   (publicTokenKey[6] == 10 || publicTokenKey[6] == 224) &&
+                   (publicTokenKey[7] == 58 || publicTokenKey[7] == 137);
+        }
     }
 }
