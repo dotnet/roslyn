@@ -1195,8 +1195,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     additionalProjectId,
                     solution.GetProject(additionalProjectId).CompilationOptions
                         .WithOutputKind(projectState.OutputKind)
-                        .WithXmlReferenceResolver(xmlReferenceResolver)
-                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer));
+                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer)
+                        .WithXmlReferenceResolver(xmlReferenceResolver));
 
                 solution = solution.WithProjectParseOptions(
                     additionalProjectId,
@@ -1210,21 +1210,21 @@ namespace Microsoft.CodeAnalysis.Testing
                 foreach (var (newFileName, source) in projectState.Sources)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
                     solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AdditionalFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
                     solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AnalyzerConfigFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
                     solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
             }
@@ -1234,21 +1234,21 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var (newFileName, source) in primaryProject.Sources)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
                 solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AdditionalFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
                 solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AnalyzerConfigFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
                 solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        protected (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
+        protected (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string projectPathPrefix, string path)
         {
             if (Path.IsPathRooted(path))
             {
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Normalize to platform path separators for simplicity later on
             var normalizedPath = path.Replace('\\', Path.DirectorySeparatorChar);
-            var normalizedDefaultPathPrefix = DefaultFilePath.Replace('\\', Path.DirectorySeparatorChar);
+            var normalizedDefaultPathPrefix = projectPathPrefix.Replace('\\', Path.DirectorySeparatorChar);
             if (!Path.IsPathRooted(normalizedDefaultPathPrefix))
             {
                 // If our default path isn't rooted, then we assume that we don't have any rooted paths

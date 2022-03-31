@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     // Source-generated sources are implicitly in a subtree, so they have a different folders calculation.
                     var (fileName, folders) = i < numOriginalSources
-                        ? GetNameAndFoldersFromPath(expectedSources[i].filename)
+                        ? GetNameAndFoldersFromPath(DefaultFilePathPrefix, expectedSources[i].filename)
                         : GetNameAndFoldersFromSourceGeneratedFilePath(expectedSources[i].filename);
                     verifier.Equal(fileName, updatedDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedDocuments[i].Name}'");
                     verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join(DirectorySeparatorString, folders)}' but was '{string.Join(DirectorySeparatorString, updatedDocuments[i].Folders)}'");
