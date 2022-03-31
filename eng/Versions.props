@@ -93,7 +93,7 @@
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion>
-    <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
+    <MicrosoftCSharpVersion>4.7.0</MicrosoftCSharpVersion>
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.339</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
@@ -170,7 +170,7 @@
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellDesignVersion>
-    <MicrosoftVisualStudioTelemetryVersion>16.3.211</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTelemetryVersion>16.3.600</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextInternalVersion>
