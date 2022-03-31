@@ -67,14 +67,16 @@ namespace Microsoft.CodeAnalysis.Workspaces
             var views = _associatedViewService.GetAssociatedTextViews(subjectBuffer).ToImmutableArrayOrEmpty();
 
             // if any of the views were *not* wpf text views, assume the buffer is visible.  We don't know how to
-            // determine the visibility of this buffer.
+            // determine the visibility of this buffer.  While unlikely to happen, this is possible with VS's
+            // extensibility model, which allows for a plugin to host an ITextBuffer in their own impl of an ITextView.
+            // For those cases, just assume these buffers are visible.
             if (views.Any(v => v is not IWpfTextView))
                 return true;
 
             return views.OfType<IWpfTextView>().Any(v => v.VisualElement.IsVisible);
         }
 
-        public void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback)
+        public void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
             if (!_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data))
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             data.Callbacks.Add(callback);
         }
 
-        public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback)
+        public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         private sealed class VisibleTrackerData : IDisposable
         {
-            public readonly HashSet<ITextBufferVisibilityChangedCallback> Callbacks = new();
+            public readonly HashSet<Action> Callbacks = new();
             public readonly HashSet<ITextView> TextViews = new();
 
             private readonly WpfTextBufferVisibilityTracker _tracker;
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             {
                 Contract.ThrowIfFalse(_tracker._threadingContext.HasMainThread);
                 foreach (var callback in Callbacks)
-                    callback.OnTextBufferVisibilityChanged();
+                    callback();
             }
         }
     }

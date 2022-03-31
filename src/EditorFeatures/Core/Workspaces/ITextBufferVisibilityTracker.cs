@@ -22,15 +22,16 @@ namespace Microsoft.CodeAnalysis.Workspaces
         bool IsVisible(ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Registers to hear about visibility changes for this particular buffer.
+        /// Registers to hear about visibility changes for this particular buffer.  Note: registration will not trigger
+        /// a call to <paramref name="callback"/>.  If clients need that information, they should check the <see
+        /// cref="IsVisible"/> state of the <paramref name="subjectBuffer"/> themselves.
         /// </summary>
-        void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
-        void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
-    }
+        void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback);
 
-    internal interface ITextBufferVisibilityChangedCallback
-    {
-        void OnTextBufferVisibilityChanged();
+        /// <summary>
+        /// Unregister equivalent of <see cref="RegisterForVisibilityChanges"/>.
+        /// </summary>
+        void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback);
     }
 
     internal static class ITextBufferVisibilityTrackerExtensions
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // something see it is not visible, but then do not hear about its visibility change because we've hooked up
             // our event after that happens.
             var visibilityChangedTaskSource = new TaskCompletionSource<bool>();
-            var callback = new VisibilityCallback(visibilityChangedTaskSource);
+            var callback = () => visibilityChangedTaskSource.SetResult(true);
             service.RegisterForVisibilityChanges(subjectBuffer, callback);
 
             try
@@ -72,17 +73,6 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 service.UnregisterForVisibilityChanges(subjectBuffer, callback);
             }
-        }
-
-        private class VisibilityCallback : ITextBufferVisibilityChangedCallback
-        {
-            private readonly TaskCompletionSource<bool> _visibilityChangedTaskSource;
-
-            public VisibilityCallback(TaskCompletionSource<bool> visibilityChangedTaskSource)
-                => _visibilityChangedTaskSource = visibilityChangedTaskSource;
-
-            public void OnTextBufferVisibilityChanged()
-                => _visibilityChangedTaskSource.SetResult(true);
         }
     }
 }

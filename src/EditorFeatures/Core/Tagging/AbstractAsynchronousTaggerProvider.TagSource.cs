@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
         /// subject buffers at once) have their own providers and tag source derivations.</para>
         /// </summary>
-        private sealed partial class TagSource : ForegroundThreadAffinitizedObject, ITextBufferVisibilityChangedCallback
+        private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
             /// <summary>
             /// If we get more than this many differences, then we just issue it as a single change
@@ -73,15 +73,27 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
-            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
+            /// <summary>
+            /// Boolean specifies if this is the initial set of tags being computed or not.  This queue is used to batch
+            /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
+            /// to actually produce the latest set of tags.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
 
             #endregion
 
             #region Fields that can only be accessed from the foreground thread
 
+            /// <summary>
+            /// Cancellation token governing all our async work.  Canceled/disposed when we are <see cref="Dispose"/>'d.
+            /// </summary>
+            private readonly CancellationTokenSource _disposalTokenSource = new();
+
             private readonly ITextView? _textView;
             private readonly ITextBuffer _subjectBuffer;
+
             private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+            private readonly Action _onVisibilityChanged;
 
             /// <summary>
             /// Our tagger event source that lets us know when we should call into the tag producer for
@@ -130,12 +142,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
+                // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
+                // asked for initial tags or not
+                _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
+                    dataSource.EventChangeDelay.ComputeTimeDelay(),
+                    ProcessEventChangeAsync,
+                    EqualityComparer<bool>.Default,
+                    asyncListener,
+                    _disposalTokenSource.Token);
+
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _tagSourceState.Target.DisposalToken);
+                    _disposalTokenSource.Token);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -150,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _tagSourceState.Target.DisposalToken);
+                        _disposalTokenSource.Token);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -162,7 +183,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // to a complete state as soon as possible.
                 EnqueueWork(initialTags: true);
 
-                _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, this);
+                _onVisibilityChanged = () =>
+                {
+                    this.AssertIsForeground();
+
+                    // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                    // themselves immediately afterwards.
+                    Resume();
+                };
+
+                _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
 
                 return;
 
@@ -195,9 +225,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, this);
+                _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
 
-                _tagSourceState.Dispose();
+                _disposalTokenSource.Cancel();
+                _disposalTokenSource.Dispose();
 
                 _dataSource.RemoveTagSource(_textView, _subjectBuffer);
                 GC.SuppressFinalize(this);
@@ -226,15 +257,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     _eventSource.Changed -= OnEventSourceChanged;
                 }
-            }
-
-            void ITextBufferVisibilityChangedCallback.OnTextBufferVisibilityChanged()
-            {
-                this.AssertIsForeground();
-
-                // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
-                // themselves immediately afterwards.
-                Resume();
             }
 
             private void Pause()
