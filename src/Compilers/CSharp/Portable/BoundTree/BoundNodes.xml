@@ -1302,6 +1302,12 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
 
+  <Node Name="BoundUTF8String" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Value" Type="string" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundThisReference" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>   

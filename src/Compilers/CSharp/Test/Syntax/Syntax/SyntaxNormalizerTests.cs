@@ -88,6 +88,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStringsUTF8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one""""""u8, 2 => """"""two""""""U8, 3 => """"""three""""""u8, {} => """""">= 4""""""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one""""""u8,
+  2 => """"""two""""""U8,
+  3 => """"""three""""""u8,
+  { } => """""">= 4""""""U8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultiline()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """""", 2 =>
+""""""
+   two
+"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """""",
+  2 => """"""
+   two
+""""""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultilineUTF8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """"""U8, 2 =>
+""""""
+   two
+""""""u8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """"""U8,
+  2 => """"""
+   two
+""""""u8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionStringsUTF8()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 =>
+    ""one""u8     , 2 =>
+  @""two""u8   , 3 =>
+ ""three""U8  , {} =>
+@"">= 4""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => ""one""u8,
+  2 => @""two""u8,
+  3 => ""three""U8,
+  { } => @"">= 4""U8
+};".NormalizeLineEndings()
+            );
+        }
+
         [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchRecPattern()
         {

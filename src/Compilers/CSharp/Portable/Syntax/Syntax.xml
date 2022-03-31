@@ -865,6 +865,7 @@
     <Kind Name="ArgListExpression"/>
     <Kind Name="NumericLiteralExpression"/>
     <Kind Name="StringLiteralExpression"/>
+    <Kind Name="UTF8StringLiteralExpression"/>
     <Kind Name="CharacterLiteralExpression"/>
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
@@ -874,8 +875,11 @@
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
       <Kind Name="StringLiteralToken"/>
+      <Kind Name="UTF8StringLiteralToken"/>
       <Kind Name="MultiLineRawStringLiteralToken"/>
+      <Kind Name="UTF8MultiLineRawStringLiteralToken"/>
       <Kind Name="SingleLineRawStringLiteralToken"/>
+      <Kind Name="UTF8SingleLineRawStringLiteralToken"/>
       <Kind Name="CharacterLiteralToken"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>

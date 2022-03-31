@@ -673,6 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.UTF8StringLiteralExpression:
+                    return BindUTF8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.DefaultLiteralExpression:
                     return new BoundDefaultLiteral(node);
 
@@ -5893,9 +5896,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (node.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            {
                 MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node, node.Location);
+            }
 
             return new BoundLiteral(node, cv, type);
+        }
+
+        private BoundUTF8String BindUTF8StringLiteral(LiteralExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.Kind() == SyntaxKind.UTF8StringLiteralExpression);
+            Debug.Assert(node.Token.Kind() is SyntaxKind.UTF8StringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken);
+
+            if (node.Token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRawStringLiterals, diagnostics);
+            }
+
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+
+            var value = (string)node.Token.Value;
+            var type = ArrayTypeSymbol.CreateSZArray(Compilation.Assembly, TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Byte, diagnostics, node)));
+
+            return new BoundUTF8String(node, value, type);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)

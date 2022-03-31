@@ -10211,8 +10211,11 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
@@ -10437,6 +10440,7 @@ tryAgain:
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.StackAllocArrayCreationExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.UTF8StringLiteralExpression:
                 case SyntaxKind.SuppressNullableWarningExpression:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
@@ -10501,8 +10505,11 @@ tryAgain:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                     case SyntaxKind.InterpolatedStringToken:
+                    case SyntaxKind.UTF8StringLiteralToken:
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
@@ -10940,8 +10947,11 @@ tryAgain:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                 case SyntaxKind.InterpolatedStringStartToken:

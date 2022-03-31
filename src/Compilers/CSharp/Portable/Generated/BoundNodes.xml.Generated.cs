@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TryStatement,
         CatchBlock,
         Literal,
+        UTF8String,
         ThisReference,
         PreviousSubmissionReference,
         HostObjectMemberReference,
@@ -4240,6 +4241,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundLiteral(this.Syntax, constantValueOpt, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUTF8String : BoundExpression
+    {
+        public BoundUTF8String(SyntaxNode syntax, string value, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.UTF8String, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Value = value;
+        }
+
+        public BoundUTF8String(SyntaxNode syntax, string value, TypeSymbol type)
+            : base(BoundKind.UTF8String, syntax, type)
+        {
+
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Value = value;
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+
+        public string Value { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUTF8String(this);
+
+        public BoundUTF8String Update(string value, TypeSymbol type)
+        {
+            if (value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundUTF8String(this.Syntax, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8986,6 +9028,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCatchBlock((BoundCatchBlock)node, arg);
                 case BoundKind.Literal:
                     return VisitLiteral((BoundLiteral)node, arg);
+                case BoundKind.UTF8String:
+                    return VisitUTF8String((BoundUTF8String)node, arg);
                 case BoundKind.ThisReference:
                     return VisitThisReference((BoundThisReference)node, arg);
                 case BoundKind.PreviousSubmissionReference:
@@ -9326,6 +9370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitTryStatement(BoundTryStatement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCatchBlock(BoundCatchBlock node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitLiteral(BoundLiteral node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUTF8String(BoundUTF8String node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitThisReference(BoundThisReference node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitHostObjectMemberReference(BoundHostObjectMemberReference node, A arg) => this.DefaultVisit(node, arg);
@@ -9548,6 +9593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitTryStatement(BoundTryStatement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCatchBlock(BoundCatchBlock node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitLiteral(BoundLiteral node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUTF8String(BoundUTF8String node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitThisReference(BoundThisReference node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => this.DefaultVisit(node);
@@ -10096,6 +10142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode? VisitLiteral(BoundLiteral node) => null;
+        public override BoundNode? VisitUTF8String(BoundUTF8String node) => null;
         public override BoundNode? VisitThisReference(BoundThisReference node) => null;
         public override BoundNode? VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => null;
         public override BoundNode? VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => null;
@@ -11246,6 +11293,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.ConstantValueOpt, type);
+        }
+        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(node.Value, type);
         }
         public override BoundNode? VisitThisReference(BoundThisReference node)
         {
@@ -13125,6 +13177,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundLiteral updatedNode = node.Update(node.ConstantValueOpt, infoAndType.Type);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundUTF8String updatedNode = node.Update(node.Value, infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -15438,6 +15502,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitLiteral(BoundLiteral node, object? arg) => new TreeDumperNode("literal", null, new TreeDumperNode[]
         {
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUTF8String(BoundUTF8String node, object? arg) => new TreeDumperNode("uTF8String", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("value", node.Value, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

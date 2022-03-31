@@ -181,8 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
@@ -539,8 +542,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token switch
             {
                 SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.UTF8StringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
                 SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.UTF8SingleLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
                 SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.UTF8MultiLineRawStringLiteralToken => SyntaxKind.UTF8StringLiteralExpression,
                 SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
                 SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
                 SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,

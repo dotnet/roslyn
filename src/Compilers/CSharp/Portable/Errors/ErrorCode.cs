@@ -2066,6 +2066,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitConversionOperatorCantBeChecked = 9024,
         ERR_CheckedOperatorNeedsMatch = 9025,
 
+        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.UTF8String:
+                    return CreateBoundUTF8StringOperation((BoundUTF8String)boundNode);
                 case BoundKind.DynamicInvocation:
                     return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
                 case BoundKind.DynamicIndexerAccess:
@@ -637,6 +639,14 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundLiteral.ConstantValue;
             bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IUTF8StringOperation CreateBoundUTF8StringOperation(BoundUTF8String boundNode)
+        {
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol? type = boundNode.GetPublicTypeSymbol();
+            bool isImplicit = boundNode.WasCompilerGenerated;
+            return new UTF8StringOperation(boundNode.Value, _semanticModel, syntax, type, isImplicit);
         }
 
         private IAnonymousObjectCreationOperation CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)

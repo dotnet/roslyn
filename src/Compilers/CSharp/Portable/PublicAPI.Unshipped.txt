@@ -46,3 +46,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorDeclaration
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.OperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken operatorKeyword, Microsoft.CodeAnalysis.SyntaxToken checkedKeyword, Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.OperatorMemberCrefSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken implicitOrExplicitKeyword, Microsoft.CodeAnalysis.SyntaxToken operatorKeyword, Microsoft.CodeAnalysis.SyntaxToken checkedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorMemberCrefSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsCheckedOperator(string! operatorMetadataName) -> bool
+Microsoft.CodeAnalysis.CSharp.Conversion.IsUTF8StringLiteral.get -> bool
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8SingleLineRawStringLiteralToken = 8521 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8MultiLineRawStringLiteralToken = 8522 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

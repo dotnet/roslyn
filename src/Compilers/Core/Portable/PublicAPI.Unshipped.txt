@@ -37,3 +37,8 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionOperatorName = 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplyOperatorName = "op_CheckedMultiply" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionOperatorName = "op_CheckedSubtraction" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName = "op_CheckedExplicit" -> string!
+Microsoft.CodeAnalysis.OperationKind.UTF8String = 124 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
+Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
