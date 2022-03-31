@@ -60,6 +60,7 @@ stages:
   - job: archive
     pool: VSEng-ReleasePool-1ES
     steps:
+    - checkout: none
     - download: current
       artifact: Variables-Windows
       displayName: Download Variables-Windows artifact
@@ -81,3 +82,29 @@ stages:
         SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
     - task: MicroBuildCleanup@1
       displayName: Send Telemetry
+
+# - stage: azure_public_vsimpl_feed
+#   displayName: azure-public/vs-impl feed
+#   condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+#   jobs:
+#   - job: push
+#     pool:
+#       name: AzurePipelines-EO
+#       vmImage: AzurePipelinesUbuntu20.04compliant
+#     steps:
+#     - checkout: none
+#     - download: current
+#       artifact: deployables-Windows
+#       displayName: Download deployables-Windows artifact
+#     - task: UseDotNet@2
+#       displayName: Install .NET SDK
+#       inputs:
+#         packageType: sdk
+#         version: 6.x
+#     - task: NuGetAuthenticate@0
+#       displayName: Authenticate NuGet feeds
+#       inputs:
+#         nuGetServiceConnections: azure-public/vs-impl
+#         forceReinstallCredentialProvider: true
+#     - script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg -s https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json --api-key azdo --skip-duplicate
+#       displayName: Push nuget packages
