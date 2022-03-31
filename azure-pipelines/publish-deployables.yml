@@ -3,17 +3,6 @@ steps:
   displayName: Download deployables
   artifact: deployables-Windows
 
-- task: NuGetToolInstaller@1
-  displayName: Use NuGet 5.x
-  inputs:
-    versionSpec: 5.x
-
-- task: NuGetCommand@2
+- script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/*.nupkg -s $(ci_feed) -k azdo --skip-duplicate
   displayName: Push packages to CI feed
-  inputs:
-    command: push
-    packagesToPush: $(Pipeline.Workspace)/deployables-Windows/*.nupkg
-    nuGetFeedType: internal
-    publishVstsFeed: $(ci_feed)
-    allowPackageConflicts: true
   condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
