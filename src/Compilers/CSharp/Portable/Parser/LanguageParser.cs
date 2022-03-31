@@ -10649,7 +10649,7 @@ tryAgain:
 
                 var newPrecedence = GetPrecedence(opKind);
 
-                // check for >> or >>=
+                // check for >>, >>=, >>> or >>>=
                 int tokensToCombine = 1;
                 if (tk == SyntaxKind.GreaterThanToken
                     && (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken || this.PeekToken(1).Kind == SyntaxKind.GreaterThanEqualsToken)
