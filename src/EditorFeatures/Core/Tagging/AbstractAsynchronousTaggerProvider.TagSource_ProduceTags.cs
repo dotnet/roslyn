@@ -569,11 +569,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 this.AssertIsForeground();
 
-                // no matter what, if we are asked for tags for a document, then resume any tag computation for it. The
-                // very act of getting tags indicates that there is some interested party and we should be computing for
-                // them.
-                this.Resume();
-
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
