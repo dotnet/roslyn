@@ -40,16 +40,16 @@ namespace Microsoft.CodeAnalysis.Workspaces
         private void AssociatedViewService_SubjectBuffersConnected(object sender, SubjectBuffersConnectedEventArgs e)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-            ProcessChange(e.SubjectBuffers);
+            UpdateAllAssociatedViews(e.SubjectBuffers);
         }
 
         private void AssociatedViewService_SubjectBuffersDisconnected(object sender, SubjectBuffersConnectedEventArgs e)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-            ProcessChange(e.SubjectBuffers);
+            UpdateAllAssociatedViews(e.SubjectBuffers);
         }
 
-        private void ProcessChange(ReadOnlyCollection<ITextBuffer> subjectBuffers)
+        private void UpdateAllAssociatedViews(ReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             // Whenever views get attached/detached from buffers, make sure we're hooked up to the appropriate events
             // for them.
