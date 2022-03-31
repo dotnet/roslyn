@@ -5869,5 +5869,155 @@ class C
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_01(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator checked -(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_02(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator checked +(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Plus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_03(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static explicit operator checked T(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Keyword("explicit"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Identifier("T"),
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_04(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked -(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_05(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked +(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Plus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_06(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static explicit I1.operator checked T(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Keyword("explicit"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Identifier("T"),
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

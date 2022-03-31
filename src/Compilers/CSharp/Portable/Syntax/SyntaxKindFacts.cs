@@ -979,21 +979,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (operatorMetadataName)
             {
-                case WellKnownMemberNames.AdditionOperatorName: return SyntaxKind.PlusToken;
+                case WellKnownMemberNames.CheckedAdditionOperatorName:
+                case WellKnownMemberNames.AdditionOperatorName:
+                    return SyntaxKind.PlusToken;
+
                 case WellKnownMemberNames.BitwiseAndOperatorName: return SyntaxKind.AmpersandToken;
                 case WellKnownMemberNames.BitwiseOrOperatorName: return SyntaxKind.BarToken;
                 // case WellKnownMemberNames.ConcatenateOperatorName:
-                case WellKnownMemberNames.DecrementOperatorName: return SyntaxKind.MinusMinusToken;
-                case WellKnownMemberNames.DivisionOperatorName: return SyntaxKind.SlashToken;
+
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
+                case WellKnownMemberNames.DecrementOperatorName:
+                    return SyntaxKind.MinusMinusToken;
+
+                case WellKnownMemberNames.CheckedDivisionOperatorName:
+                case WellKnownMemberNames.DivisionOperatorName:
+                    return SyntaxKind.SlashToken;
+
                 case WellKnownMemberNames.EqualityOperatorName: return SyntaxKind.EqualsEqualsToken;
                 case WellKnownMemberNames.ExclusiveOrOperatorName: return SyntaxKind.CaretToken;
-                case WellKnownMemberNames.ExplicitConversionName: return SyntaxKind.ExplicitKeyword;
+
+                case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.ExplicitConversionName:
+                    return SyntaxKind.ExplicitKeyword;
+
                 // case WellKnownMemberNames.ExponentOperatorName:
                 case WellKnownMemberNames.FalseOperatorName: return SyntaxKind.FalseKeyword;
                 case WellKnownMemberNames.GreaterThanOperatorName: return SyntaxKind.GreaterThanToken;
                 case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return SyntaxKind.GreaterThanEqualsToken;
                 case WellKnownMemberNames.ImplicitConversionName: return SyntaxKind.ImplicitKeyword;
-                case WellKnownMemberNames.IncrementOperatorName: return SyntaxKind.PlusPlusToken;
+
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
+                case WellKnownMemberNames.IncrementOperatorName:
+                    return SyntaxKind.PlusPlusToken;
+
                 case WellKnownMemberNames.InequalityOperatorName: return SyntaxKind.ExclamationEqualsToken;
                 //case WellKnownMemberNames.IntegerDivisionOperatorName: 
                 case WellKnownMemberNames.LeftShiftOperatorName: return SyntaxKind.LessThanLessThanToken;
@@ -1002,15 +1020,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case WellKnownMemberNames.LikeOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName: return SyntaxKind.ExclamationToken;
                 case WellKnownMemberNames.ModulusOperatorName: return SyntaxKind.PercentToken;
-                case WellKnownMemberNames.MultiplyOperatorName: return SyntaxKind.AsteriskToken;
+
+                case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                case WellKnownMemberNames.MultiplyOperatorName:
+                    return SyntaxKind.AsteriskToken;
+
                 case WellKnownMemberNames.OnesComplementOperatorName: return SyntaxKind.TildeToken;
                 case WellKnownMemberNames.RightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanToken;
-                case WellKnownMemberNames.SubtractionOperatorName: return SyntaxKind.MinusToken;
+
+                case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                case WellKnownMemberNames.SubtractionOperatorName:
+                    return SyntaxKind.MinusToken;
+
                 case WellKnownMemberNames.TrueOperatorName: return SyntaxKind.TrueKeyword;
-                case WellKnownMemberNames.UnaryNegationOperatorName: return SyntaxKind.MinusToken;
+
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                case WellKnownMemberNames.UnaryNegationOperatorName:
+                    return SyntaxKind.MinusToken;
+
                 case WellKnownMemberNames.UnaryPlusOperatorName: return SyntaxKind.PlusToken;
                 default:
                     return SyntaxKind.None;
+            }
+        }
+
+        public static bool IsCheckedOperator(string operatorMetadataName)
+        {
+            switch (operatorMetadataName)
+            {
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                case WellKnownMemberNames.CheckedAdditionOperatorName:
+                case WellKnownMemberNames.CheckedDivisionOperatorName:
+                case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 

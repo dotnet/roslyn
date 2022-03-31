@@ -3798,6 +3798,12 @@
       </PropertyComment>
       <Kind Name="OperatorKeyword"/>
     </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the "checked" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="CheckedKeyword"/>
+    </Field>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the operator token.</summary>
@@ -3861,6 +3867,12 @@
         <summary>Gets the "operator" token.</summary>
       </PropertyComment>
       <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the "checked" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="CheckedKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax">
       <PropertyComment>
@@ -4341,6 +4353,9 @@
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <Kind Name="OperatorKeyword"/>
     </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="CheckedKeyword"/>
+    </Field>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the operator token.</summary>
@@ -4384,6 +4399,9 @@
     </Field>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="CheckedKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>

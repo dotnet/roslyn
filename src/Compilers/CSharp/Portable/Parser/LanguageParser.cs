@@ -3341,8 +3341,23 @@ parse_member_name:;
 
                 if (style.IsMissing)
                 {
-                    if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword || SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind) ||
+                    bool possibleConversion;
+
+                    if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword ||
                         explicitInterfaceOpt?.DotToken.IsMissing == true)
+                    {
+                        possibleConversion = false;
+                    }
+                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                    {
+                        possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(2).Kind);
+                    }
+                    else
+                    {
+                        possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind);
+                    }
+
+                    if (!possibleConversion)
                     {
                         this.Reset(ref point);
                         return null;
@@ -3368,6 +3383,7 @@ parse_member_name:;
                         style,
                         explicitInterfaceOpt,
                         opKeyword,
+                        checkedKeyword: null,
                         type,
                         paramList,
                         body: null,
@@ -3376,6 +3392,7 @@ parse_member_name:;
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
+                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
                 this.Release(ref point);
                 point = GetResetPoint();
@@ -3405,6 +3422,7 @@ parse_member_name:;
                     style,
                     explicitInterfaceOpt,
                     opKeyword,
+                    checkedKeyword,
                     type,
                     paramList,
                     blockBody,
@@ -3499,6 +3517,7 @@ parse_member_name:;
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
+            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
             SyntaxToken opToken;
             int opTokenErrorOffset;
             int opTokenErrorWidth;
@@ -3618,6 +3637,7 @@ parse_member_name:;
                 type,
                 explicitInterfaceOpt,
                 opKeyword,
+                checkedKeyword,
                 opToken,
                 paramList,
                 blockBody,

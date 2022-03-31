@@ -1278,6 +1278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static Conversion ClassifyConversion(this SemanticModel? semanticModel, ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {

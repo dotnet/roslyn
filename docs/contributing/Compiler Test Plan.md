@@ -352,8 +352,8 @@ __makeref( x )
 - Interface method 
 - Field
 - User-defined indexer
-- User-defined operator
-- User-defined conversion
+- User-defined operator (including checked)
+- User-defined conversion (including checked)
 
 ## Patterns
 - Discard Pattern
