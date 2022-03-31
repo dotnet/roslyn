@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,27 +23,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
 
-        protected readonly IGlobalOptionService GlobalOptions;
-        protected readonly JsonRpc JsonRpc;
-        protected readonly RequestDispatcher RequestDispatcher;
-        protected readonly RequestExecutionQueue Queue;
-        protected readonly LspWorkspaceRegistrationService WorkspaceRegistrationService;
-        protected readonly IAsynchronousOperationListener Listener;
-        protected readonly ILspLogger Logger;
-        protected readonly string? ClientName;
-
-        /// <summary>
-        /// Server name used when sending error messages to the client.
-        /// </summary>
-        private readonly string _userVisibleServerName;
-
-        /// <summary>
-        /// Server name used when capturing error telemetry.
-        /// </summary>
-        protected readonly string TelemetryServerName;
+        private readonly JsonRpc _jsonRpc;
+        private readonly RequestDispatcher _requestDispatcher;
+        private readonly RequestExecutionQueue _queue;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly ILspLogger _logger;
+        private readonly string? _clientName;
 
         // Set on first LSP initialize request.
-        protected ClientCapabilities? _clientCapabilities;
+        private ClientCapabilities? _clientCapabilities;
 
         // Fields used during shutdown.
         private bool _shuttingDown;
@@ -62,35 +50,76 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
             string? clientName,
-            string userVisibleServerName,
-            string telemetryServerTypeName)
+            WellKnownLspServerKinds serverKind)
         {
-            GlobalOptions = globalOptions;
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages);
+            _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
 
             _capabilitiesProvider = capabilitiesProvider;
-            WorkspaceRegistrationService = workspaceRegistrationService;
-            Logger = logger;
+            _logger = logger;
 
-            JsonRpc = jsonRpc;
-            JsonRpc.AddLocalRpcTarget(this);
-            JsonRpc.Disconnected += JsonRpc_Disconnected;
+            _jsonRpc = jsonRpc;
+            _jsonRpc.AddLocalRpcTarget(this);
+            _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
-            Listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            ClientName = clientName;
+            _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _clientName = clientName;
 
-            _userVisibleServerName = userVisibleServerName;
-            TelemetryServerName = telemetryServerTypeName;
-
-            Queue = new RequestExecutionQueue(
+            _queue = new RequestExecutionQueue(
                 logger,
                 workspaceRegistrationService,
                 lspMiscellaneousFilesWorkspace,
                 globalOptions,
                 supportedLanguages,
-                userVisibleServerName,
-                TelemetryServerName);
-            Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+                serverKind);
+            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+
+            var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
+            Contract.ThrowIfNull(entryPointMethod, $"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
+
+            foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
+            {
+                // Instead of concretely defining methods for each LSP method, we instead dynamically construct
+                // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
+                // but different type parameters.  This is a key functionality to support TS external access as we do not want to couple
+                // our LSP protocol version dll to theirs.
+                //
+                // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
+                // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
+                var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
+
+                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+
+                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+            }
+        }
+
+        /// <summary>
+        /// Wrapper class to hold the method and properties from the <see cref="LanguageServerTarget"/>
+        /// that the method info passed to streamjsonrpc is created from.
+        /// </summary>
+        private class DelegatingEntryPoint
+        {
+            private readonly string _method;
+            private readonly LanguageServerTarget _target;
+
+            public DelegatingEntryPoint(string method, LanguageServerTarget target)
+            {
+                _method = method;
+                _target = target;
+            }
+
+            public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
+            {
+                Contract.ThrowIfNull(_target._clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+                var result = await _target._requestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
+                    _method,
+                    requestType,
+                    _target._clientCapabilities,
+                    _target._clientName,
+                    _target._queue,
+                    cancellationToken).ConfigureAwait(false);
+                return result;
+            }
         }
 
         /// <summary>
@@ -102,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Initialize");
+                _logger?.TraceStart("Initialize");
 
                 Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
                 _clientCapabilities = initializeParams.Capabilities;
@@ -113,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Initialize");
+                _logger?.TraceStop("Initialize");
             }
         }
 
@@ -128,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Shutdown");
+                _logger?.TraceStart("Shutdown");
 
                 ShutdownImpl();
 
@@ -136,11 +165,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Shutdown");
+                _logger?.TraceStop("Shutdown");
             }
         }
 
-        protected virtual void ShutdownImpl()
+        private void ShutdownImpl()
         {
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
@@ -154,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Exit");
+                _logger?.TraceStart("Exit");
 
                 ExitImpl();
 
@@ -162,7 +191,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Exit");
+                _logger?.TraceStop("Exit");
             }
         }
 
@@ -171,8 +200,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             try
             {
                 ShutdownRequestQueue();
-                JsonRpc.Disconnected -= JsonRpc_Disconnected;
-                JsonRpc.Dispose();
+                _jsonRpc.Disconnected -= JsonRpc_Disconnected;
+                _jsonRpc.Dispose();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -181,239 +210,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LSP.Location[]?> GetTextDocumentDefinitionAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Queue, Methods.TextDocumentDefinitionName,
-                textDocumentPositionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceEdit?> GetTextDocumentRenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Queue, Methods.TextDocumentRenameName,
-                renameParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalReferenceItem[]?> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]?>(Queue, Methods.TextDocumentReferencesName,
-                referencesParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentCodeActionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CodeAction[]?> GetTextDocumentCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(Queue, Methods.TextDocumentCodeActionName, codeActionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.CodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CodeAction?> ResolveCodeActionAsync(CodeAction codeAction, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<CodeAction, CodeAction>(Queue, Methods.CodeActionResolveName,
-                codeAction, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
-        public async Task<SumType<CompletionList?, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            // Convert to sumtype before reporting to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107698
-            return await RequestDispatcher.ExecuteRequestAsync<CompletionParams, CompletionList>(Queue, Methods.TextDocumentCompletionName,
-                completionParams, _clientCapabilities, ClientName, cancellationToken).ConfigureAwait(false);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CompletionItem?> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<CompletionItem, CompletionItem>(Queue, Methods.TextDocumentCompletionResolveName, completionItem, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentFoldingRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<FoldingRange[]?> GetTextDocumentFoldingRangeAsync(FoldingRangeParams textDocumentFoldingRangeParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(Queue, Methods.TextDocumentFoldingRangeName, textDocumentFoldingRangeParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentHighlight[]?> GetTextDocumentDocumentHighlightsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(Queue, Methods.TextDocumentDocumentHighlightName, textDocumentPositionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]
-        public Task<Hover?> GetTextDocumentDocumentHoverAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(Queue, Methods.TextDocumentHoverName, textDocumentPositionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object[]?> GetTextDocumentDocumentSymbolsAsync(DocumentSymbolParams documentSymbolParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DocumentSymbolParams, object[]>(Queue, Methods.TextDocumentDocumentSymbolName, documentSymbolParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentFormattingName, UseSingleObjectParameterDeserialization = true)]
-        public Task<TextEdit[]?> GetTextDocumentFormattingAsync(DocumentFormattingParams documentFormattingParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(Queue, Methods.TextDocumentFormattingName, documentFormattingParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
-        public Task<TextEdit[]?> GetTextDocumentFormattingOnTypeAsync(DocumentOnTypeFormattingParams documentOnTypeFormattingParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Queue, Methods.TextDocumentOnTypeFormattingName, documentOnTypeFormattingParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LSP.Location[]?> GetTextDocumentImplementationsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Queue, Methods.TextDocumentImplementationName, textDocumentPositionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentRangeFormattingName, UseSingleObjectParameterDeserialization = true)]
-        public Task<TextEdit[]?> GetTextDocumentRangeFormattingAsync(DocumentRangeFormattingParams documentRangeFormattingParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(Queue, Methods.TextDocumentRangeFormattingName, documentRangeFormattingParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
-        public Task<LSP.SignatureHelp?> GetTextDocumentSignatureHelpAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, LSP.SignatureHelp?>(Queue, Methods.TextDocumentSignatureHelpName, textDocumentPositionParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
+        /// <summary>
+        /// Specially handle the execute workspace command method as we have to deserialize the request
+        /// to figure out which <see cref="AbstractExecuteWorkspaceCommandHandler"/> actually handles it.
+        /// </summary>
         [JsonRpcMethod(Methods.WorkspaceExecuteCommandName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object?> ExecuteWorkspaceCommandAsync(ExecuteCommandParams executeCommandParams, CancellationToken cancellationToken)
+        public async Task<object?> ExecuteWorkspaceCommandAsync(LSP.ExecuteCommandParams request, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+            var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
 
-            return RequestDispatcher.ExecuteRequestAsync<ExecuteCommandParams, object>(Queue, Methods.WorkspaceExecuteCommandName, executeCommandParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]?> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]?>(Queue, Methods.WorkspaceSymbolName, workspaceSymbolParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentSemanticTokensFullName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens?> GetTextDocumentSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(Queue, Methods.TextDocumentSemanticTokensFullName,
-                semanticTokensParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentSemanticTokensFullDeltaName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<SemanticTokens, SemanticTokensDelta>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensDeltaParams semanticTokensEditsParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensDeltaParams, SumType<SemanticTokens, SemanticTokensDelta>>(Queue, Methods.TextDocumentSemanticTokensFullDeltaName,
-                semanticTokensEditsParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        // Note: Since a range request is always received in conjunction with a whole document request, we don't need to cache range results.
-        [JsonRpcMethod(Methods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens?> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(Queue, Methods.TextDocumentSemanticTokensRangeName,
-                semanticTokensRangeParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object?> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Queue, Methods.TextDocumentDidChangeName,
-                didChangeParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object?> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DidOpenTextDocumentParams, object?>(Queue, Methods.TextDocumentDidOpenName,
-                didOpenParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
-        public Task<object?> HandleDocumentDidCloseAsync(DidCloseTextDocumentParams didCloseParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<DidCloseTextDocumentParams, object?>(Queue, Methods.TextDocumentDidCloseName,
-                didCloseParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(ExperimentalMethods.TextDocumentDiagnostic, UseSingleObjectParameterDeserialization = true)]
-        public Task<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?> HandleDocumentDiagnosticsAsync(DocumentDiagnosticParams documentDiagnosticParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-            return RequestDispatcher.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(Queue, ExperimentalMethods.TextDocumentDiagnostic,
-                documentDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);
-        }
-
-        [JsonRpcMethod(ExperimentalMethods.WorkspaceDiagnostic, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceDiagnosticReport?> HandleWorkspaceDiagnosticsAsync(WorkspaceDiagnosticParams workspaceDiagnosticParams, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-            return RequestDispatcher.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(Queue, ExperimentalMethods.WorkspaceDiagnostic,
-                workspaceDiagnosticParams, _clientCapabilities, ClientName, cancellationToken);
+            var result = await _requestDispatcher.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
+                requestMethod,
+                request,
+                _clientCapabilities,
+                _clientName,
+                _queue,
+                cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         private void ShutdownRequestQueue()
         {
-            Queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
+            _queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
             // if the queue requested shutdown via its event, it will have already shut itself down, but this
             // won't cause any problems calling it again
-            Queue.Shutdown();
+            _queue.Shutdown();
         }
 
         private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
         {
             // log message and shut down
-            Logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
+            _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
 
             var message = new LogMessageParams()
             {
@@ -421,12 +249,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Message = e.Message
             };
 
-            var asyncToken = Listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
+            var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
             _errorShutdownTask = Task.Run(async () =>
             {
-                Logger?.TraceInformation("Shutting down language server.");
+                _logger?.TraceInformation("Shutting down language server.");
 
-                await JsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
+                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
 
                 ShutdownImpl();
                 ExitImpl();
@@ -444,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return;
             }
 
-            Logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
+            _logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
 
             ShutdownImpl();
             ExitImpl();
@@ -456,22 +284,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (_errorShutdownTask is not null)
                 await _errorShutdownTask.ConfigureAwait(false);
 
-            if (Logger is IDisposable disposableLogger)
+            if (_logger is IDisposable disposableLogger)
                 disposableLogger.Dispose();
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this.Queue);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {
-            private readonly RequestExecutionQueue _queue;
+            private readonly LanguageServerTarget _server;
 
-            public TestAccessor(RequestExecutionQueue queue)
-                => _queue = queue;
+            internal TestAccessor(LanguageServerTarget server)
+            {
+                _server = server;
+            }
 
-            public RequestExecutionQueue.TestAccessor GetQueueAccessor()
-                => _queue.GetTestAccessor();
+            internal RequestExecutionQueue.TestAccessor GetQueueAccessor()
+                => _server._queue.GetTestAccessor();
+
+            internal LspWorkspaceManager.TestAccessor GetManagerAccessor()
+                => _server._queue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
+
+            internal RequestDispatcher.TestAccessor GetDispatcherAccessor()
+                => _server._requestDispatcher.GetTestAccessor();
+
+            internal JsonRpc GetServerRpc() => _server._jsonRpc;
+
+            internal bool HasShutdownStarted() => _server.HasShutdownStarted;
+
+            internal void ShutdownServer() => _server.ShutdownImpl();
+
+            internal void ExitServer() => _server.ExitImpl();
         }
     }
 }

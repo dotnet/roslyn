@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
         protected abstract TExpressionSyntax Increment(TExpressionSyntax left, bool postfix);
         protected abstract TExpressionSyntax Decrement(TExpressionSyntax left, bool postfix);
+        protected abstract SyntaxTriviaList PrepareRightExpressionLeadingTrivia(SyntaxTriviaList initialTrivia);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -90,6 +91,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
+
+                        rightExpr = rightExpr.WithLeadingTrivia(PrepareRightExpressionLeadingTrivia(rightExpr.GetLeadingTrivia()));
+
                         return Assignment(
                             assignmentOpKind,
                             (TExpressionSyntax)leftOfAssign,

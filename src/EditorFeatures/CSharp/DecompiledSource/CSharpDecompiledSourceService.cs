@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.Transforms;
@@ -24,9 +20,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,41 +30,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
+    [ExportLanguageService(typeof(IDecompiledSourceService), LanguageNames.CSharp), Shared]
     internal class CSharpDecompiledSourceService : IDecompiledSourceService
     {
-        private readonly HostLanguageServices provider;
-        private static readonly FileVersionInfo decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
+        private static readonly FileVersionInfo s_decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
-        public CSharpDecompiledSourceService(HostLanguageServices provider)
-            => this.provider = provider;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpDecompiledSourceService()
+        {
+        }
 
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
-
-            MetadataReference metadataReference = null;
-            string assemblyLocation = null;
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
-            {
-                try
-                {
-                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
-                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
-                {
-                }
-            }
-
-            if (assemblyLocation == null)
-            {
-                metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
-            }
 
             // Decompile
             document = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
@@ -76,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
             // Convert XML doc comments to regular comments, just like MAS
-            var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
@@ -84,31 +61,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(
-                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                 options: null,
+                 document,
+                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options,
                  CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
                  cancellationToken).ConfigureAwait(false);
 
             return formattedDoc;
         }
 
-        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference metadataReference, string assemblyLocation)
+        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference? metadataReference, string assemblyLocation)
         {
             var logger = new StringBuilder();
             var resolver = new AssemblyResolver(compilation, logger);
 
             // Load the assembly.
-            PEFile file = null;
+            PEFile? file = null;
             if (metadataReference is not null)
                 file = resolver.TryResolve(metadataReference, PEStreamOptions.PrefetchEntireImage);
 
             if (file is null && assemblyLocation is null)
             {
-                throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                throw new NotSupportedException(FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
             }
 
             file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
@@ -134,20 +113,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
             var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
 
-            var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var oldRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = oldRoot.WithLeadingTrivia(new[]
                 {
                     SyntaxFactory.Trivia(regionTrivia),
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.Comment("// " + assemblyPath),
                     SyntaxFactory.CarriageReturnLineFeed,
-                    SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}"),
+                    SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {s_decompilerVersion.FileVersion}"),
                     SyntaxFactory.CarriageReturnLineFeed,
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
                     SyntaxFactory.CarriageReturnLineFeed,
@@ -166,14 +145,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
-        private static string GetFullReflectionName(INamedTypeSymbol containingType)
+        private static string GetFullReflectionName(INamedTypeSymbol? containingType)
         {
             var containingTypeStack = new Stack<string>();
             var containingNamespaceStack = new Stack<string>();
 
-            for (INamespaceOrTypeSymbol symbol = containingType;
+            for (INamespaceOrTypeSymbol? symbol = containingType;
                 symbol is not null and not INamespaceSymbol { IsGlobalNamespace: true };
-                symbol = (INamespaceOrTypeSymbol)symbol.ContainingType ?? symbol.ContainingNamespace)
+                symbol = (INamespaceOrTypeSymbol?)symbol.ContainingType ?? symbol.ContainingNamespace)
             {
                 if (symbol.ContainingType is not null)
                     containingTypeStack.Push(symbol.MetadataName);

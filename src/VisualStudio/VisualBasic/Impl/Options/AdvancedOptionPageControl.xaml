@@ -16,17 +16,14 @@
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
-                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_analysis_scope}"/>
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <RadioButton  GroupName="Background_analysis_scope"
-                                              x:Name="Background_analysis_scope_active_file"
-                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Active_File}"/>
-                        <RadioButton  GroupName="Background_analysis_scope"
-                                              x:Name="Background_analysis_scope_open_files"
-                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Open_Files_And_Projects}"/>
-                        <RadioButton  GroupName="Background_analysis_scope"
-                                              x:Name="Background_analysis_scope_full_solution"
-                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}"/>
+                    <StackPanel>
+                        <ComboBox x:Name="Run_background_code_analysis_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Run_background_code_analysis_for}">
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_None}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_None_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Active_File}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Active_File_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Open_Files}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Open_Files_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution_Tag}" />
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel>
                         <CheckBox x:Name="DisplayDiagnosticsInline"
@@ -167,10 +164,22 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
                     <CheckBox x:Name="Report_invalid_regular_expressions"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                    <CheckBox x:Name="Highlight_related_regular_expression_components_under_cursor"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                     <CheckBox x:Name="Show_completion_list"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="JsonGroupBox"
+                    Header="{x:Static local:AdvancedOptionPageStrings.Option_JSON_strings}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_JSON_strings"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_JSON_strings}" />
+                    <CheckBox x:Name="Report_invalid_JSON_strings"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_JSON_strings}" />
+                    <CheckBox x:Name="Highlight_related_JSON_components_under_cursor"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                 </StackPanel>
             </GroupBox>
             

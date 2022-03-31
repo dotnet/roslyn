@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, field, new SymbolRenameOptions(), generatedPropertyName, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -283,8 +283,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Func<Location, bool> filter,
             CancellationToken cancellationToken)
         {
+            var options = new SymbolRenameOptions(
+                RenameOverloads: false,
+                RenameInStrings: false,
+                RenameInComments: false,
+                RenameFile: false);
+
             var initialLocations = await Renamer.FindRenameLocationsAsync(
-                solution, field, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
+                solution, field, options, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
                 finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
@@ -315,14 +321,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
-            var options = new CodeGenerationOptions(
-                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
-                parseOptions: fieldDeclaration.SyntaxTree.Options,
-                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+
+            var context = new CodeGenerationContext(
+                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span));
 
             var destination = field.ContainingType;
             var updatedDocument = await codeGenerationService.AddPropertyAsync(
-                destinationSolution, destination, property, options, cancellationToken).ConfigureAwait(false);
+                destinationSolution, destination, property, context, cancellationToken).ConfigureAwait(false);
 
             updatedDocument = await Formatter.FormatAsync(updatedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             updatedDocument = await Simplifier.ReduceAsync(updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);

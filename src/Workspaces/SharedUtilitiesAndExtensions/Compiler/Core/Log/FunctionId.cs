@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinatorRegistrationService_Unregister = 224,
         WorkCoordinatorRegistrationService_Reanalyze = 225,
 
-        WorkCoordinator_SolutionCrawlerOption = 226,
+        // obsolete: WorkCoordinator_SolutionCrawlerOption = 226,
         WorkCoordinator_PersistentStorageAdded = 227,
         WorkCoordinator_PersistentStorageRemoved = 228,
         WorkCoordinator_Shutdown = 229,
@@ -535,8 +535,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         AssetService_Perf = 520,
 
+        Inline_Hints_DoubleClick = 530,
         NavigateToExternalSources = 531,
 
         StackTraceToolWindow_ShowOnActivated = 540,
+
+        CodeModel_FileCodeModel_Create = 550,
     }
 }

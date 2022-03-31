@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
+
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+                    node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
+                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+
                 Debug.Assert(savedInputExpression != null);
 
                 object restorePointForEnclosingStatement = new object();
@@ -115,20 +118,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _factory.Syntax = node.Syntax;
-                if (node.DefaultLabel != null)
+                if (defaultLabel is not null)
                 {
-                    result.Add(_factory.Label(node.DefaultLabel));
+                    result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
-                    var thrownExpression =
+                    var throwCall =
                         (implicitConversionExists(savedInputExpression, objectType) &&
-                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol exception1)
-                            ? _factory.New(exception1, _factory.Convert(objectType, savedInputExpression)) :
-                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol exception0)
-                            ? _factory.New(exception0) :
-                        _factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
-                    result.Add(_factory.Throw(thrownExpression));
+                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
+                            ? ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression)) :
+                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol)
+                            ? ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
+                        ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+
+                    result.Add(throwCall);
                 }
 
                 if (GenerateInstrumentation)
@@ -147,6 +151,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discardedUseSiteInfo);
                     return c.IsImplicit;
                 }
+            }
+
+            private static BoundStatement ConstructThrowSwitchExpressionExceptionHelperCall(SyntheticBoundNodeFactory factory, BoundExpression unmatchedValue)
+            {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
+                var module = factory.ModuleBuilderOpt;
+                var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
+                var diagnostics = factory.Diagnostics.DiagnosticBag;
+                Debug.Assert(diagnostics is not null);
+                var throwSwitchExpressionExceptionMethod = module.EnsureThrowSwitchExpressionExceptionExists(diagnosticSyntax, factory, diagnostics);
+                var call = factory.Call(
+                    receiver: null,
+                    throwSwitchExpressionExceptionMethod,
+                    arg0: unmatchedValue);
+                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+            }
+
+            private static BoundStatement ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
+            {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
+                var module = factory.ModuleBuilderOpt!;
+                var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
+                var diagnostics = factory.Diagnostics.DiagnosticBag;
+                Debug.Assert(diagnostics is not null);
+                var throwSwitchExpressionExceptionMethod = module.EnsureThrowSwitchExpressionExceptionParameterlessExists(diagnosticSyntax, factory, diagnostics);
+                var call = factory.Call(
+                    receiver: null,
+                    throwSwitchExpressionExceptionMethod);
+                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+            }
+
+            private static BoundStatement ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
+            {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
+                var module = factory.ModuleBuilderOpt!;
+                var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
+                var diagnostics = factory.Diagnostics.DiagnosticBag;
+                Debug.Assert(diagnostics is not null);
+                var throwMethod = module.EnsureThrowInvalidOperationExceptionExists(diagnosticSyntax, factory, diagnostics);
+                var call = factory.Call(
+                    receiver: null,
+                    throwMethod);
+                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
         }
     }

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public PlaceholderLocal(Symbol containingSymbol, object identifier, TypeWithAnnotations type)
             {
                 Debug.Assert(identifier != null);
+                Debug.Assert(containingSymbol is null || containingSymbol.DeclaringCompilation is not null);
                 _containingSymbol = containingSymbol;
                 _type = type;
                 _identifier = identifier;

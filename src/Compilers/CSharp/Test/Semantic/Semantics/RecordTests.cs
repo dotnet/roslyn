@@ -26288,11 +26288,9 @@ class Attr3 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(1, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(1, analyzer.FireCount10);
             Assert.Equal(1, analyzer.FireCount11);
             Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount13);
-            Assert.Equal(1, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(1, analyzer.FireCount17);
@@ -26324,11 +26322,9 @@ class Attr3 : System.Attribute {}
             public int FireCount7;
             public int FireCount8;
             public int FireCount9;
-            public int FireCount10;
             public int FireCount11;
             public int FireCount12;
             public int FireCount13;
-            public int FireCount14;
             public int FireCount15;
             public int FireCount16;
             public int FireCount17;
@@ -26490,9 +26486,6 @@ class Attr3 : System.Attribute {}
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "B..ctor([System.Int32 Y = 1])":
-                        Interlocked.Increment(ref FireCount10);
-                        break;
                     case "B":
                         Interlocked.Increment(ref FireCount11);
                         break;
@@ -26501,9 +26494,6 @@ class Attr3 : System.Attribute {}
                         break;
                     case "C":
                         Interlocked.Increment(ref FireCount13);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCount14);
                         break;
                     default:
                         Assert.True(false);
@@ -27550,11 +27540,9 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(0, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(0, analyzer.FireCount10);
             Assert.Equal(0, analyzer.FireCount11);
             Assert.Equal(0, analyzer.FireCount12);
             Assert.Equal(0, analyzer.FireCount13);
-            Assert.Equal(0, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(0, analyzer.FireCount17);
@@ -28326,7 +28314,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
@@ -28357,7 +28349,8 @@ namespace NamespaceA
 
             var actual = GetDocumentationCommentText(comp);
             // the cref becomes `P:...`
-            var expected = (@"<?xml version=""1.0""?>
+            var expected =
+@"<?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
@@ -28379,6 +28372,11 @@ namespace NamespaceA
             A property
             </param>
         </member>
+        <member name=""P:NamespaceA.LinkDestinationRecord.Prop1"">
+            <summary>
+            A property
+            </summary>
+        </member>
         <member name=""T:NamespaceA.LinkingClass"">
             <summary>
             Simple class.
@@ -28388,7 +28386,7 @@ namespace NamespaceA
             <inheritdoc cref=""P:NamespaceA.LinkDestinationRecord.Prop1"" />
         </member>
     </members>
-</doc>");
+</doc>";
             Assert.Equal(expected, actual);
         }
 
@@ -28430,7 +28428,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28718,7 +28720,11 @@ namespace System.Runtime.CompilerServices
 ", cConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28761,7 +28767,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28805,7 +28815,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28849,7 +28863,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28897,7 +28915,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28944,7 +28966,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28998,7 +29024,12 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+    <summary>Description2 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29100,7 +29131,11 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29147,7 +29182,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:Outer.C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -30274,7 +30313,8 @@ class C2 : I(0)
                 );
         }
 
-        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [ConditionalTheory(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60060")]
+        [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
         {

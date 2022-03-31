@@ -77,6 +77,11 @@
         <target state="translated">Всегда использовать для ясности</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="new">Always use default symbol servers for navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Значения по умолчанию для анализатора</target>
@@ -130,11 +135,6 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">Назад</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">Область фонового анализа:</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -242,6 +242,11 @@
         <target state="translated">Цветовые подсказки</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Выделить регулярные выражения цветом</target>
@@ -290,6 +295,11 @@
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
         <target state="translated">По умолчанию (все решение)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="new">Default (None)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -397,6 +407,11 @@
         <target state="translated">Все решение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="new">Entire Solution and External Sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Ошибка</target>
@@ -410,6 +425,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Оценка (задач в очереди: {0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="new">External Sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -540,6 +560,11 @@
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Источник элемента</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -992,6 +1017,11 @@
         <target state="translated">Предпочитать оператор index</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">Предпочитать пространство имен и структуру совпадений папок</target>
@@ -1082,6 +1112,11 @@
         <target state="translated">Переименовать {0} в {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Сообщать о недопустимых регулярных выражениях</target>
@@ -1125,6 +1160,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Запустить Code Analysis для {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="new">Run background code analysis for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

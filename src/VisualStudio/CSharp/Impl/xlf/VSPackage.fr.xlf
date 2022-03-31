@@ -42,6 +42,7 @@ Report invalid regular expressions;
 Enable full solution analysis;
 Perform editor feature analysis in external process;
 Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
 Using directives;
 Place system directives first when sorting usings;
 Separate using directive groups;
@@ -80,6 +81,13 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
@@ -130,8 +138,15 @@ préférer les propriétés de levée d'exceptions;
 préférer les propriétés automatiques;
 regex;
 expression régulière;
-Utiliser des couleurs améliorées;
-Modèle de couleurs de l'éditeur;
+ Mettre en évidence les composants connexes sous le curseur; 
+Signaler les expressions régulières invalides
+; 
+JSON; 
+Coloriser les chaînes JSON; 
+Signaler les chaînes JSON invalides; 
+Détecter et proposer des fonctionnalités d'éditeur pour les chaînes JSON; 
+Utiliser des couleurs améliorées; 
+Schéma de couleurs de l'éditeur; 
 Marge d'héritage;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>

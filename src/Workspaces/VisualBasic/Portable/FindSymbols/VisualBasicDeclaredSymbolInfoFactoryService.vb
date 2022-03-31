@@ -126,6 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
+        Protected Overrides Sub AddSynthesizedDeclaredSymbolInfos(container As SyntaxNode, memberDeclaration As StatementSyntax, stringTable As StringTable, declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo), containerDisplayName As String, fullyQualifiedContainerName As String, cancellationToken As CancellationToken)
+            ' Nothing to do in VB.
+        End Sub
+
         Protected Overrides Sub AddDeclaredSymbolInfosWorker(
                 container As SyntaxNode,
                 node As StatementSyntax,
@@ -505,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Next
 
                 If parameter.AsClause?.Type IsNot Nothing Then
-                    AppendTokens(parameter.AsClause.Type, builder)
+                    builder.Append(parameter.AsClause.Type.ConvertToSingleLine().ToString())
                 End If
 
                 First = False

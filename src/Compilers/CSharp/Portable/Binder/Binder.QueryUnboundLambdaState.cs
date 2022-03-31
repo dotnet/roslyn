@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool ParameterIsDiscard(int index) { return false; }
             public override bool ParameterIsNullChecked(int index) { return false; }
             public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
-            public override bool HasNames { get { return true; } }
             public override bool HasSignature { get { return true; } }
 
             public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
             }
 
-            public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            public override Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }

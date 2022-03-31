@@ -39,7 +39,7 @@ Friend Module M
 End Module",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using Microsoft.VisualBasic.CompilerServices;
@@ -63,6 +63,29 @@ internal sealed class M
 {string.Format(CSharpEditorResources.Load_from_0, "Microsoft.VisualBasic.dll (net451)")}
 #endif",
                 };
+
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            }
+
+            [Theory, CombinatorialData, WorkItem(60253, "https://github.com/dotnet/roslyn/issues/60253"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestReferenceAssembly(bool signaturesOnly)
+            {
+                var metadataSource = @"
+<Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
+Module M
+    Public Class D
+    End Class
+End Module";
+
+                var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Friend Module M
+    Public Class [|D|]
+        Public Sub New()
+    End Class
+End Module";
 
                 await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
             }
@@ -98,7 +121,7 @@ Namespace System
 End Namespace",
                     false => $@"#region {FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -260,7 +283,7 @@ Namespace System
 End Namespace",
                     false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Collections;

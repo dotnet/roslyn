@@ -237,7 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // before performing the leftConversion.
             // See comments in Binder.BindNullCoalescingOperator referring to GetConvertedLeftForNullCoalescingOperator for more details.
 
-            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2) && rewrittenLeftType.IsNullableType())
+            var conversionTakesNullableType = leftPlaceholder?.Type?.IsNullableType() == true;
+
+            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2)
+                && rewrittenLeftType.IsNullableType()
+                && !conversionTakesNullableType)
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);

@@ -15,13 +15,19 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class Extensions
     {
         public static Uri GetURI(this TextDocument document)
-            => ProtocolConversions.GetUriFromFilePath(document.FilePath);
+        {
+            Contract.ThrowIfNull(document.FilePath);
+            return document is SourceGeneratedDocument
+                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
+                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+        }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);

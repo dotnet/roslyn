@@ -4617,5 +4617,81 @@ class Ignored2 { }
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
             }.RunAsync();
         }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TopLevelMethod_StaticMethod()
+        {
+            await TestInRegularAndScript1Async(@"
+static void X(string s)
+{
+    [|s = s.Trim();|]
+}",
+@"
+static void X(string s)
+{
+    s = {|Rename:NewMethod|}(s);
+}
+
+static string NewMethod(string s)
+{
+    s = s.Trim();
+    return s;
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task StaticMethod_ExtractStatementContainingParameter()
+        {
+            await TestInRegularAndScript1Async(@"
+public class Class
+{
+    static void X(string s)
+    {
+        [|s = s.Trim();|]
+    }
+}",
+@"
+public class Class
+{
+    static void X(string s)
+    {
+        s = {|Rename:NewMethod|}(s);
+    }
+
+    private static string NewMethod(string s)
+    {
+        s = s.Trim();
+        return s;
+    }
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task AttributeArgumentWithLambdaBody()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
+    {
+    }
+}",
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
+    {
+    }
+
+    private static object NewMethod()
+    {
+        return null;
+    }
+}");
+        }
     }
 }

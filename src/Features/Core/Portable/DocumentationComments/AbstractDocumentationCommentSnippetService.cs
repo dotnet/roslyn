@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -21,15 +21,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         protected abstract bool SupportsDocumentationComments(TMemberNode member);
         protected abstract bool HasDocumentationComment(TMemberNode member);
         protected abstract int GetPrecedingDocumentationCommentCount(TMemberNode member);
-        protected abstract bool IsMemberDeclaration(TMemberNode member);
-        protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member);
+        protected abstract List<string> GetDocumentationCommentStubLines(TMemberNode member, string existingCommentText);
 
         protected abstract SyntaxToken GetTokenToRight(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract SyntaxToken GetTokenToLeft(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract bool IsDocCommentNewLine(SyntaxToken token);
         protected abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
 
-        protected abstract bool IsSingleExteriorTrivia(TDocumentationComment documentationComment, bool allowWhitespace = false);
+        protected abstract bool IsSingleExteriorTrivia(TDocumentationComment documentationComment, [NotNullWhen(true)] out string? existingCommentText);
         protected abstract bool EndsWithSingleExteriorTrivia(TDocumentationComment? documentationComment);
         protected abstract bool IsMultilineDocComment(TDocumentationComment? documentationComment);
         protected abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentLines(token, text, options, out _);
+            var lines = GetDocumentationCommentLines(token, text, options, out _, out var caretOffset, out var spanToReplaceLength);
             if (lines == null)
             {
                 return null;
@@ -72,20 +71,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             lines[^1] = lastLine.Substring(0, lastLine.Length - newLine.Length);
 
             var comments = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
-            // When typing we don't replace a token, but insert before it
-            var replaceSpan = new TextSpan(token.Span.Start, 0);
+            var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
-            return new DocumentationCommentSnippet(replaceSpan, comments, offset);
+            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
         }
 
-        private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText)
+        private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
         {
             indentText = null;
+            caretOffset = 0;
+            spanToReplaceLength = 0;
+
             var documentationComment = token.GetAncestor<TDocumentationComment>();
 
-            if (documentationComment == null || !IsSingleExteriorTrivia(documentationComment))
+            if (documentationComment == null || !IsSingleExteriorTrivia(documentationComment, out var existingCommentText))
             {
                 return null;
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            var lines = GetDocumentationCommentStubLines(targetMember);
+            var lines = GetDocumentationCommentStubLines(targetMember, existingCommentText);
             Debug.Assert(lines.Count > 2);
 
             AddLineBreaks(lines, options.NewLine);
@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             indentText = lineOffset.CreateIndentationString(options.UseTabs, options.TabSize);
 
             IndentLines(lines, indentText);
+
+            // We always want the caret text to be on the second line, with one space after the doc comment XML
+            // GetDocumentationCommentStubLines ensures that space is always there
+            caretOffset = lines[0].Length + indentText.Length + ExteriorTriviaText.Length + 1;
+            spanToReplaceLength = existingCommentText.Length;
+
             return lines;
         }
 
@@ -151,7 +157,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             var targetMember = documentationComment.ParentTrivia.Token.GetAncestor<TMemberNode>();
 
-            if (targetMember == null || !IsMemberDeclaration(targetMember))
+            if (targetMember == null || !SupportsDocumentationComments(targetMember))
             {
                 return null;
             }
@@ -208,7 +214,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             var newLine = options.NewLine;
-            var lines = GetDocumentationCommentLines(token, text, options, out var indentText);
+            var lines = GetDocumentationCommentLines(token, text, options, out var indentText, out _, out _);
             if (lines == null)
             {
                 return null;
@@ -253,7 +259,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var line = text.Lines.GetLineFromPosition(startPosition);
             Debug.Assert(!line.IsEmptyOrWhitespace());
 
-            var lines = GetDocumentationCommentStubLines(targetMember);
+            var lines = GetDocumentationCommentStubLines(targetMember, string.Empty);
             Debug.Assert(lines.Count > 2);
 
             var newLine = options.NewLine;

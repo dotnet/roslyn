@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             RenameTrackingPreview,
             RenameTracking,
             RefactoringVerification,
-            NavigateToDecompiledSources,
             AddImportsOnPaste,
             OfferRemoveUnusedReferences,
             OfferRemoveUnusedReferencesFeatureFlag,
@@ -68,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> PrettyListing = new(FeatureName, "PrettyListing", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
+        public static readonly PerLanguageOption2<bool> StringIdentation = new(FeatureName, "StringIdentation", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.StringIdentation"));
+
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(FeatureName, "RenameTrackingPreview", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
@@ -88,10 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
 
-        public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            FeatureName, "NavigateToDecompiledSources", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
-
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
             FeatureName, "AddImportsOnPaste", defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.OfferRemoveUnusedReferences"));
 
-        public static readonly Option<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
             FeatureName, "OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
 

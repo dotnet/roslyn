@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -975,6 +975,15 @@ Additional information: {1}</value>
   <data name="Report_invalid_regular_expressions" xml:space="preserve">
     <value>Report invalid regular expressions</value>
   </data>
+  <data name="Colorize_JSON_strings" xml:space="preserve">
+    <value>Colorize JSON strings</value>
+  </data>
+  <data name="JSON_strings" xml:space="preserve">
+    <value>JSON strings</value>
+  </data>
+  <data name="Report_invalid_JSON_strings" xml:space="preserve">
+    <value>Report invalid JSON strings</value>
+  </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
@@ -1312,8 +1321,8 @@ Additional information: {1}</value>
   <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
     <value>Code analysis terminated before completion for Solution.</value>
   </data>
-  <data name="Background_analysis_scope_colon" xml:space="preserve">
-    <value>Background analysis scope:</value>
+  <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
+    <value>Run background code analysis for:</value>
   </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>
@@ -1823,6 +1832,10 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Default_None" xml:space="preserve">
+    <value>Default (None)</value>
+    <comment>This text is a menu command</comment>
+  </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
     <value>Suppress hints when argument matches parameter name</value>
   </data>
@@ -1899,5 +1912,17 @@ Additional information: {1}</value>
   <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
     <value>Automatically open Stack Trace Explorer on focus</value>
     <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
+  </data>
+  <data name="Entire_solution_and_external_sources" xml:space="preserve">
+    <value>Entire Solution and External Sources</value>
+  </data>
+  <data name="External_sources" xml:space="preserve">
+    <value>External Sources</value>
+  </data>
+  <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
+    <value>Always use default symbol servers for navigation</value>
   </data>
 </root>

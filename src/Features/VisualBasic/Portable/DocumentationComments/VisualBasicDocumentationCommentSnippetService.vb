@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
@@ -109,14 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return count
         End Function
 
-        Protected Overrides Function IsMemberDeclaration(member As DeclarationStatementSyntax) As Boolean
-            Return member.IsMemberDeclaration()
-        End Function
-
-        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax) As List(Of String)
+        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String) As List(Of String)
             Dim list = New List(Of String) From {
                 "''' <summary>",
-                "''' ",
+                "'''" & If(existingCommentText.StartsWith(" "), existingCommentText, " " + existingCommentText),
                 "''' </summary>"
             }
 
@@ -143,36 +139,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return list
         End Function
 
-        Protected Overrides Function IsSingleExteriorTrivia(documentationComment As DocumentationCommentTriviaSyntax, Optional allowWhitespace As Boolean = False) As Boolean
-            If documentationComment Is Nothing Then
+        Protected Overrides Function IsSingleExteriorTrivia(documentationComment As DocumentationCommentTriviaSyntax, <NotNullWhen(True)> ByRef existingCommentText As String) As Boolean
+            existingCommentText = ""
+
+            If documentationComment Is Nothing OrElse documentationComment.Content.Count = 0 Then
                 Return False
             End If
 
-            If documentationComment.Content.Count <> 1 Then
+            ' We allow one content node for plain "'''" comments, or two if ther is an existing comment
+            If documentationComment.Content.Count > 2 Then
                 Return False
             End If
 
-            Dim xmlText = TryCast(documentationComment.Content(0), XmlTextSyntax)
-            If xmlText Is Nothing Then
+            Dim firstXmlText = TryCast(documentationComment.Content.First(), XmlTextSyntax)
+            Dim lastXmlText = TryCast(documentationComment.Content.Last(), XmlTextSyntax)
+
+            If firstXmlText Is Nothing OrElse
+                lastXmlText Is Nothing Then
                 Return False
             End If
 
-            Dim textTokens = xmlText.TextTokens
-
-            If Not textTokens.Any Then
+            If Not firstXmlText.TextTokens.Any OrElse
+                Not lastXmlText.TextTokens.Any Then
                 Return False
             End If
 
-            If Not allowWhitespace AndAlso textTokens.Count <> 1 Then
-                Return False
-            End If
+            Dim firstTextToken = firstXmlText.TextTokens.First()
+            Dim lastTextToken = lastXmlText.TextTokens.Last()
 
-            If textTokens.Any(Function(t) Not String.IsNullOrWhiteSpace(t.ToString())) Then
-                Return False
+            ' Capture the existing text from the first content for later use, if there are two
+            If documentationComment.Content.Count = 2 Then
+                existingCommentText = firstXmlText.TextTokens.First().ValueText
             End If
-
-            Dim lastTextToken = textTokens.Last()
-            Dim firstTextToken = textTokens.First()
 
             Return lastTextToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken AndAlso
                    firstTextToken.LeadingTrivia.Count = 1 AndAlso

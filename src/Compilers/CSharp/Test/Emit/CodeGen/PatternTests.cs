@@ -3321,6 +3321,24 @@ static class C {
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (9,5): error CS0518: Predefined type 'System.Byte' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Byte").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.Byte' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Byte").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.Int16' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Int16").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.Int16' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Int16").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.Int64' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Int64").WithLocation(9, 5),
+                // (9,5): error CS0518: Predefined type 'System.Int64' is not defined or imported
+                //     public static bool M(int i) => i switch { 1 => true };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public static bool M(int i) => i switch { 1 => true };").WithArguments("System.Int64").WithLocation(9, 5),
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),

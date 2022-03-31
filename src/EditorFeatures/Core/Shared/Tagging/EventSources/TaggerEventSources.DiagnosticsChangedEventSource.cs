@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -24,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
-                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                var documentId = e.Workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
 
-                if (document != null && document.Project.Solution.Workspace == e.Workspace && document.Id == e.DocumentId)
+                if (documentId == e.DocumentId)
                 {
                     this.RaiseChanged();
                 }

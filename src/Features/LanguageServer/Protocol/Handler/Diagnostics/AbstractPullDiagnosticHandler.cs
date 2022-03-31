@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -30,7 +25,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : IRequestHandler<TDiagnosticsParams, TReturn?> where TDiagnosticsParams : IPartialResultParams<TReport[]>
     {
-        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
+        /// <summary>
+        /// Diagnostic mode setting for Razor.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Razor.
+        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
+        /// </summary>
+        private static readonly Option2<DiagnosticMode> s_razorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "RazorDiagnosticMode", defaultValue: DiagnosticMode.Pull);
+
+        /// <summary>
+        /// Diagnostic mode setting for Live Share.  This should always be <see cref="DiagnosticMode.Pull"/> as there is no push support in Live Share.
+        /// This option is only for passing to the diagnostics service and can be removed when we switch all of Roslyn to LSP pull.
+        /// </summary>
+        private static readonly Option2<DiagnosticMode> s_liveShareDiagnosticMode = new(nameof(InternalDiagnosticsOptions), "LiveShareDiagnosticMode", defaultValue: DiagnosticMode.Pull);
 
         /// <summary>
         /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
@@ -40,44 +45,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
+        private readonly WellKnownLspServerKinds _serverKind;
+        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
-        /// Since this is a non-mutating request handler it is possible for
-        /// calls to <see cref="HandleRequestAsync(TDiagnosticsParams, RequestContext, CancellationToken)"/>
-        /// to run concurrently.
+        /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
+        /// changed. The VersionStamp is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
+        /// Checksum is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
+        /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
+        /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
-
-        /// <summary>
-        /// Mapping of a document to the data used to make the last diagnostic report which contains:
-        /// <list type="bullet">
-        ///   <item>The resultId reported to the client.</item>
-        ///   <item>The <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> of the project snapshot that was used to calculate diagnostics.
-        ///       <para>Note that this version can change even when nothing has actually changed (for example, forking the LSP text, reloading the same project).
-        ///       So we additionally store:</para></item>
-        ///   <item>A checksum representing the project and its dependencies from <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.</item>
-        /// </list>
-        /// This is used to determine if we need to re-calculate diagnostics.
-        /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, VersionStamp projectDependentVersion, Checksum projectDependentChecksum)> _documentIdToLastResult = new();
-
-        /// <summary>
-        /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
-        /// way we can update diagnostics with the client with per-doc granularity.
-        /// </summary>
-        private long _nextDocumentResultId;
-
-        public abstract string Method { get; }
+        private readonly VersionedPullCache<(int, VersionStamp), (int, Checksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
-            IDiagnosticService diagnosticService)
+            WellKnownLspServerKinds serverKind,
+            IDiagnosticService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
         {
+            _serverKind = serverKind;
             DiagnosticService = diagnosticService;
+            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _versionedCache = new(this.GetType().Name);
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
@@ -86,12 +79,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their diagnostics cleared.
         /// </summary>
-        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
+        protected abstract ImmutableArray<PreviousPullResult>? GetPreviousResults(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
+        protected abstract ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
@@ -104,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Produce the diagnostics for the specified document.
         /// </summary>
-        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
@@ -121,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousResult>.Empty;
+            var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousPullResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -135,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedDocuments = GetOrderedDocuments(context);
+            var orderedDocuments = await GetOrderedDocumentsAsync(context, cancellationToken).ConfigureAwait(false);
             context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
             foreach (var document in orderedDocuments)
@@ -148,7 +141,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                var newResultId = await GetNewResultIdAsync(documentToPreviousDiagnosticParams, document, cancellationToken).ConfigureAwait(false);
+                var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
+
+                var project = document.Project;
+                var newResultId = await _versionedCache.GetNewResultIdAsync(
+                    documentToPreviousDiagnosticParams,
+                    document,
+                    computeCheapVersionAsync: async () => (encVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
+                    computeExpensiveVersionAsync: async () => (encVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                    cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
@@ -183,12 +184,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousResult> previousResults)
+        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, PreviousResult>();
+            var result = new Dictionary<Document, PreviousPullResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -209,15 +210,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            // Being asked about this document for the first time.  Or being asked again and we have different
-            // diagnostics.  Compute and report the current diagnostics info for this document.
+            var diagnosticModeOption = _serverKind switch
+            {
+                WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
+                _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
+            };
 
-            // Razor has a separate option for determining if they should be in push or pull mode.
-            var diagnosticMode = document.IsRazorDocument()
-                ? InternalDiagnosticsOptions.RazorDiagnosticMode
-                : InternalDiagnosticsOptions.NormalDiagnosticMode;
-
-            var isPull = context.GlobalOptions.IsPullDiagnostics(diagnosticMode);
+            var diagnosticMode = context.GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
+            var isPull = diagnosticMode == DiagnosticMode.Pull;
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -257,65 +258,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         progress.Report(CreateReport(textDocument, diagnostics: null, resultId: null));
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// If diagnostics have changed since the last request this calculates and returns a new
-        /// non-null resultId to use for subsequent computation and caches it.
-        /// </summary>
-        /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
-        /// <param name="document">the document we are currently calculating results for.</param>
-        /// <returns>Null when diagnostics are unchanged, otherwise returns a non-null new resultId.</returns>
-        private async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, PreviousResult> documentToPreviousDiagnosticParams,
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var currentProjectDependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
-                    previousParams.PreviousResultId != null &&
-                    _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
-                    lastResult.resultId == previousParams.PreviousResultId)
-                {
-                    if (lastResult.projectDependentVersion == currentProjectDependentVersion)
-                    {
-                        // The client's resultId matches our cached resultId and the project dependent version is an
-                        // exact match for our current project dependent version (meaning the project and none of its dependencies
-                        // have changed, or even forked, since we last calculated diagnostics).
-                        // We return early here to avoid calculating checksums as we know nothing is changed.
-                        return null;
-                    }
-
-                    // The current project dependent version does not match the last reported.  This may be because we've forked
-                    // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
-                    var aggregateChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
-                    if (lastResult.projectDependentChecksum == aggregateChecksum)
-                    {
-                        // Checksums match which means content has not changed and we do not need to re-calculate.
-                        return null;
-                    }
-                }
-
-                // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
-                // We need to calculate diagnostics and store what we calculated the diagnostics for.
-
-                // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
-                // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
-                // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
-                // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
-                // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
-                // what changed between each other.
-                //
-                // Note that we can safely update the map before computation as any cancellation or exception
-                // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                var currentProjectDependentChecksum = await document.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, currentProjectDependentVersion, currentProjectDependentChecksum);
-                return newResultId;
             }
         }
 
@@ -361,7 +303,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Source = "Roslyn",
                     Code = diagnosticData.Id,
-                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
+                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),

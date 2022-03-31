@@ -250,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(ownerOfTypeParametersInScope == null);
                             var localFunction = (LocalFunctionStatementSyntax)stmt;
-                            if (localFunction.TypeParameterList != null &&
-                                !LookupPosition.IsBetweenTokens(position, localFunction.Identifier, localFunction.TypeParameterList.LessThanToken)) // Scope does not include method name.
+                            if (LookupPosition.IsInLocalFunctionTypeParameterScope(position, localFunction))
                             {
                                 ownerOfTypeParametersInScope = localFunction;
                             }
@@ -358,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalFunctionSymbol function = GetDeclaredLocalFunction(binder, ownerOfTypeParametersInScope.Identifier);
                 if ((object)function != null)
                 {
-                    binder = function.SignatureBinder;
+                    binder = function.WithTypeParametersBinder;
                 }
             }
 
@@ -2356,6 +2355,11 @@ foundParent:;
         }
 
         internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
             throw ExceptionUtilities.Unreachable;
         }

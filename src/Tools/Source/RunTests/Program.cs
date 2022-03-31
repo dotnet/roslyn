@@ -29,7 +29,7 @@ namespace RunTests
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
-        private const long MaxTotalDumpSizeInMegabytes = 4096;
+        private const long MaxTotalDumpSizeInMegabytes = 8196;
 
         internal static async Task<int> Main(string[] args)
         {
@@ -288,7 +288,7 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
             }
 
             return list;
@@ -405,6 +405,7 @@ namespace RunTests
                 currentTotalSize += fileSizeInMegabytes;
                 if (currentTotalSize > MaxTotalDumpSizeInMegabytes)
                 {
+                    ConsoleUtil.WriteLine($"Deleting '{dumpFile}' because we have exceeded our total dump size of {MaxTotalDumpSizeInMegabytes} megabytes.");
                     File.Delete(dumpFile);
                 }
             }

@@ -8,11 +8,24 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .vscode/*
+      - .github/*
+      - .devcontainer/
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
