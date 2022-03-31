@@ -345,6 +345,8 @@ link text";
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
             Assert.Equal("(byte)", results.Label);
             Assert.NotNull(results.Description);
+            Assert.Equal(")", results.TextEdit.NewText);
+            Assert.Equal("((byte)", results.AdditionalTextEdits.Single().NewText);
         }
 
         [Fact]
