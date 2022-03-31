@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 state.Name,
                 state.AssemblyName,
                 state.Language,
+                state.DefaultPrefix,
                 state.ReferenceAssemblies ?? defaultReferenceAssemblies,
                 state.OutputKind ?? OutputKind.DynamicallyLinkedLibrary,
                 state.DocumentationMode ?? DocumentationMode.Diagnose,
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             string name,
             string assemblyName,
             string language,
+            string defaultPrefix,
             ReferenceAssemblies referenceAssemblies,
             OutputKind outputKind,
             DocumentationMode documentationMode,
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             Name = name;
             AssemblyName = assemblyName;
             Language = language;
+            DefaultPrefix = defaultPrefix;
             ReferenceAssemblies = referenceAssemblies;
             OutputKind = outputKind;
             DocumentationMode = documentationMode;
@@ -86,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
 
         public ImmutableArray<Diagnostic> AdditionalDiagnostics { get; }
 
+        internal string DefaultPrefix { get; }
+
         public EvaluatedProjectState WithSources(ImmutableArray<(string filename, SourceText content)> sources)
         {
             if (sources == Sources)
@@ -110,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             Optional<string> name = default,
             Optional<string> assemblyName = default,
             Optional<string> language = default,
+            Optional<string> defaultPrefix = default,
             Optional<ReferenceAssemblies> referenceAssemblies = default,
             Optional<OutputKind> outputKind = default,
             Optional<DocumentationMode> documentationMode = default,
@@ -125,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 GetValueOrDefault(name, Name),
                 GetValueOrDefault(assemblyName, AssemblyName),
                 GetValueOrDefault(language, Language),
+                GetValueOrDefault(defaultPrefix, DefaultPrefix),
                 GetValueOrDefault(referenceAssemblies, ReferenceAssemblies),
                 GetValueOrDefault(outputKind, OutputKind),
                 GetValueOrDefault(documentationMode, DocumentationMode),
