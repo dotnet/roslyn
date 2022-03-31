@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // that any IO that performs is not potentially on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeModelAsync(textSnapshot, cancellationToken).ConfigureAwait(false);
+            var model = await ComputeModelAsync().ConfigureAwait(false);
 
             // Now, enqueue work to select the right item in this new model.
             if (model != null)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             return model;
 
-            static async Task<NavigationBarModel?> ComputeModelAsync(ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            async Task<NavigationBarModel?> ComputeModelAsync()
             {
                 // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
                 // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
                 // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
-                var documentTrackingService = document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                await documentTrackingService.DelayWhileNonVisibleAsync(document, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                    this.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
