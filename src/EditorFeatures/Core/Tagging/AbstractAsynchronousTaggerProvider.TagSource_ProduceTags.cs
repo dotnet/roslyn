@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
-                var caret = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                var caret = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // If any of the requests was for the initial tags, then compute at that speed (normally faster than
                 // normal tags).
                 var initialTags = changes.Any(b => b);
-                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                await RecomputeTagsAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -195,8 +196,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// complete almost immediately.  Once open though, our normal delays come into play
             /// so as to not cause a flashy experience.
             /// </summary>
-            private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
+            private async Task RecomputeTagsAsync(bool initialTags, CancellationToken cancellationToken)
             {
+                // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
+                // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
+                // we're on the UI thread that we stay on it.
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 this.AssertIsForeground();
                 if (cancellationToken.IsCancellationRequested)
                     return;
@@ -207,16 +216,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // thread to do the computation. Finally, once new tags have been computed, then we update our state
                     // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
-                    var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                    var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
                     var textChangeRange = this.AccumulatedTextChanges;
                     this.AccumulatedTextChanges = null;
-
-                    // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
-                    // consuming machine resources on work the user isn't likely to see.
-                    await RecomputationDelayIfNonVisibleAsync(spansToTag, cancellationToken).ConfigureAwait(false);
 
                     // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
                     // we're always moving to the threadpool here in case the above code ever changes.
@@ -249,26 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private async Task RecomputationDelayIfNonVisibleAsync(ImmutableArray<DocumentSnapshotSpan> spansToTag, CancellationToken cancellationToken)
-            {
-                // If we're not associated with a workspace, then don't delay tagging.
-                var workspace = _workspaceRegistration.Workspace;
-                if (workspace == null)
-                    return;
-
-                // if we're tagging anything that doesn't have a document, or it's a document that doesn't correspond to
-                // the workspace we're looking at, then don't delay tagging.
-                var documents = spansToTag.SelectAsArray(ss => ss.Document);
-                if (documents.Any(d => d == null || d.Project.Solution.Workspace != workspace))
-                    return;
-
-                // Ok, add a large delay if none of the documents we're tagging are visible.  We still end up letting
-                // the tagging happen once enough time has passed.  This helps ensure we do always reach a fixed point.
-                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                await documentTrackingService.DelayWhileNonVisibleAsync(
-                    documents!, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
-            }
-
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
                 this.AssertIsForeground();
@@ -276,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // TODO: Update to tag spans from all related documents.
 
                 using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
-                var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
+                var spansToTag = _dataSource.GetSpansToTag(_textView, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
                 {
@@ -545,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;
