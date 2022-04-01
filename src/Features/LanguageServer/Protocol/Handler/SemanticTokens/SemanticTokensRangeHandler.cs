@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly IGlobalOptionService _globalOptions;
+
+        // Lock to guard _projectToCompilation dictionary
+        private readonly object _lock = new();
         private readonly Dictionary<ProjectId, Task<Compilation?>> _projectIdToCompilation = new();
 
         public override bool MutatesSolutionState => false;
@@ -80,26 +83,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // We use a combination of IsFullyLoaded + the completed project compilation as the metric
             // for isFinalized. It may not be completely accurate but this is only a a temporary fix until
             // workspace/semanticTokens/refresh is implemented.
-            if (_projectIdToCompilation.TryGetValue(project.Id, out var compilationTask) && compilationTask.IsCompleted)
+            lock (_lock)
             {
-                // We don't want to hang on to the compilation since this can be very expensive,
-                // but we do want to mark the compilation as being successfully retrieved.
-                if (compilationTask.Result is not null)
+                if (_projectIdToCompilation.TryGetValue(project.Id, out var compilationTask) && compilationTask.IsCompleted)
                 {
-                    _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
-                }
+                    // We don't want to hang on to the compilation since this can be very expensive,
+                    // but we do want to mark the compilation as being successfully retrieved.
+                    if (compilationTask.Result is not null)
+                    {
+                        _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
+                    }
 
-                return true;
+                    return true;
+                }
             }
 
             var workspaceStatusService = project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
             var isFullyLoaded = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            if (isFullyLoaded && !_projectIdToCompilation.ContainsKey(project.Id))
+
+            lock (_lock)
             {
-                // If the project's compilation isn't yet available, kick off a task in the background to
-                // hopefully make it available faster since we'll need it later to compute tokens.
-                var newCompilationTask = project.GetCompilationAsync(cancellationToken);
-                _projectIdToCompilation.Add(project.Id, newCompilationTask);
+                if (isFullyLoaded && !_projectIdToCompilation.ContainsKey(project.Id))
+                {
+                    // If the project's compilation isn't yet available, kick off a task in the background to
+                    // hopefully make it available faster since we'll need it later to compute tokens.
+                    var newCompilationTask = project.GetCompilationAsync(cancellationToken);
+                    _projectIdToCompilation.Add(project.Id, newCompilationTask);
+                }
             }
 
             return false;
