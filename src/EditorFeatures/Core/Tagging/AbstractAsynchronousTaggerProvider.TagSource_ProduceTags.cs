@@ -548,7 +548,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
                 this.AssertIsForeground();
-
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
