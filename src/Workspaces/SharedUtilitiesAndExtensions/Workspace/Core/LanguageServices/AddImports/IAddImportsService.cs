@@ -6,10 +6,17 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -23,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
             => FromDocument(document, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
-        public static AddImportPlacementOptions FromDocument(Document document, Options.OptionSet documentOptions)
+        public static AddImportPlacementOptions FromDocument(Document document, OptionSet documentOptions)
         {
             var service = document.GetRequiredLanguageService<IAddImportsService>();
 
@@ -41,14 +48,22 @@ namespace Microsoft.CodeAnalysis.AddImport
             var spanMapper = document.Services.GetService<ISpanMappingService>();
             return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
         }
+#else
+        public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
+            var service = document.GetRequiredLanguageService<IAddImportsService>();
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+            return new(
+                PlaceSystemNamespaceFirst: options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst),
+                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(options),
+                AllowInHiddenRegions: false);
+        }
 #endif
     }
 
     internal interface IAddImportsService : ILanguageService
     {
-#if !CODE_STYLE
-        bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
-#endif
+        bool PlaceImportsInsideNamespaces(OptionSet optionSet);
 
         /// <summary>
         /// Returns true if the tree already has an existing import syntactically equivalent to

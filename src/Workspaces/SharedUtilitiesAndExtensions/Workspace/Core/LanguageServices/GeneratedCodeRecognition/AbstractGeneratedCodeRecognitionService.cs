@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
             return IsGeneratedCode(syntaxTree, document, cancellationToken);
         }
 
-        private static bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken)
+        public bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxTree.IsGeneratedCode(document.Project.AnalyzerOptions, syntaxFacts, cancellationToken);

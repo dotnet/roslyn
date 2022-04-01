@@ -144,4 +144,37 @@
   <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
     <value>Warning: Declaration changes scope and may change meaning.</value>
   </data>
+  <data name="Location_must_be_null_or_from_source" xml:space="preserve">
+    <value>Location must be null or from source.</value>
+  </data>
+  <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
+    <value>Could not find location to generation symbol into.</value>
+  </data>
+  <data name="Destination_location_was_from_a_different_tree" xml:space="preserve">
+    <value>Destination location was from a different tree.</value>
+  </data>
+  <data name="Destination_location_was_not_in_source" xml:space="preserve">
+    <value>Destination location was not in source.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
+    <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
+    <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_but_given_one_is_1" xml:space="preserve">
+    <value>Destination type must be a {0}, but given one is {1}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2" xml:space="preserve">
+    <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
+  </data>
+  <data name="No_location_provided_to_add_statements_to" xml:space="preserve">
+    <value>No location provided to add statements to.</value>
+  </data>
+  <data name="Invalid_number_of_parameters_for_binary_operator" xml:space="preserve">
+    <value>Invalid number of parameters for binary operator.</value>
+  </data>
+  <data name="Invalid_number_of_parameters_for_unary_operator" xml:space="preserve">
+    <value>Invalid number of parameters for unary operator.</value>
+  </data>
 </root>

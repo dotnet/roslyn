@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить атрибут "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Добавить явное приведение</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Добавить имя элемента</target>
@@ -570,11 +565,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Преобразовать в кортеж</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Преобразовать тип в "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Не удалось найти переносимый PDB-файл на диске или во внедренном источнике.</target>
@@ -693,11 +683,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">Явно реализованные методы записей должны иметь имена параметров, соответствующие компилятору, созданному эквивалентом '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Explicitly_inherit_documentation">
-        <source>Explicitly inherit documentation</source>
-        <target state="translated">Явно наследовать документацию</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -1043,16 +1028,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="new">JSON issue: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_class_abstract">
-        <source>Make class 'abstract'</source>
-        <target state="translated">Сделать класс абстрактным</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_member_static">
-        <source>Make static</source>
-        <target state="translated">Сделать статическим</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -2908,11 +2883,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Использовать тело выражения для лямбда-выражений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_interpolated_verbatim_string">
-        <source>Use interpolated verbatim string</source>
-        <target state="translated">Использовать интерполированную буквальную строку</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">
@@ -4888,11 +4858,6 @@ This version used in: {2}</source>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">индексатор</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Alias_ambiguous_type_0">
-        <source>Alias ambiguous type '{0}'</source>
-        <target state="translated">Неоднозначный тип псевдонима "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">

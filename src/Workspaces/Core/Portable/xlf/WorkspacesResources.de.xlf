@@ -52,11 +52,6 @@
         <target state="translated">"DateTimeKind" muss UTC sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
-        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="translated">Der Zieltyp muss "{0}", "{1}", "{2}" oder "{3}" lauten. Es wurde jedoch "{4}" angegeben.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
         <target state="translated">Das Dokument unterstützt keine Syntaxstrukturen.</target>
@@ -137,49 +132,9 @@
         <target state="translated">Zyklus in Erweiterungen entdeckt</target>
         <note />
       </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
-        <source>Destination type must be a {0}, but given one is {1}.</source>
-        <target state="translated">Zieltyp muss {0} sein. Es wurde jedoch {1} angegeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
-        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
-        <target state="translated">Zieltyp muss {0} oder {1} sein. Es wurde jedoch {2} angegeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
-        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
-        <target state="translated">Zieltyp muss {0}, {1} oder {2} sein. Es wurde jedoch {3} angegeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
-        <source>Could not find location to generation symbol into.</source>
-        <target state="translated">Konnte keinen Ort finden, in den das Symbol generiert werden kann.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_location_provided_to_add_statements_to">
-        <source>No location provided to add statements to.</source>
-        <target state="translated">Kein Ort angegeben, zu dem Anweisungen hinzugefügt werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_not_in_source">
-        <source>Destination location was not in source.</source>
-        <target state="translated">Zielort war nicht in Quelle.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_from_a_different_tree">
-        <source>Destination location was from a different tree.</source>
-        <target state="translated">Zielort stammt aus anderem Baum.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Node_is_of_the_wrong_type">
         <source>Node is of the wrong type.</source>
         <target state="translated">Knoten hat den falschen Typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Location_must_be_null_or_from_source">
-        <source>Location must be null or from source.</source>
-        <target state="translated">Ort muss null oder von Quelle sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -450,16 +405,6 @@
       <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
         <source>Cannot generate code for unsupported operator '{0}'</source>
         <target state="translated">Kann keinen Code für nicht unterstützten Operator "{0}" generieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
-        <source>Invalid number of parameters for binary operator.</source>
-        <target state="translated">Ungültige Parameteranzahl für binären Operator.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
-        <source>Invalid number of parameters for unary operator.</source>
-        <target state="translated">Ungültige Parameteranzahl für unären Operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">

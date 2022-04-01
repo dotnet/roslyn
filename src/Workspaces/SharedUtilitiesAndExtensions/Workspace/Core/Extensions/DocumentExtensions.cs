@@ -187,6 +187,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 #endif
 
+        public static bool IsGeneratedCode(this Document document, SyntaxTree tree, CancellationToken cancellationToken)
+        {
+            var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
+            return generatedCodeRecognitionService?.IsGeneratedCode(tree, document, cancellationToken) == true;
+        }
+
         public static async Task<bool> IsGeneratedCodeAsync(this Document document, CancellationToken cancellationToken)
         {
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();

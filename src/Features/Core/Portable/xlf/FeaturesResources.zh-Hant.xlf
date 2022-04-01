@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">新增 'DebuggerDisplay' 屬性</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">新增明確轉換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">新增成員名稱</target>
@@ -570,11 +565,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">轉換為元組</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">將類型轉換為 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">磁碟或內嵌上找不到可攜式 PDB。</target>
@@ -693,11 +683,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">記錄的明確實作方法，必須有參數名稱符合編譯器產生的相等 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Explicitly_inherit_documentation">
-        <source>Explicitly inherit documentation</source>
-        <target state="translated">明確繼承文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -1043,16 +1028,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="new">JSON issue: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_class_abstract">
-        <source>Make class 'abstract'</source>
-        <target state="translated">將類別設為 'abstract'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_member_static">
-        <source>Make static</source>
-        <target state="translated">使其變成靜態</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -2908,11 +2883,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">使用 Lambda 運算式的運算式主體</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_interpolated_verbatim_string">
-        <source>Use interpolated verbatim string</source>
-        <target state="translated">使用插入的逐字字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">
@@ -4888,11 +4858,6 @@ This version used in: {2}</source>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">索引子</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Alias_ambiguous_type_0">
-        <source>Alias ambiguous type '{0}'</source>
-        <target state="translated">別名不明確類型 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">

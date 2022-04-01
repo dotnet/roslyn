@@ -962,12 +962,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
-  <data name="Convert_0_to_Iterator" xml:space="preserve">
-    <value>Convert {0} to Iterator</value>
-  </data>
-  <data name="Replace_Return_with_Yield" xml:space="preserve">
-    <value>Replace 'Return' with 'Yield</value>
-  </data>
   <data name="Use_the_correct_control_variable" xml:space="preserve">
     <value>Use the correct control variable</value>
   </data>
@@ -1207,9 +1201,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
   </data>
-  <data name="Add_Obsolete" xml:space="preserve">
-    <value>Add &lt;Obsolete&gt;</value>
-  </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
     <comment>{Locked="Import"}</comment>
@@ -1221,9 +1212,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Introduce_Using_statement" xml:space="preserve">
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
-  </data>
-  <data name="Make_0_inheritable" xml:space="preserve">
-    <value>Make '{0}' inheritable</value>
   </data>
   <data name="Apply_Me_qualification_preferences" xml:space="preserve">
     <value>Apply Me qualification preferences</value>

@@ -12,11 +12,6 @@
         <target state="translated">添加 Await 和 “ConfigureAwait(false)”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add &lt;Obsolete&gt;</source>
-        <target state="translated">添加 &lt;Obsolete&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">添加缺少的 Import</target>
@@ -96,11 +91,6 @@
         <source>Introduce 'Using' statement</source>
         <target state="translated">引入 “Using” 语句</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Make_0_inheritable">
-        <source>Make '{0}' inheritable</source>
-        <target state="translated">使 "{0}" 可继承</target>
-        <note />
       </trans-unit>
       <trans-unit id="Make_private_field_ReadOnly_when_possible">
         <source>Make private field ReadOnly when possible</source>
@@ -1500,16 +1490,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
         <target state="translated">使 {0} 为异步函数。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_0_to_Iterator">
-        <source>Convert {0} to Iterator</source>
-        <target state="translated">将{0}转换为迭代器</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_Return_with_Yield">
-        <source>Replace 'Return' with 'Yield</source>
-        <target state="translated">将 "Return" 替换为 "Yield</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">

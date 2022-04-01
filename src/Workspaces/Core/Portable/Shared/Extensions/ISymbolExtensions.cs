@@ -25,17 +25,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
-        {
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed);
-        }
-
         /// <summary>
         /// Checks a given symbol for browsability based on its declaration location, attributes 
         /// explicitly limiting browsability, and whether showing of advanced members is enabled. 

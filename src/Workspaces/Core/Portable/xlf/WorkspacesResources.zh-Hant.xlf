@@ -52,11 +52,6 @@
         <target state="translated">DateTimeKind 必須是 Utc</target>
         <note />
       </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
-        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="translated">目的地類型必須是 {0}、{1}、{2} 或 {3}，但提供的類型是 {4}。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
         <target state="translated">文件不支援語法樹</target>
@@ -137,49 +132,9 @@
         <target state="translated">在擴充功能中偵測到循環</target>
         <note />
       </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
-        <source>Destination type must be a {0}, but given one is {1}.</source>
-        <target state="translated">目的地類型必須是 {0}，但提供的是 {1}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
-        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
-        <target state="translated">目的地類型必須是 {0} 或 {1}，但提供的是 {2}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
-        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
-        <target state="translated">目的地類型必須是 {0}、{1} 或 {2}，但提供的是 {3}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
-        <source>Could not find location to generation symbol into.</source>
-        <target state="translated">找不到產生符號目的地位置。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_location_provided_to_add_statements_to">
-        <source>No location provided to add statements to.</source>
-        <target state="translated">未提供加入陳述式的位置。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_not_in_source">
-        <source>Destination location was not in source.</source>
-        <target state="translated">目的地位置不在來源中。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_from_a_different_tree">
-        <source>Destination location was from a different tree.</source>
-        <target state="translated">目的地位置來自不同的樹狀目錄。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Node_is_of_the_wrong_type">
         <source>Node is of the wrong type.</source>
         <target state="translated">節點類型不正確。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Location_must_be_null_or_from_source">
-        <source>Location must be null or from source.</source>
-        <target state="translated">位置必須是 null 或源自來源。</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -450,16 +405,6 @@
       <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
         <source>Cannot generate code for unsupported operator '{0}'</source>
         <target state="translated">無法產生不受支援之運算子 '{0}' 的程式碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
-        <source>Invalid number of parameters for binary operator.</source>
-        <target state="translated">二元運算子的參數數目無效。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
-        <source>Invalid number of parameters for unary operator.</source>
-        <target state="translated">一元運算子的參數數目無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">

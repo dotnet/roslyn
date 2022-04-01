@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="translated">'await' 추가</target>
+        <target state="new">Add 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -147,11 +147,6 @@
         <target state="translated">'out' 매개 변수 할당(시작 시)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Assign_to_0">
-        <source>Assign to '{0}'</source>
-        <target state="translated">'{0}'에 할당</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">잠재적인 패턴 변수 선언으로 인해 자동 선택을 사용하지 않도록 설정했습니다.</target>
@@ -165,11 +160,6 @@
       <trans-unit id="Change_to_cast">
         <source>Change to cast</source>
         <target state="translated">캐스트로 변경</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compare_to_0">
-        <source>Compare to '{0}'</source>
-        <target state="translated">'{0}'과(와) 비교</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -207,19 +197,9 @@
         <target state="translated">축자 문자열로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="translated">Nullable로 선언</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">프로젝트에서 null 허용 참조 형식 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_return_type">
-        <source>Fix return type</source>
-        <target state="translated">반환 형식 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -275,11 +255,6 @@
       <trans-unit id="Simplify_all_occurrences">
         <source>Simplify all occurrences</source>
         <target state="translated">모든 항목 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unseal_class_0">
-        <source>Unseal class '{0}'</source>
-        <target state="translated">'{0}' 클래스 봉인 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
@@ -485,16 +460,6 @@
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
         <target state="translated">{0}에서 void 대신 Task를 반환하도록 설정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_return_type_from_0_to_1">
-        <source>Change return type from {0} to {1}</source>
-        <target state="translated">반환 형식을 {0}에서 {1}(으)로 변경</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_return_with_yield_return">
-        <source>Replace return with yield return</source>
-        <target state="translated">return을 yield return으로 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -737,11 +702,6 @@
         <target state="translated">이름 '{0}'이(가) 현재 컨텍스트에 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Hide_base_member">
-        <source>Hide base member</source>
-        <target state="translated">기본 멤버 숨기기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">속성</target>
@@ -845,11 +805,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if 반전</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add [Obsolete]</source>
-        <target state="translated">[Obsolete] 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">

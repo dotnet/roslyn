@@ -50,11 +50,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Dodaj atrybut "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Dodaj rzutowanie jawne</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Dodaj nazwę składowej</target>
@@ -570,11 +565,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Konwertuj na spójną kolekcję</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Konwertuj typ na „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Nie można odnaleźć przenośnego pliku PDB na dysku lub w trybie osadzonym.</target>
@@ -693,11 +683,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">Jawnie zaimplementowane metody rekordów muszą mieć nazwy parametrów pasujące do wygenerowanego odpowiednika kompilatora "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Explicitly_inherit_documentation">
-        <source>Explicitly inherit documentation</source>
-        <target state="translated">Wyraźnie dziedziczona dokumentacja</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -1043,16 +1028,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="new">JSON issue: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_class_abstract">
-        <source>Make class 'abstract'</source>
-        <target state="translated">Ustaw specyfikator „abstract” dla klasy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_member_static">
-        <source>Make static</source>
-        <target state="translated">Ustaw jako statyczne</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -2908,11 +2883,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Użyj treści wyrażenia dla wyrażeń lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_interpolated_verbatim_string">
-        <source>Use interpolated verbatim string</source>
-        <target state="translated">Użyj interpolowanego ciągu dosłownego wyrażenia</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">
@@ -4888,11 +4858,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">indeksator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Alias_ambiguous_type_0">
-        <source>Alias ambiguous type '{0}'</source>
-        <target state="translated">Niejednoznaczny typ aliasu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">

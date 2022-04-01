@@ -126,10 +126,6 @@
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
-  <data name="Add_await" xml:space="preserve">
-    <value>Add 'await'</value>
-    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="Add_await_and_ConfigureAwaitFalse" xml:space="preserve">
     <value>Add 'await' and 'ConfigureAwait(false)'</value>
     <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
@@ -169,12 +165,6 @@
   </data>
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
-  </data>
-  <data name="Declare_as_nullable" xml:space="preserve">
-    <value>Declare as nullable</value>
-  </data>
-  <data name="Fix_return_type" xml:space="preserve">
-    <value>Fix return type</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -247,12 +237,6 @@
   </data>
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>
-  </data>
-  <data name="Change_return_type_from_0_to_1" xml:space="preserve">
-    <value>Change return type from {0} to {1}</value>
-  </data>
-  <data name="Replace_return_with_yield_return" xml:space="preserve">
-    <value>Replace return with yield return</value>
   </data>
   <data name="Generate_explicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
@@ -435,9 +419,6 @@
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
   </data>
-  <data name="Hide_base_member" xml:space="preserve">
-    <value>Hide base member</value>
-  </data>
   <data name="Remove_new_modifier" xml:space="preserve">
     <value>Remove 'new' modifier</value>
   </data>
@@ -513,9 +494,6 @@
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
-  <data name="Add_Obsolete" xml:space="preserve">
-    <value>Add [Obsolete]</value>
-  </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
@@ -544,9 +522,6 @@
   <data name="Introduce_using_statement" xml:space="preserve">
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Unseal_class_0" xml:space="preserve">
-    <value>Unseal class '{0}'</value>
   </data>
   <data name="Make_ref_struct" xml:space="preserve">
     <value>Make 'ref struct'</value>
@@ -585,12 +560,6 @@
   </data>
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
-  </data>
-  <data name="Assign_to_0" xml:space="preserve">
-    <value>Assign to '{0}'</value>
-  </data>
-  <data name="Compare_to_0" xml:space="preserve">
-    <value>Compare to '{0}'</value>
   </data>
   <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
     <value>Apply preferred 'using' placement preferences</value>
@@ -680,5 +649,9 @@
   </data>
   <data name="Apply_var_preferences" xml:space="preserve">
     <value>Apply 'var' preferences</value>
+  </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

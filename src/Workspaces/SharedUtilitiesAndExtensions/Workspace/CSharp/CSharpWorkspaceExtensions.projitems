@@ -9,6 +9,31 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConversionGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationPreferences.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationServiceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpDeclarationComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpFlagsEnumGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpSyntaxGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\DestructorGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\EnumMemberGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\EventGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ExpressionGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\FieldGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\MethodGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NamedTypeGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NamespaceGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\OperatorGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ParameterGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\PropertyGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\StatementGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\TypeParameterGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharLanguageServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasePropertyDeclarationSyntaxExtensions.cs" />

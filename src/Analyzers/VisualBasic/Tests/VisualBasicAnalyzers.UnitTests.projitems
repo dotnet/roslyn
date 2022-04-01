@@ -10,6 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />

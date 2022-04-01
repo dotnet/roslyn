@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="translated">新增 'await'</target>
+        <target state="new">Add 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -147,11 +147,6 @@
         <target state="translated">指派 'out' 參數 (開始時)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Assign_to_0">
-        <source>Assign to '{0}'</source>
-        <target state="translated">指派給 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">因為潛在的範圍變數宣告，所以停用了自動選取。</target>
@@ -165,11 +160,6 @@
       <trans-unit id="Change_to_cast">
         <source>Change to cast</source>
         <target state="translated">變更為 'cast'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compare_to_0">
-        <source>Compare to '{0}'</source>
-        <target state="translated">與 '{0}' 比較</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -207,19 +197,9 @@
         <target state="translated">轉換為逐字字串</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="translated">宣告為可為 Null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">在專案中啟用可為 Null 的參考類型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_return_type">
-        <source>Fix return type</source>
-        <target state="translated">修正傳回型別</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -275,11 +255,6 @@
       <trans-unit id="Simplify_all_occurrences">
         <source>Simplify all occurrences</source>
         <target state="translated">簡化所有項目</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unseal_class_0">
-        <source>Unseal class '{0}'</source>
-        <target state="translated">為類別 '{0}' 解密</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
@@ -485,16 +460,6 @@
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
         <target state="translated">使 {0} 傳回 Task 而不是 void。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_return_type_from_0_to_1">
-        <source>Change return type from {0} to {1}</source>
-        <target state="translated">將傳回類型從 {0} 變更為 {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_return_with_yield_return">
-        <source>Replace return with yield return</source>
-        <target state="translated">使用 yield return 取代 return</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -737,11 +702,6 @@
         <target state="translated">目前內容中沒有名稱 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Hide_base_member">
-        <source>Hide base member</source>
-        <target state="translated">隱藏基底成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Properties">
         <source>Properties</source>
         <target state="translated">屬性</target>
@@ -845,11 +805,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">反轉 if</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add [Obsolete]</source>
-        <target state="translated">新增 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">

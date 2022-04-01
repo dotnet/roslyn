@@ -50,11 +50,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Adicionar atributo 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Adicionar conversão explícita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Adicionar o nome do membro</target>
@@ -570,11 +565,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Converter a tupla</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="translated">Converter o tipo em '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
         <source>Could not find portable PDB on disk or embedded.</source>
         <target state="translated">Não foi possível encontrar PDB portátil no disco ou incorporado.</target>
@@ -693,11 +683,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">Métodos explicitamente implementados de registros devem ter nomes de parâmetro que correspondem ao compilador gerado '{0}' equivalente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Explicitly_inherit_documentation">
-        <source>Explicitly inherit documentation</source>
-        <target state="translated">Herdar explicitamente a documentação</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -1043,16 +1028,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
         <target state="new">JSON issue: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_class_abstract">
-        <source>Make class 'abstract'</source>
-        <target state="translated">Tornar a classe 'abstract'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_member_static">
-        <source>Make static</source>
-        <target state="translated">Tornar estático</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -2908,11 +2883,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Usar corpo da expressão para expressões lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_interpolated_verbatim_string">
-        <source>Use interpolated verbatim string</source>
-        <target state="translated">Usar cadeia de caracteres verbatim interpolada</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">
@@ -4888,11 +4858,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">indexador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Alias_ambiguous_type_0">
-        <source>Alias ambiguous type '{0}'</source>
-        <target state="translated">Tipo de alias ambíguo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
