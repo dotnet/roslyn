@@ -7270,6 +7270,55 @@ class Program
             await VerifyItemExistsAsync(markup, "Task");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync3()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+    
+    public void M() {}
+}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync4()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "Console");
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync5()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+}
+
+class Test {}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "Test");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterAsyncInMethodBody()
         {
