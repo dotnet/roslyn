@@ -77,37 +77,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private async Task<bool> IsDataFinalizedAsync(Project project, CancellationToken cancellationToken)
         {
-            // If the project's compilation isn't yet available, kick off a task in the background to
-            // hopefully make it available faster since we'll need it later to compute tokens.
-            if (!_projectIdToCompilation.ContainsKey(project.Id))
-            {
-                var compilationTask = project.GetCompilationAsync(cancellationToken);
-                _projectIdToCompilation.Add(project.Id, compilationTask);
-            }
-
             // We use a combination of IsFullyLoaded + the completed project compilation as the metric
             // for isFinalized. It may not be completely accurate but this is only a a temporary fix until
             // workspace/semanticTokens/refresh is implemented.
-            var isFinalized = false;
-            var workspaceStatusService = project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            var isFullyLoaded = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            if (isFullyLoaded)
+            if (_projectIdToCompilation.TryGetValue(project.Id, out var compilationTask) && compilationTask.IsCompleted)
             {
-                Contract.ThrowIfFalse(_projectIdToCompilation.TryGetValue(project.Id, out var compilationTask));
-                if (compilationTask.IsCompleted)
+                // We don't want to hang on to the compilation since this can be very expensive,
+                // but we do want to mark the compilation as being successfully retrieved.
+                if (compilationTask.Result is not null)
                 {
-                    isFinalized = true;
-
-                    // We don't want to hang on to the compilation since this can be very expensive,
-                    // but we do want to mark the compilation as being successfully retrieved.
-                    if (compilationTask.Result is not null)
-                    {
-                        _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
-                    }
+                    _projectIdToCompilation[project.Id] = Task.FromResult<Compilation?>(null);
                 }
+
+                return true;
             }
 
-            return isFinalized;
+            var workspaceStatusService = project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var isFullyLoaded = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            if (isFullyLoaded && !_projectIdToCompilation.ContainsKey(project.Id))
+            {
+                // If the project's compilation isn't yet available, kick off a task in the background to
+                // hopefully make it available faster since we'll need it later to compute tokens.
+                var newCompilationTask = project.GetCompilationAsync(cancellationToken);
+                _projectIdToCompilation.Add(project.Id, newCompilationTask);
+            }
+
+            return false;
         }
     }
 }
