@@ -93,7 +93,6 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
     {
-        // Should only be called on the UI thread.
         _threadingContext.ThrowIfNotOnUIThread();
 
         var subjectBuffer = args.SubjectBuffer;
@@ -128,7 +127,6 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // and failure ourselves.
         try
         {
-            // Should only be called on the UI thread.
             _threadingContext.ThrowIfNotOnUIThread();
 
             // Make an tracking token so that integration tests can wait until we're complete.

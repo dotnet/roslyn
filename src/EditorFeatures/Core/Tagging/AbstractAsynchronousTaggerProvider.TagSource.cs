@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
             {
-                get
+                get 
                 {
                     _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _cachedTagTrees_doNotAccessDirectly;
