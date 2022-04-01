@@ -37,6 +37,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         private readonly Dictionary<string, DkmClrObjectFavoritesInfo> _favoritesByTypeName;
         internal readonly GetMemberValueDelegate GetMemberValue;
 
+        internal DkmClrRuntimeInstance(Assembly assembly) : this(new[] { assembly })
+        { }
+
         internal DkmClrRuntimeInstance(
             Assembly[] assemblies,
             GetModuleDelegate getModule = null,

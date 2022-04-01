@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.ObjectModel;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
@@ -46,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             expression = RemoveFormatSpecifiers(expression, out formatSpecifiers);
             return RemoveLeadingAndTrailingContent(expression, 0, expression.Length, IsWhitespace, ch => ch == ';' || IsWhitespace(ch));
         }
+
+        internal override string GetOriginalLocalVariableName(string name) => GeneratedNameParser.GetOriginalLocalVariableName(name);
+        internal override string GetOriginalFieldName(string name) => GeneratedNameParser.GetOriginalFieldName(name);
 
         private static string RemoveComments(string expression)
         {

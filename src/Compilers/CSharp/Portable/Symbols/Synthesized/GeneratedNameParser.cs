@@ -170,5 +170,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             propertyName = null;
             return false;
         }
+
+        internal static string GetOriginalLocalVariableName(string name)
+        {
+            if (!TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
+            {
+                return name;
+            }
+
+            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+            return result;
+        }
+
+        internal static string GetOriginalFieldName(string name)
+        {
+            if (!TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
+            {
+                return name;
+            }
+
+            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+            return result;
+        }
     }
 }
