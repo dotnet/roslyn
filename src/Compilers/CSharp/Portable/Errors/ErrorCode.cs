@@ -2062,6 +2062,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnassignedThisAutoPropertySupportedVersion = 9021,
         WRN_UnassignedThisSupportedVersion = 9022,
 
+        ERR_OperatorCantBeChecked = 9023,
+        ERR_ImplicitConversionOperatorCantBeChecked = 9024,
+        ERR_CheckedOperatorNeedsMatch = 9025,
+
+        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
