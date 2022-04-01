@@ -852,7 +852,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool WriteConsideredUse(TypeSymbol type, BoundExpression value)
         {
             if (value == null || value.HasAnyErrors) return true;
-            if ((object)type != null && type.IsReferenceType && type.SpecialType != SpecialType.System_String)
+
+            if ((object)type != null && type.IsReferenceType &&
+                type.SpecialType != SpecialType.System_String &&
+                type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
                 return value.ConstantValue != ConstantValue.Null;
             }
@@ -868,6 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
             if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -892,6 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
+                case BoundKind.UTF8String:
                     return false;
                 default:
                     return true;

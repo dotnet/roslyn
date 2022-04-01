@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class ViewSpanChangedEventSource : ITaggerEventSource
+        private class ViewSpanChangedEventSource : AbstractTaggerEventSource
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
             private readonly ITextView _textView;
 
             private Span? _span;
-
-            public event EventHandler<TaggerEventArgs>? Changed;
 
             public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView)
             {
@@ -30,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _textView = textView;
             }
 
-            public void Connect()
+            public override void Connect()
             {
                 _foregroundObject.AssertIsForeground();
                 _textView.LayoutChanged += OnLayoutChanged;
             }
 
-            public void Disconnect()
+            public override void Disconnect()
             {
                 _foregroundObject.AssertIsForeground();
                 _textView.LayoutChanged -= OnLayoutChanged;
@@ -64,9 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     RaiseChanged();
                 }
             }
-
-            private void RaiseChanged()
-                => this.Changed?.Invoke(this, new TaggerEventArgs());
         }
     }
 }
