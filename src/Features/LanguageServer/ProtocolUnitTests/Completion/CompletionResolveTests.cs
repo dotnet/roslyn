@@ -182,9 +182,9 @@ class B : A
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
             var documentText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
             var lspItem = new LSP.CompletionItem();
-            await CompletionResolveHandler.AddTextEditAsync(
-                lspItem, document, documentText, new TestCaretOutOfScopeCompletionService(),
-                selectedItem, snippetsSupported: true, TextSpan.FromBounds(77, 77), itemDefaultSpan: null, CancellationToken.None).ConfigureAwait(false);
+
+            var completionChange = await (new TestCaretOutOfScopeCompletionService()).GetChangeAsync(document, selectedItem).ConfigureAwait(false);
+            CompletionResolveHandler.AddTextEdits(lspItem, completionChange, documentText, TextSpan.FromBounds(77, 77), itemDefaultSpan: null, snippetsSupported: true);
 
             Assert.Equal(@"public override void M()
     {

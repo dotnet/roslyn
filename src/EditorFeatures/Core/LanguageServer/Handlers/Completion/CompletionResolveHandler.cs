@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
@@ -82,23 +83,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(LSP.MarkupKind.Markdown) == true;
                     completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
                 }
             }
+
+            var completionChange = await completionService.GetChangeAsync(
+                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // We compute the TextEdit resolves for complex text edits (e.g. override and partial
             // method completions) here. Lazily resolving TextEdits is technically a violation of
             // the LSP spec, but is currently supported by the VS client anyway. Once the VS client
             // adheres to the spec, this logic will need to change and VS will need to provide
             // official support for TextEdit resolution in some form.
-            if (selectedItem.IsComplexTextEdit)
+            if (completionItem is LSP.VSInternalCompletionItem vsItem && vsItem.VsResolveTextEditOnCommit)
             {
                 Contract.ThrowIfTrue(completionItem.InsertText != null);
 
                 var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-                var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                await AddTextEditAsync(completionItem, document, documentText, completionService, selectedItem, snippetsSupported, list.Span, itemDefaultSpan: null, cancellationToken).ConfigureAwait(false);
+                AddTextEdits(completionItem, completionChange, documentText, list.Span, itemDefaultSpan: null, snippetsSupported);
             }
 
             return completionItem;
@@ -126,20 +130,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return string.Equals(originalDisplayText, completionItem.DisplayText);
         }
 
-        internal static async Task AddTextEditAsync(
+        /// <summary>
+        /// Updates the LSP completion item with the text edits required to insert the item.
+        /// </summary>
+        /// <param name="itemDefaultSpan">
+        /// If not null, we only create a text edit if the text edit's span does not match the default span.
+        /// Otherwise we just set the <see cref="LSP.CompletionItem.InsertText"/> and rely on the client to create the text edit
+        /// from the list default span. This saves on serialization costs.
+        /// </param>
+        internal static void AddTextEdits(
             LSP.CompletionItem lspItem,
-            Document document,
+            CompletionChange completionChange,
             SourceText documentText,
-            CompletionService completionService,
-            CompletionItem selectedItem,
-            bool snippetsSupported,
             TextSpan listSpan,
             TextSpan? itemDefaultSpan,
-            CancellationToken cancellationToken)
+            bool snippetsSupported)
         {
-            var completionChange = await completionService.GetChangeAsync(
-                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
-
             // Use CompletionChange.TextChanges so that we can get minimal edits around the cursor for better filtering.
             // For the rest of the edits that are not around the cursor, classify them as additional edits.
             var mainEdit = completionChange.TextChanges.Single(change => change.Span.IntersectsWith(listSpan));

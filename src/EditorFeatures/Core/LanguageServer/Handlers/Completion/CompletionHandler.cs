@@ -233,8 +233,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    await CompletionResolveHandler.AddTextEditAsync(
-                        lspItem, document, documentText, completionService, roslynItem, snippetsSupported, listSpan, itemDefaultsSupported ? defaultTextEditSpan : null, cancellationToken).ConfigureAwait(false);
+                    var completionChange = await completionService.GetChangeAsync(
+                        document, roslynItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    if (completionChange.TextChanges.Length > 1 && lspItem is LSP.VSInternalCompletionItem vsCompletionItem)
+                    {
+                        // We have more than one text change.  This means the edit is broken up into a main edit around the
+                        // cursor location and additional edits.
+                        // Due to https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1513155 in VS we cannot provide the additional text edits
+                        // on resolve only as the client may not call us.  Instead we provide nothing and force the client to resolve us.
+                        // This is not ideal for filtering as we have to rely on the client inferred range, but is currently the best we can do.
+                        //
+                        // We also cannot provide the additional edits and the main text edit upfront as Razor currently cannot performantly
+                        // map the additional text edits for all the completion items.
+                        // Tracking issue: https://github.com/dotnet/razor-tooling/issues/6242
+                        vsCompletionItem.VsResolveTextEditOnCommit = true;
+                    }
+                    else
+                    {
+                        // We have a single main edit, populate the completion item edits.
+                        CompletionResolveHandler.AddTextEdits(lspItem, completionChange, documentText, listSpan, itemDefaultsSupported ? defaultTextEditSpan : null, snippetsSupported);
+                    }
                 }
             }
 
