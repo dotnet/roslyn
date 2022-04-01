@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class TypeInferrer : AbstractTypeInferrer
         {
+            private const string AsyncModifierName = "async";
+
             internal TypeInferrer(
                 SemanticModel semanticModel,
                 CancellationToken cancellationToken) : base(semanticModel, cancellationToken)
@@ -231,11 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionStatementSyntax _ => InferTypeInExpressionStatement(token),
                     ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, previousToken: token),
                     ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, previousToken: token),
+                    IdentifierNameSyntax { Parent: IncompleteMemberSyntax } => InferTypeForPossibleAsyncMemberDeclarationWhenAsyncIsTreatedAsIdentifier(token),
                     IfStatementSyntax ifStatement => InferTypeInIfStatement(ifStatement, token),
                     ImplicitArrayCreationExpressionSyntax implicitArray => InferTypeInImplicitArrayCreation(implicitArray),
                     InitializerExpressionSyntax initializerExpression => InferTypeInInitializerExpression(initializerExpression, previousToken: token),
                     LockStatementSyntax lockStatement => InferTypeInLockStatement(lockStatement, token),
                     MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token),
+                    MemberDeclarationSyntax memberDeclaration => InferTypeForPossibleAsyncMemberDeclaration(memberDeclaration, token),
                     NameColonSyntax nameColon => InferTypeInNameColon(nameColon, token),
                     NameEqualsSyntax nameEquals => InferTypeInNameEquals(nameEquals, token),
                     BaseObjectCreationExpressionSyntax objectCreation => InferTypeInObjectCreationExpression(objectCreation, token),
@@ -1718,6 +1722,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // whatever type we'd infer for "Goo.Bar" itself.
                     return InferTypes(memberAccessExpression);
                 }
+            }
+
+            public IEnumerable<TypeInferenceInfo> InferTypeForPossibleAsyncMemberDeclarationWhenAsyncIsTreatedAsIdentifier(SyntaxToken previousToken)
+            {
+                // Edge case:
+                //
+                // class Test
+                // {
+                //   public async $$
+                // }
+                //
+                // "async" is treated as identifier name here
+
+                if (previousToken.Text != AsyncModifierName)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return GetPossibleTaskInference();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeForPossibleAsyncMemberDeclaration(MemberDeclarationSyntax memberDeclaration, SyntaxToken previousToken)
+            {
+                // Case, when potential new member is declared before another member:
+                //
+                // class Test
+                // {
+                //    public async $$
+                //    
+                //    public void M() {}
+                // }
+                //
+                // In this case the both lines are treated as one member declaration
+
+                if (!memberDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword))
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                var isAfterAsync = false;
+
+                foreach (var modifier in memberDeclaration.Modifiers)
+                {
+                    if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+                    {
+                        isAfterAsync = true;
+                        break;
+                    }
+
+                    if (modifier == previousToken)
+                    {
+                        break;
+                    }
+                }
+
+                if (!isAfterAsync)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return GetPossibleTaskInference();
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetPossibleTaskInference()
+            {
+                var possibleTaskTypes = Compilation.GetTypesByMetadataName("System.Threading.Tasks.Task");
+                var possibleTask = possibleTaskTypes.Where(el => el.TypeParameters.Length == 0 && el.IsFromSystemRuntimeOrMscorlibAssembly()).SingleOrDefault();
+
+                if (possibleTask is null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                var inference = new TypeInferenceInfo(possibleTask);
+
+                return SpecializedCollections.SingletonEnumerable(inference);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeForExpressionOfMemberAccessExpression(
