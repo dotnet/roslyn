@@ -6,6 +6,7 @@
 
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
             EventHookupSessionManager.CancelAndDismissExistingSessions();
             return false;
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
-            AssertIsForeground();
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
             return CommandState.Unspecified;
         }
     }
