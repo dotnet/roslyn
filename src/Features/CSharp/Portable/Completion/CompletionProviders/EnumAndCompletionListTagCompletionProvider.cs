@@ -85,6 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token.IsKind(SyntaxKind.DotToken))
                     return;
 
+                // Since "Task" is now an inferred type in async member declarations,
+                // we do not want completions from this provider in situations like this:
+                //
+                // class Test
+                // {
+                //   public async $$
+                // }
+                if (IsAsyncMemberDeclarationContext(token))
+                    return;
+
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
@@ -100,6 +110,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            static bool IsAsyncMemberDeclarationContext(SyntaxToken token)
+            {
+                const string AsyncModifierName = "async";
+
+                var memberDeclaration = token.Parent is Syntax.MemberDeclarationSyntax member ? member :
+                    (token.Parent is not null && token.Parent.Parent is Syntax.MemberDeclarationSyntax member2 ? member2 : null);
+
+                if (memberDeclaration is not null)
+                {
+                    foreach (var modifier in memberDeclaration.Modifiers)
+                    {
+                        if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return token.Text == AsyncModifierName;
+                }
+
+                return false;
             }
         }
 
