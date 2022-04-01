@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ParameterSymbol GetLambdaOrLocalFunctionParameterSymbol(
             ParameterSyntax parameter,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Debug.Assert(parameter != null);
 

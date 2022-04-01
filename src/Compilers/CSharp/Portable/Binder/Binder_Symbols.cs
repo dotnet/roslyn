@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UsingDirectiveSyntax parent when parent.Name == node: // using nint; using A = nuint;
                     return null;
                 case ArgumentSyntax parent when // nameof(nint)
-                    (IsInsideNameofOperator &&
+                    (IsInsideNameof &&
                         parent.Parent?.Parent is InvocationExpressionSyntax invocation &&
                         (invocation.Expression as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.NameOfKeyword):
                     // Don't bind nameof(nint) or nameof(nuint) so that ERR_NameNotInContext is reported.

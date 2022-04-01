@@ -2034,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             Debug.Assert(parameter != null);
 

@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var binder = this.GetBinder(node);
-                if (binder.IsInsideNameofOperator)
+                if (binder.IsInsideNameof)
                 {
                     result = binder.BindNameofOperatorInternal(node, diagnostics);
                     return true;
@@ -1980,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Helper method that checks whether there is an invocable 'nameof' in enclosing scope.
+        /// Helper method that checks whether there is an invocable 'nameof' in scope.
         /// </summary>
         internal bool InvocableNameofInScope()
         {

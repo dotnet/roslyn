@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // TODO2 pass in syntax to compare against _nameofArgument
-        protected override bool IsInsideNameofOperator => !NextRequired.InvocableNameofInScope();
+        protected override bool IsInsideNameof => !NextRequired.InvocableNameofInScope();
 
-        protected override SyntaxNode? EnclosingNameofArgument => !IsInsideNameofOperator ? null : _nameofArgument;
+        protected override SyntaxNode? EnclosingNameofArgument => !IsInsideNameof ? null : _nameofArgument;
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (IsInsideNameofOperator && _nextWhenNameofOperatorInAttribute is not null)
+            if (IsInsideNameof && _nextWhenNameofOperatorInAttribute is not null)
             {
                 _nextWhenNameofOperatorInAttribute.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
             }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
-            if (IsInsideNameofOperator && _nextWhenNameofOperatorInAttribute is not null)
+            if (IsInsideNameof && _nextWhenNameofOperatorInAttribute is not null)
             {
                 _nextWhenNameofOperatorInAttribute.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
             }
