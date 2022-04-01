@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -16,18 +18,14 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
 {
-    public class ErrorListInProcess : InProcComponent
+    [TestService]
+    internal partial class ErrorListInProcess
     {
-        public ErrorListInProcess(TestServices testServices)
-            : base(testServices)
+        public async Task ShowBuildErrorsAsync(CancellationToken cancellationToken)
         {
-        }
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        public async Task ShowBuildErrorsAsync()
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>();
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
             errorList.AreBuildErrorSourceEntriesShown = true;
             errorList.AreOtherErrorSourceEntriesShown = false;
             errorList.AreErrorsShown = true;
@@ -35,11 +33,16 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             errorList.AreWarningsShown = false;
         }
 
-        public async Task<ImmutableArray<string>> GetBuildErrorsAsync(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
+        public Task<ImmutableArray<string>> GetBuildErrorsAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            return GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING, cancellationToken);
+        }
 
-            var errorItems = await GetErrorItemsAsync();
+        public async Task<ImmutableArray<string>> GetBuildErrorsAsync(__VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var errorItems = await GetErrorItemsAsync(cancellationToken);
             var list = new List<string>();
 
             foreach (var item in errorItems)
@@ -79,19 +82,24 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 .ToImmutableArray();
         }
 
-        public async Task<int> GetErrorCountAsync(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
+        public Task<int> GetErrorCountAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            return GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING, cancellationToken);
+        }
 
-            var errorItems = await GetErrorItemsAsync();
+        public async Task<int> GetErrorCountAsync(__VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var errorItems = await GetErrorItemsAsync(cancellationToken);
             return errorItems.Count(e => e.GetCategory() <= minimumSeverity);
         }
 
-        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync()
+        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>();
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
             var args = await errorList.TableControl.ForceUpdateAsync();
             return args.AllEntries.ToImmutableArray();
         }
