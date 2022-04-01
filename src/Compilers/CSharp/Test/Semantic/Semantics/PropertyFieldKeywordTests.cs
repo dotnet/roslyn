@@ -105,11 +105,14 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string s) { }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (10,24): error CS0103: The name 'field' does not exist in the current context
                 //             [My(nameof(field))]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(10, 24)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -127,11 +130,14 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
                 // (8,27): error CS0103: The name 'field' does not exist in the current context
                 //             return nameof(field);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 27)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -151,6 +157,8 @@ public class C
     public int nameof(int x) => 0;
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -202,6 +210,7 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -221,6 +230,8 @@ public class C
     }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -274,6 +285,35 @@ public class C
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData("private void field() { }")]
+        [InlineData("private int field { get => 0; }")]
+        [InlineData("private int field;")]
+        public void TestNameOfField_FieldIsMember(string member)
+        {
+            var comp = CreateCompilation($@"
+System.Console.WriteLine(new C().P);
+
+public class C
+{{
+    {member}
+
+    public string P
+    {{
+        get
+        {{
+            return nameof(field);
+        }}
+    }}
+}}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "field");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
