@@ -77,6 +77,11 @@
         <target state="translated">Siempre por claridad</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="new">Always use default symbol servers for navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Valores predeterminados del analizador</target>
@@ -130,11 +135,6 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">Atrás</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">Ámbito de análisis en segundo plano:</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -242,6 +242,11 @@
         <target state="translated">Sugerencias de color</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="translated">Colorear las cadenas JSON</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Colorear expresiones regulares</target>
@@ -290,6 +295,11 @@
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
         <target state="translated">Valor predeterminado (Toda la solución)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="translated">Valor predeterminado (ninguno)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -397,6 +407,11 @@
         <target state="translated">Toda la solución</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="translated">Solución completa y orígenes externos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Error</target>
@@ -410,6 +425,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Evaluando ({0} tareas en cola)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="translated">Orígenes externos</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -540,6 +560,11 @@
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Origen del elemento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="translated">Cadenas JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -992,6 +1017,11 @@
         <target state="translated">Preferir operador de índice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="translated">Preferir la conversión de grupo de métodos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">Preferir estructura de coincidencia de espacio de nombres y carpetas</target>
@@ -1082,6 +1112,11 @@
         <target state="translated">Cambiar nombre de {0} a {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="translated">Notificar las cadenas JSON no válidas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Notificar expresiones regulares no válidas</target>
@@ -1125,6 +1160,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Ejecutar análisis de código en {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="translated">Ejecutar el análisis del código en segundo plano para:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

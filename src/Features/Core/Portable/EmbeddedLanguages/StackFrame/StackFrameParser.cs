@@ -191,13 +191,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
                 return Result<StackFrameQualifiedNameNode>.Empty;
             }
 
+            // Check if this is a generated identifier
+            (var success, StackFrameSimpleNameNode? rhs) = TryScanGeneratedName();
+            if (!success)
+            {
+                return Result<StackFrameQualifiedNameNode>.Abort;
+            }
+
+            if (rhs is not null)
+            {
+                return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+            }
+
+            // The identifier is not a generated name, parse as a normal identifier and check for generics
             var identifier = _lexer.TryScanIdentifier();
             if (!identifier.HasValue)
             {
                 return Result<StackFrameQualifiedNameNode>.Abort;
             }
 
-            var (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+            (success, rhs) = TryScanGenericTypeIdentifier(identifier.Value);
+
             if (!success)
             {
                 return Result<StackFrameQualifiedNameNode>.Abort;
@@ -205,6 +219,98 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
             RoslynDebug.AssertNotNull(rhs);
             return new StackFrameQualifiedNameNode(lhs, dotToken, rhs);
+        }
+
+        /// <summary>
+        /// Generated names are unutterables made by the compiler. This can include async code, top level statement main, local
+        /// functions, anonymous types, etc. 
+        /// 
+        /// <code>
+        /// 
+        ///     examples:
+        ///     
+        ///     1. GeneratedMethodName
+        ///            Program.&lt;Main&gt;$
+        ///                    ^-------------- Beginning of generated name
+        ///                        ^---^------ Identifier "Main"
+        ///                             ^--^-- End of generated name with "&lt;$" 
+        ///     2. LocalMethodName
+        ///            C.&lt;MyMethod&gt;g__Local|0_0(String s)
+        ///              ^--------------------------------------- Beginning of generated name
+        ///                  ^------^---------------------------- Encapsulating method name
+        ///                              ^----------------------- "g__" identifies this as a local function. 
+        ///                                 ^----^--------------- "Local" is the name of the local function
+        ///                                      ^---^----------- "|0_0" is suffix information such as slot 
+        ///                                           ^--------^- "(String s)" identifiers the method paramters
+        /// </code>
+        /// </summary>
+        private Result<StackFrameGeneratedNameNode> TryScanGeneratedName()
+        {
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.LessThanToken, out var lessThanToken))
+            {
+                return Result<StackFrameGeneratedNameNode>.Empty;
+            }
+
+            if (_lexer.CurrentCharAsToken().Kind == StackFrameKind.LessThanToken)
+            {
+                // Nested generated names? Abort for now
+                // TODO: Actually handle this
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            var identifier = _lexer.TryScanIdentifier();
+            if (!identifier.HasValue)
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.GreaterThanToken, out var greaterThanToken))
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
+
+            if (_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.DollarToken, out var dollarToken))
+            {
+                return new StackFrameGeneratedMethodNameNode(lessThanToken, identifier.Value, greaterThanToken, dollarToken);
+            }
+
+            var currentChar = _lexer.CurrentChar.Value;
+
+            // Check for generated name kinds we can handle
+            // See https://github.com/dotnet/roslyn/blob/main/src/Compilers/CSharp/Portable/Symbols/Synthesized/GeneratedNameKind.cs 
+            if (currentChar == 'g')
+            {
+                // Local function
+                var encapsulatingMethod = new StackFrameGeneratedMethodNameNode(lessThanToken, identifier.Value, greaterThanToken, dollarToken: null);
+                var (success, generatedNameSeparator) = _lexer.TryScanRequiredGeneratedNameSeparator();
+                if (!success)
+                {
+                    return Result<StackFrameGeneratedNameNode>.Abort;
+                }
+
+                var generatedIdentifier = _lexer.TryScanIdentifier();
+                if (!generatedIdentifier.HasValue)
+                {
+                    return Result<StackFrameGeneratedNameNode>.Abort;
+                }
+
+                if (!_lexer.ScanCurrentCharAsTokenIfMatch(StackFrameKind.PipeToken, out var suffixSeparator))
+                {
+                    return Result<StackFrameGeneratedNameNode>.Abort;
+                }
+
+                (success, var suffix) = _lexer.TryScanRequiredGeneratedNameSuffix();
+                if (!success)
+                {
+                    return Result<StackFrameGeneratedNameNode>.Abort;
+                }
+
+                return new StackFrameLocalMethodNameNode(encapsulatingMethod, generatedNameSeparator, generatedIdentifier.Value, suffixSeparator, suffix);
+            }
+            else
+            {
+                return Result<StackFrameGeneratedNameNode>.Abort;
+            }
         }
 
         /// <summary>

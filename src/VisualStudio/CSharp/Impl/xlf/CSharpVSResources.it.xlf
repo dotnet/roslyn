@@ -142,6 +142,11 @@
         <target state="translated">Preferisci il controllo 'null' al controllo del tipo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="translated">Preferisci il controllo dei parametri Null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Preferisci i criteri di ricerca</target>

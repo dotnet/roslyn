@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ParameterHelpers
     {
         public static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder,
+            Binder withTypeParametersBinder,
             Symbol owner,
             BaseParameterListSyntax syntax,
             out SyntaxToken arglistToken,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier)
         {
             return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
-                binder,
+                withTypeParametersBinder,
                 owner,
                 syntax.Parameters,
                 out arglistToken,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<TParameterSymbol> MakeParameters<TParameterSyntax, TParameterSymbol, TOwningSymbol>(
-            Binder binder,
+            Binder withTypeParametersBinder,
             TOwningSymbol owner,
             SeparatedSyntaxList<TParameterSyntax> parametersList,
             out SyntaxToken arglistToken,
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind != RefKind.None && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
+                if (refKind == RefKind.Out && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, exExToken.GetLocation(), identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, exExToken.GetLocation(), identifier.ValueText);
                 }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);
-                var parameterType = binder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
+                var parameterType = withTypeParametersBinder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
 
                 if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
+                TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default(ImmutableArray<TypeParameterSymbol>);
 
                 Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
-                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                bool allowShadowingNames = withTypeParametersBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                     methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-                binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+                withTypeParametersBinder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
             }
 
             return parameters;
@@ -624,12 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
             else if (conversion.IsReference &&
-                (parameterType.SpecialType == SpecialType.System_Object || parameterType.Kind == SymbolKind.DynamicType) &&
                 (object)defaultExpression.Type != null &&
                 defaultExpression.Type.SpecialType == SpecialType.System_String ||
                 conversion.IsBoxing)
             {
-                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", etc.
+                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", IEnumerable<char> x = "hello", etc.
                 // error CS1763: '{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null
                 diagnostics.Add(ErrorCode.ERR_NotNullRefDefaultParameter, parameterSyntax.Identifier.GetLocation(),
                     parameterSyntax.Identifier.ValueText, parameterType);
@@ -805,14 +804,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
-            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
-                || parameter.Type.IsNullableTypeOrTypeParameter())
+            if (parameter.IsDiscard)
+            {
+                diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
+            }
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
+                && NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).State.MayBeNull()
+                && !isTypeParameterWithPossiblyNonNullableType(parameter.TypeWithAnnotations, annotations))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
-            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+
+            if (parameter.Type.IsNonNullableValueType() && !parameter.Type.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
+            }
+
+            // For type parameters, we only want to give the warning if no type argument would result in a non-nullable type.
+            static bool isTypeParameterWithPossiblyNonNullableType(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations)
+            {
+                if (!typeWithAnnotations.Type.IsTypeParameter())
+                {
+                    return false;
+                }
+
+                // We avoid checking the nullable annotations, etc. of constraints due to implementation complexity,
+                // and consider it acceptable to miss "!! on nullable type" warnings in scenarios like `void M<T, U>(U u!!) where U : T?`.
+                if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
+                {
+                    return false;
+                }
+
+                // `void M<T>([AllowNull] T t!!)`
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 

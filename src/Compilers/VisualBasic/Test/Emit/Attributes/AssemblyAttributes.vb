@@ -566,7 +566,7 @@ end class
                          dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        en_usRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False)}).
+                                                       ImmutableArray(Of Byte).Empty, False, False)}).
             VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlib40AndReferences(
@@ -599,11 +599,11 @@ end class
                          dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        en_UKRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False),
+                                                       ImmutableArray(Of Byte).Empty, False, False),
                                         New ModuleData(neutralRef.Compilation.Assembly.Identity,
                                                        OutputKind.DynamicallyLinkedLibrary,
                                                        neutralRef.Compilation.EmitToArray(),
-                                                       ImmutableArray(Of Byte).Empty, False)},
+                                                       ImmutableArray(Of Byte).Empty, False, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 
@@ -764,8 +764,10 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
+        ' ILVerify: Assembly or module not found: hash_module
         CompileAndVerify(compilation,
             manifestResources:=hash_resources,
+            verify:=Verification.FailsILVerify,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
@@ -796,6 +798,7 @@ end class
 
         CompileAndVerify(compilation,
             manifestResources:=hash_resources,
+            verify:=Verification.FailsILVerify,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
@@ -826,6 +829,7 @@ end class
 
         CompileAndVerify(compilation,
             manifestResources:=hash_resources,
+            verify:=Verification.FailsILVerify,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
@@ -856,6 +860,7 @@ end class
 
         CompileAndVerify(compilation,
             manifestResources:=hash_resources,
+            verify:=Verification.FailsILVerify,
             validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
@@ -994,6 +999,7 @@ end class
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module_Comp.EmitToImageReference()})
 
         CompileAndVerify(compilation,
+            verify:=Verification.FailsILVerify,
             validator:=Sub(peAssembly)
                            Dim metadataReader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = metadataReader.GetAssemblyDefinition()

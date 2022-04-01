@@ -3184,7 +3184,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -3223,6 +3227,110 @@ namespace System.Runtime.CompilerServices
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for <see cref=""P:C.I1""/></summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_OtherMember()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <see cref=""I2""/></param>
+public record struct C(int I1, int I2)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (4,36): warning CS1573: Parameter 'I2' has no matching param tag in the XML comment for 'C.C(int, int)' (but other parameters do)
+                // public record struct C(int I1, int I2)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "I2").WithArguments("I2", "C.C(int, int)").WithLocation(4, 36),
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I2", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for <see cref=""P:C.I2""/></summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void XmlDoc_SeeAlso_InsideParamTag()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <seealso cref=""I2""/>something like I2</seealso></param>
+public record struct C(int I1, int I2)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (3,77): warning CS1570: XML comment has badly formed XML -- 'End tag 'seealso' does not match the start tag 'param'.'
+                // /// <param name="I1">Description for <seealso cref="I2"/>something like I2</seealso></param>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "seealso").WithArguments("seealso", "param").WithLocation(3, 77),
+                // (3,85): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                // /// <param name="I1">Description for <seealso cref="I2"/>something like I2</seealso></param>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 85),
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I2", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<!-- Badly formed XML comment ignored for member ""P:C.I1"" -->
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -3658,7 +3766,7 @@ record struct A(int I, string S);
         }
 
         [Fact]
-        public void Deconstruct_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        public void Deconstruct_WithNonReadOnlyGetter_GeneratedAsNonReadOnly()
         {
             var src = @"
 record struct A(int I, string S)
@@ -5738,7 +5846,6 @@ class Attr1 : System.Attribute {}
 
             Assert.Equal(1, analyzer.FireCount0);
             Assert.Equal(1, analyzer.FireCountRecordStructDeclarationA);
-            Assert.Equal(1, analyzer.FireCountRecordStructDeclarationACtor);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(1, analyzer.FireCountSimpleBaseTypeI1onA);
             Assert.Equal(1, analyzer.FireCount5);
@@ -5755,7 +5862,6 @@ class Attr1 : System.Attribute {}
         {
             public int FireCount0;
             public int FireCountRecordStructDeclarationA;
-            public int FireCountRecordStructDeclarationACtor;
             public int FireCount3;
             public int FireCountSimpleBaseTypeI1onA;
             public int FireCount5;
@@ -5870,9 +5976,6 @@ class Attr1 : System.Attribute {}
                 {
                     case "A":
                         Interlocked.Increment(ref FireCountRecordStructDeclarationA);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCountRecordStructDeclarationACtor);
                         break;
                     default:
                         Assert.True(false);
@@ -6448,7 +6551,6 @@ interface I1 {}
 
             Assert.Equal(1, analyzer.FireCount0);
             Assert.Equal(0, analyzer.FireCountRecordStructDeclarationA);
-            Assert.Equal(0, analyzer.FireCountRecordStructDeclarationACtor);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(0, analyzer.FireCountSimpleBaseTypeI1onA);
             Assert.Equal(1, analyzer.FireCount5);
@@ -11056,6 +11158,197 @@ record struct S3(char A)
                 // (4,18): error CS0514: 'S': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //     static S() : this() { }
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("S").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void StructNamedRecord()
+        {
+            var source = "struct record { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord()
+        {
+            var source = "class record { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithTypeParameters()
+        {
+            var source = "struct record<T> { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord_WithTypeParameters()
+        {
+            var source = "class record<T> { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithBaseList()
+        {
+            var source = @"
+interface I { }
+struct record : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithBaseList_Generic()
+        {
+            var source = @"
+interface I { }
+struct record<T> : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord_WithBaseList_Generic()
+        {
+            var source = @"
+interface I { }
+class record<T> : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
         }
     }
 }

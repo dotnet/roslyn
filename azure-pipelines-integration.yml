@@ -8,18 +8,31 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .vscode/*
+      - .github/*
+      - .devcontainer/
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_Debug_32
     pool:
-      name: NetCore1ESPool-Svc-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
     timeoutInMinutes: 135
     variables:
       - name: XUNIT_LOGS
@@ -33,8 +46,8 @@ jobs:
 
 - job: VS_Integration_Debug_64
   pool:
-    name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
   variables:
     - name: XUNIT_LOGS
@@ -48,8 +61,8 @@ jobs:
 
 - job: VS_Integration_Release_32
   pool:
-    name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
   variables:
     - name: XUNIT_LOGS
@@ -64,8 +77,8 @@ jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: VS_Integration_Release_64
     pool:
-      name: NetCore1ESPool-Svc-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
     timeoutInMinutes: 135
     variables:
       - name: XUNIT_LOGS

@@ -273,11 +273,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"0x06000004 v1 | AS {document2.FilePath}: (8,20)-(8,25) δ=1",
-                $"0x06000004 v1 | ER {document2.FilePath}: (14,8)-(16,9) δ=1",
-                $"0x06000004 v1 | ER {document2.FilePath}: (10,10)-(12,11) δ=1",
-                $"0x06000003 v1 | AS {document2.FilePath}: (21,14)-(21,24) δ=0",
-                $"0x06000005 v1 | AS {document2.FilePath}: (26,20)-(26,25) δ=0"
+                $"0x06000004 v1 | AS {document2.FilePath}: (8,20)-(8,25) => (9,20)-(9,25)",
+                $"0x06000004 v1 | ER {document2.FilePath}: (14,8)-(16,9) => (15,8)-(17,9)",
+                $"0x06000004 v1 | ER {document2.FilePath}: (10,10)-(12,11) => (11,10)-(13,11)",
+                $"0x06000003 v1 | AS {document2.FilePath}: (21,14)-(21,24) => (21,14)-(21,24)",
+                $"0x06000005 v1 | AS {document2.FilePath}: (26,20)-(26,25) => (26,20)-(26,25)"
             }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
@@ -388,10 +388,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"0x06000001 v1 | AS {document.FilePath}: (6,18)-(6,23) δ=0",
-                $"0x06000001 v1 | ER {document.FilePath}: (8,8)-(12,9) δ=0",
-                $"0x06000002 v1 | AS {document.FilePath}: (18,14)-(18,36) δ=0",
-            }, nonRemappableRegions.OrderBy(r => r.Region.Span.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+                $"0x06000001 v1 | AS {document.FilePath}: (6,18)-(6,23) => (6,18)-(6,23)",
+                $"0x06000001 v1 | ER {document.FilePath}: (8,8)-(12,9) => (8,8)-(12,9)",
+                $"0x06000002 v1 | AS {document.FilePath}: (18,14)-(18,36) => (18,14)-(18,36)",
+            }, nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
             {
@@ -503,16 +503,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 { new ManagedMethodId(module1, 0x06000003, 1), ImmutableArray.Create(
                     // move AS:2 one line up:
-                    new NonRemappableRegion(spanPreRemap2, lineDelta: -1, isExceptionRegion: false),
+                    new NonRemappableRegion(spanPreRemap2, spanPreRemap2.AddLineDelta(-1), isExceptionRegion: false),
                     // move ER:2.0 and ER:2.1 two lines down:
-                    new NonRemappableRegion(erPreRemap20, lineDelta: +2, isExceptionRegion: true),
-                    new NonRemappableRegion(erPreRemap21, lineDelta: +2, isExceptionRegion: true)) },
+                    new NonRemappableRegion(erPreRemap20, erPreRemap20.AddLineDelta(+2), isExceptionRegion: true),
+                    new NonRemappableRegion(erPreRemap21, erPreRemap21.AddLineDelta(+2), isExceptionRegion: true)) },
                 { new ManagedMethodId(module1, 0x06000004, 1), ImmutableArray.Create(
                     // move AS:3 one line down:
-                    new NonRemappableRegion(spanPreRemap3, lineDelta: +1, isExceptionRegion: false),
+                    new NonRemappableRegion(spanPreRemap3, spanPreRemap3.AddLineDelta(+1), isExceptionRegion: false),
                     // move ER:3.0 and ER:3.1 one line down:
-                    new NonRemappableRegion(erPreRemap30, lineDelta: +1, isExceptionRegion: true),
-                    new NonRemappableRegion(erPreRemap31, lineDelta: +1, isExceptionRegion: true)) }
+                    new NonRemappableRegion(erPreRemap30, erPreRemap30.AddLineDelta(+1), isExceptionRegion: true),
+                    new NonRemappableRegion(erPreRemap31, erPreRemap31.AddLineDelta(+1), isExceptionRegion: true)) }
             }.ToImmutableDictionary();
 
             using var workspace = new TestWorkspace(composition: s_composition);
@@ -582,16 +582,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Note: Since no method have been remapped yet all the following spans are in their pre-remap locations: 
             AssertEx.Equal(new[]
             {
-                $"0x06000001 v2 | AS {document.FilePath}: (6,18)-(6,22) δ=0",
-                $"0x06000002 v2 | ER {document.FilePath}: (18,16)-(21,9) δ=-1",
-                $"0x06000002 v2 | AS {document.FilePath}: (20,18)-(20,22) δ=-1",
-                $"0x06000003 v1 | AS {document.FilePath}: (30,22)-(30,26) δ=-1", // AS:2 moved -1 in first edit, 0 in second
-                $"0x06000003 v1 | ER {document.FilePath}: (32,20)-(34,13) δ=2",  // ER:2.0 moved +2 in first edit, 0 in second
-                $"0x06000003 v1 | ER {document.FilePath}: (36,16)-(38,9) δ=2",   // ER:2.0 moved +2 in first edit, 0 in second
-                $"0x06000004 v1 | ER {document.FilePath}: (50,20)-(53,13) δ=3",  // ER:3.0 moved +1 in first edit, +2 in second              
-                $"0x06000004 v1 | AS {document.FilePath}: (52,22)-(52,26) δ=3",  // AS:3 moved +1 in first edit, +2 in second
-                $"0x06000004 v1 | ER {document.FilePath}: (55,16)-(57,9) δ=3",   // ER:3.1 moved +1 in first edit, +2 in second     
-            }, nonRemappableRegions.OrderBy(r => r.Region.Span.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+                $"0x06000001 v2 | AS {document.FilePath}: (6,18)-(6,22) => (6,18)-(6,22)",
+                $"0x06000002 v2 | ER {document.FilePath}: (18,16)-(21,9) => (17,16)-(20,9)",
+                $"0x06000002 v2 | AS {document.FilePath}: (20,18)-(20,22) => (19,18)-(19,22)",
+                $"0x06000003 v1 | AS {document.FilePath}: (30,22)-(30,26) => (29,22)-(29,26)", // AS:2 moved -1 in first edit, 0 in second
+                $"0x06000003 v1 | ER {document.FilePath}: (32,20)-(34,13) => (34,20)-(36,13)",  // ER:2.0 moved +2 in first edit, 0 in second
+                $"0x06000003 v1 | ER {document.FilePath}: (36,16)-(38,9) => (38,16)-(40,9)",   // ER:2.0 moved +2 in first edit, 0 in second
+                $"0x06000004 v1 | ER {document.FilePath}: (50,20)-(53,13) => (53,20)-(56,13)",  // ER:3.0 moved +1 in first edit, +2 in second              
+                $"0x06000004 v1 | AS {document.FilePath}: (52,22)-(52,26) => (55,22)-(55,26)",  // AS:3 moved +1 in first edit, +2 in second
+                $"0x06000004 v1 | ER {document.FilePath}: (55,16)-(57,9) => (58,16)-(60,9)",   // ER:3.1 moved +1 in first edit, +2 in second     
+            }, nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
             {

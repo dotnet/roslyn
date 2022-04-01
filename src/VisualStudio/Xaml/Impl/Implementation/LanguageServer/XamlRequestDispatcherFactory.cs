@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestDispatcherFactory(
-            [ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
             : base(requestHandlerProviders)
@@ -39,9 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _feedbackService = feedbackService;
         }
 
-        public override RequestDispatcher CreateRequestDispatcher(ImmutableArray<string> supportedLanguages)
+        public override RequestDispatcher CreateRequestDispatcher(WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, supportedLanguages);
+            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, serverKind);
         }
 
         private class XamlRequestDispatcher : RequestDispatcher
@@ -51,18 +52,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
             public XamlRequestDispatcher(
                 XamlProjectService projectService,
-                ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+                ImmutableArray<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
                 IXamlLanguageServerFeedbackService? feedbackService,
-                ImmutableArray<string> languageNames) : base(requestHandlerProviders, languageNames)
+                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, serverKind)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
             }
 
-            protected override async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
-                RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
-                where RequestType : class
-                where ResponseType : default
+            protected override async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
+                RequestExecutionQueue queue, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, CancellationToken cancellationToken)
+                where TRequestType : class
+                where TResponseType : default
             {
                 var textDocument = handler.GetTextDocumentIdentifier(request);
 
@@ -76,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, requiresLSPSolution, handler, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
@@ -87,6 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                     }
                 }
             }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportXamlLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+    {
+        public ExportXamlLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(StringConstants.XamlLspLanguagesContract, first, handlerTypes)
+        {
         }
     }
 }

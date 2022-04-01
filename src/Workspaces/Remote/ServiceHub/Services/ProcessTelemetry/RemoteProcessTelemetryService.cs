@@ -109,5 +109,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
             }
         }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                var service = (RemoteSyntaxTreeConfigurationService)GetWorkspaceServices().GetRequiredService<ISyntaxTreeConfigurationService>();
+                service.SetOptions(disableRecoverableTrees, disableProjectCacheService, enableOpeningSourceGeneratedFilesInWorkspace);
+
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
+        }
     }
 }

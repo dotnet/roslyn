@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
 
             // update loggers in VS
-            var isEnabled = Logger.GetLoggingChecker(globalOptions);
+            var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
 
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));

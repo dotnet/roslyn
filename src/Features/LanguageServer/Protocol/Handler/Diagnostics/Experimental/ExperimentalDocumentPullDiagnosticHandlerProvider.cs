@@ -6,29 +6,32 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(ExperimentalMethods.TextDocumentDiagnostic)]
-internal class ExperimentalDocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(ExperimentalDocumentPullDiagnosticsHandler)), Shared]
+internal class ExperimentalDocumentPullDiagnosticHandlerProvider : IRequestHandlerProvider
 {
     private readonly IDiagnosticService _diagnosticService;
     private readonly IDiagnosticAnalyzerService _analyzerService;
+    private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExperimentalDocumentPullDiagnosticHandlerProvider(
         IDiagnosticService diagnosticService,
-        IDiagnosticAnalyzerService analyzerService)
+        IDiagnosticAnalyzerService analyzerService,
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
     {
         _diagnosticService = diagnosticService;
         _analyzerService = analyzerService;
+        _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
     }
 
-    public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+    public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
     {
-        return ImmutableArray.Create<IRequestHandler>(new ExperimentalDocumentPullDiagnosticsHandler(_diagnosticService, _analyzerService));
+        return ImmutableArray.Create<IRequestHandler>(new ExperimentalDocumentPullDiagnosticsHandler(serverKind, _diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource));
     }
 }

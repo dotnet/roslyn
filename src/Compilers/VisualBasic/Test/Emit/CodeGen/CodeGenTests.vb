@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
+            ' ILVerify: Unexpected type on the stack. { Offset = 16, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -51,7 +52,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -130,6 +131,7 @@ End Class
 
         <Fact()>
         Public Sub Bug776642a_ref()
+            ' ILVerify: Unexpected type on the stack. { Offset = 30, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -164,7 +166,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -6061,7 +6063,8 @@ End Module
         <WorkItem(538865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
-
+            ' ILVerify null ref
+            ' Tracked by https//github.com/dotnet/roslyn/issues/58652
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -6286,7 +6289,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsILVerify)
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[
@@ -13727,7 +13730,9 @@ End Class
 5180801")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
+        ' Restricting to English as there are different tolerance limits on non-English cultures. The test
+        ' is to prevent regressions and single language should be sufficient here
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =

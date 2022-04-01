@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        private static SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (!TryGetElementAccessExpression(
                     root,

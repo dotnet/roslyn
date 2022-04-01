@@ -36,6 +36,16 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestNotForExpressionOnLeftOfAssign() As Task
+            Await TestMissingAsync(
+"Class C
+    Sub M()
+        [|Goo|] = Bar()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
         Public Async Function TestNameMatchesNamespaceName() As Task
             Await TestInRegularAndScriptAsync(
@@ -1903,7 +1913,7 @@ Module Program
         goo(,,)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional value2 As Object = Nothing, Optional value3 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1925,7 +1935,7 @@ Module Program
         goo(1,,)
     End Sub
 
-    Private Sub goo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing)
+    Private Sub goo(v As Integer, Optional value1 As Object = Nothing, Optional value2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1947,7 +1957,7 @@ Module Program
         goo(, 1,)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional v As Integer = Nothing, Optional value2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1969,7 +1979,7 @@ Module Program
         goo(,, 1)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional value2 As Object = Nothing, Optional v As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1991,7 +2001,7 @@ Module Program
         goo(1,, 1)
     End Sub
 
-    Private Sub goo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing)
+    Private Sub goo(v1 As Integer, Optional value As Object = Nothing, Optional v2 As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2013,7 +2023,7 @@ Module Program
         goo(1, 1, )
     End Sub
 
-    Private Sub goo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing)
+    Private Sub goo(v1 As Integer, v2 As Integer, Optional value As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2078,7 +2088,7 @@ Module M
         Bar(x, Function() y) ' Generate Bar 
     End Sub
 
-    Private Sub Bar(Of T, S)(x As List(Of T), p As Func(Of List(Of S)))
+    Private Sub Bar(Of T, S)(x As List(Of T), value As Func(Of List(Of S)))
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2151,7 +2161,7 @@ Module Program
         Bar(1, {1})
     End Sub
 
-    Private Sub Bar(v As Integer, p() As Integer)
+    Private Sub Bar(v As Integer, value() As Integer)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2173,7 +2183,7 @@ Module M
         Goo({{1}})
     End Sub
 
-    Private Sub Goo(p(,) As Integer)
+    Private Sub Goo(value(,) As Integer)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2257,7 +2267,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2295,7 +2305,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2333,7 +2343,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2635,7 +2645,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(vs1() As T1, vs2() As T2)
+    Private Sub sub1(Of T1, T2)(integers() As T1, strings() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -3249,7 +3259,7 @@ Class C
         M2(Function() NameOf(M))
     End Sub
 
-    Private Sub M2(p As Func(Of String))
+    Private Sub M2(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -4109,7 +4119,7 @@ Class Program
         Dim d As (Integer, String) = NewMethod((1, ""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (Integer, String)) As (Integer, String)
+    Private Shared Function NewMethod(value As (Integer, String)) As (Integer, String)
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -4186,7 +4196,7 @@ Class Program
         Dim d As (a As Integer, b As String) = NewMethod((c:=1, d:=""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (c As Integer, d As String)) As (a As Integer, b As String)
+    Private Shared Function NewMethod(value As (c As Integer, d As String)) As (a As Integer, b As String)
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -4207,7 +4217,7 @@ Class Program
         Dim d As (a As Integer, String) = NewMethod((c:=1, ""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (c As Integer, String)) As (a As Integer, String)
+    Private Shared Function NewMethod(value As (c As Integer, String)) As (a As Integer, String)
         Throw New NotImplementedException()
     End Function
 End Class")

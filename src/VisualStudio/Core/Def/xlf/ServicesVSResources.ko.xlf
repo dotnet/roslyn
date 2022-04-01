@@ -77,6 +77,11 @@
         <target state="translated">명확하게 하기 위해 항상</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="new">Always use default symbol servers for navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">분석기 기본값</target>
@@ -130,11 +135,6 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">뒤로</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">백그라운드 분석 범위:</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -242,6 +242,11 @@
         <target state="translated">색 힌트</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="translated">JSON 문자열 색 지정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">정규식 색 지정</target>
@@ -290,6 +295,11 @@
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
         <target state="translated">기본값(전체 솔루션)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="translated">기본값(없음)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -397,6 +407,11 @@
         <target state="translated">전체 솔루션</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="translated">전체 솔루션 및 외부 원본</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">오류</target>
@@ -410,6 +425,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">평가 중(큐의 {0}개 작업)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="translated">외부 원본</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -540,6 +560,11 @@
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">항목 원본</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="translated">JSON 문자열</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -992,6 +1017,11 @@
         <target state="translated">인덱스 연산자 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="translated">메서드 그룹 변환 선호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
@@ -1082,6 +1112,11 @@
         <target state="translated">{0} 이름을 {1}(으)로 바꾸기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="translated">잘못된 JSON 문자열 보고</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">잘못된 정규식 보고</target>
@@ -1125,6 +1160,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="translated">다음을 위해 백그라운드 코드 분석을 실행합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

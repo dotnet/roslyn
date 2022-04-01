@@ -60,7 +60,6 @@ namespace Microsoft.DiaSymReader
 
         private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object instance);
 
-#if !NET20
         private static readonly Lazy<Func<string, string>> s_lazyGetEnvironmentVariable = new Lazy<Func<string, string>>(() =>
         {
             try
@@ -80,18 +79,13 @@ namespace Microsoft.DiaSymReader
 
             return null;
         });
-#endif
 
         // internal for testing
         internal static string GetEnvironmentVariable(string name)
         {
             try
             {
-#if NET20
-                return Environment.GetEnvironmentVariable(name);
-#else
                 return s_lazyGetEnvironmentVariable.Value?.Invoke(name);
-#endif
             }
             catch
             {
@@ -122,7 +116,7 @@ namespace Microsoft.DiaSymReader
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }
 
-#if NET20 || NETSTANDARD1_1
+#if NETSTANDARD1_1
                 var creator = (NativeFactory)Marshal.GetDelegateForFunctionPointer(createAddress, typeof(NativeFactory));
 #else
                 var creator = Marshal.GetDelegateForFunctionPointer<NativeFactory>(createAddress);
@@ -144,11 +138,7 @@ namespace Microsoft.DiaSymReader
         {
             if (lazyType == null)
             {
-#if NET20
-                lazyType = Type.GetTypeFromCLSID(clsid);
-#else
                 lazyType = Marshal.GetTypeFromCLSID(clsid);
-#endif
             }
 
             return lazyType;

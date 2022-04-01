@@ -25,16 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         {
         }
 
-        public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var blankLineBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups);
-            var newLineTrivia = CSharpSyntaxGeneratorInternal.Instance.EndOfLine(options.GetOption(FormattingOptions2.NewLine));
-
-            var rewriter = new Rewriter(placeSystemNamespaceFirst, blankLineBetweenGroups, newLineTrivia);
+            var rewriter = new Rewriter(options);
             var newRoot = rewriter.Visit(root);
 
             return document.WithSyntaxRoot(newRoot);

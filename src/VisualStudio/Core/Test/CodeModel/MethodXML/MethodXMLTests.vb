@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     <[UseExportProvider]>
     Partial Public Class MethodXMLTests
 
-        Private Sub Test(definition As XElement, expected As XElement)
+        Private Shared Sub Test(definition As XElement, expected As XElement)
             Using state = CreateCodeModelTestState(definition)
                 Dim func = state.GetCodeElementAtCursor(Of EnvDTE.CodeFunction)()
                 Dim actual = func.GetMethodXML()

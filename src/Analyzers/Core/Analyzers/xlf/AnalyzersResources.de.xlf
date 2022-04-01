@@ -33,8 +33,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Qualifizierung "this" oder "Me" hinzufügen.</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="needs-review-translation">Qualifizierung "this" oder "Me" hinzufügen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">

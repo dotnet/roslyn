@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
     {
         public override FixAllProvider? GetFixAllProvider() => null;
 
+        protected abstract SyntaxToken? TryGetTypeName(SyntaxNode typeDeclaration);
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -23,17 +25,18 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             if (diagnostic == null)
                 return;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
             if (!headerFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
                 return;
 
-            var typeName = syntaxFacts.GetIdentifierOfTypeDeclaration(typeDecl);
+            var typeName = TryGetTypeName(typeDecl);
+            if (typeName == null)
+                return;
+
             var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
             var actions = await service.GenerateDefaultConstructorsAsync(
-                document, new TextSpan(typeName.Span.Start, 0), forRefactoring: false, cancellationToken).ConfigureAwait(false);
+                document, new TextSpan(typeName.Value.Span.Start, 0), forRefactoring: false, cancellationToken).ConfigureAwait(false);
             context.RegisterFixes(actions, diagnostic);
         }
     }

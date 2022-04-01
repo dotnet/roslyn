@@ -215,14 +215,104 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для обновления, приводящего к изменению возвращаемого типа неявного метода Main, требуется перезапустить приложение.</target>
         <note>{Locked="Main"} is C# keywords and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_auto_property_preferences">
+        <source>Apply auto property preferences</source>
+        <target state="new">Apply auto property preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_blank_line_preferences_experimental">
+        <source>Apply blank line preferences (experimental)</source>
+        <target state="new">Apply blank line preferences (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_coalesce_expression_preferences">
+        <source>Apply coalesce expression preferences</source>
+        <target state="new">Apply coalesce expression preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_compound_assignment_preferences">
+        <source>Apply compound assignment preferences</source>
+        <target state="new">Apply compound assignment preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_conditional_expression_preferences">
+        <source>Apply conditional expression preferences</source>
+        <target state="new">Apply conditional expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
         <target state="translated">Применить параметры заголовка файла</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_inferred_anonymous_type_member_names_preferences">
+        <source>Apply inferred anonymous type member names preferences</source>
+        <target state="new">Apply inferred anonymous type member names preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_language_framework_type_preferences">
+        <source>Apply language/framework type preferences</source>
+        <target state="translated">Применять предпочтения для типа языка или платформы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_namespace_matches_folder_preferences">
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_null_checking_preferences">
+        <source>Apply null checking preferences</source>
+        <target state="new">Apply null checking preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_null_propagation_preferences">
+        <source>Apply null propagation preferences</source>
+        <target state="new">Apply null propagation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object/collection initialization preferences</source>
         <target state="translated">Применять предпочтения для инициализации объекта или коллекции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_initializer_preferences">
+        <source>Apply object initializer preferences</source>
+        <target state="new">Apply object initializer preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_parentheses_preferences">
+        <source>Apply parentheses preferences</source>
+        <target state="new">Apply parentheses preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_simplify_boolean_expression_preferences">
+        <source>Apply simplify boolean expression preferences</source>
+        <target state="new">Apply simplify boolean expression preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_statement_after_block_preferences_experimental">
+        <source>Apply statement after block preferences (experimental)</source>
+        <target state="new">Apply statement after block preferences (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_string_interpolation_preferences">
+        <source>Apply string interpolation preferences</source>
+        <target state="new">Apply string interpolation preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_tuple_name_preferences">
+        <source>Apply tuple name preferences</source>
+        <target state="new">Apply tuple name preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_unused_value_preferences">
+        <source>Apply unused value preferences</source>
+        <target state="new">Apply unused value preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply using directive placement preferences</source>
+        <target state="new">Apply using directive placement preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
@@ -274,6 +364,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">Невозможно включить класс \{0} в диапазон символов</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
+      </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="translated">Не удается перейти к символу, на котором находится курсор.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
@@ -405,6 +500,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для изменения видимости {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments_not_allowed">
+        <source>Comments not allowed</source>
+        <target state="new">Comments not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Настройка стиля кода {0}</target>
@@ -423,6 +523,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Настройка серьезности для всех анализаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructors_not_allowed">
+        <source>Constructors not allowed</source>
+        <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -545,6 +650,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">После внесения изменений в проект "{0}" необходимо перезапустить приложение: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_all_JSON_editor_features">
+        <source>Enable all JSON editor features</source>
+        <target state="new">Enable all JSON editor features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Ошибка при чтении файла "{0}": {1}</target>
@@ -558,6 +668,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
         <target state="translated">Ошибка при создании экземпляра CodeFixProvider "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_parsing_comment">
+        <source>Error parsing comment</source>
+        <target state="new">Error parsing comment</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_PDB_0">
@@ -730,6 +845,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Недопустимый символ "\" в конце шаблона</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
       </trans-unit>
+      <trans-unit id="Illegal_string_character">
+        <source>Illegal string character</source>
+        <target state="new">Illegal string character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_whitespace_character">
+        <source>Illegal whitespace character</source>
+        <target state="new">Illegal whitespace character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
         <target state="translated">Неправильное использование {x,y} в x &gt; y</target>
@@ -805,6 +930,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить отступы для всех аргументов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Добавить отступы для всех параметров</target>
@@ -870,14 +1000,49 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить переменную запроса</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_JSON_pattern">
+        <source>Invalid JSON pattern</source>
+        <target state="new">Invalid JSON pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_constructor_name">
+        <source>Invalid constructor name</source>
+        <target state="new">Invalid constructor name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_escape_sequence">
+        <source>Invalid escape sequence</source>
+        <target state="new">Invalid escape sequence</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Недопустимое имя группы: имя группы должно начинаться с буквы</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_number">
+        <source>Invalid number</source>
+        <target state="new">Invalid number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_property_name">
+        <source>Invalid property name</source>
+        <target state="new">Invalid property name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_regex_pattern">
+        <source>Invalid regex pattern</source>
+        <target state="new">Invalid regex pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Недопустимое выделение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_issue_0">
+        <source>JSON issue: {0}</source>
+        <target state="new">JSON issue: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -895,14 +1060,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Инвертировать условный оператор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
-        <source>Making a method an iterator requires restarting the application.</source>
-        <target state="translated">Чтобы сделать метод итератором, требуется перезапустить приложение.</target>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method an iterator requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
-        <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="translated">Чтобы сделать метод асинхронным, требуется перезапустить приложение.</target>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method asynchronous requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -954,6 +1119,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">Отсутствует управляющий символ</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
+      </trans-unit>
+      <trans-unit id="Missing_property_value">
+        <source>Missing property value</source>
+        <target state="new">Missing property value</target>
+        <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
         <source>Modifying {0} which contains a static variable requires restarting the application.</source>
@@ -1070,9 +1240,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для перемещения {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_expected">
+        <source>Name expected</source>
+        <target state="new">Name expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigating_to_symbol_0_from_1">
         <source>Navigating to symbol '{0}' from '{1}'.</source>
         <target state="translated">Переход к символу "{0}" от "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nested_properties_not_allowed">
+        <source>Nested properties not allowed</source>
+        <target state="new">Nested properties not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -1105,9 +1285,34 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Отсутствуют закрывающие круглые скобки</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_an_object">
+        <source>Only properties allowed in an object</source>
+        <target state="new">Only properties allowed in an object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">Операторы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Probable_JSON_string_detected">
+        <source>Probable JSON string detected</source>
+        <target state="new">Probable JSON string detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties_not_allowed_in_an_array">
+        <source>Properties not allowed in an array</source>
+        <target state="new">Properties not allowed in an array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_a_string">
+        <source>Property name must be a string</source>
+        <target state="new">Property name must be a string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_followed_by_a_colon">
+        <source>Property name must be followed by a ':'</source>
+        <target state="new">Property name must be followed by a ':'</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -2290,9 +2495,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Удалить модификатор "async"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports_or_usings">
+        <source>Remove unnecessary Imports or usings</source>
+        <target state="new">Remove unnecessary Imports or usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Удалить ненужные приведения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameters">
+        <source>Remove unused parameters</source>
+        <target state="new">Remove unused parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_suppressions">
+        <source>Remove unused suppressions</source>
+        <target state="new">Remove unused suppressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
@@ -2355,6 +2575,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Тихий</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Imports_or_usings">
+        <source>Sort Imports or usings</source>
+        <target state="new">Sort Imports or usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Сортировать модификаторы доступности</target>
@@ -2385,6 +2610,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
+        <source>Strings must start with " not '</source>
+        <target state="new">Strings must start with " not '</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Скрыть {0}</target>
@@ -2398,6 +2628,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Symbol_found_in_assembly_path_0">
         <source>Symbol found in assembly path '{0}'</source>
         <target state="translated">Найден символ в пути сборки "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Syntax_error">
+        <source>Syntax error</source>
+        <target state="new">Syntax error</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -2425,6 +2660,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Выделенный фрагмент содержит вызов локальной функции без ее объявления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="translated">У этого символа нет основания.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="translated">Этот символ не имеет реализации.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">Истекло время ожидания при попытке скачать исходный код из SourceLink. Последующие запросы могут быть успешными.</target>
@@ -2444,6 +2689,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Too many )'s</source>
         <target state="translated">Слишком много закрывающих круглых скобок</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Trailing_comma_not_allowed">
+        <source>Trailing comma not allowed</source>
+        <target state="new">Trailing comma not allowed</target>
+        <note />
       </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
@@ -2485,14 +2735,29 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Набор [] без признака завершения</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
       </trans-unit>
+      <trans-unit id="Unterminated_comment">
+        <source>Unterminated comment</source>
+        <target state="new">Unterminated comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
         <source>Unterminated (?#...) comment</source>
         <target state="translated">Незавершенный комментарий (? #...)</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
       </trans-unit>
+      <trans-unit id="Unterminated_string">
+        <source>Unterminated string</source>
+        <target state="new">Unterminated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="translated">Развернуть все аргументы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
@@ -2523,6 +2788,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Развернуть выражение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2650,6 +2920,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Значение:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_required">
+        <source>Value required</source>
+        <target state="new">Value required</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Предупреждение: изменение пространства имен может привести к появлению недопустимого кода и к изменению значения кода.</target>
@@ -2695,6 +2970,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Свернуть выражение</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Свернуть длинный список аргументов</target>
@@ -2703,6 +2983,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Свернуть длинную цепочку вызовов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -2720,6 +3005,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для переключения контекстов можно использовать панель навигации.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="translated">Основания: “{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">"{0}" не может быть неопределенным или пустым.</target>
@@ -2733,6 +3023,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_expected">
+        <source>'{0}' expected</source>
+        <target state="new">'{0}' expected</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_found_in_embedded_PDB">
@@ -2775,14 +3070,34 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Найдено "{0}" с помощью SourceLink, но не удалось прочитать временный файл.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="translated">Реализации “{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">Здесь "{0}" имеет значение, отличное от NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_literal_not_allowed">
+        <source>'{0}' literal not allowed</source>
+        <target state="new">'{0}' literal not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">Здесь "{0}" может иметь значение NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="translated">Ссылки “{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unexpected">
+        <source>'{0}' unexpected</source>
+        <target state="new">'{0}' unexpected</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

@@ -7,22 +7,25 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
+    [Method(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
-
         public DocumentPullDiagnosticHandler(
+            WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService)
-            : base(diagnosticService)
+            IDiagnosticAnalyzerService analyzerService,
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
         {
             _analyzerService = analyzerService;
         }
@@ -43,11 +46,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         {
             if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
             {
-                return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
+                return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
             }
 
             // The client didn't provide us with a previous result to look for, so we can't lookup anything.
@@ -57,13 +60,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return GetRequestedDocument(context);
+            return ValueTaskFactory.FromResult(GetRequestedDocument(context));
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
         {
             // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,

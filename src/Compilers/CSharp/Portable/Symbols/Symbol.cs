@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -187,6 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                if (!this.IsDefinition)
+                {
+                    return OriginalDefinition.DeclaringCompilation;
+                }
+
                 switch (this.Kind)
                 {
                     case SymbolKind.ErrorType:
@@ -199,8 +205,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                 }
 
-                var sourceModuleSymbol = this.ContainingModule as SourceModuleSymbol;
-                return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
+                switch (this.ContainingModule)
+                {
+                    case SourceModuleSymbol sourceModuleSymbol:
+                        return sourceModuleSymbol.DeclaringCompilation;
+
+                    case PEModuleSymbol:
+                        // A special handling for EE.
+                        return ContainingSymbol?.DeclaringCompilation;
+                }
+
+                return null;
             }
         }
 
@@ -837,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable 
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -845,12 +861,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">Optionally, allow cancellation of documentation comment retrieval.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
         public virtual string GetDocumentationCommentXml(
-            CultureInfo preferredCulture = null,
+            CultureInfo? preferredCulture = null,
             bool expandIncludes = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return "";
         }
+#nullable disable
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
             SymbolDisplayFormat.TestFormat

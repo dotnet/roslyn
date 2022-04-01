@@ -727,11 +727,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SuppressNullableWarningExpression:
                 // unsafe code
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     // From C# spec, 7.3.1:
-                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
+                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate  x! 
 
                     return OperatorPrecedence.Primary;
 

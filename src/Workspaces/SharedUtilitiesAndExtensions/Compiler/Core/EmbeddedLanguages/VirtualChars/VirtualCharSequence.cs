@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,10 +28,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal partial struct VirtualCharSequence
     {
-        public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
+        public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
 
-        public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new(new ImmutableArrayChunk(virtualChars));
+        public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
+            => new(new ImmutableSegmentedListChunk(virtualChars));
 
         public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));
@@ -74,27 +75,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
-           => new(
-               _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+           => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
         public VirtualChar First() => this[0];
-        public VirtualChar Last() => this[this.Length - 1];
+        public VirtualChar Last() => this[^1];
 
         public Enumerator GetEnumerator()
             => new(this);
 
-        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
-        {
-            foreach (var ch in this)
-            {
-                if (predicate(ch))
-                {
-                    return ch;
-                }
-            }
-
-            return null;
-        }
+        /// <summary>
+        /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
+        /// in the span of this sequence.
+        /// </summary>
+        public VirtualChar? Find(int position)
+            => _leafCharacters?.Find(position);
 
         public bool Contains(VirtualChar @char)
             => IndexOf(@char) >= 0;
@@ -105,14 +99,34 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             foreach (var ch in this)
             {
                 if (ch == @char)
-                {
                     return index;
-                }
 
                 index++;
             }
 
             return -1;
+        }
+
+        public bool Any(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool All(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (!predicate(ch))
+                    return false;
+            }
+
+            return true;
         }
 
         public string CreateString()

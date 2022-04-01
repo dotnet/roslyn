@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
-        private readonly Dictionary<string, IMetadataAsSourceFileProvider> _tempFileToProviderMap = new(StringComparer.OrdinalIgnoreCase);
-
         private MetadataAsSourceWorkspace? _workspace;
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -94,10 +92,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
-                        _tempFileToProviderMap[result.FilePath] = provider;
                         return result;
                     }
                 }
@@ -111,11 +108,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
+                foreach (var provider in _providers)
                 {
+                    if (!provider.IsValueCreated)
+                        continue;
+
                     Contract.ThrowIfNull(_workspace);
 
-                    return provider.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer);
+                    if (provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer))
+                        return true;
                 }
             }
 
@@ -126,11 +127,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
+                foreach (var provider in _providers)
                 {
+                    if (!provider.IsValueCreated)
+                        continue;
+
                     Contract.ThrowIfNull(_workspace);
 
-                    return provider.TryRemoveDocumentFromWorkspace(_workspace, filePath);
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
+                        return true;
                 }
             }
 
@@ -149,16 +154,24 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             Contract.ThrowIfNull(document.FilePath);
 
-            Project? project;
+            Project? project = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!_tempFileToProviderMap.TryGetValue(document.FilePath, out var provider))
-                    return null;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                project = provider.MapDocument(document);
-                if (project == null)
-                    return null;
+                    Contract.ThrowIfNull(_workspace);
+
+                    project = provider.Value.MapDocument(document);
+                    if (project is not null)
+                        break;
+                }
             }
+
+            if (project is null)
+                return null;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
@@ -182,12 +195,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // Only cleanup for providers that have actually generated a file. This keeps us from
                 // accidentally loading lazy providers on cleanup that weren't used
-                foreach (var provider in _tempFileToProviderMap.Values.Distinct())
+                foreach (var provider in _providers)
                 {
-                    provider.CleanupGeneratedFiles(_workspace);
-                }
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                _tempFileToProviderMap.Clear();
+                    provider.Value.CleanupGeneratedFiles(_workspace);
+                }
 
                 try
                 {
