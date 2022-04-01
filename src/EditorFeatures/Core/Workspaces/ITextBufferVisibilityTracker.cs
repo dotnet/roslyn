@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // something see it is not visible, but then do not hear about its visibility change because we've hooked up
             // our event after that happens.
             var visibilityChangedTaskSource = new TaskCompletionSource<bool>();
-            var callback = () => visibilityChangedTaskSource.TrySetResult(true);
+            var callback = void () => visibilityChangedTaskSource.TrySetResult(true);
             service.RegisterForVisibilityChanges(subjectBuffer, callback);
 
             try
