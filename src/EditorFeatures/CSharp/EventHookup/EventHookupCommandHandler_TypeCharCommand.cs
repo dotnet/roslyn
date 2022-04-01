@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     {
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             nextHandler();
 
             if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private bool IsTextualPlusEquals(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (!caretPoint.HasValue)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             return nextHandler();
         }
     }

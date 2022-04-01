@@ -94,7 +94,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
     {
         // Should only be called on the UI thread.
-        Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var subjectBuffer = args.SubjectBuffer;
         var caret = args.TextView.GetCaretPoint(subjectBuffer);
@@ -129,7 +129,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         try
         {
             // Should only be called on the UI thread.
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Make an tracking token so that integration tests can wait until we're complete.
             using var token = _listener.BeginAsyncOperation($"{GetType().Name}.{nameof(ExecuteCommandAsync)}");

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
@@ -17,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             EventHookupSessionManager.CancelAndDismissExistingSessions();
             return false;
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             return CommandState.Unspecified;
         }
     }

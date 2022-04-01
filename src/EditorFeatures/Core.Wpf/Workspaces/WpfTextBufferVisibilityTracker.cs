@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -39,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         private void AssociatedViewService_SubjectBuffersConnected(object sender, SubjectBuffersConnectedEventArgs e)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             UpdateAllAssociatedViews(e.SubjectBuffers);
         }
 
         private void AssociatedViewService_SubjectBuffersDisconnected(object sender, SubjectBuffersConnectedEventArgs e)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             UpdateAllAssociatedViews(e.SubjectBuffers);
         }
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         public bool IsVisible(ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var views = _associatedViewService.GetAssociatedTextViews(subjectBuffer).ToImmutableArrayOrEmpty();
 
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         public void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
             if (!_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data))
             {
                 data = new VisibleTrackerData(this, subjectBuffer);
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Both of these methods must succeed.  Otherwise we're somehow unregistering something we don't know about.
             Contract.ThrowIfFalse(_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data));

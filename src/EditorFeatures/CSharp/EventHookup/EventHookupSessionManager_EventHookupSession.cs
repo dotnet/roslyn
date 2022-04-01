@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _trackingPoint;
                 }
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _trackingSpan;
                 }
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _textView;
                 }
             }
@@ -83,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _subjectBuffer;
                 }
             }
 
             public void Cancel()
             {
-                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnUIThread();
                 _cancellationTokenSource.Cancel();
             }
 
