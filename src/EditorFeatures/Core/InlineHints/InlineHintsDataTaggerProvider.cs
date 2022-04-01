@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             Contract.ThrowIfNull(textView);
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+                TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsGlobalStateOption.DisplayAllOverride),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptionsStorage.EnabledForParameters),
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            this.AssertIsForeground();
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
             Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way

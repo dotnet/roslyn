@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             private void OnCaretPositionChanged(object? _, CaretPositionChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RemoveAllTags()
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 var oldTagTrees = this.CachedTagTrees;
                 this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private async ValueTask ProcessEventChangeAsync(ImmutableArray<bool> changes, CancellationToken cancellationToken)
             {
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
                 // about any prior disposal on the UI thread.
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                     // Once we assign our state, we're uncancellable.  We must report the changed information
                     // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private TagSpanIntervalTree<TTag>? TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 // If we've been disposed, no need to proceed.
                 if (_disposalTokenSource.Token.IsCancellationRequested)
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                    _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
                         this.RecomputeTagsAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 

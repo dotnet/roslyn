@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void OnTagsChangedForBuffer(
                 ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool initialTags)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                 foreach (var change in changes)
                 {

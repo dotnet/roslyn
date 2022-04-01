@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
 
             return TaggerEventSources.Compose(
                 new EventSource(subjectBuffer),

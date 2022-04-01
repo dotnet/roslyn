@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
             Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
             Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way

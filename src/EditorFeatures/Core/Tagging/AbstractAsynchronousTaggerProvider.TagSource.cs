@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
         /// subject buffers at once) have their own providers and tag source derivations.</para>
         /// </summary>
-        private sealed partial class TagSource : ForegroundThreadAffinitizedObject
+        private sealed partial class TagSource
         {
             /// <summary>
             /// If we get more than this many differences, then we just issue it as a single change
@@ -121,9 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ITextBufferVisibilityTracker? visibilityTracker,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
-                : base(dataSource.ThreadingContext)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(dataSource.ThreadingContext.HasMainThread);
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 void Connect()
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                     _eventSource.Changed += OnEventSourceChanged;
 
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 void Disconnect()
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
 
                     // Tell the interaction object to stop issuing events.
                     _eventSource.Disconnect();
@@ -263,13 +262,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -278,13 +277,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -293,20 +292,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                     _state_doNotAccessDirecty = value;
                 }
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
-                this.AssertIsForeground();
+                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
                 if (difference.Count == 0)
                 {
                     // nothing changed.
