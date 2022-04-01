@@ -16,11 +16,13 @@ using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService : ForegroundThreadAffinitizedObject, INavigationBarItemService
+    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
     {
+        protected readonly IThreadingContext ThreadingContext;
+
         protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
-            : base(threadingContext, assertIsForeground: false)
         {
+            ThreadingContext = threadingContext;
         }
 
         protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken);
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                     ThreadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
             {
                 // Ensure we're back on the UI thread before showing a failure message.
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }

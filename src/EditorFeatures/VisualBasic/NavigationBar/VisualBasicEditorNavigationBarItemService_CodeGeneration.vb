@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 
             ' switch back to ui thread to actually perform the application and navigation
-            Await Me.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+            Await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
