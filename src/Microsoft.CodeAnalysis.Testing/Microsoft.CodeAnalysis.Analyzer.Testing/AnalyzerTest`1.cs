@@ -1311,12 +1311,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var subpath = normalizedPath.Substring(projectRootPath.Length);
 
             var fileName = Path.GetFileName(subpath);
-            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar);
             if (Path.GetDirectoryName(subpath) == string.Empty)
             {
                 return (fileName, folders: new string[0]);
             }
 
+            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar);
             return (fileName, folders);
         }
 
