@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
             {
-                Contract.ThrowIfFalse(dataSource.ThreadingContext.HasMainThread);
+                dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 void Connect()
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                     _eventSource.Changed += OnEventSourceChanged;
 
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 void Disconnect()
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                     // Tell the interaction object to stop issuing events.
                     _eventSource.Disconnect();
@@ -262,13 +263,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -277,13 +278,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -292,20 +293,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _state_doNotAccessDirecty = value;
                 }
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (difference.Count == 0)
                 {
                     // nothing changed.

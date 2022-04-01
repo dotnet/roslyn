@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal void CancelAndDismissExistingSessions()
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession != null)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             foreach (var change in e.Changes)
             {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void Caret_PositionChanged(object sender, EventArgs e)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession == null)
             {

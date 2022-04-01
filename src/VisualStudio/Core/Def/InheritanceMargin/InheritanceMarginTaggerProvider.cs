@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
 
             var visibleSpan = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);

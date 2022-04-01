@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;

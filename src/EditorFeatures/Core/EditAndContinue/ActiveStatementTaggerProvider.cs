@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             return TaggerEventSources.Compose(
                 new EventSource(subjectBuffer),

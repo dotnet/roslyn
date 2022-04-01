@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private async Task<string> DetermineIfEventHookupAndGetHandlerNameAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnBackgroundThread();
 
                 // For test purposes only!
                 if (TESTSessionHookupMutex != null)
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private async Task<SyntaxToken?> GetPlusEqualsTokenInsideAddAssignExpressionAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 if (plusEqualsToken.Parent is not AssignmentExpressionSyntax parentToken)
                 {
                     return null;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFactsService, NamingRule namingRule)
             {
-                Contract.ThrowIfTrue(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var objectPart = GetNameObjectPart(eventSymbol, plusEqualsToken, semanticModel, syntaxFactsService);
                 var basename = namingRule.NamingStyle.CreateName(ImmutableArray.Create(
                     string.Format("{0}_{1}", objectPart, eventSymbol.Name)));
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             /// </summary>
             private string GetNameObjectPart(IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService)
             {
-                Contract.ThrowIfTrue(_threadingContext.HasMainThread);
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
 
                 if (parentToken.Left is MemberAccessExpressionSyntax memberAccessExpression)

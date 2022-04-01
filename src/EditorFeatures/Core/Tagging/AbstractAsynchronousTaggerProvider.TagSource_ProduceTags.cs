@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             private void OnCaretPositionChanged(object? _, CaretPositionChangedEventArgs e)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RemoveAllTags()
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var oldTagTrees = this.CachedTagTrees;
                 this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private TagSpanIntervalTree<TTag>? TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // If we've been disposed, no need to proceed.
                 if (_disposalTokenSource.Token.IsCancellationRequested)
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
-                Contract.ThrowIfFalse(_dataSource.ThreadingContext.HasMainThread);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 

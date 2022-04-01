@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             public void Dispose()
             {
-                Contract.ThrowIfFalse(_tracker._threadingContext.HasMainThread);
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
 
                 // Shouldn't be disposing of this if we still have clients that want to hear about visibility changes.
                 Contract.ThrowIfTrue(Callbacks.Count > 0);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             public void UpdateAssociatedViews()
             {
-                Contract.ThrowIfFalse(_tracker._threadingContext.HasMainThread);
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
 
                 // Update us to whatever the currently associated text views are for this buffer.
                 UpdateTextViews(_tracker._associatedViewService.GetAssociatedTextViews(_subjectBuffer));
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             private void VisualElement_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
             {
-                Contract.ThrowIfFalse(_tracker._threadingContext.HasMainThread);
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
                 foreach (var callback in Callbacks)
                     callback();
             }

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
