@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                 case ConversionKind.Identity:
                 case ConversionKind.ImplicitConstant:
+                case ConversionKind.ImplicitUtf8StringLiteral:
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ImplicitEnumeration:
@@ -226,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion NoConversion => new Conversion(ConversionKind.NoConversion);
         internal static Conversion Identity => new Conversion(ConversionKind.Identity);
         internal static Conversion ImplicitConstant => new Conversion(ConversionKind.ImplicitConstant);
+        internal static Conversion ImplicitUtf8StringLiteral => new Conversion(ConversionKind.ImplicitUtf8StringLiteral);
         internal static Conversion ImplicitNumeric => new Conversion(ConversionKind.ImplicitNumeric);
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
@@ -822,6 +824,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitConstant;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit Utf8 string literal conversion.
+        /// </summary>
+        public bool IsUTF8StringLiteral
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitUtf8StringLiteral;
             }
         }
 

@@ -278,6 +278,7 @@ namespace My
             sbyte @sbyte;
             short @short;
             string @string = @"""/*";
+            var utf8String = @"""/*"u8;
             uint @uint;
             ulong @ulong;
             ushort @ushort;
