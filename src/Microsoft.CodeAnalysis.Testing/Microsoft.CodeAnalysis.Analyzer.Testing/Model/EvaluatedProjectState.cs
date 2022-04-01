@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 state.Name,
                 state.AssemblyName,
                 state.Language,
-                state.ProjectPrefix,
+                state.DefaultPrefix,
                 state.ReferenceAssemblies ?? defaultReferenceAssemblies,
                 state.OutputKind ?? OutputKind.DynamicallyLinkedLibrary,
                 state.DocumentationMode ?? DocumentationMode.Diagnose,

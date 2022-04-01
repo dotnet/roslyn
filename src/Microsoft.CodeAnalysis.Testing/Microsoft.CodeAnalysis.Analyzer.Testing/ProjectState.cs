@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
 
-        private protected string DefaultPrefix { get; }
-
-        internal string ProjectPrefix => DefaultPrefix;
+        internal string DefaultPrefix { get; }
 
         private protected string DefaultExtension { get; }
     }

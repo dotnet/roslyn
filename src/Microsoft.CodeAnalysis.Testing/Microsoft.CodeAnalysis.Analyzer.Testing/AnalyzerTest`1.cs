@@ -1195,8 +1195,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     additionalProjectId,
                     solution.GetProject(additionalProjectId).CompilationOptions
                         .WithOutputKind(projectState.OutputKind)
-                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer)
-                        .WithXmlReferenceResolver(xmlReferenceResolver));
+                        .WithXmlReferenceResolver(xmlReferenceResolver)
+                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer));
 
                 solution = solution.WithProjectParseOptions(
                     additionalProjectId,
@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.Testing
             // |   /0/        |  /0/              |
             var projectRootPath = Path.GetFileName(normalizedDefaultPathPrefix) == string.Empty
                 ? normalizedDefaultPathPrefix
-                : (Path.GetDirectoryName(normalizedDefaultPathPrefix)! + Path.DirectorySeparatorChar);
+                : (Path.GetDirectoryName(normalizedDefaultPathPrefix) + Path.DirectorySeparatorChar);
 
             // If the default path prefix is a directory name (ending with a directory separator)
             // then treat it as the project root.
