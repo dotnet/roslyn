@@ -1282,12 +1282,16 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 // If our default path isn't rooted, then we assume that we don't have any rooted paths
                 // and just use the file name
-                return (Path.GetFileName(normalizedPath), NoFoldersArray);
+                return (Path.GetFileName(normalizedPath), new string[0]);
             }
 
+            // | Default path | Project root path |
+            // |--------------|-------------------|
+            // |   /0/Temp    |  /0/              |
+            // |   /0/        |  /0/              |
             var projectRootPath = Path.GetFileName(normalizedDefaultPathPrefix) == string.Empty
                 ? normalizedDefaultPathPrefix
-                : Path.GetDirectoryName(normalizedDefaultPathPrefix)!;
+                : (Path.GetDirectoryName(normalizedDefaultPathPrefix)! + Path.DirectorySeparatorChar);
 
             // If the default path prefix is a directory name (ending with a directory separator)
             // then treat it as the project root.
@@ -1297,21 +1301,24 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (Path.IsPathRooted(normalizedPath))
                 {
                     // If the user provides a rooted path as the file name, just use that as-is.
-                    return (path, NoFoldersArray);
+                    return (path, new string[0]);
                 }
 
                 // Otherwise, to match VS behavior we will report no folders and only the file name.
-                return (Path.GetFileName(normalizedPath), NoFoldersArray);
+                return (Path.GetFileName(normalizedPath), new string[0]);
             }
 
             var subpath = normalizedPath.Substring(projectRootPath.Length);
 
             var fileName = Path.GetFileName(subpath);
             var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar);
+            if (Path.GetDirectoryName(subpath) == string.Empty)
+            {
+                return (fileName, folders: new string[0]);
+            }
+
             return (fileName, folders);
         }
-
-        private static readonly string[] NoFoldersArray = new string[0];
 
         /// <summary>
         /// Creates a solution that will be used as parent for the sources that need to be checked.
