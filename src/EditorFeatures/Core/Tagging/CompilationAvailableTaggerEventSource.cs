@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             _cancellationSeries.Dispose();
         }
 
+        public void Pause()
+            => _underlyingSource.Pause();
+
+        public void Resume()
+            => _underlyingSource.Resume();
+
         private void OnEventSourceChanged(object? sender, TaggerEventArgs args)
         {
             // First, notify anyone listening to us that something definitely changed.
