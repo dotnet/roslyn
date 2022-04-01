@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         ? GetNameAndFoldersFromPath(DefaultFilePathPrefix, expectedSources[i].filename)
                         : GetNameAndFoldersFromSourceGeneratedFilePath(expectedSources[i].filename);
                     verifier.Equal(fileName, updatedDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedDocuments[i].Name}'");
-                    verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join(DirectorySeparatorString, folders)}' but was '{string.Join(DirectorySeparatorString, updatedDocuments[i].Folders)}'");
+                    verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", updatedDocuments[i].Folders)}'");
                 }
             }
 
@@ -113,8 +113,6 @@ namespace Microsoft.CodeAnalysis.Testing
             var fileName = Path.GetFileName(filePath);
             return (fileName, folders);
         }
-
-        private static readonly string DirectorySeparatorString = Path.AltDirectorySeparatorChar.ToString();
 
         private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<ISourceGenerator> sourceGenerators, Project project, IVerifier verifier, CancellationToken cancellationToken)
         {

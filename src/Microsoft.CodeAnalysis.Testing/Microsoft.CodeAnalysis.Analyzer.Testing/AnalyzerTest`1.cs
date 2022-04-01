@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 // If our default path isn't rooted, then we assume that we don't have any rooted paths
                 // and just use the file name
-                return (Path.GetFileName(normalizedPath), new string[0]);
+                return (Path.GetFileName(normalizedPath), folders: new string[0]);
             }
 
             // | Default path | Project root path |
@@ -1301,11 +1301,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (Path.IsPathRooted(normalizedPath))
                 {
                     // If the user provides a rooted path as the file name, just use that as-is.
-                    return (path, new string[0]);
+                    return (path, folders: new string[0]);
                 }
 
                 // Otherwise, to match VS behavior we will report no folders and only the file name.
-                return (Path.GetFileName(normalizedPath), new string[0]);
+                return (Path.GetFileName(normalizedPath), folders: new string[0]);
             }
 
             var subpath = normalizedPath.Substring(projectRootPath.Length);
