@@ -114,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             static bool IsAsyncMemberDeclarationContext(SyntaxToken token)
             {
-                const string AsyncModifierName = "async";
-
                 var memberDeclaration = token.Parent is Syntax.MemberDeclarationSyntax member ? member :
                     (token.Parent is not null && token.Parent.Parent is Syntax.MemberDeclarationSyntax member2 ? member2 : null);
 
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
                     }
 
-                    return token.Text == AsyncModifierName;
+                    return token.HasMatchingText(SyntaxKind.AsyncKeyword);
                 }
 
                 return false;

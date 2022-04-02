@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class TypeInferrer : AbstractTypeInferrer
         {
-            private const string AsyncModifierName = "async";
-
             internal TypeInferrer(
                 SemanticModel semanticModel,
                 CancellationToken cancellationToken) : base(semanticModel, cancellationToken)
@@ -1735,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // "async" is treated as identifier name here
 
-                if (previousToken.Text != AsyncModifierName)
+                if (!previousToken.HasMatchingText(SyntaxKind.AsyncKeyword))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
