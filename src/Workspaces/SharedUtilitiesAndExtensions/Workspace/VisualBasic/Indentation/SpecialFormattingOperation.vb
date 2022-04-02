@@ -12,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class SpecialFormattingRule
         Inherits CompatAbstractFormattingRule
 
-        Private ReadOnly _indentStyle As FormattingOptions.IndentStyle
+        Private ReadOnly _indentStyle As FormattingOptions2.IndentStyle
 
-        Public Sub New(indentStyle As FormattingOptions.IndentStyle)
+        Public Sub New(indentStyle As FormattingOptions2.IndentStyle)
             _indentStyle = indentStyle
         End Sub
 

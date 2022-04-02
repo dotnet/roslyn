@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
-        protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
+        protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             var options = await GetOptionsAsync(context.Document, cancellationToken).ConfigureAwait(false);
             var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormattingService, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, this.SyntaxFormatting, options, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var analyzerConfigOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            return SyntaxFormattingService.GetFormattingOptions(analyzerConfigOptions);
+            return this.SyntaxFormatting.GetFormattingOptions(analyzerConfigOptions);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 var cancellationToken = context.CancellationToken;
                 var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var updatedSyntaxRoot = Formatter.Format(syntaxRoot, this.SyntaxFormattingService, options, cancellationToken);
+                var updatedSyntaxRoot = Formatter.Format(syntaxRoot, this.SyntaxFormatting, options, cancellationToken);
                 return document.WithSyntaxRoot(updatedSyntaxRoot);
             });
     }

@@ -57,7 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.Parsers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormatting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DefaultOperationProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\AggregatedFormattingResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\CSharpFormatEngine.cs" />
@@ -87,6 +87,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\TokenBasedFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\WrappingFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\CSharpUnnecessaryImportsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\CSharpSmartTokenFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\AbstractCSharpPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpPatternPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpExpressionPrecedenceService.cs" />

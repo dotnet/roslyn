@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Formatting options stored in editorconfig.
     /// </summary>
-    internal sealed class FormattingOptions2
+    internal sealed partial class FormattingOptions2
     {
 #if !CODE_STYLE
         [ExportSolutionOptionProvider, Shared]
@@ -76,13 +76,18 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
+        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
+        public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentStyle.Smart);
+
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(
             UseTabs,
             TabSize,
             IndentationSize,
             NewLine,
-            InsertFinalNewLine);
+            InsertFinalNewLine,
+            SmartIndent);
 #endif
     }
 

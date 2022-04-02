@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             _specializedIndentationRule = specializedIndentationRule
         End Sub
 
-        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions.IndentStyle) As AbstractFormattingRule
+        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions2.IndentStyle) As AbstractFormattingRule
             Return If(_specializedIndentationRule, New SpecialFormattingRule(indentStyle))
         End Function
 

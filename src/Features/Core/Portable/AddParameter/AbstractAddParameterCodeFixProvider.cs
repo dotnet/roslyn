@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             // The argumentNameSuggestion is the base for the parameter name.
             // For each method declaration the name is made unique to avoid name collisions.
             var (argumentNameSuggestion, isNamedArgument) = await GetNameSuggestionForArgumentAsync(
-                invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+                invocationDocument, argument, method.ContainingType, cancellationToken).ConfigureAwait(false);
 
             var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
             return await AddParameterService.AddParameterAsync(
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
-            Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+            Document invocationDocument, TArgumentSyntax argument, INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var expression = syntaxFacts.GetExpressionOfArgument(argument);
                 var semanticFacts = invocationDocument.GetRequiredLanguageService<ISemanticFactsService>();
                 argumentName = semanticFacts.GenerateNameForExpression(
-                    semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
+                    semanticModel, expression, capitalize: containingType.IsRecord, cancellationToken: cancellationToken);
                 return (argumentNameSuggestion: argumentName, isNamed: false);
             }
         }

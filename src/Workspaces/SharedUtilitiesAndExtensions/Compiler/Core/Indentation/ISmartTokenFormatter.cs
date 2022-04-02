@@ -5,13 +5,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
     internal interface ISmartTokenFormatter
     {
-        Task<IList<TextChange>> FormatTokenAsync(HostWorkspaceServices services, SyntaxToken token, CancellationToken cancellationToken);
+        Task<IList<TextChange>> FormatTokenAsync(SyntaxToken token, CancellationToken cancellationToken);
     }
 }
