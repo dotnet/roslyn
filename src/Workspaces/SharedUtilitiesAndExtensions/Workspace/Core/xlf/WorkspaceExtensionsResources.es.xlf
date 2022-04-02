@@ -7,41 +7,6 @@
         <target state="translated">La compilación es necesaria para realizar la tarea, pero el proyecto {0} no la admite.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
-        <source>Could not find location to generation symbol into.</source>
-        <target state="new">Could not find location to generation symbol into.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_from_a_different_tree">
-        <source>Destination location was from a different tree.</source>
-        <target state="new">Destination location was from a different tree.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_not_in_source">
-        <source>Destination location was not in source.</source>
-        <target state="new">Destination location was not in source.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
-        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
-        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
-        <target state="new">Destination type must be a {0}, {1} or {2}, but given one is {3}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
-        <source>Destination type must be a {0}, but given one is {1}.</source>
-        <target state="new">Destination type must be a {0}, but given one is {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
-        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
-        <target state="new">Destination type must be a {0} or a {1}, but given one is {2}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">Corregir todo '{0}'</target>
@@ -55,26 +20,6 @@
       <trans-unit id="Fix_all_0_in_Solution">
         <source>Fix all '{0}' in Solution</source>
         <target state="translated">Corregir todo '{0}' en solución</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
-        <source>Invalid number of parameters for binary operator.</source>
-        <target state="new">Invalid number of parameters for binary operator.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
-        <source>Invalid number of parameters for unary operator.</source>
-        <target state="new">Invalid number of parameters for unary operator.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Location_must_be_null_or_from_source">
-        <source>Location must be null or from source.</source>
-        <target state="new">Location must be null or from source.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_location_provided_to_add_statements_to">
-        <source>No location provided to add statements to.</source>
-        <target state="new">No location provided to add statements to.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">

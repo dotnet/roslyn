@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // If we are avoiding generating into files marked as generated (but are still regular files)
             // then check accordingly. This is distinct from the prior check in that we as a fallback
             // will generate into these files is we have no alternative.
-            if (checkGeneratedCode && document.IsGeneratedCode(syntaxTree, cancellationToken))
+            if (checkGeneratedCode && document.IsGeneratedCode(cancellationToken))
             {
                 return false;
             }

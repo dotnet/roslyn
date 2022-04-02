@@ -52,6 +52,11 @@
         <target state="translated">DateTimeKind는 UTC여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">대상 형식은 {0}, {1}, {2} 또는 {3}이어야 하지만 지정된 대상 형식은 {4}입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
         <target state="translated">문서가 구문 트리를 지원하지 않음</target>
@@ -132,9 +137,49 @@
         <target state="translated">확장에서 순환 발견</target>
         <note />
       </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
+        <source>Destination type must be a {0}, but given one is {1}.</source>
+        <target state="translated">대상 형식은 {0}이어야 하지만 지정된 형식은 {1}입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
+        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
+        <target state="translated">대상 형식은 {0} 또는 {1}이어야 하지만 지정된 형식은 {2}입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
+        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
+        <target state="translated">대상 형식은 {0}, {1} 또는 {2}이어야 하지만 지정된 형식은 {3}입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
+        <source>Could not find location to generation symbol into.</source>
+        <target state="translated">기호를 생성할 위치를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_location_provided_to_add_statements_to">
+        <source>No location provided to add statements to.</source>
+        <target state="translated">문을 추가할 위치가 제공되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_location_was_not_in_source">
+        <source>Destination location was not in source.</source>
+        <target state="translated">대상 위치가 소스에 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_location_was_from_a_different_tree">
+        <source>Destination location was from a different tree.</source>
+        <target state="translated">다른 트리에서 온 대상 위치입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Node_is_of_the_wrong_type">
         <source>Node is of the wrong type.</source>
         <target state="translated">잘못된 형식의 노드입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location_must_be_null_or_from_source">
+        <source>Location must be null or from source.</source>
+        <target state="translated">위치는 null이거나 소스에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -405,6 +450,16 @@
       <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
         <source>Cannot generate code for unsupported operator '{0}'</source>
         <target state="translated">지원되지 않는 '{0}' 연산자에 대한 코드를 생성할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
+        <source>Invalid number of parameters for binary operator.</source>
+        <target state="translated">이진 연산자에 대해 잘못된 매개 변수 수입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
+        <source>Invalid number of parameters for unary operator.</source>
+        <target state="translated">단항 연산자에 대해 잘못된 매개 변수 수입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">

@@ -17,7 +17,5 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 #endif
 
         Task<bool> IsGeneratedCodeAsync(Document document, CancellationToken cancellationToken);
-
-        bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken);
     }
 }

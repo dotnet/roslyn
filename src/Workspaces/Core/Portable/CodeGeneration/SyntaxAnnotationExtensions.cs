@@ -19,5 +19,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var codeGenSymbol = (CodeGenerationSymbol)(object)symbol;
             return (TSymbol)(object)codeGenSymbol.WithAdditionalAnnotations(annotation);
         }
+
+        internal static SyntaxAnnotation[] CombineAnnotations(
+            SyntaxAnnotation[] originalAnnotations,
+            SyntaxAnnotation[] newAnnotations)
+        {
+            if (!originalAnnotations.IsNullOrEmpty())
+            {
+                // Make a new array (that includes the new annotations) and copy the original
+                // annotations into it.
+                var finalAnnotations = newAnnotations;
+                Array.Resize(ref finalAnnotations, originalAnnotations.Length + newAnnotations.Length);
+                Array.Copy(originalAnnotations, 0, finalAnnotations, newAnnotations.Length, originalAnnotations.Length);
+
+                return finalAnnotations;
+            }
+
+            return newAnnotations;
+        }
     }
 }

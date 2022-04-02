@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ISymbol symbol, string commentToken, [NotNullWhen(true)] out string? comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
-            if (RoslynString.IsNullOrEmpty(xml))
+            if (string.IsNullOrEmpty(xml))
             {
                 comment = null;
                 return false;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                                 }
 
                                 return f1.HasConstantValue
-                                    ? Comparer<object>.Default.Compare(f1.ConstantValue, f2.ConstantValue!)
+                                    ? Comparer<object>.Default.Compare(f1.ConstantValue, f2.ConstantValue)
                                     : f1.Name.CompareTo(f2.Name);
                             }).ToList();
         }

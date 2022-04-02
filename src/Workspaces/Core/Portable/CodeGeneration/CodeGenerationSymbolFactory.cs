@@ -6,13 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -207,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (parameters.Length != expectedParameterCount)
             {
                 var message = expectedParameterCount == 1 ?
-                    WorkspaceExtensionsResources.Invalid_number_of_parameters_for_unary_operator :
-                    WorkspaceExtensionsResources.Invalid_number_of_parameters_for_binary_operator;
+                    WorkspacesResources.Invalid_number_of_parameters_for_unary_operator :
+                    WorkspacesResources.Invalid_number_of_parameters_for_binary_operator;
                 throw new ArgumentException(message, nameof(parameters));
             }
 

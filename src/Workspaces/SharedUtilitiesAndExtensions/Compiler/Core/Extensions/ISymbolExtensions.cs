@@ -12,27 +12,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
-        {
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed);
-        }
-
         public static string ToNameDisplayString(this ISymbol symbol)
             => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
 

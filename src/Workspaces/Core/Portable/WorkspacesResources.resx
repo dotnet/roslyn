@@ -129,8 +129,35 @@
   <data name="Cycle_detected_in_extensions" xml:space="preserve">
     <value>Cycle detected in extensions</value>
   </data>
+  <data name="Destination_type_must_be_a_0_but_given_one_is_1" xml:space="preserve">
+    <value>Destination type must be a {0}, but given one is {1}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2" xml:space="preserve">
+    <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
+    <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
+  </data>
+  <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
+    <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
+  </data>
+  <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
+    <value>Could not find location to generation symbol into.</value>
+  </data>
+  <data name="No_location_provided_to_add_statements_to" xml:space="preserve">
+    <value>No location provided to add statements to.</value>
+  </data>
+  <data name="Destination_location_was_not_in_source" xml:space="preserve">
+    <value>Destination location was not in source.</value>
+  </data>
+  <data name="Destination_location_was_from_a_different_tree" xml:space="preserve">
+    <value>Destination location was from a different tree.</value>
+  </data>
   <data name="Node_is_of_the_wrong_type" xml:space="preserve">
     <value>Node is of the wrong type.</value>
+  </data>
+  <data name="Location_must_be_null_or_from_source" xml:space="preserve">
+    <value>Location must be null or from source.</value>
   </data>
   <data name="Duplicate_source_file_0_in_project_1" xml:space="preserve">
     <value>Duplicate source file '{0}' in project '{1}'</value>
@@ -281,6 +308,12 @@
   </data>
   <data name="Cannot_generate_code_for_unsupported_operator_0" xml:space="preserve">
     <value>Cannot generate code for unsupported operator '{0}'</value>
+  </data>
+  <data name="Invalid_number_of_parameters_for_binary_operator" xml:space="preserve">
+    <value>Invalid number of parameters for binary operator.</value>
+  </data>
+  <data name="Invalid_number_of_parameters_for_unary_operator" xml:space="preserve">
+    <value>Invalid number of parameters for unary operator.</value>
   </data>
   <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>

@@ -10,12 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TUsingOrAliasSyntax, TExternSyntax>
@@ -35,7 +29,9 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-        public abstract bool PlaceImportsInsideNamespaces(OptionSet optionSet);
+#if !CODE_STYLE
+        public abstract bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
+#endif
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;

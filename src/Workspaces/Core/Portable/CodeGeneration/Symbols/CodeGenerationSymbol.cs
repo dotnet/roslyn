@@ -9,13 +9,8 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -69,28 +64,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             annotationsTable.TryGetValue(originalDefinition, out var originalAnnotations);
 
-            annotations = CombineAnnotations(originalAnnotations, annotations);
+            annotations = SyntaxAnnotationExtensions.CombineAnnotations(originalAnnotations, annotations);
             annotationsTable.Add(newDefinition, annotations);
 
             return newDefinition;
-        }
-
-        private static SyntaxAnnotation[] CombineAnnotations(
-            SyntaxAnnotation[] originalAnnotations,
-            SyntaxAnnotation[] newAnnotations)
-        {
-            if (!originalAnnotations.IsNullOrEmpty())
-            {
-                // Make a new array (that includes the new annotations) and copy the original
-                // annotations into it.
-                var finalAnnotations = newAnnotations;
-                Array.Resize(ref finalAnnotations, originalAnnotations.Length + newAnnotations.Length);
-                Array.Copy(originalAnnotations, 0, finalAnnotations, newAnnotations.Length, originalAnnotations.Length);
-
-                return finalAnnotations;
-            }
-
-            return newAnnotations;
         }
 
         public abstract SymbolKind Kind { get; }

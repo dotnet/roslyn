@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (location != null && !location.IsInSource)
             {
-                throw new ArgumentException(WorkspaceExtensionsResources.Location_must_be_null_or_from_source, name);
+                throw new ArgumentException(WorkspacesResources.Location_must_be_null_or_from_source, name);
             }
         }
 

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -35,21 +34,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool PlaceSystemNamespaceFirst
             => Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language);
 
+#if !CODE_STYLE
         public abstract CodeGenerationOptions GetOptions(CodeGenerationContext context);
 
         public static async Task<CodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var parseOptions = document.Project.ParseOptions;
             Contract.ThrowIfNull(parseOptions);
-#if CODE_STYLE
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(tree, cancellationToken);
-#else
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
 
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
             return codeGenerationService.GetPreferences(parseOptions, documentOptions);
         }
+#endif
     }
 }
