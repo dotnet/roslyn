@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public CommandState GetCommandState(SurroundWithCommandArgs args)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
