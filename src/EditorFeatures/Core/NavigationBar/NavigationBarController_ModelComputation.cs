@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableArray<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
 
             // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    this.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var currentView = _presenter.TryGetCurrentView();
             var caretPosition = currentView?.GetCaretPoint(_subjectBuffer);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             // Finally, switch back to the UI to update our state and UI.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _presenter.PresentItems(
                 projectItems,
