@@ -27,11 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
+    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where TTag : ITag
     {
         private readonly object _uniqueKey = new();
 
         protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
         private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
@@ -89,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListener asyncListener)
-            : base(threadingContext)
         {
+            ThreadingContext = threadingContext;
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
