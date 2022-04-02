@@ -667,13 +667,15 @@ class C { }
 ");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsync()
-            => await VerifyKeywordAsync(@"class c { async $$ }");
+            => await VerifyAbsenceAsync(@"class c { async $$ }");
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsyncAsType()
-            => await VerifyKeywordAsync(@"class c { async async $$ }");
+            => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
         [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -826,10 +828,19 @@ class C
 
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
-        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
+        public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
         {
             await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
+        public async Task TestAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod($@"
 {keyword} $$"));
         }
     }
