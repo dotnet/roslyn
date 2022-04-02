@@ -2,36 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractFileHeaderDiagnosticAnalyzer(string language)
-            : base(
-                IDEDiagnosticIds.FileHeaderMismatch,
-                EnforceOnBuildValues.FileHeaderMismatch,
-                CodeStyleOptions2.FileHeaderTemplate,
-                language,
-                new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_is_missing_a_required_header), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-        {
-            RoslynDebug.AssertNotNull(DescriptorId);
+        private static readonly LocalizableString s_invalidHeaderTitle = new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly LocalizableString s_invalidHeaderMessage = new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly DiagnosticDescriptor s_invalidHeaderDescriptor = CreateDescriptorForFileHeader(s_invalidHeaderTitle, s_invalidHeaderMessage);
 
-            var invalidHeaderTitle = new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            var invalidHeaderMessage = new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, EnforceOnBuildValues.FileHeaderMismatch, invalidHeaderTitle, invalidHeaderMessage);
+        private static readonly LocalizableString s_missingHeaderTitle = new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly LocalizableString s_missingHeaderMessage = new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_is_missing_a_required_header), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly DiagnosticDescriptor s_missingHeaderDescriptor = CreateDescriptorForFileHeader(s_missingHeaderTitle, s_missingHeaderMessage);
+
+        private static DiagnosticDescriptor CreateDescriptorForFileHeader(LocalizableString title, LocalizableString message)
+            => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, title, message);
+
+        protected AbstractFileHeaderDiagnosticAnalyzer(string language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                    .Add(s_invalidHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate)
+                    .Add(s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate),
+                 language)
+        {
         }
 
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
-
-        internal DiagnosticDescriptor MissingHeaderDescriptor => Descriptor;
-
-        internal DiagnosticDescriptor InvalidHeaderDescriptor { get; }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var fileHeader = FileHeaderHelper.ParseFileHeader(root);
             if (fileHeader.IsMissing)
             {
-                context.ReportDiagnostic(Diagnostic.Create(MissingHeaderDescriptor, fileHeader.GetLocation(tree)));
+                context.ReportDiagnostic(Diagnostic.Create(s_missingHeaderDescriptor, fileHeader.GetLocation(tree)));
                 return;
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath));
             if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText))
             {
-                context.ReportDiagnostic(Diagnostic.Create(InvalidHeaderDescriptor, fileHeader.GetLocation(tree)));
+                context.ReportDiagnostic(Diagnostic.Create(s_invalidHeaderDescriptor, fileHeader.GetLocation(tree)));
                 return;
             }
         }
