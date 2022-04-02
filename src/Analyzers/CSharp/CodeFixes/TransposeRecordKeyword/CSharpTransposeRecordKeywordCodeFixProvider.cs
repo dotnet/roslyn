@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS9012);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.Compile;
-
         private static bool TryGetRecordDeclaration(
             Diagnostic diagnostic, CancellationToken cancellationToken, [NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)
         {
