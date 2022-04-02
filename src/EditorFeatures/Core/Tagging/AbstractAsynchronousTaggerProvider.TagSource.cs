@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _eventSource = CreateEventSource();
                 _onVisibilityChanged = () =>
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                     // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
                     // themselves immediately afterwards.
@@ -279,14 +279,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Pause()
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 _paused = true;
                 _eventSource.Pause();
             }
 
             private void Resume()
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 // if we're not actually paused, no need to do anything.
                 if (_paused)
                 {
