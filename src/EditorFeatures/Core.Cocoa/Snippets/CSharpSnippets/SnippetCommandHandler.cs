@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(ThreadingContext, subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider);
+                expansionClient = new SnippetExpansionClient(subjectBuffer.ContentType, textView, subjectBuffer, ExpansionServiceProvider);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 
