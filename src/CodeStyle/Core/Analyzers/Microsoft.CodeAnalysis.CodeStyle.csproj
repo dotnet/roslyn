@@ -26,7 +26,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
