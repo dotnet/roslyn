@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -279,7 +280,7 @@ class MyClass
 }
 ";
 
-            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+            await new Verify.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
@@ -312,7 +313,7 @@ root = true
 csharp_new_line_before_open_brace = methods
 ";
 
-            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+            await new Verify.Test
             {
                 TestState =
                 {
