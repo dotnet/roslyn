@@ -119,8 +119,8 @@ class MyClass
   $$void MyMethod1()
   $${
   $$}
-#pragma warning disable format
 
+#pragma warning disable format
 		void MyMethod2()
   {
   }
@@ -137,8 +137,8 @@ class MyClass
     void MyMethod1()
     {
     }
-#pragma warning disable format
 
+#pragma warning disable format
 		void MyMethod2()
   {
   }
