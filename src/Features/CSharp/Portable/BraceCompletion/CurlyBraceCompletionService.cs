@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
-            var indentStyle = options.AutoFormattingOptions.IndentStyle;
+            var indentStyle = options.IndentStyle;
             return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle));
         }
 

@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsSemicolonOfEmbeddedStatement() ||
                 token.IsCloseBraceOfEmbeddedBlock())
             {
-                Debug.Assert(
+                RoslynDebug.Assert(
                     token.Parent != null &&
                     (token.Parent.Parent is StatementSyntax || token.Parent.Parent is ElseClauseSyntax));
 

@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public bool SupportsFormatSelection => true;
         public bool SupportsFormatOnReturn => false;
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, FormattingOptions2.IndentStyle indentStyle, char ch)
         {
-            var smartIndentOn = options.IndentStyle == FormattingOptions2.IndentStyle.Smart;
+            var smartIndentOn = indentStyle == FormattingOptions2.IndentStyle.Smart;
 
             // We consider the proper placement of a close curly or open curly when it is typed at
             // the start of the line to be a smart-indentation operation.  As such, even if "format

@@ -1357,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundArrayCreation(
                 Syntax,
                 ImmutableArray.Create<BoundExpression>(Literal(elements.Length)),
-                new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
+                new BoundArrayInitialization(Syntax, isInferred: false, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
 

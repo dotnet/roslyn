@@ -8294,6 +8294,412 @@ abstract class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Property()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo MyProperty { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo MyProperty { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+    Goo I.MyProperty
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Method_InaccessibleReturnType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo M();
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo M();
+}
+
+public class C : {|CS0535:I|}
+{
+    Goo I.M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Method_InaccessibleParameterType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    void M(Goo goo);
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    void M(Goo goo);
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M(Goo goo)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Event()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal delegate void MyDelegate();
+
+internal interface I
+{
+    event MyDelegate Event;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal delegate void MyDelegate();
+
+internal interface I
+{
+    event MyDelegate Event;
+}
+
+public class C : {|CS0535:I|}
+{
+    event MyDelegate I.Event
+    {
+        add
+        {
+            throw new System.NotImplementedException();
+        }
+
+        remove
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Indexer_InaccessibleReturnType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo this[int i] { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    Goo this[int i] { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+    Goo I.this[int i]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Indexer_InaccessibleParameterType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    int this[Goo goo] { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    int this[Goo goo] { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+    int I.this[Goo goo]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleMemberAsGenericArgument()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"using System.Collections.Generic;
+
+internal class Goo {}
+
+internal interface I
+{
+    List<Goo> M();
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"using System.Collections.Generic;
+
+internal class Goo {}
+
+internal interface I
+{
+    List<Goo> M();
+}
+
+public class C : {|CS0535:I|}
+{
+    List<Goo> I.M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleMemberDueToContainingType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Container
+{
+    public class Goo {}
+}
+
+internal interface I
+{
+    Container.Goo M();
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Container
+{
+    public class Goo {}
+}
+
+internal interface I
+{
+    Container.Goo M();
+}
+
+public class C : {|CS0535:I|}
+{
+    Container.Goo I.M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintAsReturnType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    T M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    T M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    T I.M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintAsParameter()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>(T arg) where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>(T arg) where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M<T>(T arg)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintWhichIsNotUsed()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_SeveralMembers_ShouldExplicitlyImplementOnlyInaccessible()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    int N();
+    Goo M();
+}
+
+public class C : {|CS0535:{|CS0535:I|}|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    int N();
+    Goo M();
+}
+
+public class C : {|CS0535:{|CS0535:I|}|}
+{
+    public int N()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    Goo I.M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInaccessibleAccessor_01()
         {
             await new VerifyCS.Test

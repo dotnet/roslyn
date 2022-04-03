@@ -1588,6 +1588,14 @@ public interface IFace
                     Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
                     Generator.Attribute("a")),
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<CompilationUnitSyntax>(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+                "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
         }
 
         [Fact]
