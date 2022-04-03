@@ -725,11 +725,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">データ フローを分析できませんでした: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">書式設定を修正します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' の入力ミスを修正します</target>

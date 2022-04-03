@@ -97,6 +97,11 @@
         <target state="translated">Die Initialisierung der Sammlung kann vereinfacht werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">Die Formatzeichenfolge enthält einen ungültigen Platzhalter.</target>

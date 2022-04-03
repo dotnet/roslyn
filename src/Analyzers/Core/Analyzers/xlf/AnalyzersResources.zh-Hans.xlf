@@ -97,6 +97,11 @@
         <target state="translated">可以简化集合初始化</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">格式字符串包含无效的占位符</target>

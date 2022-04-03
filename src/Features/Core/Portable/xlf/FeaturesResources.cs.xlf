@@ -725,11 +725,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Nepovedlo se analyzovat tok dat pro: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Opravit formátování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Opravit překlep {0}</target>

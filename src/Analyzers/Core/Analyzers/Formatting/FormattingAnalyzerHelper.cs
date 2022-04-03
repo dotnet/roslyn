@@ -8,12 +8,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
-#if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 using FormattingProvider = Microsoft.CodeAnalysis.Formatting.ISyntaxFormatting;
-#else
-using FormattingProvider = Microsoft.CodeAnalysis.Host.HostWorkspaceServices;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {

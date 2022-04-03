@@ -725,11 +725,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Non è stato possibile analizzare il flusso di dati per: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Correggi formattazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Correggi l'errore di ortografia '{0}'</target>

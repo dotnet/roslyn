@@ -1310,9 +1310,6 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
-  <data name="Fix_formatting" xml:space="preserve">
-    <value>Fix formatting</value>
-  </data>
   <data name="Split_into_nested_0_statements" xml:space="preserve">
     <value>Split into nested '{0}' statements</value>
   </data>

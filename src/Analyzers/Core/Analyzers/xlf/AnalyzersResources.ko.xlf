@@ -97,6 +97,11 @@
         <target state="translated">컬렉션 초기화를 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>

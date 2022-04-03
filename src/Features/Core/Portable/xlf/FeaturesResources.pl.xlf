@@ -725,11 +725,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Nie można przeanalizować przepływu danych dla: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Napraw formatowanie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Popraw błąd pisowni „{0}”</target>

@@ -97,6 +97,11 @@
         <target state="translated">L'inizializzazione della raccolta può essere semplificata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">La stringa di formato contiene un segnaposto non valido</target>

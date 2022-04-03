@@ -725,11 +725,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Impossible d’analyser le flux de données pour : {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Corriger la mise en forme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corriger la faute de frappe '{0}'</target>

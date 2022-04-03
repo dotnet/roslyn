@@ -97,6 +97,11 @@
         <target state="translated">La inicialización de la recopilación se pueden simplificar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">La cadena de formato contiene un marcador de posición no válido.</target>

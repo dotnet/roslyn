@@ -725,11 +725,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Fehler beim Analysieren des Datenflusses für: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Formatierung beheben</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Tippfehler "{0}" korrigieren</target>

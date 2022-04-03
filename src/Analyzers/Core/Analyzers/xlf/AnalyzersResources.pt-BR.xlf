@@ -97,6 +97,11 @@
         <target state="translated">A inicialização de coleção pode ser simplificada</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">A cadeia de formato contém espaço reservado inválido</target>

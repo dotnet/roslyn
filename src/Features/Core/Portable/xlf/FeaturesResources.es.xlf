@@ -725,11 +725,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">No se pudo analizar el flujo de datos para: {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Fijar formato</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corregir error de escritura "{0}"</target>

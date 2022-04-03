@@ -725,11 +725,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">無法分析下列項目的資料流程: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">修正格式化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">修正錯字 '{0}'</target>

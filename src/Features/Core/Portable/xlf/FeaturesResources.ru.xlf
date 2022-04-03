@@ -725,11 +725,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удалось проанализировать поток данных для: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Исправить форматирование</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Исправьте опечатку "{0}"</target>

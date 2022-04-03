@@ -352,4 +352,7 @@
   <data name="Simplify_LINQ_expression" xml:space="preserve">
     <value>Simplify LINQ expression</value>
   </data>
+  <data name="Fix_formatting" xml:space="preserve">
+    <value>Fix formatting</value>
+  </data>
 </root>

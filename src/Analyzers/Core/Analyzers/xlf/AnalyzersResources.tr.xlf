@@ -97,6 +97,11 @@
         <target state="translated">Koleksiyon başlatma işlemi kolaylaştırılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="translated">Biçim dizesi, geçersiz yer tutucu içeriyor</target>
