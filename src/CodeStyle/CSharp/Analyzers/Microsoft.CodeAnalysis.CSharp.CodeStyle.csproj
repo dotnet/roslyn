@@ -17,9 +17,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="CSharpCodeStyleResources.resx" GenerateSource="true" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
