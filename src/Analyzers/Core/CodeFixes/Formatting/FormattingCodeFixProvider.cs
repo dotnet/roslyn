@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -28,12 +26,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        CodeStyleResources.Fix_formatting,
+                        AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
                         nameof(AbstractFormattingCodeFixProvider)),
                     diagnostic);
+#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
             }
 
             return Task.CompletedTask;

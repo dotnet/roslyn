@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.CustomFixAllProvider.cs" />

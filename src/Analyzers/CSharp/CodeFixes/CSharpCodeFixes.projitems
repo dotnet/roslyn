@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\CSharpUsePatternCombinatorsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
