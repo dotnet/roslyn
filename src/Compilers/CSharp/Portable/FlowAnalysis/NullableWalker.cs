@@ -3914,13 +3914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
-            var arrayType = VisitArrayInitialization(node.Type, isInferred, initialization, node.HasErrors);
+            var arrayType = VisitArrayInitialization(node.Type, initialization, node.HasErrors);
             SetResultType(node, TypeWithState.Create(arrayType, NullableFlowState.NotNull));
             return null;
         }
 
-        private TypeSymbol VisitArrayInitialization(TypeSymbol type, bool isInferred, BoundArrayInitialization initialization, bool hasErrors)
+        private TypeSymbol VisitArrayInitialization(TypeSymbol type, BoundArrayInitialization initialization, bool hasErrors)
         {
             TakeIncrementalSnapshot(initialization);
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
@@ -3938,7 +3937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             var resultType = type;
-            if (!isInferred)
+            if (!initialization.IsInferred)
             {
                 foreach (var expr in expressions)
                 {
@@ -10781,8 +10780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(node.Type is not null);
-            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitStackAllocArrayCreationExpression;
-            var type = VisitArrayInitialization(node.Type, isInferred, initialization, node.HasErrors);
+            var type = VisitArrayInitialization(node.Type, initialization, node.HasErrors);
             SetResultType(node, TypeWithState.Create(type, NullableFlowState.NotNull));
             return null;
         }
