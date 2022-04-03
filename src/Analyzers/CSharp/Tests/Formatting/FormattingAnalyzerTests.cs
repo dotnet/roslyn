@@ -120,10 +120,12 @@ class MyClass
   $${
   $$}
 #pragma warning disable format
+
 		void MyMethod2()
   {
   }
 #pragma warning restore format
+
   void MyMethod3()
   $${
   $$}
@@ -136,10 +138,12 @@ class MyClass
     {
     }
 #pragma warning disable format
+
 		void MyMethod2()
   {
   }
 #pragma warning restore format
+
   void MyMethod3()
     {
     }
@@ -170,6 +174,7 @@ class MyClass
     void MyMethod1()
     {
     }
+
     void MyMethod2()
     {
     }
@@ -188,6 +193,7 @@ class MyClass
     void MyMethod1()
     {
     }[| |]
+
     void MyMethod2()
     {
     }
@@ -199,6 +205,7 @@ class MyClass
     void MyMethod1()
     {
     }
+
     void MyMethod2()
     {
     }
@@ -230,6 +237,7 @@ class MyClass
     void MyMethod1()
     {
     }
+
     void MyMethod2()
     {
     }
@@ -326,6 +334,5 @@ csharp_new_line_before_open_brace = methods
                 FixedState = { Sources = { fixedCode } },
             }.RunAsync();
         }
-
     }
 }
