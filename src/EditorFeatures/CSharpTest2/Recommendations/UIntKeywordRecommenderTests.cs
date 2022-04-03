@@ -312,15 +312,6 @@ $$");
    $$");
         }
 
-        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsync()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    async $$");
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
             => await VerifyAbsenceAsync(@"partial $$");
@@ -678,12 +669,12 @@ class C { }
 
         [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsync()
+        public async Task TestNotAfterAsync()
             => await VerifyAbsenceAsync(@"class c { async $$ }");
 
         [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsyncAsType()
+        public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
@@ -785,7 +776,7 @@ class C
         [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
-        public async Task TestAfterKeywordIndicatingLocalFunctionWIthAsync(string keyword)
+        public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {
             await VerifyAbsenceAsync(AddInsideMethod($@"
 {keyword} $$"));

@@ -323,7 +323,7 @@ class C
         [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
-        public async Task TestAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
+        public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
         {
             await VerifyAbsenceAsync(AddInsideMethod($@"
 {keyword} $$"));
