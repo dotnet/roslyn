@@ -17,6 +17,7 @@ class TestClass
     End Sub
 end class
 "
+
             ' Currently the analyzer and code fix rely on Formatter.FormatAsync, which does not normalize the casing of
             ' keywords in Visual Basic.
             Await VerifyVB.VerifyAnalyzerAsync(testCode)
