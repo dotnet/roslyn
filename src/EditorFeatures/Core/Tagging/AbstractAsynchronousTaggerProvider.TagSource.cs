@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
         /// subject buffers at once) have their own providers and tag source derivations.</para>
         /// </summary>
-        private sealed partial class TagSource : ForegroundThreadAffinitizedObject
+        private sealed partial class TagSource
         {
             /// <summary>
             /// If we get more than this many differences, then we just issue it as a single change
@@ -91,13 +92,29 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private readonly ITextView? _textView;
             private readonly ITextBuffer _subjectBuffer;
+
+            /// <summary>
+            /// Used to keep track of if this <see cref="_subjectBuffer"/> is visible or not (e.g. is in some <see
+            /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see cref="Pause"/>
+            /// tagging when not visible to avoid wasting machine resources. Note: we do not examine <see
+            /// cref="_textView"/> for this as that is only available for "view taggers" (taggers which only tag
+            /// portions of the view) whereas we want this for all taggers (including just buffer taggers which tag the
+            /// entire document).
+            /// </summary>
             private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+
+            /// <summary>
+            /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
+            /// </summary>
+            private readonly Action _onVisibilityChanged;
 
             /// <summary>
             /// Our tagger event source that lets us know when we should call into the tag producer for
             /// new tags.
             /// </summary>
             private readonly ITaggerEventSource _eventSource;
+
+            #region Mutable state.  Can only be accessed from the foreground thread
 
             /// <summary>
             /// accumulated text changes since last tag calculation
@@ -113,6 +130,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private bool _firstTagsRequest = true;
 
+            /// <summary>
+            /// Whether or not tag generation is paused.  We pause producing tags when documents become non-visible.
+            /// See <see cref="_visibilityTracker"/>.
+            /// </summary>
+            private bool _paused = false;
+
+            #endregion
+
             #endregion
 
             public TagSource(
@@ -121,9 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ITextBufferVisibilityTracker? visibilityTracker,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
-                : base(dataSource.ThreadingContext)
             {
-                this.AssertIsForeground();
+                dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
@@ -169,25 +193,38 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
+                // Create the tagger-specific events that will cause the tagger to refresh.
                 _eventSource = CreateEventSource();
+                _onVisibilityChanged = () =>
+                {
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                    // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                    // themselves immediately afterwards.
+                    Resume();
+                };
+
+                // Now hook up this tagger to all interesting events.
                 Connect();
 
-                // Start computing the initial set of tags immediately.  We want to get the UI
-                // to a complete state as soon as possible.
+                // Now that we're all hooked up to the events we care about, start computing the initial set of tags
+                // immediately.  We want to get the UI to a complete state as soon as possible.
                 EnqueueWork(initialTags: true);
 
                 return;
 
+                // Represented as a local function just so we can keep this in sync with Dispose.Disconnect below.
                 void Connect()
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                    // Register to hear about visibility changes so we can pause/resume this tagger.
+                    _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
 
                     _eventSource.Changed += OnEventSourceChanged;
 
                     if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                    {
                         _subjectBuffer.Changed += OnSubjectBufferChanged;
-                    }
 
                     if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                     {
@@ -217,9 +254,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 return;
 
+                // Keep in sync with TagSource.Connect above (just performing the disconnect operations in the reverse order
                 void Disconnect()
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                     // Tell the interaction object to stop issuing events.
                     _eventSource.Disconnect();
@@ -231,11 +269,31 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     }
 
                     if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                    {
                         _subjectBuffer.Changed -= OnSubjectBufferChanged;
-                    }
 
                     _eventSource.Changed -= OnEventSourceChanged;
+
+                    _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
+                }
+            }
+
+            private void Pause()
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                _paused = true;
+                _eventSource.Pause();
+            }
+
+            private void Resume()
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                // if we're not actually paused, no need to do anything.
+                if (_paused)
+                {
+                    // Set us back to running, and kick off work to compute tags now that we're visible again.
+                    _paused = false;
+                    _eventSource.Resume();
+                    EnqueueWork(initialTags: false);
                 }
             }
 
@@ -263,13 +321,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -278,13 +336,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -293,20 +351,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    this.AssertIsForeground();
+                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                     _state_doNotAccessDirecty = value;
                 }
             }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (difference.Count == 0)
                 {
                     // nothing changed.
