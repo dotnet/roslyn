@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         protected void Start()
         {
             Contract.ThrowIfFalse(_processorTask == null);
-            _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
+            _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         protected void UpdateLastAccessTime()

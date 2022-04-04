@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                         action();
                     },
                     cancellationToken,
+                    TaskCreationOptions.None,
                     TaskScheduler.Default);
             }
         }

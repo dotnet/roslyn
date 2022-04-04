@@ -51,10 +51,10 @@ namespace Roslyn.Utilities
             return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
-        public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
+        public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskCreationOptions options, TaskScheduler scheduler)
         {
             // The one and only place we can call StartNew<>().
-            var task = factory.StartNew(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
+            var task = factory.StartNew(actionAsync, cancellationToken, options, scheduler).Unwrap();
             TaskExtensions.ReportNonFatalError(task, actionAsync);
             return task;
         }
