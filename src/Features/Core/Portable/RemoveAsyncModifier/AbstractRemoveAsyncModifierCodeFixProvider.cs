@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         where TReturnStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode methodLikeNode);
         protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, TExpressionSyntax expressionBody);

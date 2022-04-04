@@ -30,12 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
 
-        Friend NotOverridable Overrides ReadOnly Property CodeFixCategory As CodeFixCategory
-            Get
-                Return CodeFixCategory.CodeStyle
-            End Get
-        End Property
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             context.RegisterCodeFix(New MyCodeAction(
                 Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
