@@ -46,7 +46,12 @@ namespace RunTests
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
+                    // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
+                    // We want to avoid matching other test classes whose names are prefixed with this test class's name.
+                    // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
+                    // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
                     builder.Append(typeInfo.FullName);
+                    builder.Append('.');
                 }
                 builder.Append(sep);
 
@@ -67,6 +72,7 @@ namespace RunTests
                 }
             }
 
+            builder.Append($@" --arch {assemblyInfo.Architecture}");
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
@@ -75,14 +81,18 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+            // The 25 minute timeout accounts for the fact that VSIX deployment and/or experimental hive reset and
+            // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
+            // functionality cannot separate this configuration overhead from the first test which will eventually run.
+            // https://github.com/dotnet/roslyn/issues/59851
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 25minutes");
 
             return builder.ToString();
         }
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -91,12 +101,18 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !Options.IncludeHtml && !result.Succeeded)
+            if (Options.Retry && !HasBuiltInRetry(assemblyInfo) && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
 
             return result;
+
+            static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
+            {
+                // vs-extension-testing handles test retry internally.
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
+            }
         }
 
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
@@ -196,7 +212,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {assemblyInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 

@@ -81,6 +81,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsRemovableBitwiseEnumNegation(cast, semanticModel, cancellationToken))
                 return true;
 
+            // Special case for converting a method group to object. The compiler issues a warning if the cast is removed:
+            // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
+            var castExpressionOperation = semanticModel.GetOperation(cast.Expression, cancellationToken);
+            if (castExpressionOperation is
+                {
+                    Kind: OperationKind.MethodReference,
+                    Parent.Kind: OperationKind.DelegateCreation,
+                    Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
         }
 
@@ -334,12 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
+                originalParentConversion.GetConversion().IsImplicit)
             {
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -635,8 +660,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
-                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }

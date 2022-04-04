@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -566,11 +566,11 @@ index: 2);
 
     private class Generated
     {
-        private (int, int) p;
+        private (int, int) value;
 
-        public Generated((int, int) p)
+        public Generated((int, int) value)
         {
-            this.p = p;
+            this.value = value;
         }
     }
 }",
@@ -591,11 +591,11 @@ index: 2);
 
     private class Generated
     {
-        private (int a, int b, int) p;
+        private (int a, int b, int) value;
 
-        public Generated((int a, int b, int) p)
+        public Generated((int a, int b, int) value)
         {
-            this.p = p;
+            this.value = value;
         }
     }
 }",
@@ -1579,13 +1579,13 @@ index: 1);
 internal class T
 {
     private bool b;
-    private object p;
+    private object value;
 
-    public T(out int i, ref bool b, object p)
+    public T(out int i, ref bool b, object value)
     {
         i = 0;
         this.b = b;
-        this.p = p;
+        this.value = value;
     }
 }",
 index: 1);
@@ -1951,11 +1951,11 @@ class Class
 
 internal class T
 {
-    private Func<object, object> p;
+    private Func<object, object> value;
 
-    public T(Func<object, object> p)
+    public T(Func<object, object> value)
     {
-        this.p = p;
+        this.value = value;
     }
 }",
 index: 1);
@@ -4747,7 +4747,7 @@ index: 1);
         {
             await TestSmartTagTextAsync(
 @"class C : [|Goo|]",
-string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace));
+string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
         }
 
         [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
@@ -4854,7 +4854,7 @@ class Program
             await TestExactActionSetOfferedAsync(code,
                 new[]
                 {
-                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"),
                     string.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"),
                     FeaturesResources.Generate_new_type
                 });

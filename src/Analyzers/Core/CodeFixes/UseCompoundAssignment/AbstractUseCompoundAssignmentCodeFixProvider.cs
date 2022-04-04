@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         // See comments in the analyzer for what these maps are for.
 
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
@@ -43,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
         protected abstract TExpressionSyntax Increment(TExpressionSyntax left, bool postfix);
         protected abstract TExpressionSyntax Decrement(TExpressionSyntax left, bool postfix);
+        protected abstract SyntaxTriviaList PrepareRightExpressionLeadingTrivia(SyntaxTriviaList initialTrivia);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -90,6 +89,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
+
+                        rightExpr = rightExpr.WithLeadingTrivia(PrepareRightExpressionLeadingTrivia(rightExpr.GetLeadingTrivia()));
+
                         return Assignment(
                             assignmentOpKind,
                             (TExpressionSyntax)leftOfAssign,

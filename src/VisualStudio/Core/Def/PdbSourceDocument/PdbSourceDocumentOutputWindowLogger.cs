@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
         private IVsOutputWindowPane? _outputPane;
 
         private readonly IThreadingContext _threadingContext;
-        private readonly AsyncBatchingWorkQueue<string> _logItemsQueue;
+        private readonly AsyncBatchingWorkQueue<string?> _logItemsQueue;
         private readonly IServiceProvider _serviceProvider;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -40,14 +41,14 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
 
             var asyncListener = listenerProvider.GetListener(nameof(PdbSourceDocumentOutputWindowLogger));
 
-            _logItemsQueue = new AsyncBatchingWorkQueue<string>(
-                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
+            _logItemsQueue = new AsyncBatchingWorkQueue<string?>(
+                DelayTimeSpan.NearImmediate,
                 ProcessLogMessagesAsync,
                 asyncListener,
                 _cancellationTokenSource.Token);
         }
 
-        private async ValueTask ProcessLogMessagesAsync(ImmutableArray<string> messages, CancellationToken cancellationToken)
+        private async ValueTask ProcessLogMessagesAsync(ImmutableArray<string?> messages, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -59,7 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
                     return;
                 }
 
-                if (pane is IVsOutputWindowPaneNoPump noPumpPane)
+                if (message is null)
+                {
+                    pane.Clear();
+                }
+                else if (pane is IVsOutputWindowPaneNoPump noPumpPane)
                 {
                     noPumpPane.OutputStringNoPump(message + Environment.NewLine);
                 }
@@ -70,11 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             }
         }
 
-        public async Task ClearAsync()
+        public void Clear()
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            GetPane()?.Clear();
+            _logItemsQueue.AddWork((string?)null);
         }
 
         public void Log(string value)

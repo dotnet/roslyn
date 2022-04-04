@@ -897,5 +897,23 @@ static class Program
 }}
 ", dotAwait: true, dotAwaitf: true);
         }
+
+        [Theory, CombinatorialData]
+        [WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921")]
+        public async Task TestInCastExpressionThatMightBeParenthesizedExpression(bool hasNewline)
+        {
+            var code = $@"
+class C
+{{
+    void M()
+    {{
+        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
+    }}
+}}";
+            if (hasNewline)
+                await VerifyKeywordAsync(code);
+            else
+                await VerifyAbsenceAsync(code);
+        }
     }
 }

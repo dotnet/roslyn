@@ -9,11 +9,6 @@ using System.Reflection;
 using System.Threading;
 using Roslyn.Utilities;
 
-#if NET20
-// Some APIs referenced by documentation comments are not available on .NET Framework 2.0.
-#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
-#endif
-
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
@@ -47,8 +42,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
         }
 
-        public static bool HandlerIsNonFatal { get; set; }
-
         /// <summary>
         /// Same as setting the Handler property except that it avoids the assert.  This is useful in
         /// test code which needs to verify the handler is called in specific cases and will continually
@@ -58,11 +51,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             s_handler = value;
         }
-
-        // In the result provider, we aren't copying our handler to somewhere else, so we don't
-        // need this method. It's too much of a challenge to shared code to work in
-        // old versions of the runtime since APIs changed over time.
-#if !NET20 && !NETSTANDARD1_3 
 
         /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
@@ -85,12 +73,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 targetHandlerProperty.SetValue(obj: null, value: null);
             }
-
-            var targetIsNonFatalProperty = targetType.GetProperty(nameof(HandlerIsNonFatal), BindingFlags.Static | BindingFlags.Public)!;
-            targetIsNonFatalProperty.SetValue(obj: null, value: HandlerIsNonFatal);
         }
-
-#endif
 
         /// <summary>
         /// Use in an exception filter to report an error without catching the exception.
@@ -149,6 +132,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndPropagate(exception, severity);
         }
 
+        // Since the command line compiler has no way to catch exceptions, report them, and march on, we
+        // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
+
+#if !COMPILERCORE
+
         /// <summary>
         /// Report an error.
         /// Calls <see cref="Handler"/> and doesn't pass the exception through (the method returns true).
@@ -160,24 +148,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-#if COMPILERCORE
-        private
-#else
-        public
-#endif
-            static bool ReportAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             Report(exception, severity);
             return true;
         }
 
         [DebuggerHidden]
-#if COMPILERCORE
-        private
-#else
-        public
-#endif
-            static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             Report(exception, severity, forceDump: true);
             return true;
@@ -190,73 +168,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-#if COMPILERCORE
-        private
-#else
-        public
-#endif
-            static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (exception is OperationCanceledException)
-            {
-                return false;
-            }
-
-            return ReportAndCatch(exception, severity);
-        }
-
-        /// <summary>
-        /// Use in an exception filter to report an error (by calling <see cref="Handler"/>) and catch
-        /// the exception, unless the operation was cancelled.
-        /// </summary>
-        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
-        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
-        // This is only a temporary shim; the removal is tracked by https://github.com/dotnet/roslyn/issues/58375.
-        [DebuggerHidden]
-        [Obsolete("This is only to support places the compiler is catching exceptions on the command line; do not use in new code.")]
-        public static bool ReportIfNonFatalAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
-        {
-            if (exception is OperationCanceledException)
-            {
-                return false;
-            }
-
-            if (!HandlerIsNonFatal)
-            {
-                return true;
-            }
-
-            return ReportAndCatch(exception, severity);
-        }
-
-        /// <summary>
-        /// <para>Use in an exception filter to report an error (by calling <see cref="Handler"/>) and
-        /// catch the exception, unless the operation was cancelled at the request of
-        /// <paramref name="contextCancellationToken"/>.</para>
-        ///
-        /// <para>Cancellable operations are only expected to throw <see cref="OperationCanceledException"/> if the
-        /// applicable <paramref name="contextCancellationToken"/> indicates cancellation is requested by setting
-        /// <see cref="CancellationToken.IsCancellationRequested"/>. Unexpected cancellation, i.e. an
-        /// <see cref="OperationCanceledException"/> which occurs without <paramref name="contextCancellationToken"/>
-        /// requesting cancellation, is treated as an error by this method.</para>
-        ///
-        /// <para>This method does not require <see cref="OperationCanceledException.CancellationToken"/> to match
-        /// <paramref name="contextCancellationToken"/>, provided cancellation is expected per the previous
-        /// paragraph.</para>
-        /// </summary>
-        /// <param name="contextCancellationToken">A <see cref="CancellationToken"/> which will have
-        /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
-        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
-        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
-        [DebuggerHidden]
-#if COMPILERCORE
-        private
-#else
-        public
-#endif
-            static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
-        {
-            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
@@ -283,24 +197,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
-        // This is only a temporary shim; the removal is tracked by https://github.com/dotnet/roslyn/issues/58375.
         [DebuggerHidden]
-        [Obsolete("This is only to support places the compiler is catching and swallowing exceptions on the command line; do not use in new code.")]
-        public static bool ReportIfNonFatalAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
             if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
                 return false;
             }
 
-            if (!HandlerIsNonFatal)
-            {
-                // We'll catch the exception, but we won't report anything.
-                return true;
-            }
-
             return ReportAndCatch(exception, severity);
         }
+
+#endif
 
         private static readonly object s_reportedMarker = new();
 
@@ -321,12 +229,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-#if !NET20
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
             {
                 return;
             }
-#endif
 
             if (!exception.Data.IsReadOnly)
             {

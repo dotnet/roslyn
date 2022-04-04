@@ -49,6 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         internal static Document WithSolutionOptions(this Document document, OptionSet options)
-            => document.Project.Solution.WithOptions(options).GetDocument(document.Id)!;
+            => document.Project.Solution.WithOptions(options).GetRequiredDocument(document.Id);
     }
 }

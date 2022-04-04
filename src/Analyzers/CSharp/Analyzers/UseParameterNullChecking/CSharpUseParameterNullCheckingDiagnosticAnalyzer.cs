@@ -154,6 +154,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         additionalLocations: new[] { parameterSyntax.GetLocation() },
                         properties: null));
                 }
+                else
+                {
+                    var descendants = statement.DescendantNodesAndSelf(descendIntoChildren: static c => c is StatementSyntax);
+                    foreach (var descendant in descendants)
+                    {
+                        // Mostly, we are fine with simplifying null checks in a way that
+                        // causes us to *throw a different exception than before* for some inputs.
+                        // However, we don't want to change semantics such that we
+                        // *throw an exception instead of returning* or vice-versa.
+                        // Therefore we ignore any null checks which are syntactically preceded by conditional or unconditional returns.
+                        if (descendant is ReturnStatementSyntax)
+                        {
+                            return;
+                        }
+                    }
+                }
             }
 
             return;
@@ -186,10 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         ExpressionSyntax left, right;
                         switch (ifStatement)
                         {
-                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }
-                                // Only suggest the fix on built-in `==` operators where we know we won't change behavior
-                                when semanticModel.GetSymbolInfo(binary).Symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator }:
-
+                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }:
                                 left = binary.Left;
                                 right = binary.Right;
                                 break;
@@ -229,7 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return (parameterInBinary, ifStatement.GetLocation());
+                        // The if statement could be associated with an arbitrarily complex else clause. We only want to highlight the "if" part which is removed by the fix.
+                        var location = Location.Create(ifStatement.SyntaxTree, Text.TextSpan.FromBounds(ifStatement.SpanStart, ifStatement.Statement.Span.End));
+                        return (parameterInBinary, location);
 
                     // this.field = param ?? throw new ArgumentNullException(nameof(param));
                     case ExpressionStatementSyntax

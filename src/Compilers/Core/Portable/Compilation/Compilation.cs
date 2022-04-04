@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         /// <item>
         /// <description>
         /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
-        /// and both normal compilation and this key can have non-determinstic output if they are 
+        /// and both normal compilation and this key can have non-deterministic output if they are 
         /// manipulated at the correct point in program execution. That is an existing limitation
         /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
         /// </description>
@@ -1169,7 +1169,9 @@ namespace Microsoft.CodeAnalysis
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
                 var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
-                Debug.Assert(result || (_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) && ReferenceEquals(addedType, val)));
+                Debug.Assert(result
+                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || ReferenceEquals(addedType, val));
             }
             return val;
         }
@@ -1196,8 +1198,8 @@ namespace Microsoft.CodeAnalysis
                 val = getTypesByMetadataNameImpl();
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
-                        && Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance)));
+                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 
             return val;

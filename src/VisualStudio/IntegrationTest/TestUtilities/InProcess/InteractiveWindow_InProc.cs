@@ -53,15 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
-        public bool IsInitializing
-        {
-            get
-            {
-                Contract.ThrowIfNull(_interactiveWindow);
-                return InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
-            }
-        }
-
         public string GetReplText()
         {
             Contract.ThrowIfNull(_interactiveWindow);
@@ -165,9 +156,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var interactiveWindow = AcquireInteractiveWindow();
                 var operations = (IInteractiveWindowOperations)interactiveWindow;

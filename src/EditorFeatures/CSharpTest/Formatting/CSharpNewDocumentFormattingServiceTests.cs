@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -36,8 +36,7 @@ namespace Goo;
 
 internal class C
 {
-}
-",
+}",
             options: new[]
             {
                 (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
@@ -188,8 +187,7 @@ namespace Goo
 namespace Goo;
 internal class C
 {
-}
-",
+}",
             options: new (OptionKey, object)[]
             {
                 (new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations), new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error)),

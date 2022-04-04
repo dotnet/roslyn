@@ -238,7 +238,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             // Get our current solutions and re-fork from the workspace as needed.
             var updatedSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
-            var findDocumentResult = FindDocuments(uri, updatedSolutions, clientName: null, _requestTelemetryLogger, _logger);
+            var findDocumentResult = FindDocuments(uri, updatedSolutions, _requestTelemetryLogger, _logger);
             if (findDocumentResult.IsEmpty)
             {
                 // We didn't find this document in a registered workspace or in the misc workspace.
@@ -303,11 +303,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// </summary>
-    /// <param name="clientName">
-    /// Returns documents that have a matching client name.  In razor scenarios this is to ensure that the Razor C# server
-    /// only provides data for generated razor documents (which have a client name).
-    /// </param>
-    public Document? GetLspDocument(TextDocumentIdentifier textDocumentIdentifier, string? clientName)
+    public Document? GetLspDocument(TextDocumentIdentifier textDocumentIdentifier)
     {
         lock (_gate)
         {
@@ -315,7 +311,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             var currentLspSolutions = ComputeIncrementalLspSolutions_CalledUnderLock();
 
             // Search through the latest lsp solutions to find the document with matching uri and client name.
-            var findDocumentResult = FindDocuments(textDocumentIdentifier.Uri, currentLspSolutions, clientName, _requestTelemetryLogger, _logger);
+            var findDocumentResult = FindDocuments(textDocumentIdentifier.Uri, currentLspSolutions, _requestTelemetryLogger, _logger);
             if (findDocumentResult.IsEmpty)
             {
                 return null;
@@ -382,7 +378,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     private static ImmutableArray<Document> FindDocuments(
         Uri uri,
         ImmutableArray<Solution> registeredSolutions,
-        string? clientName,
         RequestTelemetryLogger telemetryLogger,
         ILspLogger logger)
     {
@@ -394,7 +389,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             .Concat(registeredSolutions.Where(solution => solution.Workspace is LspMiscellaneousFilesWorkspace)).ToImmutableArray();
 
         // First search the registered workspaces for documents with a matching URI.
-        if (TryGetDocumentsForUri(uri, registeredSolutions, clientName, out var documents, out var solution))
+        if (TryGetDocumentsForUri(uri, registeredSolutions, out var documents, out var solution))
         {
             telemetryLogger.UpdateFindDocumentTelemetryData(success: true, solution.Workspace.Kind);
             logger.TraceInformation($"{documents.Value.First().FilePath} found in workspace {solution.Workspace.Kind}");
@@ -404,20 +399,19 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         var searchedWorkspaceKinds = string.Join(";", registeredSolutions.SelectAsArray(s => s.Workspace.Kind));
-        logger.TraceError($"Could not find '{uri}' with client name '{clientName}'.  Searched {searchedWorkspaceKinds}");
+        logger.TraceError($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
         telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
         return ImmutableArray<Document>.Empty;
 
         static bool TryGetDocumentsForUri(
             Uri uri,
             ImmutableArray<Solution> registeredSolutions,
-            string? clientName,
             [NotNullWhen(true)] out ImmutableArray<Document>? documents,
             [NotNullWhen(true)] out Solution? solution)
         {
             foreach (var registeredSolution in registeredSolutions)
             {
-                var matchingDocuments = registeredSolution.GetDocuments(uri, clientName);
+                var matchingDocuments = registeredSolution.GetDocuments(uri);
                 if (matchingDocuments.Any())
                 {
                     documents = matchingDocuments;

@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = context.Solution.GetDocument(previousResult.TextDocument, context.ClientName);
+                        var document = context.Solution.GetDocument(previousResult.TextDocument);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Range = ProtocolConversions.TextSpanToRange(new TextSpan(d.Offset, d.Length), text),
                 Tags = ConvertTags(d),
                 Source = d.Tool,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.HelpLink),
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
                 Projects = new[]
                 {
                     new VSDiagnosticProjectInformation

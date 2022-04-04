@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
-        internal static IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
         {
             if (document == null)
             {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
+                return ImmutableArray<AbstractFormattingRule>.Empty;
             }
         }
 
@@ -310,15 +311,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="document">The document to organize.</param>
         /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
         /// <returns>The document with organized imports. If the language does not support organizing imports, or if no changes were made, this method returns <paramref name="document"/>.</returns>
-        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
+        public static async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
         {
             var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
             if (organizeImportsService is null)
             {
-                return Task.FromResult(document);
+                return document;
             }
 
-            return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
+            var options = await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

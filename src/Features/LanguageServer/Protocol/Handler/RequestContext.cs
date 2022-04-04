@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly ClientCapabilities ClientCapabilities;
 
         /// <summary>
-        /// The LSP client making the request
+        /// The LSP server handling the request.
         /// </summary>
-        public readonly string? ClientName;
+        public readonly WellKnownLspServerKinds ServerKind;
 
         /// <summary>
         /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
-        private readonly Action<string> _traceInformation;
+        private readonly ILspLogger _logger;
 
         public RequestContext(
             Solution? solution,
-            Action<string> traceInformation,
+            ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
@@ -78,18 +78,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
-            ClientName = clientName;
+            ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
             GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
-            _traceInformation = traceInformation;
+            _logger = logger;
             _trackedDocuments = trackedDocuments;
         }
 
         public static RequestContext? Create(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(solution: null, logger, clientCapabilities, serverKind, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument, clientName);
+                document = lspWorkspaceManager.GetLspDocument(textDocument);
                 if (document != null)
                     workspaceSolution = document.Project.Solution;
             }
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var context = new RequestContext(
                 workspaceSolution,
-                logger.TraceInformation,
+                logger,
                 clientCapabilities,
-                clientName,
+                serverKind,
                 document,
                 documentChangeTracker,
                 trackedDocuments,
@@ -178,6 +178,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Logs an informational message.
         /// </summary>
         public void TraceInformation(string message)
-            => _traceInformation(message);
+            => _logger.TraceInformation(message);
+
+        public void TraceWarning(string message)
+            => _logger.TraceWarning(message);
+
+        public void TraceError(string message)
+            => _logger.TraceError(message);
+
+        public void TraceException(Exception exception)
+            => _logger.TraceException(exception);
     }
 }

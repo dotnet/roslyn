@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 id: "test",
                 category: "test",
                 message: "test",
-                enuMessageForBingSearch: "test",
                 severity: DiagnosticSeverity.Error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,

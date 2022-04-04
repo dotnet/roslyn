@@ -13,16 +13,14 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// This is the tag which implements the IntraTextAdornmentTag and is meant to create the UIElements that get shown
     /// in the editor
     /// </summary>
-    internal class InlineHintsTag : IntraTextAdornmentTag
+    internal sealed class InlineHintsTag : IntraTextAdornmentTag
     {
         public const string TagId = "inline hints";
 
@@ -101,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     var context = new IntellisenseQuickInfoBuilderContext(
                         document,
+                        _taggerProvider.GlobalOptions.GetClassificationOptions(document.Project.Language),
                         _taggerProvider.ThreadingContext,
                         _taggerProvider.OperationExecutor,
                         _taggerProvider.AsynchronousOperationListener,
@@ -270,15 +269,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var replacementValue = _hint.ReplacementTextChange!.Value;
                 var subjectBuffer = _span.Snapshot.TextBuffer;
 
-                if (subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
-                {
-                    subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
-                }
-                else
-                {
-                    Internal.Log.Logger.Log(FunctionId.Inline_Hints_DoubleClick,
-                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{subjectBuffer.CurrentSnapshot.Length}");
-                }
+                // Selected SpanTrackingMode to be EdgeExclusive by default.
+                // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
+                var currentSnapshotSpan = _span.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                subjectBuffer.Replace(currentSnapshotSpan.Span, replacementValue.NewText);
             }
         }
     }

@@ -10,13 +10,13 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
@@ -25,11 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     internal class PeekableItemFactory : IPeekableItemFactory
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
-            => _metadataAsSourceFileService = metadataAsSourceFileService;
+        public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+        {
+            _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
+        }
 
         public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
             ISymbol symbol, Project project,
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 {
                     if (firstLocation.IsInSource || _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                     {
-                        results.Add(new DefinitionPeekableItem(solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService));
+                        results.Add(new DefinitionPeekableItem(solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService, _globalOptions));
                     }
                 }
             }

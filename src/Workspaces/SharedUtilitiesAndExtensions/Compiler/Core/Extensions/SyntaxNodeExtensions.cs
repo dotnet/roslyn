@@ -326,44 +326,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return fullSpan;
         }
 
-        public static IEnumerable<TextSpan> GetContiguousSpans(
-            this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, SyntaxToken>? getLastToken = null)
-        {
-            (SyntaxNode node, TextSpan textSpan)? previous = null;
-
-            // Sort the nodes in source location order.
-            foreach (var node in nodes.OrderBy(n => n.SpanStart))
-            {
-                TextSpan textSpan;
-                if (previous == null)
-                {
-                    textSpan = node.Span;
-                }
-                else
-                {
-                    var lastToken = getLastToken?.Invoke(previous.Value.node) ?? previous.Value.node.GetLastToken();
-                    if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
-                    {
-                        // Expand the span
-                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.Span.End);
-                    }
-                    else
-                    {
-                        // Return the last span, and start a new one
-                        yield return previous.Value.textSpan;
-                        textSpan = node.Span;
-                    }
-                }
-
-                previous = (node, textSpan);
-            }
-
-            if (previous.HasValue)
-            {
-                yield return previous.Value.textSpan;
-            }
-        }
-
         public static bool OverlapsHiddenPosition(this SyntaxNode node, CancellationToken cancellationToken)
             => node.OverlapsHiddenPosition(node.Span, cancellationToken);
 

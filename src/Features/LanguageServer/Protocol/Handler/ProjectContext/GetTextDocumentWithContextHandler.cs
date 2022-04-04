@@ -15,8 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(VSMethods.GetProjectContextsName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(GetTextDocumentWithContextHandler)), Shared]
+    [Method(VSMethods.GetProjectContextsName)]
     internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public GetTextDocumentWithContextHandler()
         {
         }
-
-        public override string Method => VSMethods.GetProjectContextsName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(context.Solution);
 
             // We specifically don't use context.Document here because we want multiple
-            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri);
 
             if (!documents.Any())
             {

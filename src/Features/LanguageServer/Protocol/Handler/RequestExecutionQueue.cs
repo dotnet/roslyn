@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="handler">The handler that will handle the request.</param>
         /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
-        /// <param name="clientName">The client name.</param>
         /// <param name="methodName">The name of the LSP method.</param>
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
@@ -153,7 +152,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
-            string? clientName,
             string methodName,
             CancellationToken requestCancellationToken)
             where TRequestType : class
@@ -171,7 +169,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
-                clientName,
                 methodName,
                 textDocument,
                 request,
@@ -275,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return RequestContext.Create(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
-                queueItem.ClientName,
+                _serverKind,
                 _logger,
                 queueItem.ClientCapabilities,
                 _lspWorkspaceManager,

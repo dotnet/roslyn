@@ -1637,6 +1637,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            If declaration.IsKind(SyntaxKind.CompilationUnit) Then
+                ' CompilationUnit syntaxes represent attribute lists in a way that we can't get a single AttributeList for all of the attributes in all cases.
+                ' However, some consumers of this API assume that all returned values are children of "declaration", so if there's one attribute list, we'll use
+                ' that value directly if possible.
+                Dim compilationUnit = DirectCast(declaration, CompilationUnitSyntax)
+                If compilationUnit.Attributes.Count = 1 Then
+                    Return compilationUnit.Attributes(0).AttributeLists
+                End If
+            End If
             Return Me.Flatten(declaration.GetAttributeLists())
         End Function
 
@@ -1649,9 +1658,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim existingAttributes = Me.GetAttributes(declaration)
 
             If index >= 0 AndAlso index < existingAttributes.Count Then
-                Return Me.InsertNodesBefore(declaration, existingAttributes(index), newAttributes)
+                Return Me.InsertNodesBefore(declaration, existingAttributes(index), WithRequiredTargetSpecifier(newAttributes, declaration))
             ElseIf existingAttributes.Count > 0 Then
-                Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
+                Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), WithRequiredTargetSpecifier(newAttributes, declaration))
             Else
                 Dim lists = GetAttributeLists(declaration)
                 Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
@@ -1676,6 +1685,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Return attr
             End If
+        End Function
+
+        Private Function WithRequiredTargetSpecifier(attributes As SyntaxList(Of AttributeListSyntax), declaration As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+            If Not declaration.IsKind(SyntaxKind.CompilationUnit) Then
+                Return attributes
+            End If
+            Return SyntaxFactory.List(attributes.Select(AddressOf WithAssemblyTargets))
         End Function
 
         Public Overrides Function GetReturnAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -2759,7 +2775,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of ISymbol)) As SyntaxNode
+        Friend Overrides Function WithExplicitInterfaceImplementations(
+                declaration As SyntaxNode,
+                explicitInterfaceImplementations As ImmutableArray(Of ISymbol),
+                Optional removeDefaults As Boolean = True) As SyntaxNode
+            ' removeDefaults is ignored in VB as the impl method is always directly callable
+
             If TypeOf declaration Is MethodStatementSyntax Then
                 Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
 
@@ -2867,7 +2888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration.GetParameterList()
         End Function
 
-        Private Function WithParameterList(declaration As SyntaxNode, list As ParameterListSyntax) As SyntaxNode
+        Private Shared Function WithParameterList(declaration As SyntaxNode, list As ParameterListSyntax) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.DelegateFunctionStatement,
                     SyntaxKind.DelegateSubStatement
@@ -2893,13 +2914,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     SyntaxKind.DelegateFunctionStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).WithParameterList(list)
                 Case SyntaxKind.PropertyBlock
-                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
-                        Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithParameterList(list))
-                    End If
+                    Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithParameterList(list))
                 Case SyntaxKind.PropertyStatement
-                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
-                        Return DirectCast(declaration, PropertyStatementSyntax).WithParameterList(list)
-                    End If
+                    Return DirectCast(declaration, PropertyStatementSyntax).WithParameterList(list)
                 Case SyntaxKind.EventBlock
                     Return DirectCast(declaration, EventBlockSyntax).WithEventStatement(DirectCast(declaration, EventBlockSyntax).EventStatement.WithParameterList(list))
                 Case SyntaxKind.EventStatement

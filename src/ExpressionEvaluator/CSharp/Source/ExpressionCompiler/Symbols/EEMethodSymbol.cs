@@ -94,12 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var sourceMethodTypeParameters = sourceMethod.TypeParameters;
             var allSourceTypeParameters = container.SourceTypeParameters.Concat(sourceMethodTypeParameters);
 
+            sourceMethod = new EECompilationContextMethod(DeclaringCompilation, sourceMethod);
+
+            sourceMethodTypeParameters = sourceMethod.TypeParameters;
+            allSourceTypeParameters = allSourceTypeParameters.Concat(sourceMethodTypeParameters);
+
             var getTypeMap = new Func<TypeMap>(() => this.TypeMap);
             _typeParameters = sourceMethodTypeParameters.SelectAsArray(
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
-            _allTypeParameters = container.TypeParameters.Concat(_typeParameters);
-            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters);
+            _allTypeParameters = container.TypeParameters.Concat(_typeParameters).Concat(_typeParameters);
+            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters, allowAlpha: true);
 
             EENamedTypeSymbol.VerifyTypeParameters(this, _typeParameters);
 

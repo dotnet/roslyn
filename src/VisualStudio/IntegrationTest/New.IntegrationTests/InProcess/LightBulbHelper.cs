@@ -61,8 +61,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
+                    tcs.SetResult(new List<SuggestedActionSet>());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
+                    tcs.TrySetCanceled();
                 else
-                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
+                    tcs.TrySetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
                 asyncSession.SuggestedActionsUpdated -= handler;
             };
@@ -85,13 +89,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                if (Version.Parse("17.1.31928.29") >= await testServices.Shell.GetVersionAsync(cancellationToken))
+                var version = await testServices.Shell.GetVersionAsync(cancellationToken);
+                if (Version.Parse("17.2.32314.265") >= version)
                 {
                     // Unexpected cancellation can occur when the editor dismisses the light bulb without request
                     return null;
                 }
 
-                throw;
+                throw new OperationCanceledException($"IDE version '{version}' unexpectedly dismissed the light bulb.");
             }
         }
     }

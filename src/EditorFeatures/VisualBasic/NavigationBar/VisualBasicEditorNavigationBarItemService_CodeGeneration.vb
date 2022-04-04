@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -39,9 +40,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
                 Dim solution = newDocument.Project.Solution
-                NavigateToPosition(
+                Await NavigateToPositionAsync(
                     solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
-                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken)
+                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken).ConfigureAwait(True)
 
                 transaction.Complete()
             End Using
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ShouldApplyLineAdjustmentFormattingRule(generateCodeItem) Then
-                formatterRules = LineAdjustmentFormattingRule.Instance.Concat(formatterRules)
+                formatterRules = ImmutableArray.Create(Of AbstractFormattingRule)(LineAdjustmentFormattingRule.Instance).AddRange(formatterRules)
             End If
 
             Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)

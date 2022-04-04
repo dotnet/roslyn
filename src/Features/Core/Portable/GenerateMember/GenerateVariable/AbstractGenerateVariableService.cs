@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,8 +13,8 @@ using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
@@ -61,18 +62,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     var name = state.IdentifierToken.ValueText;
                     if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                     {
-                        AddPropertyCodeActions(actions, semanticDocument, state);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
                         AddFieldCodeActions(actions, semanticDocument, state);
                     }
                     else
                     {
                         AddFieldCodeActions(actions, semanticDocument, state);
-                        AddPropertyCodeActions(actions, semanticDocument, state);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                AddLocalCodeActions(actions, document, state);
-                AddParameterCodeActions(actions, document, state);
+                await AddLocalCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+                await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
 
                 if (actions.Count > 1)
                 {
@@ -90,34 +91,48 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => false;
 
-        private static void AddPropertyCodeActions(
-            ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static async Task AddPropertyCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CancellationToken cancellationToken)
         {
             if (state.IsInOutContext)
-            {
                 return;
-            }
 
             if (state.IsConstant)
-            {
                 return;
-            }
 
             if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface && state.IsStatic)
+                return;
+
+            // Don't generate properties with a `_` prefix unless that's what the user really wants as their naming style.
+            if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                    document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
             var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
-
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
             {
                 result.Add(new GenerateVariableCodeAction(
-                    document, state, generateProperty: true, isReadonly: true, isConstant: false,
-                    refKind: GetRefKindFromContext(state)));
+                    document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state)));
             }
 
             GenerateWritableProperty(result, document, state);
+        }
+
+        private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
+            Document document, State state, SymbolKind kind, Accessibility accessibility, CancellationToken cancellationToken)
+        {
+            // Check If the user explicitly used _ as the start of the name they're generating.  Don't offer to generate
+            // a non-field symbol unless that's genuinely the naming style they have setup.
+            if (state.IdentifierToken.ValueText.StartsWith("_"))
+            {
+                var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, cancellationToken).ConfigureAwait(false);
+                if (namingStyle.NamingStyle.Prefix != "_")
+                    return true;
+            }
+
+            return false;
         }
 
         private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
@@ -165,21 +180,37 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
         }
 
-        private void AddLocalCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private async Task AddLocalCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
         {
             if (state.CanGenerateLocal())
             {
+                // Don't generate locals with a `_` prefix unless that's what the user really wants as their naming style.
+                if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                        document, state, SymbolKind.Local, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
                 result.Add(new GenerateLocalCodeAction((TService)this, document, state));
             }
         }
 
-        private static void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private static async Task AddParameterCodeActionsAsync(
+            ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
         {
             if (state.CanGenerateParameter())
             {
+                // Don't generate parameters with a `_` prefix unless that's what the user really wants as their naming style.
+                if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
+                        document, state, SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
                 result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
 
-                if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
+                if (AddParameterService.HasCascadingDeclarations(state.ContainingMethod))
                     result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
             }
         }

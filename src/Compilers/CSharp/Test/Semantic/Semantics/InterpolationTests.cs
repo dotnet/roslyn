@@ -4,14 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -132,9 +132,9 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (6,5): error CS1010: Newline in constant
+                // (6,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -159,9 +159,9 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,5): error CS1010: Newline in constant
+                // (6,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -362,9 +362,9 @@ class Program
                 // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (7,5): error CS1010: Newline in constant
+                // (7,5): error CS1039: Unterminated string literal
                 //     }
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(7, 5),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(7, 5),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
@@ -387,9 +387,9 @@ class Program
         var x = $"";";
             // The precise error messages are not important, but this must be an error.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,19): error CS1010: Newline in constant
+                // (5,19): error CS1039: Unterminated string literal
                 //         var x = $";
-                Diagnostic(ErrorCode.ERR_NewlineInConst, ";").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ";").WithLocation(5, 19),
                 // (5,20): error CS1002: ; expected
                 //         var x = $";
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 20),
@@ -398,8 +398,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20),
                 // (5,20): error CS1513: } expected
                 //         var x = $";
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20));
         }
 
         [Fact]
@@ -1133,8 +1132,6 @@ class Program {
 }");
         }
 
-
-
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
@@ -1145,7 +1142,7 @@ class Program {
         [InlineData(TargetFramework.Mscorlib461)]
         [InlineData(TargetFramework.Mscorlib40)]
         [Theory]
-        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
+        public void InterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
         {
             var text =
 @"using System;
@@ -1241,6 +1238,218 @@ class App{
    IL_0043:  ret
 }");
             }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    var str = $$""""""Before {{{12:X}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            //string.Format was fixed in dotnet core 3
+            var expectedOutput =
+#if NETCOREAPP3_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       68 (0x44)
+   .maxstack  3
+   .locals init (string V_0, //str
+                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+   IL_0000:  nop
+   IL_0001:  ldloca.s   V_1
+   IL_0003:  ldc.i4.s   15
+   IL_0005:  ldc.i4.1
+   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+   IL_000b:  ldloca.s   V_1
+   IL_000d:  ldstr      ""Before {""
+   IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0017:  nop
+   IL_0018:  ldloca.s   V_1
+   IL_001a:  ldc.i4.s   12
+   IL_001c:  ldstr      ""X""
+   IL_0021:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
+   IL_0026:  nop
+   IL_0027:  ldloca.s   V_1
+   IL_0029:  ldstr      ""} After""
+   IL_002e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0033:  nop
+   IL_0034:  ldloca.s   V_1
+   IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+   IL_003b:  stloc.0
+   IL_003c:  ldloc.0
+   IL_003d:  call       ""void System.Console.WriteLine(string)""
+   IL_0042:  nop
+   IL_0043:  ret
+}");
+            }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $""Before {{{a}}} After"";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp10,
+                documentationMode: DocumentationMode.Parse,
+                kind: SourceCodeKind.Regular
+            );
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $$""""""Before {{{a}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
         }
 
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
@@ -3818,7 +4027,8 @@ class C
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
                 targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: @"
 value:S converted
 value:C");
 
@@ -3976,6 +4186,141 @@ namespace System.Runtime.CompilerServices
                 // Console.WriteLine($"Text{1}");
                 Diagnostic(ErrorCode.ERR_BadArgType, "Text").WithArguments("1", "string", "CustomStruct").WithLocation(4, 21)
             );
+        }
+
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_01()
+        {
+            var code = @"
+struct S
+{
+    public static implicit operator S(CustomHandler c) => default;
+
+    static void M()
+    {
+        /*<bind>*/S s = $"""";/*</bind>*/
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0029: Cannot implicitly convert type 'string' to 'S'
+                //         /*<bind>*/S s = $"";/*<bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""""").WithArguments("string", "S").WithLocation(8, 25)
+            );
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'S s = $"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'S s = $""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's = $""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= $""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsInvalid, IsImplicit) (Syntax: '$""""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """", IsInvalid) (Syntax: '$""""')
+                    Parts(0)
+    Initializer:
+      null
+");
+        }
+
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_02()
+        {
+            var code = @"
+struct S
+{
+    public static implicit operator S(CustomHandler c) => default;
+
+    static void M()
+    {
+        /*<bind>*/S s = (S)$"""";/*</bind>*/
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0030: Cannot convert type 'string' to 'S'
+                //         /*<bind>*/S s = (S)$"";/*<bind>*/
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(S)$""""").WithArguments("string", "S").WithLocation(8, 25)
+            );
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'S s = (S)$"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'S s = (S)$""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 's = (S)$""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (S)$""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsInvalid) (Syntax: '(S)$""""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """", IsInvalid) (Syntax: '$""""')
+                    Parts(0)
+    Initializer:
+      null
+");
+        }
+
+        [Fact, WorkItem(58346, "https://github.com/dotnet/roslyn/issues/58346")]
+        public void UserDefinedConversion_AsFromTypeOfConversion_03()
+        {
+            var code = @"
+/*<bind>*/S s = (CustomHandler)$"""";/*</bind>*/
+
+struct S
+{
+    public static implicit operator S(CustomHandler c) 
+    {
+        System.Console.WriteLine(""In handler"");
+        return default;
+    }
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler });
+            CompileAndVerify(comp, expectedOutput: "In handler").VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'S s = (Cust ... andler)$"""";')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'S s = (CustomHandler)$""""')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = (CustomHandler)$""""')
+          Initializer:
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (CustomHandler)$""""')
+              IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S S.op_Implicit(CustomHandler c)) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: '(CustomHandler)$""""')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: S S.op_Implicit(CustomHandler c))
+                Operand:
+                  IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: CustomHandler) (Syntax: '(CustomHandler)$""""')
+                    Creation:
+                      IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount)) (OperationKind.ObjectCreation, Type: CustomHandler, IsImplicit) (Syntax: '$""""')
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""""')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""""')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '$""""')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '$""""')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer:
+                          null
+                    Content:
+                      IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """") (Syntax: '$""""')
+                        Parts(0)
+    Initializer:
+      null
+");
         }
 
         [Theory]
@@ -9205,8 +9550,8 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
-            comp.VerifyDiagnostics(extraConstructorArg != ""
-                ? new[] {
+            comp.VerifyDiagnostics(extraConstructorArg != "" ?
+                new[] {
                     // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                     // GetC(ref c).M($"literal" + $"");
                     Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
@@ -9286,12 +9631,13 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
             var verifier = CompileAndVerify(
                 new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
                 expectedOutput: "1literal:literal",
                 symbolValidator: validator,
                 sourceSymbolValidator: validator,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
   // Code size       46 (0x2e)

@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
 
-        internal override CodeFixCategory CodeFixCategory { get; }
-            = CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -70,6 +67,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
                 var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
+                if (method == null)
+                    continue;
+
                 var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
 
                 var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);

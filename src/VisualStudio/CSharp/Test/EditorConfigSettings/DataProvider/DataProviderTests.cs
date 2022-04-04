@@ -169,8 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             var optionsCount = FormattingOptions2.Options.Length;
-            // we also include CodeStyleOptions2.OperatorPlacementWhenWrapping so we need to add one
-            optionsCount += 1;
             Assert.Equal(optionsCount, dataSnapShot.Length);
         }
 

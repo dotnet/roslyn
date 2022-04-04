@@ -12644,5 +12644,204 @@ class C
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject_CastIsNecessary()
+        {
+            var code = @"
+class C
+{
+    static object M(object o)
+    {
+        return (object)o.ToString;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject_CastIsNecessary2()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    static T M<T>(object o)
+    {
+        return (T)(object)o.ToString;
+    }
+
+    static T M2<T>(object o) where T : Delegate
+    {
+        return (T)(object)o.ToString;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [InlineData("Delegate")]
+        [InlineData("MulticastDelegate")]
+        [InlineData("Func<string>")]
+        public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
+        {
+            var code = $@"
+using System;
+
+class C
+{{
+    static {type} M(object o)
+    {{
+        return ({type})[|(object)|]o.ToString;
+    }}
+}}
+";
+            var fixedCode = $@"
+using System;
+
+class C
+{{
+    static {type} M(object o)
+    {{
+        return o.ToString;
+    }}
+}}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject_CastIsUnnecessary2()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    static Delegate M(object o)
+    {
+        return (Delegate)[|(object)|]o.ToString;
+    }
+}
+";
+            var fixedCode = @"
+using System;
+
+class C
+{
+    static Delegate M(object o)
+    {
+        return o.ToString;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
+            }.RunAsync();
+        }
+
+        [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastInTopLevelPrograms()
+        {
+            var test = new VerifyCS.Test()
+            {
+                TestCode = @"
+int x = 1;
+int y = [|(int)|]x;
+",
+                FixedCode = @"
+int x = 1;
+int y = x;
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(60292, "https://github.com/dotnet/roslyn/issues/60292")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepNecessaryExplicitNullableCast()
+        {
+            var code = @"
+using System;
+
+namespace ConsoleApp1
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                bool should = Should();
+                Test? test = ShouldTest();
+                int? testId = should ? (int?)test : null; // incorrect IDE0004  
+            }
+        }
+
+        private static bool Should()
+        {
+            return new Random().Next() % 2 == 0;
+        }
+
+        private static Test? ShouldTest()
+        {
+            var value = new Random().Next(3);
+            if (Enum.IsDefined(typeof(Test), value))
+                return (Test)value;
+
+            return null;
+        }
+    }
+
+    public enum Test
+    {
+        Foo = 1,
+        Bar = 2,
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
