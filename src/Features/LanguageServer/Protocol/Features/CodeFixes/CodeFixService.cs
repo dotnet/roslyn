@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
                             // Always add a name even in cases of 3rd party fixers that do not export
                             // name metadata.
-                            action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
+                            action.AddCustomTagAndTelemetryInfo(fixerMetadata, fixer);
 
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }
