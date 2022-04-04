@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  Literals (including the null literal).
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.UTF8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -52,18 +53,20 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
+            Contract.ThrowIfNull(textView);
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
+                TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsGlobalStateOption.DisplayAllOverride),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptionsStorage.EnabledForParameters),
@@ -80,9 +83,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptionsStorage.ForImplicitObjectCreation));
         }
 
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
             // if the user scrolls up/down, we'll already have the results.

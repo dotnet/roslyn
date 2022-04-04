@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (rehydrated == null)
                 return;
 
-            _ = await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
+            await _streamingFindUsagesPresenter.TryPresentLocationOrNavigateIfOneAsync(
                 _threadingContext,
                 _workspace,
                 string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),

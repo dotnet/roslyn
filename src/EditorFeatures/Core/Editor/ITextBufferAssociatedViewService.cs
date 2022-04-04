@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
         IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer);
 
         event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
+        event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersDisconnected;
     }
 
     internal class SubjectBuffersConnectedEventArgs

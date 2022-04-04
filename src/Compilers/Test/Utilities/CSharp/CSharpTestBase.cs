@@ -2001,12 +2001,12 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
-            bool useLatestFrameworkReferences = false)
+            TargetFramework targetFramework = TargetFramework.Standard)
             where TSyntaxNode : SyntaxNode =>
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
                 testSrc,
                 expectedOperationTree,
-                useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard,
+                targetFramework,
                 expectedDiagnostics,
                 compilationOptions,
                 parseOptions,
@@ -2098,11 +2098,11 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
-            bool useLatestFrameworkReferences = false)
+            TargetFramework targetFramework = TargetFramework.Standard)
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, useLatestFrameworkReferences);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, targetFramework);
             return ilReference;
         }
 
@@ -2393,6 +2393,40 @@ namespace System
                 options: options,
                 parseOptions: parseOptions);
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+                return CreateCompilation(
+                    text,
+                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    options: options,
+                    parseOptions: parseOptions);
+            }
+        }
+
+        internal static string GetIdForErrorCode(ErrorCode code)
+        {
+            return MessageProvider.Instance.GetIdForErrorCode((int)code);
+        }
+
+        internal static ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
+            new[]
+            {
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationFieldSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationThisSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Warn),
+            });
+
         #endregion
 
         #region Interpolated string handlers

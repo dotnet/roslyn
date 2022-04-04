@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// </summary>
     internal class JsonLanguageDetector : AbstractLanguageDetector<JsonOptions, JsonTree>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Json");
+
         private const string JsonParameterName = "json";
         private const string ParseMethodName = "Parse";
 
@@ -36,17 +39,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         private readonly ISet<INamedTypeSymbol> _typesOfInterest;
 
-        /// <summary>
-        /// Helps match patterns of the form: language=json
-        /// 
-        /// All matching is case insensitive, with spaces allowed between the punctuation.
-        /// </summary>
-        private static readonly LanguageCommentDetector<JsonOptions> s_languageCommentDetector = new("json");
-
         public JsonLanguageDetector(
             EmbeddedLanguageInfo info,
             ISet<INamedTypeSymbol> typesOfInterest)
-            : base("Json", info, s_languageCommentDetector)
+            : base(info, LanguageIdentifiers)
         {
             _typesOfInterest = typesOfInterest;
         }
@@ -218,12 +214,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         {
             var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
             return parameter?.Name == JsonParameterName;
-        }
-
-        internal static class TestAccessor
-        {
-            public static bool TryMatch(string text, out JsonOptions options)
-                => s_languageCommentDetector.TryMatch(text, out options);
         }
     }
 }

@@ -145,6 +145,9 @@
     <value>Place colon on following line</value>
   </data>
   <data name="Fix_record_declaration" xml:space="preserve">
-    <value>Fix_record_declaration</value>
+    <value>Fix record declaration</value>
+  </data>
+  <data name="Fix_constraint" xml:space="preserve">
+    <value>Fix constraint</value>
   </data>
 </root>

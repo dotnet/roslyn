@@ -420,6 +420,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UnqualifiedOperatorMember1_Checked()
+        {
+            UsingNode("operator checked +");
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.PlusToken);
+            }
+        }
+
+        [Fact]
         public void UnqualifiedOperatorMember2()
         {
             UsingNode("operator +(A)");
@@ -427,6 +440,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.OperatorMemberCref);
             {
                 N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void UnqualifiedOperatorMember2_Checked()
+        {
+            UsingNode("operator checked +(A)");
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.PlusToken);
                 N(SyntaxKind.CrefParameterList);
                 {
@@ -468,6 +506,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void QualifiedOperatorMember1_Checked()
+        {
+            UsingNode("T.operator checked +");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(SyntaxKind.PlusToken);
+                }
+            }
+        }
+
+        [Fact]
         public void QualifiedOperatorMember2()
         {
             UsingNode("T.operator +(A)");
@@ -499,6 +558,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        public void QualifiedOperatorMember2_Checked()
+        {
+            UsingNode("T.operator checked +(A)");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+        }
+
         #endregion Qualified
 
         #region Ambiguities
@@ -512,6 +604,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.OperatorMemberCref);
             {
                 N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.GreaterThanGreaterThanToken); // >>
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken); // just >
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken); // just >
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GreaterThanGreaterThan_Checked()
+        {
+            UsingNode("operator checked }}(A{A{T}})");
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.GreaterThanGreaterThanToken); // >>
                 N(SyntaxKind.CrefParameterList);
                 {
@@ -616,6 +752,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UnqualifiedConversionOperatorMember1_Checked()
+        {
+            UsingNode("implicit operator checked A");
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+            }
+        }
+
+        [Fact]
         public void UnqualifiedConversionOperatorMember2()
         {
             UsingNode("explicit operator A(B)");
@@ -624,6 +777,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 N(SyntaxKind.ExplicitKeyword);
                 N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void UnqualifiedConversionOperatorMember2_Checked()
+        {
+            UsingNode("explicit operator checked A(B)");
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ExplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken);
@@ -672,6 +854,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void QualifiedConversionOperatorMember1_Checked()
+        {
+            UsingNode("T.implicit operator checked A");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ConversionOperatorMemberCref);
+                {
+                    N(SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public void QualifiedConversionOperatorMember2()
         {
             UsingNode("T.explicit operator A(B)");
@@ -687,6 +894,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.ExplicitKeyword);
                     N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void QualifiedConversionOperatorMember2_Checked()
+        {
+            UsingNode("T.explicit operator checked A(B)");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ConversionOperatorMemberCref);
+                {
+                    N(SyntaxKind.ExplicitKeyword);
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken);
@@ -1251,6 +1495,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact]
+        public void PrimitiveArrayReturnType_Checked()
+        {
+            UsingNode("explicit operator checked int[]");
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ExplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
         [WorkItem(531154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531154")]
         [Fact]
         public void NamedTypeArrayReturnType()
@@ -1261,6 +1535,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 N(SyntaxKind.ExplicitKeyword);
                 N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NamedTypeArrayReturnType_Checked()
+        {
+            UsingNode("explicit operator checked C[]");
+
+            N(SyntaxKind.ConversionOperatorMemberCref);
+            {
+                N(SyntaxKind.ExplicitKeyword);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.ArrayType);
                 {
                     N(SyntaxKind.IdentifierName);

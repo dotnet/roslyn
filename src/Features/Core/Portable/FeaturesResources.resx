@@ -1952,9 +1952,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
   </data>
-  <data name="Add_explicit_cast" xml:space="preserve">
-    <value>Add explicit cast</value>
-  </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
     <comment>Singular form when we want to show an example, but only have one to show.</comment>
