@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Convert_switch_statement_to_expression,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -111,14 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
                     editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.GetRequiredParent() : nextStatement);
                 }
-            }
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_switch_statement_to_expression, createChangedDocument, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression))
-            {
             }
         }
     }

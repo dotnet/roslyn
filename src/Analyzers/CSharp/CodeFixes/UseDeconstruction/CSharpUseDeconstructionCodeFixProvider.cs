@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Deconstruct_variable_declaration,
+                    c => FixAsync(context.Document, context.Diagnostics[0], c),
+                    nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -185,14 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 SyntaxFactory.DeclarationExpression(
                     node.Type,
                     SyntaxFactory.SingleVariableDesignation(node.Identifier)));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Deconstruct_variable_declaration, createChangedDocument, CSharpAnalyzersResources.Deconstruct_variable_declaration)
-            {
-            }
         }
     }
 }
