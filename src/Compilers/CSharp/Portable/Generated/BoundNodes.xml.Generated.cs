@@ -7054,27 +7054,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayInitialization : BoundExpression
     {
-        public BoundArrayInitialization(SyntaxNode syntax, ImmutableArray<BoundExpression> initializers, bool hasErrors = false)
+        public BoundArrayInitialization(SyntaxNode syntax, bool isInferred, ImmutableArray<BoundExpression> initializers, bool hasErrors = false)
             : base(BoundKind.ArrayInitialization, syntax, null, hasErrors || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.IsInferred = isInferred;
             this.Initializers = initializers;
         }
 
 
         public new TypeSymbol? Type => base.Type;
 
+        public bool IsInferred { get; }
+
         public ImmutableArray<BoundExpression> Initializers { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitArrayInitialization(this);
 
-        public BoundArrayInitialization Update(ImmutableArray<BoundExpression> initializers)
+        public BoundArrayInitialization Update(bool isInferred, ImmutableArray<BoundExpression> initializers)
         {
-            if (initializers != this.Initializers)
+            if (isInferred != this.IsInferred || initializers != this.Initializers)
             {
-                var result = new BoundArrayInitialization(this.Syntax, initializers, this.HasErrors);
+                var result = new BoundArrayInitialization(this.Syntax, isInferred, initializers, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11671,7 +11674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> initializers = this.VisitList(node.Initializers);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(initializers);
+            return node.Update(node.IsInferred, initializers);
         }
         public override BoundNode? VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
@@ -13949,12 +13952,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(initializers);
+                updatedNode = node.Update(node.IsInferred, initializers);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(initializers);
+                updatedNode = node.Update(node.IsInferred, initializers);
             }
             return updatedNode;
         }
@@ -16115,6 +16118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitArrayInitialization(BoundArrayInitialization node, object? arg) => new TreeDumperNode("arrayInitialization", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("isInferred", node.IsInferred, null),
             new TreeDumperNode("initializers", null, from x in node.Initializers select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

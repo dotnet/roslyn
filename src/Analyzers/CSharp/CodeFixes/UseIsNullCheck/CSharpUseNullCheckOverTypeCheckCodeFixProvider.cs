@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
