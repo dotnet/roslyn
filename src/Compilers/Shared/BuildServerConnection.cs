@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         try
                         {
                             var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
-#if NET50_OR_GREATER
+#if NET5_0_OR_GREATER
                             await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 #else
                             process.WaitForExit();
