@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -3373,6 +3374,84 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_UTF8Conversion_01()
+        {
+            string source = @"
+class Program
+{
+    static byte[] Test()
+    {
+        /*<bind>*/return ""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte[], IsImplicit) (Syntax: '""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConversionExpression_Implicit_UTF8Conversion_02()
+        {
+            string source = @"
+class Program
+{
+    static System.Span<byte> Test()
+    {
+        /*<bind>*/return ""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Byte>, IsImplicit) (Syntax: '""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConversionExpression_Implicit_UTF8Conversion_03()
+        {
+            string source = @"
+class Program
+{
+    static System.ReadOnlySpan<byte> Test()
+    {
+        /*<bind>*/return ""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Byte>, IsImplicit) (Syntax: '""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
+
         #endregion
 
         #region Explicit Conversion
@@ -5214,6 +5293,85 @@ class Class
             var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Explicit_UTF8Conversion_01()
+        {
+            string source = @"
+class Program
+{
+    static byte[] Test()
+    {
+        /*<bind>*/return (byte[])""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (byte[])""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte[]) (Syntax: '(byte[])""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConversionExpression_Explicit_UTF8Conversion_02()
+        {
+            string source = @"
+class Program
+{
+    static System.Span<byte> Test()
+    {
+        /*<bind>*/return (System.Span<byte>)""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (Sys ... <byte>)""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Byte>) (Syntax: '(System.Span<byte>)""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConversionExpression_Explicit_UTF8Conversion_03()
+        {
+            string source = @"
+class Program
+{
+    static System.ReadOnlySpan<byte> Test()
+    {
+        /*<bind>*/return (System.ReadOnlySpan<byte>)""1"";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (Sys ... <byte>)""1"";')
+  ReturnedValue:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '(System.Rea ... n<byte>)""1""')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""1"") (Syntax: '""1""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
+
         #endregion
 
         internal class ExpectedSymbolVerifier

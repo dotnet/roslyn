@@ -37,9 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// += is being used to add an event handler to an event. If it is, then we also determine 
         /// a candidate name for the event handler.
         /// </summary>
-        internal class EventHookupSession : ForegroundThreadAffinitizedObject
+        internal class EventHookupSession
         {
             public readonly Task<string> GetEventNameTask;
+            private readonly IThreadingContext _threadingContext;
             private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly ITrackingPoint _trackingPoint;
             private readonly ITrackingSpan _trackingSpan;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _trackingPoint;
                 }
             }
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _trackingSpan;
                 }
             }
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _textView;
                 }
             }
@@ -82,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 get
                 {
-                    AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     return _subjectBuffer;
                 }
             }
 
             public void Cancel()
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 _cancellationTokenSource.Cancel();
             }
 
@@ -100,9 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 Mutex testSessionHookupMutex)
-                : base(eventHookupSessionManager.ThreadingContext)
             {
-                AssertIsForeground();
+                _threadingContext = eventHookupSessionManager.ThreadingContext;
                 _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
                 _textView = textView;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     var continuedTask = this.GetEventNameTask.SafeContinueWithFromAsync(
                         async t =>
                         {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
                             if (t.Result != null)
                             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private async Task<string> DetermineIfEventHookupAndGetHandlerNameAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
 
                 // For test purposes only!
                 if (TESTSessionHookupMutex != null)
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private async Task<SyntaxToken?> GetPlusEqualsTokenInsideAddAssignExpressionAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 if (plusEqualsToken.Parent is not AssignmentExpressionSyntax parentToken)
                 {
                     return null;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFactsService, NamingRule namingRule)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var objectPart = GetNameObjectPart(eventSymbol, plusEqualsToken, semanticModel, syntaxFactsService);
                 var basename = namingRule.NamingStyle.CreateName(ImmutableArray.Create(
                     string.Format("{0}_{1}", objectPart, eventSymbol.Name)));
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             /// </summary>
             private string GetNameObjectPart(IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
 
                 if (parentToken.Left is MemberAccessExpressionSyntax memberAccessExpression)
