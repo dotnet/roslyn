@@ -37,7 +37,7 @@ class TypeName
 {
     void Method()
     {
-        if[||](true)return;
+        if[||](true)[||]return;
     }
 }
 ";
