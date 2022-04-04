@@ -26,39 +26,37 @@ namespace Microsoft.CodeAnalysis.AddImport
         [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces,
         [property: DataMember(Order = 2)] bool AllowInHiddenRegions)
     {
-#if !CODE_STYLE
         public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-            => FromDocument(document, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
-
-        public static AddImportPlacementOptions FromDocument(Document document, OptionSet documentOptions)
         {
-            var service = document.GetRequiredLanguageService<IAddImportsService>();
-
-            return new(
-                PlaceSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language),
-                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(documentOptions),
-                AllowInHiddenRegions: CanAddImportsInHiddenRegions(document));
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+            return FromDocument(document, options);
         }
 
         private static bool CanAddImportsInHiddenRegions(Document document)
         {
+#if CODE_STYLE
+            return false;
+#else
             // Normally we don't allow generation into a hidden region in the file.  However, if we have a
             // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
             // our edit to their domain appropriate.
             var spanMapper = document.Services.GetService<ISpanMappingService>();
             return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
+#endif
         }
-#else
-        public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+
+        public static AddImportPlacementOptions FromDocument(Document document, OptionSet documentOptions)
         {
             var service = document.GetRequiredLanguageService<IAddImportsService>();
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
             return new(
-                PlaceSystemNamespaceFirst: options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst),
-                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(options),
-                AllowInHiddenRegions: false);
+                PlaceSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language),
+                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(documentOptions),
+                AllowInHiddenRegions: CanAddImportsInHiddenRegions(document));
         }
-#endif
     }
 
     internal interface IAddImportsService : ILanguageService
