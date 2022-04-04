@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
             bool updateReferences,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
 
                 using var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);

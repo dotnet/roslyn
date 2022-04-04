@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -25,24 +22,19 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace : Workspace
     {
         /// <summary>
-        /// Guards updates to <see cref="_primaryBranchSolutionWithChecksum"/> and <see cref="_lastRequestedSolutionWithChecksum"/>.
+        /// Guards updates to all mutable state in this workspace.
         /// </summary>
-        private readonly SemaphoreSlim _availableSolutionsGate = new(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
-        /// The last solution for the the primary branch fetched from the client.
+        /// The last solution for the primary branch fetched from the client.
         /// </summary>
-        private volatile Tuple<Checksum, Solution>? _primaryBranchSolutionWithChecksum;
+        private (Checksum checksum, Solution solution) _primaryBranchSolutionWithChecksum;
 
         /// <summary>
         /// The last solution requested by a service.
         /// </summary>
-        private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
-
-        /// <summary>
-        /// Guards setting current workspace solution.
-        /// </summary>
-        private readonly object _currentSolutionGate = new();
+        private (Checksum checksum, Solution solution) _lastRequestedSolutionWithChecksum;
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward.
@@ -50,6 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// currently caching.
         /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
+
+        /// <summary>
+        /// Mapping from solution checksum to to the solution computed for it.  This is used so that we can hold a
+        /// solution around as long as the checksum for it is being used in service of some feature operation (e.g.
+        /// classification).  As long as we're holding onto it, concurrent feature requests for the same checksum can
+        /// share the computation of that particular solution and avoid duplicated concurrent work.
+        /// </summary>
+        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _checksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -71,51 +71,181 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
         }
 
-        public async Task UpdatePrimaryBranchSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+        /// <summary>
+        /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
+        /// solution for <see langword="this"/> workspace.  This will also end up setting <see
+        /// cref="_lastRequestedSolutionWithChecksum"/> and <see cref="_primaryBranchSolutionWithChecksum"/>, allowing
+        /// them to be pre-populated for feature requests that come in soon after this call completes.
+        /// </summary>
+        public async Task UpdatePrimaryBranchSolutionAsync(
+            AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
-            var currentSolution = CurrentSolution;
+            var baseSolution = CurrentSolution;
 
-            var currentSolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            // See if the current snapshot we're pointing at is the same one the host wants us to sync to.  If so, we
+            // don't need to do anything.
+            var currentSolutionChecksum = await baseSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
-            {
                 return;
-            }
 
-            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future callers.
+            await RunWithSolutionAsync(
+                assetProvider,
+                solutionChecksum,
+                workspaceVersion,
+                fromPrimaryBranch: true,
+                baseSolution,
+                static _ => ValueTaskFactory.FromResult(false),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            int workspaceVersion,
+            bool fromPrimaryBranch,
+            Func<Solution, ValueTask<T>> doWorkAsync,
+            CancellationToken cancellationToken)
+        {
+            return RunWithSolutionAsync(
+                assetProvider,
+                solutionChecksum,
+                workspaceVersion,
+                fromPrimaryBranch,
+                baseSolution: this.CurrentSolution,
+                doWorkAsync,
+                cancellationToken);
+        }
+
+        private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            int workspaceVersion,
+            bool fromPrimaryBranch,
+            Solution baseSolution,
+            Func<Solution, ValueTask<T>> doWorkAsync,
+            CancellationToken cancellationToken)
+        {
+            // Fast path if this solution checksum is for a solution we're already caching. This also avoids us then
+            // trying to actually mutate the workspace for the simple case of asking for the same thing the last calls
+            // asked about.
+            var tuple = await TryFastGetSolutionAndRunAsync().ConfigureAwait(false);
+            if (tuple.solution != null)
+                return (tuple.solution, tuple.result);
+
+            // Wasn't the same as the last thing we cached, actually get the corresponding solution and run the
+            // requested callback against it.
+            return await TrySlowGetSolutionAndRunAsync(
+                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, baseSolution, doWorkAsync, cancellationToken).ConfigureAwait(false);
+
+            async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
-                var solution = await CreateFullSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
-                _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+                Solution solution;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (_primaryBranchSolutionWithChecksum.checksum == solutionChecksum)
+                    {
+                        solution = _primaryBranchSolutionWithChecksum.solution;
+                    }
+                    else if (_lastRequestedSolutionWithChecksum.checksum == solutionChecksum)
+                    {
+                        solution = _lastRequestedSolutionWithChecksum.solution;
+                    }
+                    else
+                    {
+                        return default;
+                    }
+                }
+
+                var result = await doWorkAsync(solution).ConfigureAwait(false);
+                return (solution, result);
             }
         }
 
-        public async ValueTask<Solution> GetSolutionAsync(
+        private async ValueTask<(Solution solution, T result)> TrySlowGetSolutionAndRunAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            bool fromPrimaryBranch,
             int workspaceVersion,
+            bool fromPrimaryBranch,
+            Solution baseSolution,
+            Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
-            var availableSolution = TryGetAvailableSolution(solutionChecksum);
-            if (availableSolution != null)
-                return availableSolution;
+            // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
+            // need for us to force the same computation to happen ourselves.
+            var lazySolution = await GetLazySolutionAsync().ConfigureAwait(false);
 
-            // make sure there is always only one that creates a new solution
-            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
+            var solution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            // Store this around so that if another call comes through, they will see the solution we just computed.
+            await SetLastRequestedSolutionAsync(solution).ConfigureAwait(false);
+
+            // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
+            // using this same solution as well
+            var result = await doWorkAsync(solution).ConfigureAwait(false);
+
+            // Now that we're done, update the refcounts for this lazy solution, removing it if the refcount goes back
+            // to zero.
+            await UpdateLazySolutionRefcountAsync().ConfigureAwait(false);
+
+            return (solution, result);
+
+            async ValueTask<AsyncLazy<Solution>> GetLazySolutionAsync()
             {
-                availableSolution = TryGetAvailableSolution(solutionChecksum);
-                if (availableSolution != null)
-                    return availableSolution;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (_checksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
+                    {
+                        // Some other call was getting this same solution.  Increase our ref count on that to mark that we
+                        // care about that computation as well.
+                        Contract.ThrowIfTrue(tuple.refCount <= 0);
+                        tuple.refCount++;
+                        _checksumToRefCountAndLazySolution[solutionChecksum] = tuple;
+                    }
+                    else
+                    {
+                        // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
+                        // refcount of 1 (for 'us').
+                        tuple = (refCount: 1, new AsyncLazy<Solution>(
+                            c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, baseSolution, c), cacheResult: true));
+                        _checksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
+                    }
 
-                var solution = await CreateFullSolution_NoLockAsync(
-                    assetProvider,
-                    solutionChecksum,
-                    fromPrimaryBranch,
-                    workspaceVersion,
-                    CurrentSolution,
-                    cancellationToken).ConfigureAwait(false);
+                    return tuple.lazySolution;
+                }
+            }
 
-                _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
-                return solution;
+            async ValueTask SetLastRequestedSolutionAsync(Solution solution)
+            {
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // Quick caches of the last solutions we computed.  That way if return all the way out and something
+                    // else calls back in, we have a likely chance of a cache hit.
+                    _lastRequestedSolutionWithChecksum = (solutionChecksum, solution);
+                    if (fromPrimaryBranch)
+                        _primaryBranchSolutionWithChecksum = (solutionChecksum, solution);
+                }
+            }
+
+            async ValueTask UpdateLazySolutionRefcountAsync()
+            {
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var tuple = _checksumToRefCountAndLazySolution[solutionChecksum];
+                    tuple.refCount--;
+                    Contract.ThrowIfTrue(tuple.refCount < 0);
+                    if (tuple.refCount == 0)
+                    {
+                        // last computation of this solution went away.  Remove from in flight cache.
+                        _checksumToRefCountAndLazySolution.Remove(solutionChecksum);
+                    }
+                    else
+                    {
+                        // otherwise, update with our decremented refcount.
+                        _checksumToRefCountAndLazySolution[solutionChecksum] = tuple;
+                    }
+                }
             }
         }
 
@@ -141,11 +271,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
         /// solution be not stale as much as possible. (pull)
         /// </summary>
-        private async Task<Solution> CreateFullSolution_NoLockAsync(
+        private async Task<Solution> ComputeSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            bool fromPrimaryBranch,
             int workspaceVersion,
+            bool fromPrimaryBranch,
             Solution baseSolution,
             CancellationToken cancellationToken)
         {
@@ -159,34 +289,28 @@ namespace Microsoft.CodeAnalysis.Remote
                     // create updated solution off the baseSolution
                     var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
 
-                    if (fromPrimaryBranch)
-                    {
-                        // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                        return UpdateSolutionIfPossible(solution, workspaceVersion);
-                    }
-
-                    // otherwise, just return the solution
-                    return solution;
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
+                    return await TryUpdateAndReturnPrimarySolutionAsync(
+                        workspaceVersion, fromPrimaryBranch, solution, cancellationToken).ConfigureAwait(false);
                 }
-
-                // we need new solution. bulk sync all asset for the solution first.
-                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                // get new solution info and options
-                var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                if (fromPrimaryBranch)
+                else
                 {
-                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                    if (TrySetCurrentSolution(solutionInfo, workspaceVersion, options, out var solution))
-                    {
-                        return solution;
-                    }
-                }
+                    // we need new solution. bulk sync all asset for the solution first.
+                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                // otherwise, just return new solution
-                var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-                return workspace.CurrentSolution;
+                    // get new solution info and options
+                    var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
+                    var solution = await TrySetCurrentSolutionAsync(
+                        solutionInfo, workspaceVersion, fromPrimaryBranch, options, cancellationToken).ConfigureAwait(false);
+                    if (solution != null)
+                        return solution;
+
+                    // otherwise, just return new solution
+                    var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                    return workspace.CurrentSolution;
+                }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -194,94 +318,87 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
+        /// <summary>
+        /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
+        /// </summary>
+        internal async ValueTask<Solution> TryUpdateAndReturnPrimarySolutionAsync(
+            int workspaceVersion,
+            bool fromPrimaryBranch,
+            Solution solution,
+            CancellationToken cancellationToken)
         {
-            var currentSolution = _primaryBranchSolutionWithChecksum;
-            if (currentSolution?.Item1 == solutionChecksum)
+            // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
+            // the caller.
+            if (fromPrimaryBranch)
             {
-                // asked about primary solution
-                return currentSolution.Item2;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // we never move workspace backward
+                    if (workspaceVersion > _currentRemoteWorkspaceVersion)
+                    {
+                        _currentRemoteWorkspaceVersion = workspaceVersion;
+
+                        var oldSolution = CurrentSolution;
+
+                        var newSolution = SetCurrentSolution(solution);
+                        _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+
+                        SetOptions(newSolution.Options);
+
+                        // Since we did successfully change the solution, return the actual final solution the workspace
+                        // recorded (which will contain things like the real workspace version associated with this
+                        // solution instance).
+                        return this.CurrentSolution;
+                    }
+                }
             }
 
-            var lastSolution = _lastRequestedSolutionWithChecksum;
-            if (lastSolution?.Item1 == solutionChecksum)
+            return solution;
+        }
+
+        /// <summary>
+        /// Adds an entire solution to the workspace, replacing any existing solution.  only do this for primary
+        /// solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>. 
+        /// </summary>
+        internal async ValueTask<Solution?> TrySetCurrentSolutionAsync(
+            SolutionInfo solutionInfo, int workspaceVersion, bool fromPrimaryBranch, SerializableOptionSet options, CancellationToken cancellationToken)
+        {
+            if (fromPrimaryBranch)
             {
-                // asked about last solution
-                return lastSolution.Item2;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // we never move workspace backward
+                    if (workspaceVersion > _currentRemoteWorkspaceVersion)
+                    {
+                        _currentRemoteWorkspaceVersion = workspaceVersion;
+
+                        // clear previous solution data if there is one it is required by OnSolutionAdded
+                        ClearSolutionData();
+
+                        OnSolutionAdded(solutionInfo);
+
+                        // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
+                        // store.  However, we still update our current solution with the options passed in.  This is
+                        // due to the fact that the option store will ignore any options it considered unchanged to what
+                        // it currently knows about.  This will prevent it from actually going and writing those
+                        // unchanged values into Solution.Options.  This is not a correctness issue, but it impacts how
+                        // checksums and syncing work in oop.  Currently, the checksum is based off Solution.Options and
+                        // the values loaded into it.  If one side has loaded a default value and the other has not,
+                        // then they will disagree on their checksum.  This ensures the remote side agrees with the
+                        // host.
+                        //
+                        // A better fix in the future is to make all options pure data and remove the general concept of
+                        // any part of the system eliding information about any options that have their 'default' value.
+                        // https://github.com/dotnet/roslyn/issues/55728
+                        this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
+                        SetOptions(options);
+
+                        return CurrentSolution;
+                    }
+                }
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Adds an entire solution to the workspace, replacing any existing solution.
-        /// </summary>
-        internal bool TrySetCurrentSolution(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)] out Solution? solution)
-        {
-            lock (_currentSolutionGate)
-            {
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                {
-                    // we never move workspace backward
-                    solution = null;
-                    return false;
-                }
-
-                // set initial solution version
-                _currentRemoteWorkspaceVersion = workspaceVersion;
-
-                // clear previous solution data if there is one
-                // it is required by OnSolutionAdded
-                ClearSolutionData();
-
-                OnSolutionAdded(solutionInfo);
-
-                // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
-                // store.  However, we still update our current solution with the options passed in.  This is
-                // due to the fact that the option store will ignore any options it considered unchanged to what
-                // it currently knows about.  This will prevent it from actually going and writing those unchanged
-                // values into Solution.Options.  This is not a correctness issue, but it impacts how checksums and
-                // syncing work in oop.  Currently, the checksum is based off Solution.Options and the values
-                // loaded into it.  If one side has loaded a default value and the other has not, then they will
-                // disagree on their checksum.  This ensures the remote side agrees with the host.
-                //
-                // A better fix in the future is to make all options pure data and remove the general concept of
-                // any part of the system eliding information about any options that have their 'default' value.
-                // https://github.com/dotnet/roslyn/issues/55728
-                this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
-                SetOptions(options);
-
-                solution = CurrentSolution;
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// update primary solution
-        /// </summary>
-        internal Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
-        {
-            lock (_currentSolutionGate)
-            {
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                {
-                    // we never move workspace backward
-                    return solution;
-                }
-
-                // move version forward
-                _currentRemoteWorkspaceVersion = workspaceVersion;
-
-                var oldSolution = CurrentSolution;
-                Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
-
-                var newSolution = SetCurrentSolution(solution);
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                SetOptions(newSolution.Options);
-
-                return this.CurrentSolution;
-            }
         }
     }
 }

@@ -42,9 +42,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IAddImportFeatureService>();
@@ -70,9 +69,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IAddImportFeatureService>();

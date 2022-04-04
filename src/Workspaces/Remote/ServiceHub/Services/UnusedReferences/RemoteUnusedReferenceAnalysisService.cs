@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(PinnedSolutionInfo solutionInfo, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 // Read specified references with dependency information from the project assets file.
                 var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
 
