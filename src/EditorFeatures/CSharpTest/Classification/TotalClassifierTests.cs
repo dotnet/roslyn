@@ -2292,5 +2292,95 @@ Punctuation.CloseParen,
 Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMember(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    public async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMemberWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|class Test
+{
+    public async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Class("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclaration(TestHost testHost)
+        {
+            await TestAsync(
+@"void M()
+{
+    async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclarationWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|void M()
+{
+    async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Class("async"),
+Punctuation.CloseCurly);
+        }
     }
 }
