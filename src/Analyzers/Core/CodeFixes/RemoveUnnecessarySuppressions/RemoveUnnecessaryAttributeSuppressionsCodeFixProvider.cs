@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 if (root.FindNode(diagnostic.Location.SourceSpan) != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             AnalyzersResources.Remove_unnecessary_suppression,
                             c => FixAsync(context.Document, diagnostic, c),
                             nameof(AnalyzersResources.Remove_unnecessary_suppression)),

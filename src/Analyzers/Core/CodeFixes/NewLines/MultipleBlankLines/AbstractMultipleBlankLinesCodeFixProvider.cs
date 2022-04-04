@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(CodeAction.Create(
-                Remove_extra_blank_lines,
+                CodeFixesResources.Remove_extra_blank_lines,
                 c => UpdateDocumentAsync(document, diagnostic, c),
-                nameof(Remove_extra_blank_lines)),
+                nameof(CodeFixesResources.Remove_extra_blank_lines)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
