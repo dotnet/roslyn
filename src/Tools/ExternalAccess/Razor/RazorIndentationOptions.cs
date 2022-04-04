@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host;
-
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
-    {
-    }
+    internal readonly record struct RazorIndentationOptions(
+        bool UseTabs,
+        int TabSize,
+        int IndentationSize);
 }

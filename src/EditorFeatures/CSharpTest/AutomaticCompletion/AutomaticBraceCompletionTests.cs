@@ -1117,13 +1117,12 @@ class Goo
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+
+            using var session = CreateSession(code);
             Assert.NotNull(session);
+
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false);
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1147,12 +1146,10 @@ $$
 { }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
-                            };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code);
             Assert.NotNull(session);
+
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1182,12 +1179,10 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code);
             Assert.NotNull(session);
+
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1225,12 +1220,10 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code);
             Assert.NotNull(session);
+
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());

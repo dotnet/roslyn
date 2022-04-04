@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
             if (!string.IsNullOrEmpty(fileHeaderTemplate))
             {
-                var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
-                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
+                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(options.NewLine);
                 var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
                         SyntaxGenerator.SyntaxFacts,
                         FileHeaderHelper,
