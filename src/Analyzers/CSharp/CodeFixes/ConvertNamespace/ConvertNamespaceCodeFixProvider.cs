@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         public ConvertNamespaceCodeFixProvider()
         {
         }
-
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
 

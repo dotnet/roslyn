@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
