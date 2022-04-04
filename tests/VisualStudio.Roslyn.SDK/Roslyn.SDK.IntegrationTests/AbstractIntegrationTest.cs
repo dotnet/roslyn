@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.VisualStudio.Extensibility.Testing;
+using Xunit;
+
 namespace Microsoft.CodeAnalysis.Testing
 {
-    internal static class WellKnownCommandNames
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, MaxAttempts = 2)]
+    public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
-        public static class Build
-        {
-            public const string BuildSolution = "Build.BuildSolution";
-        }
     }
 }
