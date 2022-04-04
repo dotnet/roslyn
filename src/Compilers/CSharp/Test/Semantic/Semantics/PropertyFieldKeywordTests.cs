@@ -108,9 +108,9 @@ public class MyAttribute : System.Attribute
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
-                // (10,24): error CS0103: The name 'field' does not exist in the current context
+                // (10,24): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
                 //             [My(nameof(field))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(10, 24)
+                Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(10, 24)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -133,9 +133,12 @@ public class C
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
-                // (8,27): error CS0103: The name 'field' does not exist in the current context
+                // (8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //             return nameof(field);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nameof(field)").WithArguments("string", "int").WithLocation(8, 20),
+                // (8,27): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
+                //             return nameof(field);
+                Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(8, 27)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -3996,20 +3999,17 @@ public class MyAttribute : System.Attribute
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
-
-            // Since we're passing fieldNode, the model don't know we're inside nameof, so field is bound to backing field.
-            // This doesn't match fieldKeywordSymbolInfo where semantic model is aware we're inside nameof and doesn't bind to backing.
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
 
-            Assert.True(fieldKeywordSymbolInfo.IsEmpty);
-            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
-                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
             }
             else
             {
-                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo2.Symbol.GetSymbol());
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
@@ -4062,19 +4062,17 @@ public class MyAttribute : System.Attribute
             model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
-
-            // Since we're passing fieldNode, the model don't know we're inside nameof, so field is bound to backing field.
-            // This doesn't match fieldKeywordSymbolInfo where semantic model is aware we're inside nameof and doesn't bind to backing.
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
-            Assert.True(fieldKeywordSymbolInfo.IsEmpty);
-            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
-                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
             }
             else
             {
-                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo2.Symbol.GetSymbol());
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);

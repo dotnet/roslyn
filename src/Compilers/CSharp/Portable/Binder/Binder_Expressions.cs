@@ -1557,14 +1557,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Cannot escape out of the current expression, as it's a compiler-synthesized location.
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
-                    else if (!IsInsideNameof &&
-                        node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
+                    else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
                         // PROTOTYPE(semi-auto-props): Use ContainingMember() to support local functions and lambdas.
                         ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
                     {
                         if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+                            if (IsInsideNameof)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_FieldKeywordInsideNameOf, node);
+                            }
                         }
                     }
                 }

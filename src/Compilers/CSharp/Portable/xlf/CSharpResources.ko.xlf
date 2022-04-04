@@ -532,6 +532,11 @@
         <target state="translated">'{0}' 기능은 C# 9.0에서 사용할 수 없습니다. {1} 이상의 언어 버전을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FieldKeywordInsideNameOf">
+        <source>Cannot use 'field' keyword inside 'nameof' expressions.</source>
+        <target state="new">Cannot use 'field' keyword inside 'nameof' expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
         <target state="translated">필드와 유사한 이벤트 '{0}'이(가) 'readonly'일 수 없습니다.</target>
