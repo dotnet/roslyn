@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         /// native heap for each call and keep the pointers here. On subsequent calls
         /// or on disposal, we free the old strings before allocating the new ones.
         /// </summary>
-        private IntPtr[] _startupClasses = null;
+        private IntPtr[]? _startupClasses = null;
 
         public void GetCompiler(out ICSCompiler compiler, out ICSInputSet inputSet)
         {
@@ -124,9 +124,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // If classNames is NULL, then we need to populate the number of valid startup
             // classes only
             var project = Workspace.CurrentSolution.GetProject(VisualStudioProject.Id);
-            var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var compilation = project?.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            if (compilation == null)
+            {
+                count = 0;
+                return VSConstants.S_OK;
+            }
 
-            var entryPoints = EntryPointFinder.FindEntryPoints(compilation.Assembly.GlobalNamespace);
+            var entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace);
 
             if (classNames == null)
             {

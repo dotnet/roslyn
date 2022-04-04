@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var visitor = new EntryPointFinder();
             // Only search source symbols
-            visitor.Visit(symbol.ContainingCompilation.SourceModule.GlobalNamespace);
+            visitor.Visit(symbol.ContainingCompilation?.SourceModule.GlobalNamespace ?? symbol);
             return visitor.EntryPoints;
         }
     }
