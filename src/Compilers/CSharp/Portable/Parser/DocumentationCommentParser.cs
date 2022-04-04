@@ -1016,19 +1016,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
             }
 
-            // Have to fake >> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
+            // Have to fake >>/>>> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
             // Have to fake >= so the lexer doesn't mishandle >>=.
             if (operatorToken.Kind == SyntaxKind.GreaterThanToken && operatorToken.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0)
             {
                 if (CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     var operatorToken2 = this.EatToken();
-                    operatorToken = SyntaxFactory.Token(
-                        operatorToken.GetLeadingTrivia(),
-                        SyntaxKind.GreaterThanGreaterThanToken,
-                        operatorToken.Text + operatorToken2.Text,
-                        operatorToken.ValueText + operatorToken2.ValueText,
-                        operatorToken2.GetTrailingTrivia());
+
+                    if (operatorToken2.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0 &&
+                        CurrentToken.Kind is (SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken))
+                    {
+                        var operatorToken3 = this.EatToken();
+
+                        if (operatorToken3.Kind == SyntaxKind.GreaterThanToken)
+                        {
+                            operatorToken = SyntaxFactory.Token(
+                                operatorToken.GetLeadingTrivia(),
+                                SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
+                                operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
+                                operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
+                                operatorToken3.GetTrailingTrivia());
+                        }
+                        else
+                        {
+                            var nonOverloadableOperator = SyntaxFactory.Token(
+                                operatorToken.GetLeadingTrivia(),
+                                SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                                operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
+                                operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
+                                operatorToken3.GetTrailingTrivia());
+
+                            operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
+
+                            // Add non-overloadable operator as skipped token.
+                            operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
+
+                            // Add an appropriate diagnostic.
+                            const int offset = 0;
+                            int width = nonOverloadableOperator.Width;
+                            SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
+                            SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo); // PROTOTYPE(UnsignedRightShift): Add a test for this warning
+                        }
+                    }
+                    else
+                    {
+                        operatorToken = SyntaxFactory.Token(
+                            operatorToken.GetLeadingTrivia(),
+                            SyntaxKind.GreaterThanGreaterThanToken,
+                            operatorToken.Text + operatorToken2.Text,
+                            operatorToken.ValueText + operatorToken2.ValueText,
+                            operatorToken2.GetTrailingTrivia());
+                    }
                 }
                 else if (CurrentToken.Kind == SyntaxKind.EqualsToken)
                 {

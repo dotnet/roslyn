@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftExpression
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
                 case SyntaxKind.ExclusiveOrExpression:

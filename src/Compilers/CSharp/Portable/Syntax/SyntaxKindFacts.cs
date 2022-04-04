@@ -477,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GreaterThanToken:
                 case SyntaxKind.GreaterThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.ExclamationEqualsToken:
                     return true;
                 default:
@@ -617,6 +618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LeftShiftExpression;
                 case SyntaxKind.GreaterThanGreaterThanToken:
                     return SyntaxKind.RightShiftExpression;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    return SyntaxKind.UnsignedRightShiftExpression;
                 case SyntaxKind.PlusToken:
                     return SyntaxKind.AddExpression;
                 case SyntaxKind.MinusToken:
@@ -646,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -668,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.PlusEqualsToken:
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
@@ -694,6 +699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LeftShiftAssignmentExpression;
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return SyntaxKind.RightShiftAssignmentExpression;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return SyntaxKind.UnsignedRightShiftAssignmentExpression;
                 case SyntaxKind.PlusEqualsToken:
                     return SyntaxKind.AddAssignmentExpression;
                 case SyntaxKind.MinusEqualsToken:
@@ -1033,6 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case WellKnownMemberNames.OnesComplementOperatorName: return SyntaxKind.TildeToken;
                 case WellKnownMemberNames.RightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanToken;
+                // PROTOTYPE(UnsignedRightShift): case WellKnownMemberNames.UnsignedRightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
 
                 case WellKnownMemberNames.CheckedSubtractionOperatorName:
                 case WellKnownMemberNames.SubtractionOperatorName:
@@ -1419,6 +1427,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ">>";
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return ">>=";
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    return ">>>";
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return ">>>=";
                 case SyntaxKind.SlashEqualsToken:
                     return "/=";
                 case SyntaxKind.AsteriskEqualsToken:

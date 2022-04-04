@@ -613,6 +613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     return BindSimpleBinaryOperator((BinaryExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.UnsignedRightShiftExpression:
+                    // PROTOTYPE(UnsignedRightShift): add real binding
+                    diagnostics.Add(ErrorCode.ERR_BindToBogus, node.Location, ">>>");
+                    return BadExpression(node);
+
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.LogicalOrExpression:
                     return BindConditionalLogicalOperator((BinaryExpressionSyntax)node, diagnostics);
@@ -708,6 +714,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                     return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                    // PROTOTYPE(UnsignedRightShift): add real binding
+                    diagnostics.Add(ErrorCode.ERR_BindToBogus, node.Location, ">>>=");
+                    return BadExpression(node);
 
                 case SyntaxKind.CoalesceAssignmentExpression:
                     return BindNullCoalescingAssignmentOperator((AssignmentExpressionSyntax)node, diagnostics);

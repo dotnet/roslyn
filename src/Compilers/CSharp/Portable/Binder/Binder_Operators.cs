@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                    // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftExpression
                     return true;
             }
             return false;
@@ -2158,7 +2159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
                 case SyntaxKind.RightShiftAssignmentExpression:
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftExpression
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.LeftShiftExpression: return BinaryOperatorKind.LeftShift;
                 case SyntaxKind.EqualsExpression: return BinaryOperatorKind.Equal;
@@ -2919,6 +2922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiplyAssignmentExpression:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression:
                     return BindValueKind.CompoundAssignment;
