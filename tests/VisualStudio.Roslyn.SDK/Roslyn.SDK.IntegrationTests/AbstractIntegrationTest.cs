@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    [IdeSettings(MinVersion = VisualStudioVersion.VS2022)]
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, MaxAttempts = 2)]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
     }
