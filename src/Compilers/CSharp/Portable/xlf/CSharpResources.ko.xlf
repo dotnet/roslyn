@@ -277,6 +277,11 @@
         <target state="translated">'{0}'은(는) 재정의된 멤버 '{1}'의 초기화 전용으로 일치해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">반환 형식이 대리자 반환 형식과 일치하지 않기 때문에 {0}을(를) '{1}' 형식으로 변환할 수 없습니다.</target>
@@ -667,6 +672,11 @@
         <target state="translated">'{0}'은(는) __arglist 매개 변수가 있으므로 '{2}' 형식의 인터페이스 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberNotFound_MayRequireConstraint">
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">C# 컴파일러의 내부 오류입니다.</target>
@@ -1025,6 +1035,11 @@
       <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
         <target state="translated">메서드 '{0}'이(가) 형식 매개 변수 '{1}'의 'default' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 메서드 '{3}'의 해당 형식 매개 변수 '{2}'이(가) 참조 형식 또는 값 형식으로 제한됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideNotExpected_MayRequireConstraint">
+        <source>'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">

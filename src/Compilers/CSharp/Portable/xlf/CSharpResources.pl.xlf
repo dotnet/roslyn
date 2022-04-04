@@ -277,6 +277,11 @@
         <target state="translated">Element „{0}” musi odpowiadać zmiennymi tylko do inicjowania przesłoniętej składowej „{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">Nie można przekonwertować {0} na typ "{1}", ponieważ zwracany typ jest niezgodny ze zwracanym typem delegowania</target>
@@ -667,6 +672,11 @@
         <target state="translated">Obiekt „{0}” nie może implementować elementu członkowskiego interfejsu „{1}” w ramach typu „{2}”, ponieważ zawiera on parametr __arglist</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberNotFound_MayRequireConstraint">
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">Błąd wewnętrzny w kompilatorze języka C#.</target>
@@ -1025,6 +1035,11 @@
       <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
         <target state="translated">Metoda „{0}” określa ograniczenie „default” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” jest ograniczony do typu odwołania lub typu wartości.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideNotExpected_MayRequireConstraint">
+        <source>'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">

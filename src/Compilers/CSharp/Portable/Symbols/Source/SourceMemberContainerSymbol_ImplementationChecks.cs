@@ -790,7 +790,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (!suppressError)
                         {
-                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                            if ((overridingMember as SourceOrdinaryMethodSymbol)?.MayUseUnconstrainedTypeParameterAsAnnotatedType() is { } typeParameter)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_OverrideNotExpected_MayRequireConstraint, overridingMemberLocation, overridingMember, typeParameter.Name);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                            }
                         }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors
@@ -995,8 +1002,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    if ((overridingMethod as SourceOrdinaryMethodSymbol)?.MayUseUnconstrainedTypeParameterAsAnnotatedType() is { } typeParameter)
+                                    {
+                                        // error CS9013: '{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnTypeWithAnnotations, typeParameter.Name);
+                                    }
+                                    else
+                                    {
+                                        // error CS0508: '{0}': return type must be '{2}' to match overridden member '{1}'.
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnTypeWithAnnotations);
+                                    }
                                 }
                             }
                         }

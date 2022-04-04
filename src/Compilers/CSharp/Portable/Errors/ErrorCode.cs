@@ -2049,6 +2049,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoEnumConstraint = 9010,
         ERR_NoDelegateConstraint = 9011,
         ERR_MisplacedRecord = 9012,
+        ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint = 9013,
+        ERR_OverrideNotExpected_MayRequireConstraint = 9014,
+        ERR_InterfaceMemberNotFound_MayRequireConstraint = 9015,
 
         #endregion
 

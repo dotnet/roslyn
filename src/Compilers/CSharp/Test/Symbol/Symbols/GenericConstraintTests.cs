@@ -5644,9 +5644,9 @@ class B : A
                 // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
-                // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
+                // (12,24): error CS9013: 'B.Goo<T>()': return type must be 'T?' to match overridden member 'A.Goo<T>()'. Consider adding a 'where T : class' or 'where T : default' constraint.
                 //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T?", "T").WithLocation(12, 24),
                 // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24),

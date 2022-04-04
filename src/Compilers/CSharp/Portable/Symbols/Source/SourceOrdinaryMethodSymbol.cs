@@ -779,5 +779,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+
+        /// <summary>
+        /// If the method is a generic method with no constraint clauses, returns the first type parameter
+        /// that is used (incorrectly) as the type argument in Nullable&lt;T&gt;; otherwise returns null.
+        /// This method is a best effort, and may return false positives or negatives in edge cases.
+        /// </summary>
+        internal TypeParameterSymbol MayUseUnconstrainedTypeParameterAsAnnotatedType()
+        {
+            if (IsGenericMethod)
+            {
+                var decl = GetSyntax();
+                // All checks are against syntax rather than symbols. That is because this method is used to refine
+                // the errors reported for overridden or explicitly implemented methods, and the constraints
+                // on the TypeParameterSymbols in particular may depend on the overridden or explicitly
+                // implemented method that the caller is trying to find.
+                if (decl.ConstraintClauses.Count == 0)
+                {
+                    foreach (var typeParameter in TypeParameters)
+                    {
+                        if (containsAnnotatedTypeParameterReference(decl.ReturnType, typeParameter.Name))
+                        {
+                            return typeParameter;
+                        }
+                        foreach (var parameter in decl.ParameterList.Parameters)
+                        {
+                            if (parameter.Type is { } parameterType && containsAnnotatedTypeParameterReference(parameterType, typeParameter.Name))
+                            {
+                                return typeParameter;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+
+            // Returns true if the type contains a reference to Nullable<T> where T is the type argument.
+            static bool containsAnnotatedTypeParameterReference(TypeSyntax typeSyntax, string typeParameterName)
+            {
+                foreach (var syntax in typeSyntax.DescendantNodesAndSelf())
+                {
+                    if (((syntax as NullableTypeSyntax)?.ElementType as IdentifierNameSyntax)?.Identifier.Text == typeParameterName)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
     }
 }
