@@ -425,11 +425,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">例外で停止中は変更できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">プロジェクト '{0}' で行った変更は、アプリケーションの実行中には適用されません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">1 つ以上の変更によって、新しい型がコンパイラによって作成されています。これはランタイムでサポートされていないため、アプリケーションを再起動する必要があります。</target>
@@ -640,11 +635,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">エディット コンティニュ</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">エディット コンティニュはモジュールで許可されませんでした</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">プロジェクト '{0}' で加えられた変更にはアプリケーションの再起動が必要です: {1}</target>
@@ -733,11 +723,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' の入力ミスを修正します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">ドキュメントのフォーマット</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +965,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ローカルを導入します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">パラメーターを導入する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">'{0}' のパラメーターを導入する</target>
@@ -1165,11 +1145,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">finally ブロックがアクティブのときに try/catch/finally ステートメントを変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">On Error ステートメントまたは Resume ステートメントを含むアクティブ {0} を変更するには、アプリケーションを再起動する必要があります。</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
         <target state="translated">本文のステートメントが多すぎるため、{0} の本文を変更するには、アプリケーションを再起動する必要があります。</target>
@@ -1333,11 +1308,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">基本型のメンバーをプル...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">メンバーを新しい基底クラスに引き上げます...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2009,11 +1979,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
         <target state="translated">文字範囲の否定では、入力文字列に含まれなければ一致と見なされる文字の一覧を指定します。'firstCharacter' は範囲の先頭の文字で、'lastCharacter' は範囲の末尾の文字です。
 
 2 つ以上の文字範囲を連結することができます。たとえば、"0" から "9" の範囲の 10 進数、"a" から "f" の範囲の小文字、"A" から "F" の範囲の大文字を指定するには、[0-9a-fA-F] を使用します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">文字範囲の否定</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
@@ -3765,11 +3730,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">入れ子 {0} '{1}' を生成する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">グローバル名前空間</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">インタ フェースを抽象的に実装します</target>
@@ -3954,16 +3914,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">予期しないインターフェイス メンバーの種類: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">不明なシンボルの種類</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">要求されたアセンブリは、既に '{0}' から読み込まれています。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">シンボルにアイコンがありません。</target>
@@ -4093,26 +4043,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">破棄パターンを使ってインターフェイスを実装します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">再トリアージ {0} (現在は '{1}')</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">引数に null 要素は指定できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">引数を空にすることはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">ID '{0}' の報告済みの診断はアナライザーによってサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4470,6 @@ This version used in: {2}</source>
         <target state="translated">インターフェイス</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">ローカル</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">メソッド</target>
@@ -4668,26 +4593,6 @@ This version used in: {2}</source>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">スニペット</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">すべて小文字</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">すべて大文字</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">最初の文字を大文字にする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">パスカル ケース</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4755,6 @@ This version used in: {2}</source>
         <target state="translated">{0} (プロジェクト{1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">アクセシビリティ修飾子を追加します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">宣言を参照の近くに移動します</target>
@@ -4903,11 +4803,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">警告: 繰り返し変数が関数の境界を超えました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">

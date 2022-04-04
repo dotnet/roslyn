@@ -425,11 +425,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在出现异常而停止时禁止更改</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">在应用程序运行时，将不应用在项目“{0}”中所作的更改</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">一个或多个更改导致编译器创建新类型，这需要重新启动应用程序，因为运行时不支持该应用程序</target>
@@ -640,11 +635,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">编辑并继续</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">模块已禁用“编辑并继续”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">在项目“{0}”中所做的更改要求重新启动应用程序: {1}</target>
@@ -733,11 +723,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">修正笔误“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">设置文档的格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +965,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">引入局部</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">引入参数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">为 '{0}' 引入参数</target>
@@ -1165,11 +1145,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在 finally 块处于活动状态时修改 try/catch/finally 语句需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">修改包含 On Error 或 Resume 语句的活动 {0} 需要重新启动应用程序。</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
         <target state="translated">修改 {0} 的正文需要重启应用程序，因为正文的语句太多。</target>
@@ -1333,11 +1308,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">将成员拉到基类...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">将成员拉取到新的基类...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2009,11 +1979,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
         <target state="translated">负字符范围指定不能出现在输入字符串中的字符列表，以使匹配发生。"firstCharacter" 是该范围的开始字符，而 "lastCharacter" 是该范围的结束字符。
 
 可以连接两个或更多字符范围。例如，若要指定从 "0" 到 "9" 的十进制数字范围、从 "a" 到 "f" 的小写字母范围以及从 "A" 到 "F" 的大写字母范围，请使用 [0-9a-fA-F]。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">负字符范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
@@ -3765,11 +3730,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">生成嵌套的 {0}“{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">全局命名空间</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">以抽象方式实现接口</target>
@@ -3954,16 +3914,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">意外的接口成员种类:{0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">未知符号种类</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">已从“{0}”中加载请求的程序集。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">此符号无图标。</target>
@@ -4093,26 +4043,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">通过释放模式实现接口</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">对 {0}(当前为“{1}”) 进行重新分类</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">参数不能具有 null 元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">参数不能为空。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">分析器不支持 ID 为“{0}”的报告的诊断。</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4470,6 @@ This version used in: {2}</source>
         <target state="translated">接口</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">局部变量</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">方法</target>
@@ -4668,26 +4593,6 @@ This version used in: {2}</source>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">全部小写</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">全部大写</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">第一个单词首字母大写</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">帕斯卡拼写法</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4755,6 @@ This version used in: {2}</source>
         <target state="translated">在 {0} (项目 {1})中</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">添加可访问性修饰符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">将声明移动至引用附近</target>
@@ -4903,11 +4803,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">警告: 迭代变量跨函数边界。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">警告: 迭代期间可能修改集合。</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">
