@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:

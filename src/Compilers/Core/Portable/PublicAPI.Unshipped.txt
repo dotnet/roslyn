@@ -42,3 +42,5 @@ Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
+
+Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
