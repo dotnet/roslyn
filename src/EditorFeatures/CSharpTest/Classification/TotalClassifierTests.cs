@@ -2471,5 +2471,27 @@ Field("async"),
 Static("async"),
 Punctuation.Semicolon);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteDelegateOrLambda(TestHost testHost)
+        {
+            await TestAsync(
+@"using System;
+class Test
+{
+    void M()
+    {
+        [|Action a = async |]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Delegate("Action"),
+Local("a"),
+Operators.Equals,
+Keyword("async"));
+        }
     }
 }

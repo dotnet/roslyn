@@ -92,29 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return true;
             }
 
-            if (name is IdentifierNameSyntax { Identifier.Text: "async" } && symbol is null)
+            if (TryClassifyAsyncIdentifier(name, symbol, out var classifiedAsyncKeyword))
             {
-                // MemberDeclarationSyntax examle:
-                //
-                // class Test
-                // {
-                //   public async
-                // }
-                //
-                // ExpressionStatementSyntax example:
-                //
-                // void M()
-                // {
-                //   async
-                // }
-                //
-                // User is probably defining an async local function here
-                if ((name.Parent is IncompleteMemberSyntax incompleteMember && !incompleteMember.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
-                    name.Parent is ExpressionStatementSyntax)
-                {
-                    result.Add(new(name.Span, ClassificationTypeNames.Keyword));
-                    return true;
-                }
+                result.Add(classifiedAsyncKeyword);
+                return true;
             }
 
             return false;
@@ -281,6 +262,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
                     return true;
+            }
+
+            classifiedSpan = default;
+            return false;
+        }
+
+        private static bool TryClassifyAsyncIdentifier(NameSyntax name, ISymbol? symbol, out ClassifiedSpan classifiedSpan)
+        {
+            if (symbol is not null ||
+                name is not IdentifierNameSyntax identifierName ||
+                !identifierName.Identifier.HasMatchingText(SyntaxKind.AsyncKeyword))
+            {
+                classifiedSpan = default;
+                return false;
+            }
+
+            // MemberDeclarationSyntax examle:
+            //
+            // class Test
+            // {
+            //   public async
+            // }
+            //
+            // ExpressionStatementSyntax example:
+            //
+            // void M()
+            // {
+            //   async
+            // }
+            //
+            // User is probably defining an async local function here
+            //
+            // EqualsValueClauseSyntax example:
+            //
+            // void M()
+            // {
+            //   Action a = async
+            // }
+            //
+            // Here user is defining async delegate/lambda
+            if ((name.Parent is IncompleteMemberSyntax incompleteMember && !incompleteMember.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
+                name.Parent is ExpressionStatementSyntax ||
+                name.Parent is EqualsValueClauseSyntax)
+            {
+                classifiedSpan = new(name.Span, ClassificationTypeNames.Keyword);
+                return true;
             }
 
             classifiedSpan = default;
