@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 if (root.FindNode(diagnostic.Location.SourceSpan) != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                        new MyCodeAction(
+                            AnalyzersResources.Remove_unnecessary_suppression,
+                            c => FixAsync(context.Document, diagnostic, c),
+                            nameof(AnalyzersResources.Remove_unnecessary_suppression)),
                         diagnostic);
                 }
             }
@@ -52,14 +55,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryAttributeSuppressionsCodeFixProvider))
-            {
-            }
         }
     }
 }

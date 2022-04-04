@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Prefer_null_check_over_type_check, 
+                    c => FixAsync(context.Document, diagnostic, c),
+                    nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -69,14 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Prefer_null_check_over_type_check, createChangedDocument, nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check))
-            {
-            }
         }
     }
 }
