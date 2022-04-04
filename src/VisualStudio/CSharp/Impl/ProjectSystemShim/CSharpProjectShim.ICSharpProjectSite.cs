@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Roslyn.Utilities;
 
@@ -122,13 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // If classNames is NULL, then we need to populate the number of valid startup
             // classes only
             var project = Workspace.CurrentSolution.GetProject(VisualStudioProject.Id);
-            var compilation = project?.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            if (compilation == null)
+            if (project == null)
             {
                 count = 0;
                 return VSConstants.S_OK;
             }
 
+            var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace);
 
             if (classNames == null)
