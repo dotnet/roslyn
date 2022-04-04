@@ -425,11 +425,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">예외에서 중지된 동안에는 변경할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">애플리케이션이 실행되는 동안에는 '{0}' 프로젝트의 변경 내용이 적용되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">하나 이상의 변경으로 인해 컴파일러에서 새 유형이 생성되며 런타임에서 지원하지 않기 때문에 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -640,11 +635,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">편집하며 계속하기</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">모듈에서 편집하며 계속하기를 허용하지 않음</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">' {0}' 프로젝트에서 변경한 내용을 적용하려면 응용 프로그램 ‘{1}’을(를) 다시 시작 해야 합니다.</target>
@@ -733,11 +723,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">오타 '{0}' 수정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">문서 서식</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +965,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">로컬 소개</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">매개 변수 지정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">'{0}'에 대한 매개 변수 지정</target>
@@ -1165,11 +1145,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">finally 블록이 활성 상태일 때 try/catch/finally 문을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">On Error 또는 Resume 문이 포함된 활성 {0}을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
         <target state="translated">본문에 문이 너무 많기 때문에 {0}의 본문을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
@@ -1333,11 +1308,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">기본 형식까지 멤버를 풀...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">새 기본 클래스까지 멤버를 풀하세요...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2009,11 +1979,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
         <target state="translated">부정 문자 범위는 일치 항목을 찾을 입력 문자열에 표시되지 않아야 하는 문자 목록을 지정합니다. 'firstCharacter'는 범위를 시작하는 문자이고 'lastCharacter'는 범위를 끝내는 문자입니다.
 
 둘 이상의 문자 범위를 연결할 수 있습니다. 예를 들어 "0"에서 "9"까지의 10진수 범위, "a"에서 "f"까지의 소문자 범위 및 "A"에서 "F"까지의 대문자 범위를 지정하려면 [0-9a-fA-F]를 사용합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">부정 문자 범위</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
@@ -3765,11 +3730,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">중첩된 {0} '{1}' 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">전역 네임스페이스</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">추상적으로 인터페이스 구현</target>
@@ -3954,16 +3914,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">예기치 않은 인터페이스 멤버 종류: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">알 수 없는 기호 종류</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">요청한 어셈블리가 이미 '{0}'에서 로드되었습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">기호에 아이콘이 없습니다.</target>
@@ -4093,26 +4043,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">인터페이스를 Dispose 패턴으로 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">{0}(현재 '{1}') 다시 심사</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">인수에는 null 요소가 있을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">인수는 비워 둘 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">ID가 '{0}'인 보고된 진단이 분석기에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4470,6 @@ This version used in: {2}</source>
         <target state="translated">인터페이스</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">로컬 항목</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">메서드</target>
@@ -4668,26 +4593,6 @@ This version used in: {2}</source>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">코드 조각</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">모두 소문자</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">모두 대문자</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">첫 글자 대문자로 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">파스칼식 대/소문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4755,6 @@ This version used in: {2}</source>
         <target state="translated">{0}(프로젝트 {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">접근성 한정자 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">참조 근처로 선언 이동</target>
@@ -4903,11 +4803,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">경고: 반복 변수가 함수 경계를 벗어났습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">경고: 반복 계산 중 컬렉션이 수정될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">
