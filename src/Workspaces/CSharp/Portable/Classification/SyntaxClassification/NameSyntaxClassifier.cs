@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 // }
                 //
                 // User is probably defining an async local function here
-                if ((name.Parent is IncompleteMemberSyntax incompletemember && !incompletemember.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
+                if ((name.Parent is IncompleteMemberSyntax incompleteMember && !incompleteMember.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
                     name.Parent is ExpressionStatementSyntax)
                 {
                     result.Add(new(name.Span, ClassificationTypeNames.Keyword));
