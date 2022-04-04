@@ -3257,5 +3257,80 @@ public struct S1
                 //         var s1 = i.F1();
                 Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18));
         }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_01()
+        {
+            var source =
+@"using System;
+
+ref struct Example
+{
+    public Span<byte> Field = stackalloc byte[512];
+    public Span<byte> Property { get; } = stackalloc byte[512];
+    public Example() {}
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 31),
+                // (6,43): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 43));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_02()
+        {
+            var source =
+@"using System;
+ref struct Example
+{
+    public Span<byte> Field;
+}
+ref struct E2
+{
+    public Span<byte> Field = new Example { Field = stackalloc byte[512] }.Field;
+    public Span<byte> Property { get; } = new Example { Field = stackalloc byte[512] }.Field;
+    public E2() { }
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (8,45): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = new Example { Field = stackalloc byte[512] }.Field;
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(8, 45),
+                // (9,57): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = new Example { Field = stackalloc byte[512] }.Field;
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(9, 57));
+        }
+
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_03()
+        {
+            var source =
+@"using System;
+delegate Span<T> D<T>();
+ref struct Example
+{
+    public Span<byte> Field = F(() => stackalloc byte[512]);
+    public Span<byte> Property { get; } = F(() => stackalloc byte[512]);
+    public Example() {}
+    static Span<T> F<T>(D<T> d) => d();
+}";
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //     public Span<byte> Field = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this").WithLocation(5, 31),
+                // (5,39): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Field = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 39),
+                // (6,51): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public Span<byte> Property { get; } = F(() => stackalloc byte[512]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 51));
+        }
     }
 }
