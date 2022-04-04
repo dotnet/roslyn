@@ -4,13 +4,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
@@ -20,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
-        public ISyntaxClassifier Classifier { get; }
         public IDocumentHighlightsService? DocumentHighlightsService { get; }
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
@@ -29,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             EmbeddedLanguageInfo info)
         {
             Info = info;
-            Classifier = new RegexSyntaxClassifier(info);
 
             _provider = provider;
 

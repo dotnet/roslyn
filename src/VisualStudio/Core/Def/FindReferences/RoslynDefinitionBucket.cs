@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly StreamingFindUsagesPresenter _presenter;
 
             public readonly DefinitionItem DefinitionItem;
+            private readonly IThreadingContext _threadingContext;
 
             /// <summary>
             /// Due to linked files, we may have results for several locations that are all effectively
@@ -39,7 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 bool expandedByDefault,
                 StreamingFindUsagesPresenter presenter,
                 AbstractTableDataSourceFindUsagesContext context,
-                DefinitionItem definitionItem)
+                DefinitionItem definitionItem,
+                IThreadingContext threadingContext)
                 : base(name,
                        sourceTypeIdentifier: context.SourceTypeIdentifier,
                        identifier: context.Identifier,
@@ -47,13 +50,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 _presenter = presenter;
                 DefinitionItem = definitionItem;
+                _threadingContext = threadingContext;
             }
 
             public static RoslynDefinitionBucket Create(
                 StreamingFindUsagesPresenter presenter,
                 AbstractTableDataSourceFindUsagesContext context,
                 DefinitionItem definitionItem,
-                bool expandedByDefault)
+                bool expandedByDefault,
+                IThreadingContext threadingContext)
             {
                 var isPrimary = definitionItem.Properties.ContainsKey(DefinitionItem.Primary);
 
@@ -61,14 +66,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var name = $"{(isPrimary ? 0 : 1)} {definitionItem.DisplayParts.JoinText()} {definitionItem.GetHashCode()}";
 
                 return new RoslynDefinitionBucket(
-                    name, expandedByDefault, presenter, context, definitionItem);
+                    name, expandedByDefault, presenter, context, definitionItem, threadingContext);
             }
 
             public bool CanNavigateTo()
                 => true;
 
-            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-                => DefinitionItem.TryNavigateToAsync(_presenter._workspace, options, cancellationToken);
+            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+            {
+                var location = await DefinitionItem.GetNavigableLocationAsync(
+                    _presenter._workspace, cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
+            }
 
             public override bool TryGetValue(string key, out object? content)
             {

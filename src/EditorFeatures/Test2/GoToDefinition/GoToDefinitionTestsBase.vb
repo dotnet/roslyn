@@ -4,21 +4,19 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTestsBase
-        Public Shared Sub Test(
+        Public Shared Async Function TestAsync(
                 workspaceDefinition As XElement,
-                Optional expectedResult As Boolean = True)
+                Optional expectedResult As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -44,11 +42,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
 
                 Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                    DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
-                    New VisualBasicGoToDefinitionService(threadingContext, presenter))
+                    DirectCast(New CSharpAsyncGoToDefinitionService(threadingContext, presenter), IAsyncGoToDefinitionService),
+                    New VisualBasicAsyncGoToDefinitionService(threadingContext, presenter))
 
-                Dim actualResult = goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
-
+                Dim defLocation = Await goToDefService.FindDefinitionLocationAsync(document, cursorPosition, CancellationToken.None)
+                Dim actualResult = defLocation IsNot Nothing AndAlso
+                    Await defLocation.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
                 Assert.Equal(expectedResult, actualResult)
 
                 Dim expectedLocations As New List(Of FilePathAndSpan)
@@ -115,6 +114,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 End If
 
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

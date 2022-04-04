@@ -988,6 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OperatorKeyword);
             SyntaxToken operatorKeyword = EatToken();
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: false);
 
             SyntaxToken operatorToken;
 
@@ -1067,7 +1068,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
-            return SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
+            return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
+        }
+
+        private SyntaxToken TryEatCheckedKeyword(bool isConversion)
+        {
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+
+            if (checkedKeyword is not null &&
+                (isConversion || SyntaxFacts.IsAnyOverloadableOperator(CurrentToken.Kind)))
+            {
+                checkedKeyword = CheckFeatureAvailability(checkedKeyword, MessageID.IDS_FeatureCheckedUserDefinedOperators, forceWarning: true);
+            }
+
+            return checkedKeyword;
         }
 
         /// <summary>
@@ -1080,12 +1094,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken implicitOrExplicit = EatToken();
 
             SyntaxToken operatorKeyword = EatToken(SyntaxKind.OperatorKeyword);
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: true);
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
 
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
-            return SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicit, operatorKeyword, type, parameters);
+            return SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicit, operatorKeyword, checkedKeyword, type, parameters);
         }
 
         /// <summary>

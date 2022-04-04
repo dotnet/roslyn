@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -407,7 +408,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
             {
-                Contract.ThrowIfFalse(threadingContext.HasMainThread);
+                threadingContext.ThrowIfNotOnUIThread();
                 _statusBar = statusBar;
                 _threadingContext = threadingContext;
                 _totalProjectCount = totalProjectCount;

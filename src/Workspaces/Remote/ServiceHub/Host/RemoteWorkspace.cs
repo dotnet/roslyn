@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
         /// <summary>
-        /// The last partial solution snapshot corresponding to a particular project-cone requested by a service.
-        /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, StrongBox<(Checksum checksum, Solution solution)>> _lastRequestedProjectIdToSolutionWithChecksum = new();
-
-        /// <summary>
         /// Guards setting current workspace solution.
         /// </summary>
         private readonly object _currentSolutionGate = new();
@@ -93,20 +88,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask<Solution> GetSolutionAsync(
+        public async ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
             int workspaceVersion,
-            ProjectId? projectId,
             CancellationToken cancellationToken)
-        {
-            return projectId == null
-                ? GetFullSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, workspaceVersion, cancellationToken)
-                : GetProjectSubsetSolutionAsync(assetProvider, solutionChecksum, projectId, cancellationToken);
-        }
-
-        private async ValueTask<Solution> GetFullSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, bool fromPrimaryBranch, int workspaceVersion, CancellationToken cancellationToken)
         {
             var availableSolution = TryGetAvailableSolution(solutionChecksum);
             if (availableSolution != null)
@@ -224,64 +211,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return null;
-        }
-
-        private ValueTask<Solution> GetProjectSubsetSolutionAsync(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            ProjectId projectId,
-            CancellationToken cancellationToken)
-        {
-            // Attempt to just read without incurring any other costs.
-            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
-                box.Value.checksum == solutionChecksum)
-            {
-                return new(box.Value.Item2);
-            }
-
-            return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
-
-            async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
-                Solution baseSolution,
-                AssetProvider assetProvider,
-                Checksum solutionChecksum,
-                ProjectId projectId,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
-
-                    // check whether solution is update to the given base solution
-                    Solution result;
-                    if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
-                    {
-                        // create updated solution off the baseSolution
-                        result = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        // we need new solution. bulk sync all asset for the solution first.
-                        await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                        // get new solution info and options
-                        var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                        var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-                        result = workspace.CurrentSolution;
-                    }
-
-                    // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
-                    // in general this should be fine as we're primarily storing this to make future calls to synchronize
-                    // this project cone fast.
-                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
-                    return result;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
         }
 
         /// <summary>
