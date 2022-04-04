@@ -92,6 +92,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return true;
             }
 
+            if (name is IdentifierNameSyntax { Identifier.Text: "async" } && symbol is null)
+            {
+                // MemberDeclarationSyntax examle:
+                //
+                // class Test
+                // {
+                //   public async
+                // }
+                //
+                // ExpressionStatementSyntax example:
+                //
+                // void M()
+                // {
+                //   async
+                // }
+                //
+                // User is probably defining an async local function here
+                if ((name.Parent is IncompleteMemberSyntax incompletemember && !incompletemember.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
+                    name.Parent is ExpressionStatementSyntax)
+                {
+                    result.Add(new(name.Span, ClassificationTypeNames.Keyword));
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -180,31 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
                 return true;
-            }
-
-            if (name is IdentifierNameSyntax { Identifier.Text: "async" } && symbol is null)
-            {
-                // MemberDeclarationSyntax examle:
-                //
-                // class Test
-                // {
-                //   public async
-                // }
-                //
-                // ExpressionStatementSyntax example:
-                //
-                // void M()
-                // {
-                //   async
-                // }
-                //
-                // User is probably defining an async local function here
-                if ((name.Parent is MemberDeclarationSyntax memberDeclaration && !memberDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword)) ||
-                    name.Parent is ExpressionStatementSyntax)
-                {
-                    classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
-                    return true;
-                }
             }
 
             if (name.IsNint || name.IsNuint)

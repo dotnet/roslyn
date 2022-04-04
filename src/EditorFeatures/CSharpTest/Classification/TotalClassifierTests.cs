@@ -2382,5 +2382,94 @@ Punctuation.OpenCurly,
 Class("async"),
 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsLocalMemberType(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Identifier("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Identifier("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Identifier("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsAccessingName(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        var a = [|C.async;|]
+    }
+}
+
+class C
+{
+    public static int async;
+}",
+                testHost,
+                parseOptions: null,
+Class("C"),
+Operators.Dot,
+Field("async"),
+Static("async"),
+Punctuation.Semicolon);
+        }
     }
 }
