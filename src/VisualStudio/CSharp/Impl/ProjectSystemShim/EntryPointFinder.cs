@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             var visitor = new EntryPointFinder();
             // Only search source symbols
-            visitor.Visit(symbol.ContainingCompilation?.SourceModule.GlobalNamespace ?? symbol);
+            // Some callers will give a symbol that is not part of a compilation
+            if (symbol.ContainingCompilation is not null)
+            {
+                symbol = symbol.ContainingCompilation.SourceModule.GlobalNamespace;
+            }
+
+            visitor.Visit(symbol);
             return visitor.EntryPoints;
         }
     }
