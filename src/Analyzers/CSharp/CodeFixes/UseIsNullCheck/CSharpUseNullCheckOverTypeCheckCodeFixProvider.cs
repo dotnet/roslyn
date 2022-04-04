@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpAnalyzersResources.Prefer_null_check_over_type_check, 
+                    CSharpAnalyzersResources.Prefer_null_check_over_type_check,
                     c => FixAsync(context.Document, diagnostic, c),
                     nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check)),
                 context.Diagnostics);
