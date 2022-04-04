@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return new RunTimer();
+                return new RunTimer(adjustRunTime: null);
             }
         }
 

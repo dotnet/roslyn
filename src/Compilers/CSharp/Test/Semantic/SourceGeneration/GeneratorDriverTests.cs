@@ -3043,8 +3043,7 @@ public static readonly string F = ""a""
             Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
             Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
 
-
-            // run a second time. No steps should be performed, so overall time should be less
+            // run a second time. No steps should be performed, so overall time should be less 
             driver = driver.RunGenerators(compilation);
             var timing2 = driver.GetTimingInfo();
 
