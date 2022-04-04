@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractJsonDetectionAnalyzer.DiagnosticId);
 

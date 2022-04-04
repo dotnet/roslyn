@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
 
-        internal override CodeFixCategory CodeFixCategory { get; }
-            = CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

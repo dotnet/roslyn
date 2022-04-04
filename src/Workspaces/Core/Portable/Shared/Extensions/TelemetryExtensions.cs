@@ -6,14 +6,13 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class TelemetryExtensions
     {
-        public static Guid GetTelemetryId(this Type type, short scope = 0)
+        public static Guid GetTelemetryId(this Type type, short scope = 0, string? additionalSuffixString = null)
         {
             type = GetTypeForTelemetry(type);
             Contract.ThrowIfNull(type.FullName);
@@ -28,7 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // the remainder with an empty byte array
             var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
 
-            return new Guid(0, scope, 0, suffixBytes);
+            // Generate additional suffix to add to the Guid.
+            var additionalSuffix = (short)(additionalSuffixString != null
+                ? Hash.GetFNVHashCode(additionalSuffixString)
+                : 0);
+
+            return new Guid(0, scope, additionalSuffix, suffixBytes);
         }
 
         public static Type GetTypeForTelemetry(this Type type)

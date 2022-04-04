@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 // Wrap the suppression/configuration actions within another top level suggested action
                 // to avoid clutter in the light bulb menu.
-                var suppressOrConfigureCodeAction = new NoChangeAction(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
+                var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_Configure_issues, nameof(CodeFixesResources.Suppress_or_Configure_issues));
                 var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                     workspace, codeAction: suppressOrConfigureCodeAction,
                     codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,

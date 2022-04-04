@@ -4747,7 +4747,7 @@ index: 1);
         {
             await TestSmartTagTextAsync(
 @"class C : [|Goo|]",
-string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace));
+string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
         }
 
         [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
@@ -4854,7 +4854,7 @@ class Program
             await TestExactActionSetOfferedAsync(code,
                 new[]
                 {
-                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"),
                     string.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"),
                     FeaturesResources.Generate_new_type
                 });
