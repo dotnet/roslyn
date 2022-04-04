@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS1591);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

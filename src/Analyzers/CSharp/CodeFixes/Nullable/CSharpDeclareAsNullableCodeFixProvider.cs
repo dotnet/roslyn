@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         // warning CS8618: Non-nullable property is uninitialized
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600", "CS8625", "CS8618");
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

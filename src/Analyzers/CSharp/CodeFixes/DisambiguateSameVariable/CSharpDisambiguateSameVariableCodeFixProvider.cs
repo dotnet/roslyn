@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS1717, CS1718);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.Compile;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
