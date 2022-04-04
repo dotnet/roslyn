@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
         protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

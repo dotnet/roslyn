@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract bool ShouldOfferFixForLocalDeclaration(ISyntaxFactsService syntaxFacts, SyntaxNode node);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

@@ -36,12 +36,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (solution == null)
                 return null;
 
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
             return CodeAction.Create(
                 title, c => Task.FromResult(solution));
-
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
         private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)

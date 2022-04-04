@@ -425,11 +425,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Když se běh zastaví na výjimce, změny se nepovolují.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">Změny provedené v projektu {0} se nepoužijí, dokud je aplikace spuštěná.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">Výsledkem jedné nebo více změn je, že kompilátor vytvoří nový typ, což vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
@@ -640,11 +635,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Upravit a pokračovat</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">Modul zakázal funkci Upravit a pokračovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">Změny provedené v projektu {0} vyžadují restartování aplikace: {1}</target>
@@ -733,11 +723,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Opravit překlep {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Formátovat dokument</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +965,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Zavést místní</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">Zavést parametr</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">Zavést parametr pro{0}</target>
@@ -1165,11 +1145,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Úprava příkazu try/catch/finally, když je aktivní blok finally, vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">Úprava aktivního {0} s příkazy On Error nebo Resume vyžaduje restartování aplikace.</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
         <target state="translated">Úprava těla {0} vyžaduje restartování aplikace, protože je v něm příliš mnoho příkazů.</target>
@@ -1333,11 +1308,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Povýšit členy na základní typ...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">Načíst členy do nové základní třídy...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2009,11 +1979,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
         <target state="translated">Negativní rozsah znaků určuje seznam znaků, které se nesmí vyskytovat ve vstupním řetězci, aby došlo ke shodě. firstCharacter je znak, kterým rozsah začíná, a lastCharacter je znak, kterým rozsah končí.
 
 Je možné zřetězit dva nebo více rozsahů znaků. Pokud chcete například zadat rozsah desítkových číslic od 0 do 9, rozsah malých písmen od a do f a rozsah velkých písmen od A do F, použijte [0-9A-fA-F].</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">negativní rozsah znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
@@ -3765,11 +3730,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Generovat vnořené {0} {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">Globální obor názvů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">Implementovat rozhraní abstraktně</target>
@@ -3954,16 +3914,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
         <target state="translated">Neočekávaný druh člena rozhraní: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">Neznámý druh symbolu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">Požadované sestavení je už načtené z {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">Symbol nemá ikonu.</target>
@@ -4093,26 +4043,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementovat rozhraní se vzorem Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">Nové určení priorit podle dostupnosti zdrojů {0}(aktuálně {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">Argument nemůže mít element, který je null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">Argument nemůže být prázdný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">Ohlášená diagnostika s ID {0} se v analyzátoru nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4470,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Rozhraní</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">Místní hodnoty</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">Metody</target>
@@ -4668,26 +4593,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">Fragmenty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">Všechna písmena malá</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">Všechna písmena velká</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">Velké první písmeno prvního slova</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">PascalCase</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4755,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">v {0} (projekt {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Přidat Modifikátory dostupnosti</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Přesunout deklaraci do blízkosti odkazu</target>
@@ -4903,11 +4803,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">Upozornění: Proměnná iterace překročila hranici funkce.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">Upozornění: Během iterace se kolekce může změnit.</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">
