@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // callers. note we call directly into TrySlowGetSolutionAndRunAsync (skipping
             // TryFastGetSolutionAndRunAsync) as we always want to cache the primary workspace we are being told about
             // here.
-            await TrySlowGetSolutionAndRunAsync(
+            await SlowGetSolutionAndRunAsync(
                 assetProvider,
                 solutionChecksum,
                 workspaceVersion,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Wasn't the same as the last thing we cached, actually get the corresponding solution and run the
             // requested callback against it.
-            return await TrySlowGetSolutionAndRunAsync(
+            return await SlowGetSolutionAndRunAsync(
                 assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, doWorkAsync, cancellationToken).ConfigureAwait(false);
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask<(Solution solution, T result)> TrySlowGetSolutionAndRunAsync<T>(
+        private async ValueTask<(Solution solution, T result)> SlowGetSolutionAndRunAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
