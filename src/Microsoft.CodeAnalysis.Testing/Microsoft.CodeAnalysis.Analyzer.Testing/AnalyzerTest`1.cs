@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -1209,19 +1210,22 @@ namespace Microsoft.CodeAnalysis.Testing
                 foreach (var (newFileName, source) in projectState.Sources)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
+                    solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AdditionalFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
+                    solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AnalyzerConfigFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(projectState.DefaultPrefix, newFileName);
+                    solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
             }
 
@@ -1230,19 +1234,22 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var (newFileName, source) in primaryProject.Sources)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
+                solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AdditionalFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
+                solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AnalyzerConfigFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(primaryProject.DefaultPrefix, newFileName);
+                solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             solution = AddProjectReferences(solution, projectId, primaryProject.AdditionalProjectReferences.Select(name => projectIdMap[name]));
@@ -1263,6 +1270,54 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 return solution.AddProjectReferences(sourceProject, targetProjects.Select(id => new ProjectReference(id)));
             }
+        }
+
+        protected (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string projectPathPrefix, string path)
+        {
+            // Normalize to platform path separators for simplicity later on
+            var normalizedPath = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var normalizedDefaultPathPrefix = projectPathPrefix.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+            if (!Path.IsPathRooted(normalizedDefaultPathPrefix))
+            {
+                // If our default path isn't rooted, then we assume that we don't have any rooted paths
+                // and just use the file name
+                return (Path.GetFileName(normalizedPath), folders: new string[0]);
+            }
+
+            // | Default path | Project root path |
+            // |--------------|-------------------|
+            // |   /0/Temp    |  /0/              |
+            // |   /0/        |  /0/              |
+            var projectRootPath = Path.GetFileName(normalizedDefaultPathPrefix) == string.Empty
+                ? normalizedDefaultPathPrefix
+                : (Path.GetDirectoryName(normalizedDefaultPathPrefix) + Path.DirectorySeparatorChar);
+
+            // If the default path prefix is a directory name (ending with a directory separator)
+            // then treat it as the project root.
+            if (!normalizedPath.StartsWith(projectRootPath))
+            {
+                // If our path doesn't start with the default path prefix, then the file is out of tree.
+                if (Path.IsPathRooted(normalizedPath))
+                {
+                    // If the user provides a rooted path as the file name, just use that as-is.
+                    return (path, folders: new string[0]);
+                }
+
+                // Otherwise, to match VS behavior we will report no folders and only the file name.
+                return (Path.GetFileName(normalizedPath), folders: new string[0]);
+            }
+
+            var subpath = normalizedPath.Substring(projectRootPath.Length);
+
+            var fileName = Path.GetFileName(subpath);
+            if (Path.GetDirectoryName(subpath) == string.Empty)
+            {
+                return (fileName, folders: new string[0]);
+            }
+
+            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar);
+            return (fileName, folders);
         }
 
         /// <summary>

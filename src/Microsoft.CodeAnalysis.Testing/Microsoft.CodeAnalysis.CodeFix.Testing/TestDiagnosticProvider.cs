@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Testing
             => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics.Where(diagnostic => diagnostic.project.Id == project.Id).Select(diagnostic => diagnostic.diagnostic));
 
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(_diagnostics.Where(i => i.diagnostic.Location.GetLineSpan().Path == document.Name).Where(diagnostic => diagnostic.project.Id == document.Project.Id).Select(diagnostic => diagnostic.diagnostic));
+            => Task.FromResult(_diagnostics.Where(i => i.diagnostic.Location.GetLineSpan().Path == document.FilePath).Where(diagnostic => diagnostic.project.Id == document.Project.Id).Select(diagnostic => diagnostic.diagnostic));
 
         public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             => Task.FromResult(_diagnostics.Where(i => !i.diagnostic.Location.IsInSource).Where(diagnostic => diagnostic.project.Id == project.Id).Select(diagnostic => diagnostic.diagnostic));
