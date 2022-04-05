@@ -102,6 +102,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Given an appropriate <paramref name="solutionChecksum"/>, gets or computes the corresponding <see
+        /// cref="Solution"/> snapshot for it, and then invokes <paramref name="doWorkAsync"/> with that snapshot.  That
+        /// snapshot and the result of <paramref name="doWorkAsync"/> are then returned from this method.  Note: the
+        /// solution returned is only for legacy cases where we expose OOP to 2nd party clients who expect to be able to
+        /// call through <see cref="RemoteWorkspaceManager.GetSolutionAsync"/> and who expose that statically to
+        /// themselves.
+        /// </summary>
         public async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
