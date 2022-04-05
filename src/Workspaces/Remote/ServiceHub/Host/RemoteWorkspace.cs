@@ -88,8 +88,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
-            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future callers.
-            await RunWithSolutionAsync(
+            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future
+            // callers. note we call directly into TrySlowGetSolutionAndRunAsync (skipping
+            // TryFastGetSolutionAndRunAsync) as we always want to cache the primary workspace we are being told about
+            // here.
+            await TrySlowGetSolutionAndRunAsync(
                 assetProvider,
                 solutionChecksum,
                 workspaceVersion,
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+        public async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
@@ -107,25 +110,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
-            return RunWithSolutionAsync(
-                assetProvider,
-                solutionChecksum,
-                workspaceVersion,
-                fromPrimaryBranch,
-                baseSolution: this.CurrentSolution,
-                doWorkAsync,
-                cancellationToken);
-        }
+            var baseSolution = this.CurrentSolution;
 
-        private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            int workspaceVersion,
-            bool fromPrimaryBranch,
-            Solution baseSolution,
-            Func<Solution, ValueTask<T>> doWorkAsync,
-            CancellationToken cancellationToken)
-        {
             // Fast path if this solution checksum is for a solution we're already caching. This also avoids us then
             // trying to actually mutate the workspace for the simple case of asking for the same thing the last calls
             // asked about.
