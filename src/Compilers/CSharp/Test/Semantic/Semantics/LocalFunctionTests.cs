@@ -7208,8 +7208,6 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
             tree = comp.SyntaxTrees.Single();
             parentModel = comp.GetSemanticModel(tree);
-            localFuncPosition = tree.GetText().ToString().IndexOf("void local<TParameter>()", StringComparison.Ordinal) - 1;
-            methodPosition = tree.GetText().ToString().IndexOf("void M2<TParameter>()", StringComparison.Ordinal) - 1;
 
             attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.RegularNext);
             VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
@@ -7248,6 +7246,187 @@ public class MyAttribute : System.Attribute
             {
                 return node.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "TParameter").Single();
             }
+        }
+
+        [Fact]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithinAttribute()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(a)]
+        [My(nameof(b))]
+        void local<TParameter>() { }
+    }
+
+    [My(c)]
+    [My(nameof(d))]
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            // C# 10
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'a' does not exist in the current context
+                //         [My(a)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 13),
+                // (9,20): error CS0103: The name 'b' does not exist in the current context
+                //         [My(nameof(b))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 20),
+                // (13,9): error CS0103: The name 'c' does not exist in the current context
+                //     [My(c)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(13, 9),
+                // (14,16): error CS0103: The name 'd' does not exist in the current context
+                //     [My(nameof(d))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 16)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var parentModel = comp.GetSemanticModel(tree);
+
+            var aPosition = getIdentifierPosition("a");
+            var newNameOf = parseNameof("nameof(TParameter)", parseOptions: TestOptions.Regular10);
+            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(aPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            var bPosition = getIdentifierPosition("b");
+            var newNameOfArgument = parseIdentifier("TParameter", parseOptions: TestOptions.Regular10);
+            Assert.True(parentModel.GetSpeculativeTypeInfo(bPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.IsErrorType());
+
+            var cPosition = getIdentifierPosition("c");
+            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(cPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            var dPosition = getIdentifierPosition("d");
+            Assert.True(parentModel.GetSpeculativeTypeInfo(dPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.IsErrorType());
+
+            // C# 11
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'a' does not exist in the current context
+                //         [My(a)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 13),
+                // (9,20): error CS0103: The name 'b' does not exist in the current context
+                //         [My(nameof(b))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 20),
+                // (13,9): error CS0103: The name 'c' does not exist in the current context
+                //     [My(c)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(13, 9),
+                // (14,16): error CS0103: The name 'd' does not exist in the current context
+                //     [My(nameof(d))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 16)
+                );
+
+            tree = comp.SyntaxTrees.Single();
+            parentModel = comp.GetSemanticModel(tree);
+
+            aPosition = getIdentifierPosition("a");
+            newNameOf = parseNameof("nameof(TParameter)", parseOptions: TestOptions.RegularNext);
+            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(aPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            bPosition = getIdentifierPosition("b");
+            newNameOfArgument = parseIdentifier("TParameter", parseOptions: TestOptions.RegularNext);
+            Assert.Equal("TParameter", parentModel.GetSpeculativeTypeInfo(bPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            cPosition = getIdentifierPosition("c");
+            Assert.Equal("System.String", parentModel.GetSpeculativeTypeInfo(cPosition, newNameOf, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            dPosition = getIdentifierPosition("d");
+            Assert.Equal("TParameter", parentModel.GetSpeculativeTypeInfo(dPosition, newNameOfArgument, SpeculativeBindingOption.BindAsExpression).Type.ToTestDisplayString());
+
+            return;
+
+            int getIdentifierPosition(string identifier)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == identifier).Single().SpanStart;
+            }
+
+            static ExpressionSyntax parseNameof(string source, CSharpParseOptions parseOptions)
+                => SyntaxFactory.ParseCompilationUnit($@"{source};", options: parseOptions).DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            static ExpressionSyntax parseIdentifier(string source, CSharpParseOptions parseOptions)
+                => SyntaxFactory.ParseCompilationUnit($@"{source};", options: parseOptions).DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+        }
+
+        [Fact]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttribute()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(a)]
+        void local<TParameter>() { }
+    }
+
+    [My(b)]
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            // C# 10
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'a' does not exist in the current context
+                //         [My(a)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'b' does not exist in the current context
+                //     [My(b)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(12, 9)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var parentModel = comp.GetSemanticModel(tree);
+            var localFuncPosition = tree.GetText().ToString().IndexOf("[My(a)]", StringComparison.Ordinal);
+            var methodPosition = tree.GetText().ToString().IndexOf("[My(b)]", StringComparison.Ordinal);
+
+            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            // C# 11
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'a' does not exist in the current context
+                //         [My(a)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'b' does not exist in the current context
+                //     [My(b)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(12, 9)
+                );
+
+            tree = comp.SyntaxTrees.Single();
+            parentModel = comp.GetSemanticModel(tree);
+
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            return;
+
+            static AttributeSyntax parseAttributeSyntax(string source, CSharpParseOptions parseOptions)
+                => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
         [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
