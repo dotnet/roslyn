@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // that are not all the same language and might not exist in the OOP process
             // (like the JS parts of a .cshtml file). Filter them out here.  This will
             // need to be revisited if we someday support FAR between these languages.
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);

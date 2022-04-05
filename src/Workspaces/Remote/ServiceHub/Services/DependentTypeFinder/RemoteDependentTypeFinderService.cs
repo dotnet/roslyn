@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DependentTypesKind kind,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 

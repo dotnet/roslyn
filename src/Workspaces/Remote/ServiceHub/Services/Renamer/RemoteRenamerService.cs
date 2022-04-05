@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SymbolRenameOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);

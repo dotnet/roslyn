@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId projectId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
-            => RunServiceWithSolutionAsync(pinnedSolutionInfo, async solution =>
+            => RunServiceAsync(pinnedSolutionInfo, async solution =>
             {
                 return await InheritanceMarginServiceHelper
                     .GetInheritanceMemberItemAsync(solution, projectId, symbolKeyAndLineNumbers, cancellationToken)

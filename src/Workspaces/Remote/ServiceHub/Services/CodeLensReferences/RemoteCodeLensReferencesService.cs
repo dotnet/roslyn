@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    return await RunServiceWithSolutionAsync(solutionInfo, async solution =>
+                    return await RunServiceAsync(solutionInfo, async solution =>
                     {
                         var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                         if (syntaxNode == null)
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    return await RunServiceWithSolutionAsync(solutionInfo, async solution =>
+                    return await RunServiceAsync(solutionInfo, async solution =>
                     {
                         var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                         if (syntaxNode == null)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    return await RunServiceWithSolutionAsync(solutionInfo, async solution =>
+                    return await RunServiceAsync(solutionInfo, async solution =>
                     {
                         var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                         if (syntaxNode == null)

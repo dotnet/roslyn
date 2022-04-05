@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(PinnedSolutionInfo solutionInfo, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
                 if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)

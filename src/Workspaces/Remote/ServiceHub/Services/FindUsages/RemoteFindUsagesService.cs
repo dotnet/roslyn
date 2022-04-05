@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 

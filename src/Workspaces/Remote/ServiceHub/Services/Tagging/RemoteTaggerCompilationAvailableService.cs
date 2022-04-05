@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
 

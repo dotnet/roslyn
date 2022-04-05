@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var document = solution.GetDocument(documentId);
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var document = solution.GetDocument(documentId);
 

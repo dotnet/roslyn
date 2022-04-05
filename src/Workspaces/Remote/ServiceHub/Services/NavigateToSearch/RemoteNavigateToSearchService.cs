@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // pulled over from the host side to the remote side.  Once this completes, the next
             // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
             // quick as very little will need to by sync'ed over.
-            return RunServiceWithSolutionAsync(solutionInfo, solution => ValueTaskFactory.CompletedTask, cancellationToken);
+            return RunServiceAsync(solutionInfo, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
         public ValueTask SearchDocumentAsync(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceWithSolutionAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);

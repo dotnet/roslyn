@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceImplAsync(implementation, cancellationToken);
         }
 
-        protected ValueTask<T> RunServiceWithSolutionAsync<T>(
+        protected ValueTask<T> RunServiceAsync<T>(
             PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceImplAsync(implementation, cancellationToken);
         }
 
-        protected ValueTask RunServiceWithSolutionAsync(
+        protected ValueTask RunServiceAsync(
             PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
