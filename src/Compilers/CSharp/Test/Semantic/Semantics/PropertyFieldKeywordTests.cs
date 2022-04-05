@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /* PROTOTYPE(semi-auto-props):
      * Add tests for field attribute target, specially for setter-only
-     * nameof(field) should work only when there is a symbol called "field" in scope.
+     * nameof(field) should be disallowed.
      * nullability tests, ie, make sure we get null dereference warnings when needed.
      */
 
@@ -105,7 +105,10 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string s) { }
 }
 ");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -157,6 +160,688 @@ public class MyAttribute : System.Attribute
 	}
 } // end of class C
 ");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldInLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local1() + local2() + local3();
+
+            [My(field)]
+            int local1() => 0;
+
+            int local2(int i = field) => 0;
+
+            static int local3(int i = field) => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.<P>k__BackingField'
+                //             [My(field)]
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.<P>k__BackingField").WithLocation(10, 17),
+                // (13,32): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //             int local2(int i = field) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("i").WithLocation(13, 32),
+                // (15,39): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //             static int local3(int i = field) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("i").WithLocation(15, 39)
+            );
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldInLocalFunction_ShadowedByConstant()
+        {
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(new C().P);
+
+public class C
+{
+    public int P
+    {
+        get
+        {
+            const int field = 5;
+            return local1() + local2() + local3();
+
+            [My(field)]
+            int local1() => 0;
+
+            int local2(int i = field) => i;
+
+            static int local3(int i = field) => i;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "10");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 20 (0x14)
+		.maxstack 8
+		IL_0000: call int32 C::'<get_P>g__local1|1_0'()
+		IL_0005: ldc.i4.5
+		IL_0006: call int32 C::'<get_P>g__local2|1_1'(int32)
+		IL_000b: add
+		IL_000c: ldc.i4.5
+		IL_000d: call int32 C::'<get_P>g__local3|1_2'(int32)
+		IL_0012: add
+		IL_0013: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method assembly hidebysig static 
+		int32 '<get_P>g__local1|1_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.custom instance void MyAttribute::.ctor(int32) = (
+			01 00 05 00 00 00 00 00
+		)
+		// Method begins at RVA 0x207e
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__local1|1_0'
+	.method assembly hidebysig static 
+		int32 '<get_P>g__local2|1_1' (
+			[opt] int32 i
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.param [1] = int32(5)
+		// Method begins at RVA 0x2081
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__local2|1_1'
+	.method assembly hidebysig static 
+		int32 '<get_P>g__local3|1_2' (
+			[opt] int32 i
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.param [1] = int32(5)
+		// Method begins at RVA 0x2081
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__local3|1_2'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldInLocalFunction_PropertyIsStatic()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public static int P
+    {
+        get
+        {
+            return local1() + local2() + local3();
+
+            [My(field)]
+            int local1() => 0;
+
+            int local2(int i = field) => 0;
+
+            static int local3(int i = field) => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //             [My(field)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(10, 17),
+                // (13,32): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //             int local2(int i = field) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("i").WithLocation(13, 32),
+                // (15,39): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //             static int local3(int i = field) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("i").WithLocation(15, 39)
+            );
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsShadowed_ReferencedFromRegularLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(new C().P);
+
+public class C
+{
+    public int P
+    {
+        get
+        {
+            int field = 5;
+            return local();
+
+            int local() => field;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+		extends [mscorlib]System.ValueType
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 'field'
+	} // end of class <>c__DisplayClass1_0
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x206c
+		// Code size 16 (0x10)
+		.maxstack 2
+		.locals init (
+			[0] valuetype C/'<>c__DisplayClass1_0'
+		)
+		IL_0000: ldloca.s 0
+		IL_0002: ldc.i4.5
+		IL_0003: stfld int32 C/'<>c__DisplayClass1_0'::'field'
+		IL_0008: ldloca.s 0
+		IL_000a: call int32 C::'<get_P>g__local|1_0'(valuetype C/'<>c__DisplayClass1_0'&)
+		IL_000f: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method assembly hidebysig static 
+		int32 '<get_P>g__local|1_0' (
+			valuetype C/'<>c__DisplayClass1_0'& ''
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2088
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C/'<>c__DisplayClass1_0'::'field'
+		IL_0006: ret
+	} // end of method C::'<get_P>g__local|1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsShadowed_ReferencedFromRegularLambda()
+        {
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(new C().P);
+public class C
+{
+    public int P
+    {
+        get
+        {
+            int field = 5;
+            System.Func<int> func = () => field;
+            return func();
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 'field'
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x2061
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c__DisplayClass1_0'::.ctor
+		.method assembly hidebysig 
+			instance int32 '<get_P>b__0' () cil managed 
+		{
+			// Method begins at RVA 0x2087
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<>c__DisplayClass1_0'::'field'
+			IL_0006: ret
+		} // end of method '<>c__DisplayClass1_0'::'<get_P>b__0'
+	} // end of class <>c__DisplayClass1_0
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 29 (0x1d)
+		.maxstack 8
+		IL_0000: newobj instance void C/'<>c__DisplayClass1_0'::.ctor()
+		IL_0005: dup
+		IL_0006: ldc.i4.5
+		IL_0007: stfld int32 C/'<>c__DisplayClass1_0'::'field'
+		IL_000c: ldftn instance int32 C/'<>c__DisplayClass1_0'::'<get_P>b__0'()
+		IL_0012: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_0017: callvirt instance !0 class [mscorlib]System.Func`1<int32>::Invoke()
+		IL_001c: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestFieldIsShadowed_ReferencedFromStaticLocalFunction(bool isStatic, bool isLocal)
+        {
+            var local = isLocal ? "int field = 5;" : "";
+            var field = !isLocal ? $"private {(isStatic ? "static" : "")} int field = 5;" : "";
+            var comp = CreateCompilation($@"
+public class C
+{{
+    {field}
+    public {(isStatic ? "static" : "")} int P
+    {{
+        get
+        {{
+            {local}
+            return local();
+
+            static int local() => field;
+        }}
+    }}
+}}
+");
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            if (isLocal)
+            {
+                comp.VerifyDiagnostics(
+                    // (12,35): error CS8421: A static local function cannot contain a reference to 'field'.
+                    //             static int local() => field;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "field").WithArguments("field").WithLocation(12, 35)
+                );
+            }
+            else if (!isStatic && !isLocal)
+            {
+                comp.VerifyDiagnostics(
+                    // (12,35): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //             static int local() => field;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "field").WithLocation(12, 35)
+                );
+            }
+            else
+            {
+                Assert.True(isStatic && !isLocal);
+                comp.VerifyDiagnostics();
+            }
+
+            var symbolInfo = comp.GetSemanticModel(tree).GetSymbolInfo(root.DescendantNodes().Single(n => n is IdentifierNameSyntax { Parent: ArrowExpressionClauseSyntax }));
+            if (isLocal)
+            {
+                Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+                Assert.Equal("System.Int32 field", symbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.Equal(SymbolKind.Field, symbolInfo.Symbol.Kind);
+                Assert.Equal("System.Int32 C.field", symbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+            }
+
+            if (isLocal)
+            {
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            }
+            else
+            {
+                Assert.Equal(symbolInfo.Symbol.GetSymbol(), comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single());
+                Assert.Equal(symbolInfo.Symbol.GetSymbol(), comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single());
+            }
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestFieldIsShadowed_ReferencedFromStaticLambda(bool isLocal)
+        {
+            var local = isLocal ? "int field = 5;" : "";
+            var field = !isLocal ? "private int field = 5;" : "";
+            var comp = CreateCompilation($@"
+public class C
+{{
+    {field}
+    public int P
+    {{
+        get
+        {{
+            {local}
+            System.Func<int> func = static () => field;
+            return func();
+        }}
+    }}
+}}
+");
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            if (isLocal)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,50): error CS8820: A static anonymous function cannot contain a reference to 'field'.
+                    //             System.Func<int> func = static () => field;
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "field").WithArguments("field").WithLocation(10, 50)
+                );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,50): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
+                    //             System.Func<int> func = static () => field;
+                    Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(10, 50)
+                );
+            }
+
+            var symbolInfo = comp.GetSemanticModel(tree).GetSymbolInfo(root.DescendantNodes().Single(n => n is IdentifierNameSyntax { Parent: ParenthesizedLambdaExpressionSyntax }));
+            if (isLocal)
+            {
+                Assert.Equal("System.Int32 field", symbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            }
+            else
+            {
+                Assert.Equal("System.Int32 C.field", symbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+                Assert.Equal(SymbolKind.Field, symbolInfo.Symbol.Kind);
+                Assert.Equal(symbolInfo.Symbol.GetSymbol(), comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single());
+                Assert.Equal(symbolInfo.Symbol.GetSymbol(), comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single());
+            }
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsShadowedByField_ReferencedFromRegularLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(new C().P);
+
+public class C
+{
+    private int field = 5;
+
+    public int P
+    {
+        get
+        {
+            return local();
+
+            int local() => field;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private int32 'field'
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance int32 C::'<get_P>g__local|2_0'()
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2071
+		// Code size 14 (0xe)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.5
+		IL_0002: stfld int32 C::'field'
+		IL_0007: ldarg.0
+		IL_0008: call instance void [mscorlib]System.Object::.ctor()
+		IL_000d: ret
+	} // end of method C::.ctor
+	.method private hidebysig 
+		instance int32 '<get_P>g__local|2_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2080
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'field'
+		IL_0006: ret
+	} // end of method C::'<get_P>g__local|2_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            var field = comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single();
+            Assert.Equal("System.Int32 C.field", field.ToTestDisplayString());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFieldIsShadowedByField_ReferencedFromRegularLambda()
+        {
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(new C().P);
+public class C
+{
+    private int field = 5;
+
+    public int P
+    {
+        get
+        {
+            System.Func<int> func = () => field;
+            return func();
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5");
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private int32 'field'
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 18 (0x12)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldftn instance int32 C::'<get_P>b__2_0'()
+		IL_0007: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_000c: callvirt instance !0 class [mscorlib]System.Func`1<int32>::Invoke()
+		IL_0011: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 14 (0xe)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldc.i4.5
+		IL_0002: stfld int32 C::'field'
+		IL_0007: ldarg.0
+		IL_0008: call instance void [mscorlib]System.Object::.ctor()
+		IL_000d: ret
+	} // end of method C::.ctor
+	.method private hidebysig 
+		instance int32 '<get_P>b__2_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x208b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'field'
+		IL_0006: ret
+	} // end of method C::'<get_P>b__2_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            var field = comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single();
+            Assert.Equal("System.Int32 C.field", field.ToTestDisplayString());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
@@ -1263,7 +1948,7 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
+        [Fact]
         public void InStaticLambda()
         {
             var comp = CreateCompilation(@"
@@ -1292,7 +1977,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [Fact]
         public void InStaticLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -1320,7 +2005,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [Fact]
         public void InLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -1393,7 +2078,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
+        [Fact]
         public void InStaticLambda_PropertyIsStatic()
         {
             var comp = CreateCompilation(@"
@@ -1506,7 +2191,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support.")]
+        [Fact]
         public void InLambda()
         {
             var comp = CreateCompilation(@"
@@ -1972,20 +2657,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunctionOrLambda_BindOriginalFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return localFunction();
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2018,20 +2706,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunctionOrLambda_BindSpeculatedFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return localFunction();
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2056,26 +2747,28 @@ class C
             Assert.Null(aliasInfo);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
-            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunctionOrLambda_BindOriginalFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return field + localFunction();
-
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return field + f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2116,22 +2809,24 @@ class C
             Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
         }
 
-        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunctionOrLambda_BindSpeculatedFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return field + localFunction();
-
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return field + f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -3557,7 +4252,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [Theory]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
         [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
@@ -3617,7 +4312,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [Theory]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
         [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]

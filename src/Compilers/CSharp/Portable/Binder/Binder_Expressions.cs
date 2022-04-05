@@ -1558,8 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
-                        // PROTOTYPE(semi-auto-props): Use ContainingMember() to support local functions and lambdas.
-                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+                        ContainingMember().CanHaveFieldKeywordBackingField())
                     {
                         if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
