@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 FixableDiagnosticIds = ImmutableArray.Create(_codeStyleProvider._descriptorId);
             }
 
-            internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
             public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)

@@ -87,11 +87,6 @@
         <target state="new">Apply new() preferences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_parameter_null_preferences">
         <source>Apply parameter null preferences</source>
         <target state="new">Apply parameter null preferences</target>
@@ -112,20 +107,10 @@
         <target state="new">Apply static local function preferences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_this_qualification_preferences">
-        <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">'this.' 한정자 기본 설정 적용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_throw_expression_preferences">
         <source>Apply throw expression preferences</source>
         <target state="new">Apply throw expression preferences</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply preferred 'using' placement preferences</source>
-        <target state="translated">기본 'using' 배치 기본 설정 적용</target>
-        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
@@ -267,16 +252,6 @@
         <target state="translated">선택 영역에는 최상위 문을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_lambda_expression">
-        <source>Simplify lambda expression</source>
-        <target state="translated">람다 식 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_all_occurrences">
-        <source>Simplify all occurrences</source>
-        <target state="translated">모든 항목 단순화</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">'{0}' 클래스 봉인 해제</target>
@@ -285,11 +260,6 @@
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">재귀 패턴 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Expression_may_change_code_meaning">
-        <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="translated">경고: 식에 부작용이 있을 수 있습니다. 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -342,16 +312,6 @@
         <target state="translated">명시적으로 이름이 지정된 익명 형식 멤버가 만들어질 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="element_name">
-        <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;요소 이름&gt;: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
-        <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="translated">가능한 튜플 형식 요소 만들기로 인해 자동 선택을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
         <target state="translated">&lt;pattern variable&gt;</target>
@@ -382,11 +342,6 @@
         <target state="translated">this' 한정자 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">이름을 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
         <target state="translated">추출할 문의 유효한 범위를 결정할 수 없습니다.</target>
@@ -400,11 +355,6 @@
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
         <target state="translated">선택 항목에 유효한 노드가 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection.</source>
-        <target state="translated">잘못된 선택 항목입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -475,11 +425,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">Using 구성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_await">
-        <source>Insert 'await'.</source>
-        <target state="translated">Await'를 삽입합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
@@ -725,11 +670,6 @@
       <trans-unit id="attribute_target">
         <source>attribute target</source>
         <target state="translated">특성 대상</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
-        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'{0}'에 해당 개수의 인수를 사용하는 생성자가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">

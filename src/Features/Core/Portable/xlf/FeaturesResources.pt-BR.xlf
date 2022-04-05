@@ -425,11 +425,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Não são permitidas alterações durante uma interrupção em exceção</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAppliedWhileRunning">
-        <source>Changes made in project '{0}' will not be applied while the application is running</source>
-        <target state="translated">As alterações feitas no projeto '{0}' não serão aplicadas enquanto o aplicativo estiver em execução</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
         <target state="translated">Uma ou mais alterações resultam no compilador criando um novo tipo, o que requer a reinicialização do aplicativo porque não há suporte para ele no runtime</target>
@@ -640,11 +635,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Editar e Continuar</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditAndContinueDisallowedByModule">
-        <source>Edit and Continue disallowed by module</source>
-        <target state="translated">Pelo módulo, não é permitido Editar e Continuar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">As alterações feitas no projeto '{0}' requerem a reinicialização do aplicativo: {1}</target>
@@ -733,11 +723,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corrigir erro de digitação '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Formatar o documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -980,11 +965,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Introduzir o local</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_parameter">
-        <source>Introduce parameter</source>
-        <target state="translated">Apresentar parâmetro</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="translated">Apresentar parâmetro para '{0}'</target>
@@ -1165,11 +1145,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Modificar uma instrução try/catch/finally quando o bloco finally estiver ativo requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
-        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="translated">Modificar um {0} ativo que contém instruções On Error ou Resume requer a reinicialização do aplicativo.</target>
-        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
         <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
         <target state="translated">Modificar o corpo de {0} requer reiniciar o aplicativo porque o corpo tem muitas instruções.</target>
@@ -1333,11 +1308,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Efetuar pull de membros até o tipo base...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="translated">Efetuar pull de membros até a nova classe base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2009,11 +1979,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
         <target state="translated">Um intervalo de caracteres negativos especifica uma lista de caracteres que não podem aparecer em uma cadeia de caracteres de entrada para que uma correspondência ocorra. 'firstCharacter' é o caractere que inicia o intervalo e 'lastCharacter' é o caractere que termina o intervalo.
 
 Dois ou mais intervalos de caracteres podem ser concatenados. Por exemplo, para especificar o intervalo de dígitos decimais de "0" a "9", o intervalo de letras minúsculas de "a" até "f" e o intervalo de letras maiúsculas de "A" até "F", use [0-9a-fA-F].</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_negative_character_range_short">
-        <source>negative character range</source>
-        <target state="translated">intervalo de caracteres negativos</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
@@ -3765,11 +3730,6 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
         <target state="translated">Gerar {0} '{1}' aninhado</target>
         <note />
       </trans-unit>
-      <trans-unit id="Global_Namespace">
-        <source>Global Namespace</source>
-        <target state="translated">Namespace Global</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">Implementar interface de forma abstrata</target>
@@ -3954,16 +3914,6 @@ Se o especificador de formato "g" for usado sem outros especificadores de format
         <target state="translated">Tipo de membro de interface inesperado: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_symbol_kind">
-        <source>Unknown symbol kind</source>
-        <target state="translated">Tipo de símbolo desconhecido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Requested_assembly_already_loaded_from_0">
-        <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">Assembly solicitado já carregado de "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
         <source>The symbol does not have an icon.</source>
         <target state="translated">O símbolo não tem um ícone.</target>
@@ -4093,26 +4043,6 @@ Deseja continuar?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementar interface com Padrão de descarte</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_triage_0_currently_1">
-        <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">Fazer nova triagem de {0}(no momento, "{1}")</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_have_a_null_element">
-        <source>Argument cannot have a null element.</source>
-        <target state="translated">O argumento não pode ter um elemento nulo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Argument_cannot_be_empty">
-        <source>Argument cannot be empty.</source>
-        <target state="translated">O argumento não pode estar vazio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
-        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">O analisador não dá suporte ao diagnóstico relatado com ID '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -4540,11 +4470,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Locals">
-        <source>Locals</source>
-        <target state="translated">Locais</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Methods">
         <source>Methods</source>
         <target state="translated">Métodos</target>
@@ -4668,26 +4593,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Snippets">
         <source>Snippets</source>
         <target state="translated">Snippets</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_lowercase">
-        <source>All lowercase</source>
-        <target state="translated">Tudo em minúsculas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_uppercase">
-        <source>All uppercase</source>
-        <target state="translated">Tudo em maiúsculas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_capitalized">
-        <source>First word capitalized</source>
-        <target state="translated">Primeira palavra em maiúsculas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">Pascal Case</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -4850,11 +4755,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">em {0} (projeto {1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_accessibility_modifiers">
-        <source>Add accessibility modifiers</source>
-        <target state="translated">Adicionar modificadores de acessibilidade</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Mover declaração para próximo da referência</target>
@@ -4903,11 +4803,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
         <target state="translated">Aviso: a variável de iteração passou o limite da função.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
-        <source>Warning: Collection may be modified during iteration.</source>
-        <target state="translated">Aviso: a coleção pode ser modificada durante a iteração.</target>
         <note />
       </trans-unit>
       <trans-unit id="universal_full_date_time">

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             // anonymous type, and one to fixup all anonymous types.
             if (allAnonymousNodes.Any(t => !anonymousType.Equals(t.symbol, SymbolEqualityComparer.Default)))
             {
-                context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+                context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                     FeaturesResources.Convert_to_tuple,
                     ImmutableArray.Create<CodeAction>(
                         new MyCodeAction(FeaturesResources.just_this_anonymous_type, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c)),
