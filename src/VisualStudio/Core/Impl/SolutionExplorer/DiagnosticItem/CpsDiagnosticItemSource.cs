@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -90,13 +92,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            var canonicalName = _item.CanonicalName;
-            var analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, canonicalName);
-
-            if (string.IsNullOrEmpty(analyzerFilePath))
+            if (!ErrorHandler.Succeeded(_item.HierarchyIdentity.Hierarchy.GetProperty(_item.HierarchyIdentity.ItemID, (int)__VSHPROPID.VSHPROPID_BrowseObject, out var browseObject)) ||
+                browseObject is not ICustomTypeDescriptor typeDescriptor)
             {
                 return null;
             }
+
+            var property = typeDescriptor.GetProperties().OfType<PropertyDescriptor>()
+                                                         .FirstOrDefault(p => p.Name == "ResolvedPath");
+            if (property is null)
+            {
+                return null;
+            }
+
+            var resolvedPath = property.GetValue(browseObject) as string;
+            if (resolvedPath is null)
+            {
+                return null;
+            }
+
+            // The path we get here isn't normalized, so do so
+            var analyzerFilePath = FileUtilities.NormalizeAbsolutePath(resolvedPath);
 
             return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, analyzerFilePath, StringComparison.OrdinalIgnoreCase));
         }
