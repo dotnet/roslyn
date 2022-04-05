@@ -2137,6 +2137,7 @@ class C
         [InlineData("^", "op_ExclusiveOr")]
         [InlineData("<<", "op_LeftShift")]
         [InlineData(">>", "op_RightShift")]
+        [InlineData(">>>", "op_UnsignedRightShift")]
         [InlineData("==", "op_Equality")]
         [InlineData("!=", "op_Inequality")]
         [InlineData(">", "op_GreaterThan")]
@@ -2179,6 +2180,7 @@ class C
         [InlineData("^", "op_ExclusiveOr")]
         [InlineData("<<", "op_LeftShift")]
         [InlineData(">>", "op_RightShift")]
+        [InlineData(">>>", "op_UnsignedRightShift")]
         [InlineData("==", "op_Equality")]
         [InlineData("!=", "op_Inequality")]
         [InlineData(">", "op_GreaterThan")]
@@ -2224,6 +2226,7 @@ class C
         [InlineData("^")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">")]
@@ -2286,7 +2289,7 @@ class C
 
         private static string GetOperatorTokenForXml(string op)
         {
-            return op switch { "&" => "&amp;", "<<" => "{{", ">>" => "}}", ">" => "}", "<" => "{", ">=" => "}=", "<=" => "{=", _ => op };
+            return op switch { "&" => "&amp;", "<<" => "{{", ">>" => "}}", ">>>" => "}}}", ">" => "}", "<" => "{", ">=" => "}=", "<=" => "{=", _ => op };
         }
 
         [Theory]
@@ -2296,6 +2299,7 @@ class C
         [InlineData("^")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">")]

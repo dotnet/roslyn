@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ULongUnsignedRightShift = ULong | UnsignedRightShift,
         NIntUnsignedRightShift = NInt | UnsignedRightShift,
         NUIntUnsignedRightShift = NUInt | UnsignedRightShift,
-        // PROTOTYPE(UnsignedRightShift): UserDefinedUnsignedRightShift = UserDefined | UnsignedRightShift,
+        UserDefinedUnsignedRightShift = UserDefined | UnsignedRightShift,
         LiftedIntUnsignedRightShift = Lifted | Int | UnsignedRightShift,
         LiftedUIntUnsignedRightShift = Lifted | UInt | UnsignedRightShift,
         LiftedLongUnsignedRightShift = Lifted | Long | UnsignedRightShift,

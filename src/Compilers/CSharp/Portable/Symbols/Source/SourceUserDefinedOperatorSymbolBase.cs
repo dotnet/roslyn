@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case WellKnownMemberNames.LeftShiftOperatorName:
                 case WellKnownMemberNames.RightShiftOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftOperatorName:
                     CheckShiftSignature(diagnostics);
                     break;
 
