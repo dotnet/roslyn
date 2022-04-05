@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     document, position, documentsToSearchSet, options, cancellationToken).ConfigureAwait(false);
 
                 return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
-            },
-            cancellationToken);
+            }, cancellationToken);
         }
     }
 }

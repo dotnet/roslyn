@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
-            },
-            cancellationToken);
+            }, cancellationToken);
         }
     }
 }
