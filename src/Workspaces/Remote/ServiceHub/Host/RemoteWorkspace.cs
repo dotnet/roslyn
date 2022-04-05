@@ -318,42 +318,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
-        /// </summary>
-        private async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
-            int workspaceVersion,
-            bool fromPrimaryBranch,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
-            // the caller.
-            if (!fromPrimaryBranch)
-                return solution;
-
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // we never move workspace backward
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                    return solution;
-
-                _currentRemoteWorkspaceVersion = workspaceVersion;
-
-                var oldSolution = CurrentSolution;
-
-                var newSolution = SetCurrentSolution(solution);
-                _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                SetOptions(newSolution.Options);
-
-                // Since we did successfully change the solution, return the actual final solution the workspace
-                // recorded (which will contain things like the real workspace version associated with this
-                // solution instance).
-                return this.CurrentSolution;
-            }
-        }
-
-        /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.  only do this for primary
         /// solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>. 
         /// </summary>
@@ -392,6 +356,42 @@ namespace Microsoft.CodeAnalysis.Remote
                 SetOptions(options);
 
                 return CurrentSolution;
+            }
+        }
+
+        /// <summary>
+        /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
+        /// </summary>
+        private async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
+            int workspaceVersion,
+            bool fromPrimaryBranch,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
+            // the caller.
+            if (!fromPrimaryBranch)
+                return solution;
+
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // we never move workspace backward
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                    return solution;
+
+                _currentRemoteWorkspaceVersion = workspaceVersion;
+
+                var oldSolution = CurrentSolution;
+
+                var newSolution = SetCurrentSolution(solution);
+                _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+
+                SetOptions(newSolution.Options);
+
+                // Since we did successfully change the solution, return the actual final solution the workspace
+                // recorded (which will contain things like the real workspace version associated with this
+                // solution instance).
+                return this.CurrentSolution;
             }
         }
 
