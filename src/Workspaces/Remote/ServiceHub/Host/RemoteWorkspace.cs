@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                         // refcount of 1 (for 'us').
-                        tuple = (refCount: 1, new AsyncLazy<Solution>(
+                        tuple = (refCount: 1, AsyncLazy.Create(
                             c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true));
                         _checksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
