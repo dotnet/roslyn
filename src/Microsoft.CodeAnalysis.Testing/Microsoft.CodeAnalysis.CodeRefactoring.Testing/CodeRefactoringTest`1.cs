@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -182,7 +183,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.Sources[i].content.ToString(), actual.ToString(), $"content of '{newState.Sources[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.Sources[i].content.Encoding, actual.Encoding, $"encoding of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.Sources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.Equal(newState.Sources[i].filename, updatedDocuments[i].Name, $"file name was expected to be '{newState.Sources[i].filename}' but was '{updatedDocuments[i].Name}'");
+                var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.Sources[i].filename);
+                verifier.Equal(fileName, updatedDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedDocuments[i].Name}'");
+                verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", updatedDocuments[i].Folders)}'");
             }
 
             var updatedAdditionalDocuments = project.AdditionalDocuments.ToArray();
@@ -195,7 +198,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.AdditionalFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AdditionalFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AdditionalFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AdditionalFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.Equal(newState.AdditionalFiles[i].filename, updatedAdditionalDocuments[i].Name, $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{updatedAdditionalDocuments[i].Name}'");
+                var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.AdditionalFiles[i].filename);
+                verifier.Equal(fileName, updatedAdditionalDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedAdditionalDocuments[i].Name}'");
+                verifier.SequenceEqual(folders, updatedAdditionalDocuments[i].Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", updatedAdditionalDocuments[i].Folders)}'");
             }
 
             var updatedAnalyzerConfigDocuments = project.AnalyzerConfigDocuments().ToArray();
@@ -208,7 +213,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.AnalyzerConfigFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AnalyzerConfigFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.Equal(newState.AnalyzerConfigFiles[i].filename, updatedAnalyzerConfigDocuments[i].Name, $"file name was expected to be '{newState.AnalyzerConfigFiles[i].filename}' but was '{updatedAnalyzerConfigDocuments[i].Name}'");
+                var (fileName, folders) = GetNameAndFoldersFromPath(newState.DefaultPrefix, newState.AnalyzerConfigFiles[i].filename);
+                verifier.Equal(fileName, updatedAnalyzerConfigDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedAnalyzerConfigDocuments[i].Name}'");
+                verifier.SequenceEqual(folders, updatedAnalyzerConfigDocuments[i].Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", updatedAnalyzerConfigDocuments[i].Folders)}'");
             }
         }
 
