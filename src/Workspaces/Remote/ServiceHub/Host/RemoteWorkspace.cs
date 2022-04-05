@@ -346,8 +346,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var oldSolution = this.CurrentSolution;
 
-                var isUpdate = oldSolution.Id == newSolution.Id && oldSolution.FilePath == newSolution.FilePath;
-
                 // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
                 // the caller.
                 //
@@ -360,7 +358,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                if (!isUpdate)
+                var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
+                if (addingSolution)
                 {
                     // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one.
                     this.ClearSolutionData();
@@ -369,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 newSolution = SetCurrentSolution(newSolution);
                 SetOptions(newSolution.Options);
                 _ = this.RaiseWorkspaceChangedEventAsync(
-                    isUpdate ? WorkspaceChangeKind.SolutionChanged : WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
+                    addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
                 return (newSolution, updated: true);
             }
