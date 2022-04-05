@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public virtual RemoteWorkspace GetWorkspace()
             => _lazyPrimaryWorkspace.Value;
 
+        /// <summary>
+        /// Not ideal that we exposing the workspace solution, while not ensuring it stays alive for other calls using
+        /// the same <see cref="PinnedSolutionInfo.SolutionChecksum"/>). However, this is used by
+        /// Pythia/Razor/UnitTesting which all assume they can get that solution instance and use as desired by them.
+        /// </summary>
         public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);
