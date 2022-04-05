@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDeclaredSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
         {
-            var declaredType = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
+            var declaredSymbol = semanticModel.GetRequiredDeclaredSymbol(declarationSyntax, cancellationToken);
             var declaredOperation = semanticModel.GetRequiredOperation(declarationSyntax, cancellationToken);
 
             var rootOperation = declaredOperation;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                 rootOperation = rootOperation.Parent;
             }
 
-            return IsSymbolAssignedPossiblyNullValue(semanticModel, rootOperation, declaredType) == true;
+            return IsSymbolAssignedPossiblyNullValue(semanticModel, rootOperation, declaredSymbol) == true;
         }
 
         /// <summary>
