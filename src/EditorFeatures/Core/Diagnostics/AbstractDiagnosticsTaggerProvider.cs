@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we couldn't find a normal document, and all features are enabled for source generated documents,
             // attempt to locate a matching source generated document in the project.
             if (document is null
-                && e.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
+                && e.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true
                 && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
             {
                 document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
