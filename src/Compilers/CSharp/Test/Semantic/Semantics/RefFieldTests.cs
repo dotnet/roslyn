@@ -251,8 +251,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2<T>.F").WithLocation(8, 12));
         }
 
-        // PROTOTYPE: Should we report an error (or warning?) regardless of whether fields
-        // are auto-defaulted because it will result in a NullReferenceException (verify that's true).
+        // PROTOTYPE: Report a diagnostic when assigning a value rather than a ref
+        // in the constructor because a NullReferenceException will be thrown at runtime?
         [Fact]
         public void DefiniteAssignment_02()
         {
@@ -1818,8 +1818,8 @@ ref struct S<T>
     public ref readonly T Q { get; }
     public S(ref T t)
     {
-        P = t;
-        Q = t;
+        P = ref t;
+        Q = ref t;
     }
 }
 class Program
@@ -1840,7 +1840,6 @@ class Program
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should this scenario be supported? Test all valid combinations of { get, set, init }.
-            // PROTOTYPE: Why are we reporting ErrorCode.ERR_AssignReadonlyNotField for Q = t;?
             comp.VerifyEmitDiagnostics(
                 // (4,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P { get; }
@@ -1848,11 +1847,17 @@ class Program
                 // (5,27): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly T Q { get; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Q").WithArguments("S<T>.Q").WithLocation(5, 27),
-                // (9,9): error CS8331: Cannot assign to property 'S<T>.Q' because it is a readonly variable
-                //         Q = t;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Q").WithArguments("property", "S<T>.Q").WithLocation(9, 9),
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         P = ref t;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9),
+                // (8,9): error CS8079: Use of possibly unassigned auto-implemented property 'P'
+                //         P = ref t;
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "P").WithArguments("P").WithLocation(8, 9),
+                // (9,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         Q = ref t;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Q").WithLocation(9, 9),
                 // (9,9): error CS8079: Use of possibly unassigned auto-implemented property 'Q'
-                //         Q = t;
+                //         Q = ref t;
                 Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Q").WithArguments("Q").WithLocation(9, 9));
         }
 
@@ -1881,7 +1886,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should this scenario be supported?
+            // PROTOTYPE: Should not report ERR_RefReturnStructThis.
             comp.VerifyEmitDiagnostics(
                 // (5,31): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     internal ref T F() => ref t;

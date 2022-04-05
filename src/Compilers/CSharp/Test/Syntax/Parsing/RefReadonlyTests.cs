@@ -406,7 +406,6 @@ class Test
         [Fact]
         public void InverseReadOnlyRefShouldBeIllegal()
         {
-            // PROTOTYPE: Investigate why we report additional parse errors.
             CreateCompilation(@"
 class Test
 {
