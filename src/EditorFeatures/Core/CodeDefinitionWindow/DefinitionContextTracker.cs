@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             }
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetMetadataAsSourceOptions();
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }

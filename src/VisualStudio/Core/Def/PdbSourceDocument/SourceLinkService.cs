@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             _logger = logger;
         }
 
-        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken)
+        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
         {
             var hasCodeViewEntry = false;
             uint timeStamp = 0;
@@ -68,7 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
                 dllPath,
                 codeViewEntry.Path);
 
-            var flags = SymbolLocatorSearchFlags.None; // TODO: Add option to specify ForceMsftSymbolServer and ForceNuGetSymbolServer: https://github.com/dotnet/roslyn/issues/55834
+            var flags = useDefaultSymbolServers
+                ? SymbolLocatorSearchFlags.ForceNuGetSymbolServer | SymbolLocatorSearchFlags.ForceMsftSymbolServer
+                : SymbolLocatorSearchFlags.None;
             var result = await _debuggerSymbolLocatorService.LocateSymbolFileAsync(pdbInfo, flags, progress: null, cancellationToken).ConfigureAwait(false);
 
             if (result.Found && result.SymbolFilePath is not null)

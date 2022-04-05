@@ -24,8 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 context.RegisterCodeFix(New MyCodeAction(

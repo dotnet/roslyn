@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         //  "CS8421: A static local function can't contain a reference to <variable>."
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8421");
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

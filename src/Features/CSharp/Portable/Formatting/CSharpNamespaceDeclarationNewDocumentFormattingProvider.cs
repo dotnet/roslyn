@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (namespaces.Count != 1)
                 return document;
 
-            return await ConvertNamespaceTransform.ConvertAsync(document, namespaces[0], options, cancellationToken).ConfigureAwait(false);
+            return await ConvertNamespaceTransform.ConvertAsync(document, namespaces[0], cancellationToken).ConfigureAwait(false);
         }
 
         private static IEnumerable<BaseNamespaceDeclarationSyntax> GetNamespacesToReplace(Document document, CompilationUnitSyntax root, DocumentOptionSet optionSet)

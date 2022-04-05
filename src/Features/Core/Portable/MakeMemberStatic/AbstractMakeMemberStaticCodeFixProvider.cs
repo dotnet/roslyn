@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
 {
     internal abstract class AbstractMakeMemberStaticCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         protected abstract bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)

@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -98,9 +97,10 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
+                request.Options, context.Document, cancellationToken).ConfigureAwait(false);
 
-        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, formattingOptions, cancellationToken).ConfigureAwait(false);
+        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, documentOptions, cancellationToken).ConfigureAwait(false);
 
         return new VSInternalInlineCompletionList
         {
@@ -122,7 +122,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     /// 
     /// Note that the operations in this method are sensitive to the context in the document and so must be calculated on each request.
     /// </summary>
-    private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+    private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, DocumentOptionSet documentOptions, CancellationToken cancellationToken)
     {
         // Calculate the snippet text with defaults + snippet function results.
         var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(
@@ -136,7 +136,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var root = await originalDocument.WithText(documentWithSnippetText).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var spanToFormat = TextSpan.FromBounds(textChange.Span.Start, snippetEndPosition);
-        var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Workspace.Services, options, cancellationToken: cancellationToken)
+        var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Workspace, options: documentOptions, cancellationToken: cancellationToken)
             ?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
 
         var formattedText = documentWithSnippetText.WithChanges(formattingChanges);
