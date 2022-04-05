@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
 
-                var workspaceConfigurationService = services.GetService<IWorkspaceConfigurationService>();
-                if (workspaceConfigurationService != null)
-                {
-                    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                        (service, cancellationToken) => service.InitializeWorkspaceConfigurationOptionsAsync(workspaceConfigurationService.Options, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                //var workspaceConfigurationService = services.GetService<IWorkspaceConfigurationService>();
+                //if (workspaceConfigurationService != null)
+                //{
+                //    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                //        (service, cancellationToken) => service.InitializeWorkspaceConfigurationOptionsAsync(workspaceConfigurationService.Options, cancellationToken),
+                //        cancellationToken).ConfigureAwait(false);
+                //}
 
                 if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
                 {
