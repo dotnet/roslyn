@@ -355,16 +355,33 @@ namespace Microsoft.CodeAnalysis.Testing
                             continue;
                         }
 
-                        await PackageExtractor.ExtractPackageAsync(
+                        if (downloadResult.Status == DownloadResourceResultStatus.AvailableWithoutStream)
+                        {
+                            await PackageExtractor.ExtractPackageAsync(
 #if !NET452 && !NETSTANDARD1_5
 #pragma warning disable SA1114 // Parameter list should follow declaration
-                            downloadResult.PackageSource,
+                                downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration
 #endif
-                            downloadResult.PackageStream,
-                            localPathResolver,
-                            packageExtractionContext,
-                            cancellationToken);
+                                downloadResult.PackageReader,
+                                localPathResolver,
+                                packageExtractionContext,
+                                cancellationToken);
+                        }
+                        else
+                        {
+                            Debug.Assert(downloadResult.PackageStream != null, "PackageStream should not be null if download result status != DownloadResourceResultStatus.AvailableWithoutStream");
+                            await PackageExtractor.ExtractPackageAsync(
+#if !NET452 && !NETSTANDARD1_5
+#pragma warning disable SA1114 // Parameter list should follow declaration
+                                downloadResult.PackageSource,
+#pragma warning restore SA1114 // Parameter list should follow declaration
+#endif
+                                downloadResult.PackageStream,
+                                localPathResolver,
+                                packageExtractionContext,
+                                cancellationToken);
+                        }
 
                         installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                         packageReader = downloadResult.PackageReader;
