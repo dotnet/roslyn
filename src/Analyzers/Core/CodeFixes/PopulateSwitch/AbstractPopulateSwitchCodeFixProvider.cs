@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool hasMissingCases, bool hasMissingDefaultCase,
             TSwitchSyntax switchNode, TSwitchOperation switchOperation);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Custom;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();

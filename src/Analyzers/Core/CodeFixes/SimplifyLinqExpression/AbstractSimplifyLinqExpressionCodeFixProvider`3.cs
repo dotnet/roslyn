@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(

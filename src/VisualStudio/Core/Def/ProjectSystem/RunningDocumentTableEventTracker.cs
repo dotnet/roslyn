@@ -29,6 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IRunningDocumentTableEventListener _listener;
         private uint _runningDocumentTableEventsCookie;
 
+        /// <summary>
+        /// This constructor can be called on any thread.
+        /// </summary>
         public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable runningDocumentTable,
             IRunningDocumentTableEventListener listener)
         {
@@ -38,12 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(listener);
 
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
+            // casting is free threaded past 16.0
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;
 
             // Advise / Unadvise for the RDT is free threaded past 16.0
-            ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+            runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
         }
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)

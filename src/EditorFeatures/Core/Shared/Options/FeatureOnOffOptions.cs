@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             RenameTrackingPreview,
             RenameTracking,
             RefactoringVerification,
-            NavigateToDecompiledSources,
             AddImportsOnPaste,
             OfferRemoveUnusedReferences,
             OfferRemoveUnusedReferencesFeatureFlag,
@@ -90,10 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// </summary>
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
-
-        public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            FeatureName, "NavigateToDecompiledSources", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
 
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
             FeatureName, "AddImportsOnPaste", defaultValue: null,

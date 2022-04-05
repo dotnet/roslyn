@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,17 +17,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal abstract class AbstractSyntaxFormattingService : ISyntaxFormattingService
+    internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
     {
         private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
 
-        protected AbstractSyntaxFormattingService()
+        protected AbstractSyntaxFormatting()
         {
         }
 
         public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
 
-        public abstract IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
+        public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null);
 

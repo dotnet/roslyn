@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 var firstPeriod = chunks[0][0];
 
                 _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
+                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(options.UseTabs, options.TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
                     GetSmartIndentationAfter(firstPeriod)));

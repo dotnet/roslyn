@@ -7,7 +7,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
@@ -22,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             public SimpleStringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText, SyntaxToken token,
-                in IndentationOptions options, bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
+                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
             {
                 _token = token;
             }

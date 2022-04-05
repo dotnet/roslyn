@@ -354,11 +354,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
 
             // gather CodeFixProviders for all distinct diagnostics found for current span
-            using var _1 = ArrayBuilder<CodeFixProvider>.GetInstance(out var allFixers);
-            using var _2 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
+            using var _1 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
+            using var _2 = PooledHashSet<CodeFixProvider>.GetInstance(out var currentFixers);
 
             foreach (var (range, diagnostics) in spanToDiagnostics)
             {
+                currentFixers.Clear();
+
                 foreach (var diagnosticId in diagnostics.Select(d => d.Id).Distinct())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -385,8 +387,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
-            if (allFixers.Count >= 2 && TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
-                allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
+            var allFixers = fixerToRangesAndDiagnostics.Keys.ToImmutableArray();
+            if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
+                allFixers = allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
@@ -468,11 +471,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach (var fixer in fixers)
                 {
-                    if (allFixers.Contains(fixer))
-                        continue;
-
-                    allFixers.Add(fixer);
-                    fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
+                    if (currentFixers.Add(fixer))
+                        fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
                 }
             }
         }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
                             // Always add a name even in cases of 3rd party fixers that do not export
                             // name metadata.
-                            action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
+                            action.AddCustomTagAndTelemetryInfo(fixerMetadata, fixer);
 
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }
@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private readonly ImmutableDictionary<CodeFixProvider, int> _priorityMap;
 
             public FixerComparer(
-                ArrayBuilder<CodeFixProvider> allFixers,
+                ImmutableArray<CodeFixProvider> allFixers,
                 ImmutableDictionary<CodeFixProvider, int> priorityMap)
             {
                 _fixerToIndex = allFixers.Select((fixer, index) => (fixer, index)).ToDictionary(t => t.fixer, t => t.index);

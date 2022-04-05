@@ -25,8 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.UseIsNotExpressionDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             context.RegisterCodeFix(New MyCodeAction(
                 Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),

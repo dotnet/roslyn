@@ -47,7 +47,16 @@ steps:
     condition: not(succeeded())
 
   - task: PublishBuildArtifacts@1
-    displayName: Publish Screenshots and Test Attachments
+    displayName: Publish Test Attachments
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
+      ArtifactName: '$(System.JobAttempt)-Blame ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      publishLocation: Container
+    continueOnError: true
+    condition: not(succeeded())
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Screenshots and Test Attachments (Old Tests)
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
       ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'

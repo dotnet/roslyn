@@ -1210,6 +1210,7 @@ namespace System.Runtime.CompilerServices
 
         private static void VerifyUsedAssemblyReferences(Func<CSharpCompilation> createCompilationLambda)
         {
+            // To run the additional validation below, comment this out or define ROSLYN_TEST_USEDASSEMBLIES
             if (!CompilationExtensions.EnableVerifyUsedAssemblies)
             {
                 return;

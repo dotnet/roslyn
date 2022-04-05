@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -35,20 +36,32 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
         }
 
-        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, string tempPath, CancellationToken cancellationToken)
+        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // If we've been asked for signatures only, then we never want to use the decompiler
-            var useDecompiler = !signaturesOnly && allowDecompilation;
+            var useDecompiler = !signaturesOnly && options.NavigateToDecompiledSources;
+
+            // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
                 useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+            }
+
+            var refInfo = GetReferenceInfo(compilation, symbol.ContainingAssembly);
+
+            // If its a reference assembly we won't get real code anyway, so better to
+            // not use the decompiler, as the stubs will at least be in the right language
+            // (decompiler only produces C#)
+            if (useDecompiler)
+            {
+                useDecompiler = !refInfo.isReferenceAssembly;
             }
 
             var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
@@ -77,7 +90,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                         if (decompiledSourceService != null)
                         {
-                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
+                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -142,6 +155,32 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+        }
+
+        private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
+        {
+            var metadataReference = compilation.GetMetadataReference(containingAssembly);
+            var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
+
+            var isReferenceAssembly = containingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+
+            if (assemblyLocation is not null &&
+                isReferenceAssembly &&
+                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
+            {
+                try
+                {
+                    var fullAssemblyName = containingAssembly.Identity.GetDisplayName();
+                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
+                    isReferenceAssembly = assemblyLocation is null;
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+                {
+                }
+            }
+
+            return (metadataReference, assemblyLocation, isReferenceAssembly);
         }
 
         private async Task<Location> RelocateSymbol_NoLockAsync(Workspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)

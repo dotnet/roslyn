@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected AbstractAddExplicitCastCodeFixProvider(ISyntaxFacts syntaxFacts)
             => SyntaxFacts = syntaxFacts;
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         protected ISyntaxFacts SyntaxFacts { get; }
         protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             ReportTelemetryIfNecessary(potentialConversionTypes);
 
-            context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterCodeFix(CodeAction.CodeActionWithNestedActions.Create(
                 FeaturesResources.Add_explicit_cast,
                 actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);

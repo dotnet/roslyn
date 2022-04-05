@@ -1385,15 +1385,18 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(SpecialType.System_IDisposable);
+
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
 Done with DisposableEnumerator");
 
             // IL Should not contain any Box/unbox instructions as we're a ref struct 
-            compilation.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1

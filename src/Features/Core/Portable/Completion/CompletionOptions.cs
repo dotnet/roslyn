@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
         bool ProvideDateAndTimeCompletions = true,
         bool ProvideRegexCompletions = true,
         bool ForceExpandedCompletionIndexCreation = false,
+        bool UpdateImportCompletionCacheInBackground = false,
         bool FilterOutOfScopeLocals = true,
         bool ShowXmlDocCommentCompletion = true,
         ExpandedCompletionMode ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems)

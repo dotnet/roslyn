@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Wrapping;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping
@@ -15,18 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
 
         public CSharpSyntaxWrappingOptions(
-            CSharpSyntaxFormattingOptions formattingOptions,
+            bool useTabs,
+            int tabSize,
+            string newLine,
             int wrappingColumn,
             OperatorPlacementWhenWrappingPreference operatorPlacement,
             bool newLinesForBracesInObjectCollectionArrayInitializers)
-            : base(formattingOptions, wrappingColumn, operatorPlacement)
+            : base(useTabs, tabSize, newLine, wrappingColumn, operatorPlacement)
         {
             NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
         }
 
         public static CSharpSyntaxWrappingOptions Create(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
             => new(
-                CSharpSyntaxFormattingOptions.Create(options),
+                useTabs: options.GetOption(FormattingOptions2.UseTabs),
+                tabSize: options.GetOption(FormattingOptions2.TabSize),
+                newLine: options.GetOption(FormattingOptions2.NewLine),
                 operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
                 wrappingColumn: ideOptions.WrappingColumn,
                 newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers));

@@ -1808,6 +1808,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsInInactiveRegion
+            If syntaxTree Is Nothing Then
+                Return False
+            End If
+
+            Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
+        End Function
+
 #Region "IsXXX members"
 
         Public Function IsAnonymousFunctionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunctionExpression

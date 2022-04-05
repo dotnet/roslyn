@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]

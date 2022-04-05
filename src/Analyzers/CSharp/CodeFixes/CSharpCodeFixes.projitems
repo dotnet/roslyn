@@ -16,9 +16,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\CSharpUsePatternCombinatorsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />

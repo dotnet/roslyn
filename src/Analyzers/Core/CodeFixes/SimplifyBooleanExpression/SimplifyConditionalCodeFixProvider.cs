@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(

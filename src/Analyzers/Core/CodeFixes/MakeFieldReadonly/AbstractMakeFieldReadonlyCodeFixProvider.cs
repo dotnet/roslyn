@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
         protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 

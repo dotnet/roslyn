@@ -87,11 +87,6 @@
         <target state="new">Apply new() preferences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_parameter_null_preferences">
         <source>Apply parameter null preferences</source>
         <target state="new">Apply parameter null preferences</target>
@@ -112,20 +107,10 @@
         <target state="new">Apply static local function preferences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_this_qualification_preferences">
-        <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">套用 'this.' 資格喜好設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_throw_expression_preferences">
         <source>Apply throw expression preferences</source>
         <target state="new">Apply throw expression preferences</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply preferred 'using' placement preferences</source>
-        <target state="translated">套用慣用的 'using' 放置喜好設定</target>
-        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
@@ -267,16 +252,6 @@
         <target state="translated">選取範圍不能包含最上層陳述式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_lambda_expression">
-        <source>Simplify lambda expression</source>
-        <target state="translated">簡化 Lambda 運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_all_occurrences">
-        <source>Simplify all occurrences</source>
-        <target state="translated">簡化所有項目</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">為類別 '{0}' 解密</target>
@@ -285,11 +260,6 @@
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">使用遞迴模式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Expression_may_change_code_meaning">
-        <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="translated">警告: 運算式可能有副作用。代碼意義可能變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -342,16 +312,6 @@
         <target state="translated">由於可能會建立明確命名的匿名類型成員，所以停用自動選取。</target>
         <note />
       </trans-unit>
-      <trans-unit id="element_name">
-        <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;元素名稱&gt;: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
-        <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="translated">因為可能建立元組類型元素，所以停用自動選擇。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
         <target state="translated">&lt;樣式變數&gt;</target>
@@ -382,11 +342,6 @@
         <target state="translated">移除 'this' 限定性條件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">可以簡化名稱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
         <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
@@ -400,11 +355,6 @@
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
         <target state="translated">選取範圍沒有包含有效的節點</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection.</source>
-        <target state="translated">無效的選取範圍。</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -475,11 +425,6 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">組合管理 Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_await">
-        <source>Insert 'await'.</source>
-        <target state="translated">插入 'await'。</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
@@ -725,11 +670,6 @@
       <trans-unit id="attribute_target">
         <source>attribute target</source>
         <target state="translated">屬性目標</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
-        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'{0}' 不包含接受許多引數的建構函式。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">

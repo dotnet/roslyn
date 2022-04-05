@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);

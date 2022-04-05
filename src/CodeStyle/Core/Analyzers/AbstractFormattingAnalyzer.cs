@@ -27,15 +27,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-        protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
+        protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var options = SyntaxFormattingService.GetFormattingOptions(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, options);
+            var options = SyntaxFormatting.GetFormattingOptions(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormatting, Descriptor, options);
         }
     }
 }
