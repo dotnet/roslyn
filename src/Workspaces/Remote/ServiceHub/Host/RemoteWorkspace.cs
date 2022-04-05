@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// solution returned is only for legacy cases where we expose OOP to 2nd party clients who expect to be able to
         /// call through <see cref="RemoteWorkspaceManager.GetSolutionAsync"/> and who expose that statically to
         /// themselves.
+        /// <para>
+        /// During the life of the call to <paramref name="doWorkAsync"/> the solution corresponding to <paramref
+        /// name="solutionChecksum"/> will be kept alive and returned to any other concurrent calls to this method with
+        /// the same <paramref name="solutionChecksum"/>.
+        /// </para>
         /// </summary>
         public async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
