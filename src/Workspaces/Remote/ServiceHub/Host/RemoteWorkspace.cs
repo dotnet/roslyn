@@ -80,11 +80,9 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task UpdatePrimaryBranchSolutionAsync(
             AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
-            var baseSolution = CurrentSolution;
-
             // See if the current snapshot we're pointing at is the same one the host wants us to sync to.  If so, we
             // don't need to do anything.
-            var currentSolutionChecksum = await baseSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var currentSolutionChecksum = await this.CurrentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
@@ -97,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 solutionChecksum,
                 workspaceVersion,
                 fromPrimaryBranch: true,
-                baseSolution,
                 static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -123,8 +120,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
-            var baseSolution = this.CurrentSolution;
-
             // Fast path if this solution checksum is for a solution we're already caching. This also avoids us then
             // trying to actually mutate the workspace for the simple case of asking for the same thing the last call
             // asked about.
@@ -135,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Wasn't the same as the last thing we cached, actually get the corresponding solution and run the
             // requested callback against it.
             return await TrySlowGetSolutionAndRunAsync(
-                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, baseSolution, doWorkAsync, cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, doWorkAsync, cancellationToken).ConfigureAwait(false);
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
@@ -166,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Solution baseSolution,
             Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
@@ -207,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                         // refcount of 1 (for 'us').
                         tuple = (refCount: 1, new AsyncLazy<Solution>(
-                            c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, baseSolution, c), cacheResult: true));
+                            c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true));
                         _checksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
 
@@ -275,12 +269,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Solution baseSolution,
             CancellationToken cancellationToken)
         {
             try
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution, cancellationToken);
 
                 // check whether solution is update to the given base solution
                 Solution solution;
