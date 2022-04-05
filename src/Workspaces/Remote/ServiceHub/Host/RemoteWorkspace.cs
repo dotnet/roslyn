@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// The last solution for the primary branch fetched from the client.
         /// </summary>
-        private (Checksum checksum, Solution solution) _primaryBranchSolutionWithChecksum;
+        private (Checksum checksum, Solution solution) _lastRequestedPrimaryBranchSolution;
 
         /// <summary>
         /// The last solution requested by a service.
         /// </summary>
-        private (Checksum checksum, Solution solution) _lastRequestedSolutionWithChecksum;
+        private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up setting <see
-        /// cref="_lastRequestedSolutionWithChecksum"/> and <see cref="_primaryBranchSolutionWithChecksum"/>, allowing
+        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
         /// them to be pre-populated for feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 Solution solution;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_primaryBranchSolutionWithChecksum.checksum == solutionChecksum)
+                    if (_lastRequestedPrimaryBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _primaryBranchSolutionWithChecksum.solution;
+                        solution = _lastRequestedPrimaryBranchSolution.solution;
                     }
-                    else if (_lastRequestedSolutionWithChecksum.checksum == solutionChecksum)
+                    else if (_lastRequestedAnyBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _lastRequestedSolutionWithChecksum.solution;
+                        solution = _lastRequestedAnyBranchSolution.solution;
                     }
                     else
                     {
@@ -165,25 +165,31 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
             // need for us to force the same computation to happen ourselves.
-            var lazySolution = await GetLazySolutionAsync().ConfigureAwait(false);
+            var lazySolution = await GetLazySolutionAndIncrementRefCountAsync().ConfigureAwait(false);
 
-            // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
-            var solution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
+                var solution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-            // Store this around so that if another call comes through, they will see the solution we just computed.
-            await SetLastRequestedSolutionAsync(solution).ConfigureAwait(false);
+                // Store this around so that if another call comes through, they will see the solution we just computed.
+                await SetLastRequestedSolutionAsync(solution).ConfigureAwait(false);
 
-            // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
-            // using this same solution as well
-            var result = await doWorkAsync(solution).ConfigureAwait(false);
+                // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
+                // using this same solution as well
+                var result = await doWorkAsync(solution).ConfigureAwait(false);
 
-            // Now that we're done, update the refcounts for this lazy solution, removing it if the refcount goes back
-            // to zero.
-            await UpdateLazySolutionRefcountAsync().ConfigureAwait(false);
+                return (solution, result);
 
-            return (solution, result);
+            }
+            finally
+            {
+                // Now that we're done, update the refcounts for this lazy solution, removing it if the refcount goes back
+                // to zero.
+                await DecrementLazySolutionRefcountAsync().ConfigureAwait(false);
+            }
 
-            async ValueTask<AsyncLazy<Solution>> GetLazySolutionAsync()
+            async ValueTask<AsyncLazy<Solution>> GetLazySolutionAndIncrementRefCountAsync()
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -214,15 +220,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // Quick caches of the last solutions we computed.  That way if return all the way out and something
                     // else calls back in, we have a likely chance of a cache hit.
-                    _lastRequestedSolutionWithChecksum = (solutionChecksum, solution);
+                    _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
                     if (fromPrimaryBranch)
-                        _primaryBranchSolutionWithChecksum = (solutionChecksum, solution);
+                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
                 }
             }
 
-            async ValueTask UpdateLazySolutionRefcountAsync()
+            async ValueTask DecrementLazySolutionRefcountAsync()
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // We use CancellationToken.None here as we have to ensure the refcount is decremented, or else we will
+                // have a memory leak.  This should hopefully not ever be an issue as we only ever hold this gate for
+                // very short periods of time in order to set do basic operations on our state.
+                using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
                     var tuple = _checksumToRefCountAndLazySolution[solutionChecksum];
                     tuple.refCount--;
