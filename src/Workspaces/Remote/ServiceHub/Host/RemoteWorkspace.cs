@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
 
                     // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    return await TryUpdateAndReturnPrimarySolutionAsync(
+                    return await UpdateSolutionIfPossibleAsync(
                         workspaceVersion, fromPrimaryBranch, solution, cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
         /// </summary>
-        internal async ValueTask<Solution> TryUpdateAndReturnPrimarySolutionAsync(
+        internal async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
             int workspaceVersion,
             bool fromPrimaryBranch,
             Solution solution,
