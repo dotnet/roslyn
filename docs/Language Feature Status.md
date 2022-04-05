@@ -31,7 +31,7 @@ efforts behind them.
 | [Checked Operators](https://github.com/dotnet/csharplang/issues/4665) | [CheckedUserDefinedOperators](https://github.com/dotnet/roslyn/tree/features/CheckedUserDefinedOperators) | [In Progress](https://github.com/dotnet/roslyn/issues/59458) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [chsienki](https://github.com/chsienki) | [AlekseyTs](https://github.com/AlekseyTs) | 
 | [auto-default structs](https://github.com/dotnet/csharplang/issues/5737) | main | [Merged into 17.3p1](https://github.com/dotnet/roslyn/issues/60167) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | 
 | [Unsigned Right Shift](https://github.com/dotnet/csharplang/issues/4682) | [UnsignedRightShift](https://github.com/dotnet/roslyn/tree/features/UnsignedRightShift) | [In Progress](https://github.com/dotnet/roslyn/issues/60433) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv)  | [AlekseyTs](https://github.com/AlekseyTs) | 
-
+| Numeric IntPtr | [numeric-intptr](https://github.com/dotnet/roslyn/tree/features/numeric-intptr) | [In Progress](https://github.com/dotnet/roslyn/issues/60578) | [jcouv](https://github.com/jcouv) | TBD  | [jcouv](https://github.com/jcouv) | 
   
 # C# 10.0
 
