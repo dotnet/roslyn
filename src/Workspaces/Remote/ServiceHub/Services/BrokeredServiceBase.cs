@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async ValueTask<T> RunWithSolutionAsync<T>(
             PinnedSolutionInfo solutionInfo,
-            Func<Solution, ValueTask<T>> doWorkAsync,
+            Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 solutionInfo.SolutionChecksum,
                 solutionInfo.WorkspaceVersion,
                 solutionInfo.FromPrimaryBranch,
-                doWorkAsync,
+                implementation,
                 cancellationToken).ConfigureAwait(false);
 
             return result;

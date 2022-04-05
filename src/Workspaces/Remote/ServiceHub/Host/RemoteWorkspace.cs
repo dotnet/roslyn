@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Given an appropriate <paramref name="solutionChecksum"/>, gets or computes the corresponding <see
-        /// cref="Solution"/> snapshot for it, and then invokes <paramref name="doWorkAsync"/> with that snapshot.  That
-        /// snapshot and the result of <paramref name="doWorkAsync"/> are then returned from this method.  Note: the
+        /// cref="Solution"/> snapshot for it, and then invokes <paramref name="implementation"/> with that snapshot.  That
+        /// snapshot and the result of <paramref name="implementation"/> are then returned from this method.  Note: the
         /// solution returned is only for legacy cases where we expose OOP to 2nd party clients who expect to be able to
         /// call through <see cref="RemoteWorkspaceManager.GetSolutionAsync"/> and who expose that statically to
         /// themselves.
         /// <para>
-        /// During the life of the call to <paramref name="doWorkAsync"/> the solution corresponding to <paramref
+        /// During the life of the call to <paramref name="implementation"/> the solution corresponding to <paramref
         /// name="solutionChecksum"/> will be kept alive and returned to any other concurrent calls to this method with
         /// the same <paramref name="solutionChecksum"/>.
         /// </para>
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Func<Solution, ValueTask<T>> doWorkAsync,
+            Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
             // Fast path if this solution checksum is for a solution we're already caching. This also avoids us then
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Wasn't the same as the last thing we cached, actually get the corresponding solution and run the
             // requested callback against it.
             return await SlowGetSolutionAndRunAsync(
-                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, doWorkAsync, cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, implementation, cancellationToken).ConfigureAwait(false);
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                var result = await doWorkAsync(solution).ConfigureAwait(false);
+                var result = await implementation(solution).ConfigureAwait(false);
                 return (solution, result);
             }
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Func<Solution, ValueTask<T>> doWorkAsync,
+            Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
-                var result = await doWorkAsync(solution).ConfigureAwait(false);
+                var result = await implementation(solution).ConfigureAwait(false);
 
                 return (solution, result);
 
