@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var baseSolution = this.CurrentSolution;
 
             // Fast path if this solution checksum is for a solution we're already caching. This also avoids us then
-            // trying to actually mutate the workspace for the simple case of asking for the same thing the last calls
+            // trying to actually mutate the workspace for the simple case of asking for the same thing the last call
             // asked about.
             var tuple = await TryFastGetSolutionAndRunAsync().ConfigureAwait(false);
             if (tuple.solution != null)
