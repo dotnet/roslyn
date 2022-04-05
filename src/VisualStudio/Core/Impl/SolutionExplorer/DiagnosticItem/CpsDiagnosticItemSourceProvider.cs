@@ -58,12 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         if (hierarchyMapper != null &&
                             hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
                         {
-                            var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
-                            var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                            if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
-                            {
-                                return new CpsDiagnosticItemSource(_workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService);
-                            }
+                            return new CpsDiagnosticItemSource(_workspace, projectId, item, _commandHandler, _diagnosticAnalyzerService);
                         }
                     }
                 }

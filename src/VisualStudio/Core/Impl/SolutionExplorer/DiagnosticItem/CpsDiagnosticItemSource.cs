@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,17 +17,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal partial class CpsDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource, INotifyPropertyChanged
     {
         private readonly IVsHierarchyItem _item;
-        private readonly string _projectDirectoryPath;
 
         private AnalyzerReference? _analyzerReference;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public CpsDiagnosticItemSource(Workspace workspace, string projectPath, ProjectId projectId, IVsHierarchyItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService analyzerService)
+        public CpsDiagnosticItemSource(Workspace workspace, ProjectId projectId, IVsHierarchyItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService analyzerService)
             : base(workspace, projectId, commandHandler, analyzerService)
         {
             _item = item;
-            _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
             _analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
             if (_analyzerReference == null)

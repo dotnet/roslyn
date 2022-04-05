@@ -37,7 +37,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     workspace,
-                    project.FilePath,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = "\net472\analyzerdependency\" + analyzerPath},
                     New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService))
