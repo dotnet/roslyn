@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                      IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
 #if CODE_STYLE
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
 #endif

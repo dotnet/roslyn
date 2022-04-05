@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(
             Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         {

@@ -252,9 +252,6 @@
   <data name="Generate_nested_0_1" xml:space="preserve">
     <value>Generate nested {0} '{1}'</value>
   </data>
-  <data name="Global_Namespace" xml:space="preserve">
-    <value>Global Namespace</value>
-  </data>
   <data name="Implement_all_members_explicitly" xml:space="preserve">
     <value>Implement all members explicitly</value>
   </data>
@@ -558,10 +555,6 @@
     <value>Modifying {0} which contains the stackalloc operator requires restarting the application.</value>
     <comment>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</comment>
   </data>
-  <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</value>
-    <comment>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</comment>
-  </data>
   <data name="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</value>
     <comment>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</comment>
@@ -584,9 +577,6 @@
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
   </data>
-  <data name="Unknown_symbol_kind" xml:space="preserve">
-    <value>Unknown symbol kind</value>
-  </data>
   <data name="Generate_abstract_property_0" xml:space="preserve">
     <value>Generate abstract property '{0}'</value>
   </data>
@@ -595,9 +585,6 @@
   </data>
   <data name="Generate_method_0" xml:space="preserve">
     <value>Generate method '{0}'</value>
-  </data>
-  <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
-    <value>Requested assembly already loaded from '{0}'.</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
@@ -709,18 +696,6 @@ Do you want to continue?</value>
   </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
-  </data>
-  <data name="Re_triage_0_currently_1" xml:space="preserve">
-    <value>Re-triage {0}(currently '{1}')</value>
-  </data>
-  <data name="Argument_cannot_have_a_null_element" xml:space="preserve">
-    <value>Argument cannot have a null element.</value>
-  </data>
-  <data name="Argument_cannot_be_empty" xml:space="preserve">
-    <value>Argument cannot be empty.</value>
-  </data>
-  <data name="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer" xml:space="preserve">
-    <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
   <data name="Computing_fix_all_occurrences_code_fix" xml:space="preserve">
     <value>Computing fix all occurrences code fix...</value>
@@ -908,9 +883,6 @@ This version used in: {2}</value>
   <data name="Interfaces" xml:space="preserve">
     <value>Interfaces</value>
   </data>
-  <data name="Locals" xml:space="preserve">
-    <value>Locals</value>
-  </data>
   <data name="Methods" xml:space="preserve">
     <value>Methods</value>
   </data>
@@ -1004,18 +976,6 @@ This version used in: {2}</value>
   </data>
   <data name="Snippets" xml:space="preserve">
     <value>Snippets</value>
-  </data>
-  <data name="All_lowercase" xml:space="preserve">
-    <value>All lowercase</value>
-  </data>
-  <data name="All_uppercase" xml:space="preserve">
-    <value>All uppercase</value>
-  </data>
-  <data name="First_word_capitalized" xml:space="preserve">
-    <value>First word capitalized</value>
-  </data>
-  <data name="Pascal_Case" xml:space="preserve">
-    <value>Pascal Case</value>
   </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
@@ -1131,9 +1091,6 @@ This version used in: {2}</value>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
   </data>
-  <data name="Add_accessibility_modifiers" xml:space="preserve">
-    <value>Add accessibility modifiers</value>
-  </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
   </data>
@@ -1166,9 +1123,6 @@ This version used in: {2}</value>
   </data>
   <data name="Warning_colon_Iteration_variable_crossed_function_boundary" xml:space="preserve">
     <value>Warning: Iteration variable crossed function boundary.</value>
-  </data>
-  <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
-    <value>Warning: Collection may be modified during iteration.</value>
   </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
@@ -1391,9 +1345,6 @@ This version used in: {2}</value>
   <data name="RudeEdit" xml:space="preserve">
     <value>Rude edit</value>
   </data>
-  <data name="EditAndContinueDisallowedByModule" xml:space="preserve">
-    <value>Edit and Continue disallowed by module</value>
-  </data>
   <data name="CannotApplyChangesUnexpectedError" xml:space="preserve">
     <value>Cannot apply changes -- unexpected error: '{0}'</value>
   </data>
@@ -1402,9 +1353,6 @@ This version used in: {2}</value>
   </data>
   <data name="EditAndContinueDisallowedByProject" xml:space="preserve">
     <value>Changes made in project '{0}' require restarting the application: {1}</value>
-  </data>
-  <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
-    <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
   <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
     <value>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
@@ -2310,9 +2258,6 @@ Two or more character ranges can be concatenated. For example, to specify the ra
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</value>
   </data>
-  <data name="Regex_negative_character_range_short" xml:space="preserve">
-    <value>negative character range</value>
-  </data>
   <data name="Regex_negative_unicode_category_long" xml:space="preserve">
     <value>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
   </data>
@@ -2793,9 +2738,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_and_keep_0" xml:space="preserve">
     <value>Inline and keep '{0}'</value>
   </data>
-  <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
-    <value>Pull member(s) up to new base class...</value>
-  </data>
   <data name="Operators" xml:space="preserve">
     <value>Operators</value>
   </data>
@@ -2816,9 +2758,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Sort_accessibility_modifiers" xml:space="preserve">
     <value>Sort accessibility modifiers</value>
-  </data>
-  <data name="Format_document" xml:space="preserve">
-    <value>Format document</value>
   </data>
   <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
     <value>Error creating instance of CodeFixProvider</value>
@@ -2853,9 +2792,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
-  </data>
-  <data name="Introduce_parameter" xml:space="preserve">
-    <value>Introduce parameter</value>
   </data>
   <data name="Introduce_parameter_for_0" xml:space="preserve">
     <value>Introduce parameter for '{0}'</value>

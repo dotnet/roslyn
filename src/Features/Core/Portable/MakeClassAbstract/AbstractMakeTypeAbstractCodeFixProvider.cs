@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.MakeTypeAbstract
     {
         protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TTypeDeclarationSyntax? typeDeclaration);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             if (IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
