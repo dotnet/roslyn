@@ -328,31 +328,29 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
             // the caller.
-            if (fromPrimaryBranch)
+            if (!fromPrimaryBranch)
+                return solution;
+
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // we never move workspace backward
-                    if (workspaceVersion > _currentRemoteWorkspaceVersion)
-                    {
-                        _currentRemoteWorkspaceVersion = workspaceVersion;
+                // we never move workspace backward
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                    return solution;
 
-                        var oldSolution = CurrentSolution;
+                _currentRemoteWorkspaceVersion = workspaceVersion;
 
-                        var newSolution = SetCurrentSolution(solution);
-                        _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                var oldSolution = CurrentSolution;
 
-                        SetOptions(newSolution.Options);
+                var newSolution = SetCurrentSolution(solution);
+                _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
-                        // Since we did successfully change the solution, return the actual final solution the workspace
-                        // recorded (which will contain things like the real workspace version associated with this
-                        // solution instance).
-                        return this.CurrentSolution;
-                    }
-                }
+                SetOptions(newSolution.Options);
+
+                // Since we did successfully change the solution, return the actual final solution the workspace
+                // recorded (which will contain things like the real workspace version associated with this
+                // solution instance).
+                return this.CurrentSolution;
             }
-
-            return solution;
         }
 
         /// <summary>
