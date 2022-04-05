@@ -399,7 +399,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var options = new SerializableOptionSet(optionService, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
             // this shouldn't throw exception
-            var solution = await remoteWorkspace.GetTestAccessor().TrySetCurrentSolutionAsync(solutionInfo, workspaceVersion: 1, options);
+            var (solution, updated) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(
+                remoteWorkspace.GetTestAccessor().CreateSolutionFromInfoAndOptions(solutionInfo, options), workspaceVersion: 1);
+            Assert.True(updated);
             Assert.NotNull(solution);
         }
 

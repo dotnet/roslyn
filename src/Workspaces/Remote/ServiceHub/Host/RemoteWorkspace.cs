@@ -283,14 +283,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
 
                 // check whether solution is update to the given base solution
+                Solution solution;
                 if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
                 {
                     // create updated solution off the baseSolution
-                    var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
-
-                    // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    return await UpdateSolutionIfPossibleAsync(
-                        workspaceVersion, fromPrimaryBranch, solution, cancellationToken).ConfigureAwait(false);
+                    solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
                 }
                 else
                 {
@@ -300,16 +297,24 @@ namespace Microsoft.CodeAnalysis.Remote
                     // get new solution info and options
                     var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                    var solution = await TrySetCurrentSolutionAsync(
-                        solutionInfo, workspaceVersion, fromPrimaryBranch, options, cancellationToken).ConfigureAwait(false);
-                    if (solution != null)
-                        return solution;
-
-                    // otherwise, just return new solution
-                    var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
-                    return workspace.CurrentSolution;
+                    // The call to SetOptions in TryUpdateWorkspaceAsync will ensure that the options get pushed into
+                    // the remote IOptionService store.  However, we still update our current solution with the options
+                    // passed in.  This is due to the fact that the option store will ignore any options it considered
+                    // unchanged to what it currently knows about.  This will prevent it from actually going and writing
+                    // those unchanged values into Solution.Options.  This is not a correctness issue, but it impacts
+                    // how checksums and syncing work in oop.  Currently, the checksum is based off Solution.Options and
+                    // the values loaded into it.  If one side has loaded a default value and the other has not, then
+                    // they will disagree on their checksum.  This ensures the remote side agrees with the host.
+                    //
+                    // A better fix in the future is to make all options pure data and remove the general concept of
+                    // any part of the system eliding information about any options that have their 'default' value.
+                    // https://github.com/dotnet/roslyn/issues/55728
+                    solution = CreateSolutionFromInfoAndOptions(solutionInfo, options);
                 }
+
+                var (newSolution, _) = await TryUpdateWorkspaceAsync(
+                    workspaceVersion, fromPrimaryBranch, solution, cancellationToken).ConfigureAwait(false);
+                return newSolution;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -317,81 +322,56 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        /// <summary>
-        /// Adds an entire solution to the workspace, replacing any existing solution.  only do this for primary
-        /// solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>. 
-        /// </summary>
-        private async ValueTask<Solution?> TrySetCurrentSolutionAsync(
-            SolutionInfo solutionInfo, int workspaceVersion, bool fromPrimaryBranch, SerializableOptionSet options, CancellationToken cancellationToken)
+        private Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
         {
-            if (!fromPrimaryBranch)
-                return null;
-
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // we never move workspace backward
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                    return null;
-
-                _currentRemoteWorkspaceVersion = workspaceVersion;
-
-                // clear previous solution data if there is one it is required by OnSolutionAdded
-                ClearSolutionData();
-
-                OnSolutionAdded(solutionInfo);
-
-                // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
-                // store.  However, we still update our current solution with the options passed in.  This is
-                // due to the fact that the option store will ignore any options it considered unchanged to what
-                // it currently knows about.  This will prevent it from actually going and writing those unchanged
-                // values into Solution.Options.  This is not a correctness issue, but it impacts how checksums and
-                // syncing work in oop.  Currently, the checksum is based off Solution.Options and the values
-                // loaded into it.  If one side has loaded a default value and the other has not, then they will
-                // disagree on their checksum.  This ensures the remote side agrees with the host.
-                //
-                // A better fix in the future is to make all options pure data and remove the general concept of
-                // any part of the system eliding information about any options that have their 'default' value.
-                // https://github.com/dotnet/roslyn/issues/55728
-                this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
-                SetOptions(options);
-
-                return CurrentSolution;
-            }
+            var solution = this.CreateSolution(solutionInfo).WithOptions(options);
+            foreach (var projectInfo in solutionInfo.Projects)
+                solution = solution.AddProject(projectInfo);
+            return solution;
         }
 
         /// <summary>
-        /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
+        /// Attempts to update this workspace with the given <paramref name="newSolution"/>.  If this succeeds, <see
+        /// langword="true"/> will be returned in the tuple result as well as the actual solution that the workspace is
+        /// updated to point at.  If we cannot update this workspace, then <see langword="false"/> will be returned,
+        /// along with the solution passed in.
         /// </summary>
-        private async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
+        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Solution solution,
+            Solution newSolution,
             CancellationToken cancellationToken)
         {
-            // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
-            // the caller.
-            if (!fromPrimaryBranch)
-                return solution;
-
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                var oldSolution = this.CurrentSolution;
+
+                var isUpdate = oldSolution.Id == newSolution.Id && oldSolution.FilePath == newSolution.FilePath;
+
+                // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
+                // the caller.
+                //
                 // we never move workspace backward
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                    return solution;
+                if (!fromPrimaryBranch || workspaceVersion <= _currentRemoteWorkspaceVersion)
+                    return (newSolution, updated: false);
 
                 _currentRemoteWorkspaceVersion = workspaceVersion;
 
-                var oldSolution = CurrentSolution;
+                // if either solution id or file path changed, then we consider it as new solution. Otherwise,
+                // update the current solution in place.
 
-                var newSolution = SetCurrentSolution(solution);
-                _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                if (!isUpdate)
+                {
+                    // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one.
+                    this.ClearSolutionData();
+                }
 
+                newSolution = SetCurrentSolution(newSolution);
                 SetOptions(newSolution.Options);
+                _ = this.RaiseWorkspaceChangedEventAsync(
+                    isUpdate ? WorkspaceChangeKind.SolutionChanged : WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
 
-                // Since we did successfully change the solution, return the actual final solution the workspace
-                // recorded (which will contain things like the real workspace version associated with this
-                // solution instance).
-                return this.CurrentSolution;
+                return (newSolution, updated: true);
             }
         }
 
@@ -407,17 +387,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 _remoteWorkspace = remoteWorkspace;
             }
 
-            public ValueTask<Solution> UpdateSolutionIfPossibleAsync(
-                Solution solution, int workspaceVersion)
-            {
-                return _remoteWorkspace.UpdateSolutionIfPossibleAsync(workspaceVersion, fromPrimaryBranch: true, solution, CancellationToken.None);
-            }
+            public Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
+                => _remoteWorkspace.CreateSolutionFromInfoAndOptions(solutionInfo, options);
 
-            public ValueTask<Solution?> TrySetCurrentSolutionAsync(
-                SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options)
-            {
-                return _remoteWorkspace.TrySetCurrentSolutionAsync(solutionInfo, workspaceVersion, fromPrimaryBranch: true, options, CancellationToken.None);
-            }
+            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(Solution newSolution, int workspaceVersion)
+                => _remoteWorkspace.TryUpdateWorkspaceAsync(workspaceVersion, fromPrimaryBranch: true, newSolution, CancellationToken.None);
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,

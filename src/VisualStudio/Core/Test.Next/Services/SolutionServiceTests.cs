@@ -68,14 +68,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
 
-            if (fromPrimaryBranch)
-            {
-                Assert.IsType<RemoteWorkspace>(synched.Workspace);
-            }
-            else
-            {
-                Assert.IsType<TemporaryWorkspace>(synched.Workspace);
-            }
+            Assert.IsType<RemoteWorkspace>(synched.Workspace);
         }
 
         [Fact]
@@ -152,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // same instance from cache
             Assert.True(object.ReferenceEquals(first, second));
-            Assert.True(first.Workspace is TemporaryWorkspace);
+            Assert.True(first.Workspace is RemoteWorkspace);
         }
 
         [Fact]
@@ -373,7 +366,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // update remote workspace
             remoteSolution = remoteSolution.WithDocumentText(remoteSolution.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
-            await remoteWorkspace.GetTestAccessor().UpdateSolutionIfPossibleAsync(remoteSolution, solution.WorkspaceVersion + 1);
+            await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(remoteSolution, solution.WorkspaceVersion + 1);
 
             // check solution update correctly ran solution crawler
             Assert.True(await testAnalyzerProvider.Analyzer.Called);
@@ -399,27 +392,31 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // update remote workspace
             var currentSolution = remoteSolution1.WithDocumentText(remoteSolution1.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
-            var oopSolution2 = await remoteWorkspace.GetTestAccessor().UpdateSolutionIfPossibleAsync(currentSolution, ++version);
+            var (oopSolution2, _) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(currentSolution, ++version);
 
             await Verify(currentSolution, oopSolution2, expectRemoteSolutionToCurrent: true);
 
             // move backward
-            await Verify(remoteSolution1, await remoteWorkspace.GetTestAccessor().UpdateSolutionIfPossibleAsync(remoteSolution1, solution1.WorkspaceVersion), expectRemoteSolutionToCurrent: false);
+            await Verify(remoteSolution1, (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(remoteSolution1, solution1.WorkspaceVersion)).solution, expectRemoteSolutionToCurrent: false);
 
             // move forward
             currentSolution = oopSolution2.WithDocumentText(oopSolution2.Projects.First().Documents.First().Id, SourceText.From(code + " class Test3 { }"));
-            var remoteSolution3 = await remoteWorkspace.GetTestAccessor().UpdateSolutionIfPossibleAsync(currentSolution, ++version);
+            var remoteSolution3 = (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(currentSolution, ++version)).solution;
 
             await Verify(currentSolution, remoteSolution3, expectRemoteSolutionToCurrent: true);
 
             // move to new solution backward
-            var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
-            Assert.Null(await remoteWorkspace.GetTestAccessor().TrySetCurrentSolutionAsync(solutionInfo, solution1.WorkspaceVersion, options));
+            var (solutionInfo2, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+            var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfoAndOptions(solutionInfo2, options);
+            Assert.False((await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(
+                solution2, solution1.WorkspaceVersion)).updated);
 
             // move to new solution forward
-            var newSolution = await remoteWorkspace.GetTestAccessor().TrySetCurrentSolutionAsync(solutionInfo, ++version, options);
-            Assert.NotNull(newSolution);
-            await Verify(solution1, newSolution, expectRemoteSolutionToCurrent: true);
+            var (solution3, updated3) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(
+                solution2, ++version);
+            Assert.NotNull(solution3);
+            Assert.True(updated3);
+            await Verify(solution1, solution3, expectRemoteSolutionToCurrent: true);
 
             static async Task<Solution> GetInitialOOPSolutionAsync(RemoteWorkspace remoteWorkspace, AssetProvider assetProvider, Solution solution)
             {
