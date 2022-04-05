@@ -3282,8 +3282,31 @@ ref struct Example
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
         public void FieldInitializer_EscapeAnalysis_02()
+        {
+            var source =
+@"using System;
+
+ref struct Example
+{
+    public ReadOnlySpan<int> Field = stackalloc int[512];
+    public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+    public Example() {}
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,38): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Field = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 38),
+                // (6,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50));
+        }
+
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [Fact]
+        public void FieldInitializer_EscapeAnalysis_03()
         {
             var source =
 @"using System;
@@ -3308,7 +3331,7 @@ ref struct E2
         }
 
         [Fact]
-        public void FieldInitializer_EscapeAnalysis_03()
+        public void FieldInitializer_EscapeAnalysis_04()
         {
             var source =
 @"using System;
