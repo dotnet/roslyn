@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             int workspaceVersion,
             bool fromPrimaryBranch,
-            Func<Solution, ValueTask<T>> implementation,
+            Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
-                var result = await implementation(solution).ConfigureAwait(false);
+                var result = await doWorkAsync(solution).ConfigureAwait(false);
 
                 return (solution, result);
 
@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // very short periods of time in order to set do basic operations on our state.
                 using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
-                    var tuple = _checksumToRefCountAndLazySolution[solutionChecksum];
-                    tuple.refCount--;
-                    Contract.ThrowIfTrue(tuple.refCount < 0);
-                    if (tuple.refCount == 0)
+                    var (refCount, lazySolution) = _checksumToRefCountAndLazySolution[solutionChecksum];
+                    refCount--;
+                    Contract.ThrowIfTrue(refCount < 0);
+                    if (refCount == 0)
                     {
                         // last computation of this solution went away.  Remove from in flight cache.
                         _checksumToRefCountAndLazySolution.Remove(solutionChecksum);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     else
                     {
                         // otherwise, update with our decremented refcount.
-                        _checksumToRefCountAndLazySolution[solutionChecksum] = tuple;
+                        _checksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
                     }
                 }
             }
