@@ -372,7 +372,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public void TestRemoteWorkspaceCircularReferences()
+        public async Task TestRemoteWorkspaceCircularReferences()
         {
             using var tempRoot = new TempRoot();
 
@@ -399,7 +399,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var options = new SerializableOptionSet(optionService, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
             // this shouldn't throw exception
-            remoteWorkspace.TrySetCurrentSolution(solutionInfo, workspaceVersion: 1, options, out var solution);
+            var solution = await remoteWorkspace.GetTestAccessor().TrySetCurrentSolutionAsync(solutionInfo, workspaceVersion: 1, options);
             Assert.NotNull(solution);
         }
 

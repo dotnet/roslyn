@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Update if for primary solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>.
         /// </summary>
-        internal async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
+        private async ValueTask<Solution> UpdateSolutionIfPossibleAsync(
             int workspaceVersion,
             bool fromPrimaryBranch,
             Solution solution,
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Adds an entire solution to the workspace, replacing any existing solution.  only do this for primary
         /// solution and for version after what we've already stored in <see cref="_currentRemoteWorkspaceVersion"/>. 
         /// </summary>
-        internal async ValueTask<Solution?> TrySetCurrentSolutionAsync(
+        private async ValueTask<Solution?> TrySetCurrentSolutionAsync(
             SolutionInfo solutionInfo, int workspaceVersion, bool fromPrimaryBranch, SerializableOptionSet options, CancellationToken cancellationToken)
         {
             if (fromPrimaryBranch)
@@ -399,6 +399,43 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return null;
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor
+        {
+            private readonly RemoteWorkspace _remoteWorkspace;
+
+            public TestAccessor(RemoteWorkspace remoteWorkspace)
+            {
+                _remoteWorkspace = remoteWorkspace;
+            }
+
+            public ValueTask<Solution> UpdateSolutionIfPossibleAsync(
+                Solution solution, int workspaceVersion)
+            {
+                return _remoteWorkspace.UpdateSolutionIfPossibleAsync(workspaceVersion, fromPrimaryBranch: true, solution, CancellationToken.None);
+            }
+
+            public ValueTask<Solution?> TrySetCurrentSolutionAsync(
+                SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options)
+            {
+                return _remoteWorkspace.TrySetCurrentSolutionAsync(solutionInfo, workspaceVersion, fromPrimaryBranch: true, options, CancellationToken.None);
+            }
+
+            public async ValueTask<Solution> GetSolutionAsync(
+                AssetProvider assetProvider,
+                Checksum solutionChecksum,
+                bool fromPrimaryBranch,
+                int workspaceVersion,
+                CancellationToken cancellationToken)
+            {
+                var tuple = await _remoteWorkspace.RunWithSolutionAsync(
+                    assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
+                return tuple.solution;
+            }
         }
     }
 }
