@@ -100,6 +100,7 @@ Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
 Habilitar la navegación a orígenes descompilados;
+Usar siempre servidores de símbolo predeterminados para la navegación;
 Directivas using;
 Poner directivas del sistema primero cuando se organicen instrucciones using;
 Separar grupos de directivas using;
@@ -123,7 +124,7 @@ Mostrar guías para construcciones a nivel de declaración;
 Mostrar guías para construcciones a nivel de código;
 Ayuda del editor;
 Generar comentarios de documentación XML para ///;
-Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */;
+Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */ 
 Mostrar vista previa para seguimiento de cambio de nombre;
 Dividir literales de cadena al presionar Entrar;
 Informar sobre marcadores de posición no válidos en llamadas a string.Format;

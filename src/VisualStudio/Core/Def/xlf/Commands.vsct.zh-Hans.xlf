@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
         <source>&amp;None</source>
-        <target state="new">&amp;None</target>
+        <target state="translated">无(&amp;N)</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|CommandName">

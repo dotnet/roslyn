@@ -217,27 +217,27 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Apply_auto_property_preferences">
         <source>Apply auto property preferences</source>
-        <target state="new">Apply auto property preferences</target>
+        <target state="translated">Применить настройки для автосвойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_preferences_experimental">
         <source>Apply blank line preferences (experimental)</source>
-        <target state="new">Apply blank line preferences (experimental)</target>
+        <target state="translated">Применить настройки для пустой строки (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_coalesce_expression_preferences">
         <source>Apply coalesce expression preferences</source>
-        <target state="new">Apply coalesce expression preferences</target>
+        <target state="translated">Применить настройки для выражения объединения</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_compound_assignment_preferences">
         <source>Apply compound assignment preferences</source>
-        <target state="new">Apply compound assignment preferences</target>
+        <target state="translated">Применить настройки для составного назначения</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_expression_preferences">
         <source>Apply conditional expression preferences</source>
-        <target state="new">Apply conditional expression preferences</target>
+        <target state="translated">Применить настройки для условного выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
@@ -247,7 +247,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Apply_inferred_anonymous_type_member_names_preferences">
         <source>Apply inferred anonymous type member names preferences</source>
-        <target state="new">Apply inferred anonymous type member names preferences</target>
+        <target state="translated">Применить настройки для выводимых имен членов анонимного типа</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_language_framework_type_preferences">
@@ -262,12 +262,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">
         <source>Apply null checking preferences</source>
-        <target state="new">Apply null checking preferences</target>
+        <target state="translated">Применить настройки проверки \"null\"</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_propagation_preferences">
         <source>Apply null propagation preferences</source>
-        <target state="new">Apply null propagation preferences</target>
+        <target state="translated">Применить настройки для распространения значений NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
@@ -277,42 +277,42 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Apply_object_initializer_preferences">
         <source>Apply object initializer preferences</source>
-        <target state="new">Apply object initializer preferences</target>
+        <target state="translated">Применить настройки для инициализатора объектов</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_parentheses_preferences">
         <source>Apply parentheses preferences</source>
-        <target state="new">Apply parentheses preferences</target>
+        <target state="translated">Применить настройки для круглых скобок</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_simplify_boolean_expression_preferences">
         <source>Apply simplify boolean expression preferences</source>
-        <target state="new">Apply simplify boolean expression preferences</target>
+        <target state="translated">Применить настройки для упрощения логических выражений</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_statement_after_block_preferences_experimental">
         <source>Apply statement after block preferences (experimental)</source>
-        <target state="new">Apply statement after block preferences (experimental)</target>
+        <target state="translated">Применить настройки для инструкции после блока (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_string_interpolation_preferences">
         <source>Apply string interpolation preferences</source>
-        <target state="new">Apply string interpolation preferences</target>
+        <target state="translated">Применить настройки для интерполяции строк</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_tuple_name_preferences">
         <source>Apply tuple name preferences</source>
-        <target state="new">Apply tuple name preferences</target>
+        <target state="translated">Применить настройки для имен кортежей</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_unused_value_preferences">
         <source>Apply unused value preferences</source>
-        <target state="new">Apply unused value preferences</target>
+        <target state="translated">Применить настройки для неиспользуемых значений</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
         <source>Apply using directive placement preferences</source>
-        <target state="new">Apply using directive placement preferences</target>
+        <target state="translated">Применить настройки для размещения директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
@@ -502,7 +502,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Comments_not_allowed">
         <source>Comments not allowed</source>
-        <target state="new">Comments not allowed</target>
+        <target state="translated">Комментарии не разрешены</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -527,7 +527,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
         <source>Constructors not allowed</source>
-        <target state="new">Constructors not allowed</target>
+        <target state="translated">Конструкторы не разрешены</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -652,7 +652,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Enable_all_JSON_editor_features">
         <source>Enable all JSON editor features</source>
-        <target state="new">Enable all JSON editor features</target>
+        <target state="translated">Включить все функции редактора JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -672,7 +672,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Error_parsing_comment">
         <source>Error parsing comment</source>
-        <target state="new">Error parsing comment</target>
+        <target state="translated">Ошибка разбора комментария</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_PDB_0">
@@ -847,12 +847,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Illegal_string_character">
         <source>Illegal string character</source>
-        <target state="new">Illegal string character</target>
+        <target state="translated">Недопустимый символ строки</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_whitespace_character">
         <source>Illegal whitespace character</source>
-        <target state="new">Illegal whitespace character</target>
+        <target state="translated">Недопустимый символ пробела</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
@@ -932,7 +932,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Indent_all_elements">
         <source>Indent all elements</source>
-        <target state="new">Indent all elements</target>
+        <target state="translated">Добавить отступ для всех элементов</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_parameters">
@@ -1002,17 +1002,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Invalid_JSON_pattern">
         <source>Invalid JSON pattern</source>
-        <target state="new">Invalid JSON pattern</target>
+        <target state="translated">Недопустимый шаблон JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_constructor_name">
         <source>Invalid constructor name</source>
-        <target state="new">Invalid constructor name</target>
+        <target state="translated">Недопустимое имя конструктора</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_escape_sequence">
         <source>Invalid escape sequence</source>
-        <target state="new">Invalid escape sequence</target>
+        <target state="translated">Недопустимая escape-последовательность</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
@@ -1022,17 +1022,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Invalid_number">
         <source>Invalid number</source>
-        <target state="new">Invalid number</target>
+        <target state="translated">Недопустимое число</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_property_name">
         <source>Invalid property name</source>
-        <target state="new">Invalid property name</target>
+        <target state="translated">Недопустимое имя свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_regex_pattern">
         <source>Invalid regex pattern</source>
-        <target state="new">Invalid regex pattern</target>
+        <target state="translated">Недопустимый шаблон регулярного выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_selection">
@@ -1042,7 +1042,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="JSON_issue_0">
         <source>JSON issue: {0}</source>
-        <target state="new">JSON issue: {0}</target>
+        <target state="translated">Проблема JSON: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -1122,7 +1122,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Missing_property_value">
         <source>Missing property value</source>
-        <target state="new">Missing property value</target>
+        <target state="translated">Отсутствует значение свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
@@ -1242,7 +1242,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Name_expected">
         <source>Name expected</source>
-        <target state="new">Name expected</target>
+        <target state="translated">Ожидалось имя</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigating_to_symbol_0_from_1">
@@ -1252,7 +1252,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
         <source>Nested properties not allowed</source>
-        <target state="new">Nested properties not allowed</target>
+        <target state="translated">Вложенные свойства не разрешены</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -1287,7 +1287,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Only_properties_allowed_in_an_object">
         <source>Only properties allowed in an object</source>
-        <target state="new">Only properties allowed in an object</target>
+        <target state="translated">В объекте разрешены только свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="Operators">
@@ -1297,22 +1297,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
-        <target state="new">Probable JSON string detected</target>
+        <target state="translated">Обнаружена возможная строка JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
         <source>Properties not allowed in an array</source>
-        <target state="new">Properties not allowed in an array</target>
+        <target state="translated">Свойства не разрешены в массиве</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_name_must_be_a_string">
         <source>Property name must be a string</source>
-        <target state="new">Property name must be a string</target>
+        <target state="translated">Имя свойства должно быть строкой</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_name_must_be_followed_by_a_colon">
         <source>Property name must be followed by a ':'</source>
-        <target state="new">Property name must be followed by a ':'</target>
+        <target state="translated">После имени свойства должен быть указан символ \":\"</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -2497,7 +2497,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports_or_usings">
         <source>Remove unnecessary Imports or usings</source>
-        <target state="new">Remove unnecessary Imports or usings</target>
+        <target state="translated">Удалить ненужные операторы Imports или директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -2507,12 +2507,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
         <source>Remove unused parameters</source>
-        <target state="new">Remove unused parameters</target>
+        <target state="translated">Удалить неиспользуемый параметр</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_suppressions">
         <source>Remove unused suppressions</source>
-        <target state="new">Remove unused suppressions</target>
+        <target state="translated">Удалить неиспользуемые подавления</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
@@ -2577,7 +2577,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
-        <target state="new">Sort Imports or usings</target>
+        <target state="translated">Сортировать операторы Imports или директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -2612,7 +2612,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
-        <target state="new">Strings must start with " not '</target>
+        <target state="translated">Строки должны начинаться с " не '</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
@@ -2632,7 +2632,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
-        <target state="new">Syntax error</target>
+        <target state="translated">Синтаксическая ошибка</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -2692,7 +2692,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
-        <target state="new">Trailing comma not allowed</target>
+        <target state="translated">Завершающая запятая не разрешена</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
@@ -2737,7 +2737,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unterminated_comment">
         <source>Unterminated comment</source>
-        <target state="new">Unterminated comment</target>
+        <target state="translated">Незавершенный комментарий</target>
         <note />
       </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
@@ -2747,7 +2747,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unterminated_string">
         <source>Unterminated string</source>
-        <target state="new">Unterminated string</target>
+        <target state="translated">Незавершенная строка</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -2757,7 +2757,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unwrap_all_elements">
         <source>Unwrap all elements</source>
-        <target state="new">Unwrap all elements</target>
+        <target state="translated">Не переносить все элементы</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
@@ -2792,7 +2792,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unwrap_initializer">
         <source>Unwrap initializer</source>
-        <target state="new">Unwrap initializer</target>
+        <target state="translated">Не переносить инициализатор</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2922,7 +2922,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Value_required">
         <source>Value required</source>
-        <target state="new">Value required</target>
+        <target state="translated">Требуется значение</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -2972,7 +2972,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Wrap_initializer">
         <source>Wrap initializer</source>
-        <target state="new">Wrap initializer</target>
+        <target state="translated">Переносить инициализатор</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
@@ -2987,7 +2987,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
         <source>Wrap long initializer</source>
-        <target state="new">Wrap long initializer</target>
+        <target state="translated">Переносить длинный инициализатор</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -3027,7 +3027,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_expected">
         <source>'{0}' expected</source>
-        <target state="new">'{0}' expected</target>
+        <target state="translated">Ожидалось значение {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_found_in_embedded_PDB">
@@ -3082,7 +3082,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
         <source>'{0}' literal not allowed</source>
-        <target state="new">'{0}' literal not allowed</target>
+        <target state="translated">Литерал {0} не разрешен</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
@@ -3097,7 +3097,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_unexpected">
         <source>'{0}' unexpected</source>
-        <target state="new">'{0}' unexpected</target>
+        <target state="translated">Непредусмотренное значение {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

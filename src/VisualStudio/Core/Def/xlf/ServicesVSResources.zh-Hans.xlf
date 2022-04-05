@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Always_use_default_symbol_servers_for_navigation">
         <source>Always use default symbol servers for navigation</source>
-        <target state="new">Always use default symbol servers for navigation</target>
+        <target state="translated">始终使用默认符号服务器进行导航</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">

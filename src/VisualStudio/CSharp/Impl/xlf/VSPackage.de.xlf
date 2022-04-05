@@ -100,6 +100,7 @@ Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
 Editor-Funktionsanalyse in externem Prozess ausführen;
 Navigation zu dekompilierten Quellen aktivieren;
+Immer Standardsymbolserver für die Navigation verwenden;
 Verarbeitungsanweisungen;
 Systemanweisungen beim Sortieren von Verarbeitungen an erster Stelle platzieren;
 Verarbeitungsrichtliniengruppen aufteilen;
@@ -143,11 +144,11 @@ Verwandte Komponenten unter dem Cursor hervorheben;
 Ungültige reguläre Ausdrücke melden;
 JSON;
 JSON-Zeichenfolgen farblich hervorheben;
-Ungültige JSON-Zeichenfolgen hervorheben;
-Redakteurfunktionen funden und für JSON-Zeichenfolgen anbieten;
+Ungültige JSON-Zeichenfolgen hervorheben;Redakteurfunktionen funden und für JSON-Zeichenfolgen anbieten;
 Erweiterte Farben benutzen;
 Redakteur-Farbschema;
-Vererbungsspielraum;</target>
+Vererbungsspielraum;
+Vererbungsrand;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
