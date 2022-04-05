@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IndexReader read,
             CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var database = solution.Options.GetPersistentStorageDatabase();
-
-            var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
+            var storageService = document.Project.Solution.Workspace.Services.GetPersistentStorageService();
             return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, SyntaxTreeIndex.GetStringTable(document.Project), read, cancellationToken);
         }
 
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
+            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
 
             try
             {
@@ -139,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
+            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
 
             // check whether we already have info for this document
             try
