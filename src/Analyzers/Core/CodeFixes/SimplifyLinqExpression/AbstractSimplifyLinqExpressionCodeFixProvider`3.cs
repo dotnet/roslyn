@@ -27,8 +27,10 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Simplify_LINQ_expression,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(AnalyzersResources.Simplify_LINQ_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -67,14 +69,6 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 var arguments = SyntaxFacts.GetArgumentsOfInvocationExpression(whereExpression);
                 var expression = (TExpressionSyntax)SyntaxFacts.GetExpressionOfMemberAccessExpression(SyntaxFacts.GetExpressionOfInvocationExpression(whereExpression))!;
                 return (expression, name, arguments);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_LINQ_expression, createChangedDocument, AnalyzersResources.Simplify_LINQ_expression)
-            {
             }
         }
     }

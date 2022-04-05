@@ -20,11 +20,14 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetCodeFixTitle(),
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            var title = GetCodeFixTitle();
+            context.RegisterCodeFix(CodeAction.Create(
+                title,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                title),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -54,13 +57,5 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

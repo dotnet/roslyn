@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Simplify_default_expression,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Simplify_default_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -72,14 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                     defaultExpression,
                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Simplify_default_expression, createChangedDocument, CSharpAnalyzersResources.Simplify_default_expression)
-            {
-            }
         }
     }
 }
