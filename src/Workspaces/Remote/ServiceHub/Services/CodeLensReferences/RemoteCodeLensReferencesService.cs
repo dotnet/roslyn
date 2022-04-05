@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    return await RunWithSolutionAsync(
-                        solutionInfo,
-                        async solution =>
+                    return await RunWithSolutionAsync(solutionInfo, async solution =>
                         {
                             var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                             if (syntaxNode == null)
