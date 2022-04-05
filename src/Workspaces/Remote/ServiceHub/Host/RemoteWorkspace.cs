@@ -87,9 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
 
             // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future
-            // callers. note we call directly into TrySlowGetSolutionAndRunAsync (skipping
-            // TryFastGetSolutionAndRunAsync) as we always want to cache the primary workspace we are being told about
-            // here.
+            // callers. note we call directly into SlowGetSolutionAndRunAsync (skipping TryFastGetSolutionAndRunAsync)
+            // as we always want to cache the primary workspace we are being told about here.
             await SlowGetSolutionAndRunAsync(
                 assetProvider,
                 solutionChecksum,
