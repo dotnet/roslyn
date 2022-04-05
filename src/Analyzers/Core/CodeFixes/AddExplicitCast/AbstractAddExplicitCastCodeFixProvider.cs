@@ -98,12 +98,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType)))));
             }
 
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
             context.RegisterCodeFix(CodeAction.Create(
                 CodeFixesResources.Add_explicit_cast,
                 actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
         private static string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)

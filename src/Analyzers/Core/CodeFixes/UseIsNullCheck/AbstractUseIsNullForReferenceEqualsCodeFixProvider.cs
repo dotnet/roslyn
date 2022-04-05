@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
                 var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), title),
                     context.Diagnostics);
             }
 
@@ -81,14 +81,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

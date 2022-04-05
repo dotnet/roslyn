@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 }
 
                 var groupingTitle = string.Format(CodeFixesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
                 var groupingCodeAction = CodeAction.Create(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
             }
         }
