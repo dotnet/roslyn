@@ -1343,6 +1343,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
+        public override void VisitUTF8String(IUTF8StringOperation operation)
+        {
+            LogString(nameof(IUTF8StringOperation));
+            LogString(" (");
+            LogString(operation.Value);
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitAwait(IAwaitOperation operation)
         {
             LogString(nameof(IAwaitOperation));

@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Use_pattern_matching,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Use_pattern_matching)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -103,14 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 : newIf.WithPrependedLeadingTrivia(trivia);
 
             return newIf.WithAdditionalAnnotations(Formatter.Annotation);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckCodeFixProvider))
-            {
-            }
         }
     }
 }

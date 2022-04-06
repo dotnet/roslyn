@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_coalesce_expression,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(AnalyzersResources.Use_coalesce_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -104,15 +106,6 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             return whenPart == whenTrue
                 ? generator.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenTrue))
                 : generator.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenFalse));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument, nameof(AnalyzersResources.Use_coalesce_expression))
-            {
-
-            }
         }
     }
 }

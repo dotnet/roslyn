@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Use_new,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(CSharpAnalyzersResources.Use_new)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -73,14 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             return newKeyword.TrailingTrivia.All(t => t.IsWhitespace())
                 ? newKeyword.WithoutTrailingTrivia()
                 : newKeyword;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_new, createChangedDocument, CSharpAnalyzersResources.Use_new)
-            {
-            }
         }
     }
 }

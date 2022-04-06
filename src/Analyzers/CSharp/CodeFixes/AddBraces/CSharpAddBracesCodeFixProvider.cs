@@ -35,7 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Add_braces,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(CSharpAnalyzersResources.Add_braces)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -62,14 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             return Task.CompletedTask;
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Add_braces, createChangedDocument, CSharpAnalyzersResources.Add_braces)
-            {
-            }
         }
     }
 }

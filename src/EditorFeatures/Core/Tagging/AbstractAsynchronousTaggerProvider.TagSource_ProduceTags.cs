@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             private void OnCaretPositionChanged(object? _, CaretPositionChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
-                var caret = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                var caret = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RemoveAllTags()
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var oldTagTrees = this.CachedTagTrees;
                 this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
@@ -63,14 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -168,25 +169,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
-                using var stateRef = _tagSourceState.TryAddReference();
+                _eventChangeQueue.AddWork(initialTags);
+            }
 
-                // No point proceeding if we've been disposed.
-                if (stateRef is null)
+            private async ValueTask ProcessEventChangeAsync(ImmutableArray<bool> changes, CancellationToken cancellationToken)
+            {
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
+                // about any prior disposal on the UI thread.
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
-                var state = stateRef.Target;
-
-                var cancellationToken = state.GetCancellationToken(initialTags);
-
-                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                // is completely done.
-                state.EnqueueWork(async () =>
-                {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                }, _dataSource.EventChangeDelay, _asyncListener, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
+                // If any of the requests was for the initial tags, then compute at that speed (normally faster than
+                // normal tags).
+                var initialTags = changes.Any(b => b);
+                await RecomputeTagsAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -198,9 +196,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// complete almost immediately.  Once open though, our normal delays come into play
             /// so as to not cause a flashy experience.
             /// </summary>
-            private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
+            private async Task RecomputeTagsAsync(bool initialTags, CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
+                // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
+                // we're on the UI thread that we stay on it.
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
@@ -210,13 +216,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // thread to do the computation. Finally, once new tags have been computed, then we update our state
                     // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
-                    var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                    var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
                     var textChangeRange = this.AccumulatedTextChanges;
                     this.AccumulatedTextChanges = null;
 
+                    // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
+                    // we're always moving to the threadpool here in case the above code ever changes.
                     await TaskScheduler.Default;
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -233,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                     // Once we assign our state, we're uncancellable.  We must report the changed information
                     // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
@@ -243,17 +251,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     this.State = context.State;
 
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
+
+                    // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
+                    // machine resources that the user won't even notice.
+                    if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
+                        Pause();
                 }
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // TODO: Update to tag spans from all related documents.
 
                 using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
-                var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
+                var spansToTag = _dataSource.GetSpansToTag(_textView, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
                 {
@@ -506,7 +519,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private TagSpanIntervalTree<TTag>? TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                // If we've been disposed, no need to proceed.
+                if (_disposalTokenSource.Token.IsCancellationRequested)
+                    return null;
 
                 // If this is the first time we're being asked for tags, and we're a tagger that
                 // requires the initial tags be available synchronously on this call, and the 
@@ -517,14 +534,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    using var stateRef = _tagSourceState.TryAddReference();
-                    if (stateRef != null)
-                    {
-                        var disposalToken = stateRef.Target.DisposalToken;
-
-                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
-                    }
+                    _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
+                        this.RecomputeTagsAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;
@@ -536,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
-                this.AssertIsForeground();
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
