@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions fallbackOptions)
-            => CSharpSimplifierOptions.Create(options, (CSharpSimplifierOptions)fallbackOptions);
+        public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions)
+            => CSharpSimplifierOptions.Create(options, (CSharpSimplifierOptions?)fallbackOptions);
 
-        public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
+        public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
             {
@@ -74,8 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken)
+        public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool>? expandInsideNode, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(token.Parent);
+
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken))
             {
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
@@ -109,14 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             var parent = parentOfToken.Parent;
-            if (parentOfToken is SimpleNameSyntax && parent.Kind() == SyntaxKind.XmlNameAttribute)
+            if (parentOfToken is SimpleNameSyntax && parent.IsKind(SyntaxKind.XmlNameAttribute))
             {
                 // do not try to escape XML name attributes
                 return syntaxToken;
             }
 
             // do not escape global in a namespace qualified name
-            if (parent.Kind() == SyntaxKind.AliasQualifiedName &&
+            if (parent.IsKind(SyntaxKind.AliasQualifiedName) &&
                 syntaxToken.ValueText == "global")
             {
                 return syntaxToken;

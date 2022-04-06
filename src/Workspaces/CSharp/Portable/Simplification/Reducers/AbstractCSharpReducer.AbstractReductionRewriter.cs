@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             private readonly ObjectPool<IReductionRewriter> _pool;
 
-            protected CSharpParseOptions ParseOptions { get; private set; }
-            protected CSharpSimplifierOptions Options { get; private set; }
+            protected CSharpParseOptions? ParseOptions { get; private set; }
+            protected CSharpSimplifierOptions? Options { get; private set; }
             protected CancellationToken CancellationToken { get; private set; }
-            protected SemanticModel SemanticModel { get; private set; }
+            protected SemanticModel? SemanticModel { get; private set; }
 
             public bool HasMoreWork { get; private set; }
 
@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public void Initialize(ParseOptions parseOptions, SimplifierOptions options, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(options);
+
                 ParseOptions = (CSharpParseOptions)parseOptions;
                 Options = (CSharpSimplifierOptions)options;
                 CancellationToken = cancellationToken;
@@ -57,7 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 _pool.Free(this);
             }
 
-            private static SyntaxNode GetParentNode(SyntaxNode node)
+            [MemberNotNull(nameof(Options), nameof(ParseOptions), nameof(SemanticModel))]
+            public void RequireInitialized()
+            {
+                Contract.ThrowIfNull(ParseOptions);
+                Debug.Assert(Options != null);
+                Debug.Assert(SemanticModel != null);
+            }
+
+            private static SyntaxNode? GetParentNode(SyntaxNode node)
                 => node switch
                 {
                     ExpressionSyntax expression => GetParentNode(expression),
@@ -69,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
                 var lastExpression = expression;
-                for (SyntaxNode current = expression; current != null; current = current.Parent)
+                for (SyntaxNode? current = expression; current != null; current = current.Parent)
                 {
                     if (current is ExpressionSyntax currentExpression)
                     {
@@ -77,13 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                 }
 
+                Contract.ThrowIfNull(lastExpression.Parent);
                 return lastExpression.Parent;
             }
 
             private static SyntaxNode GetParentNode(PatternSyntax pattern)
             {
                 var lastPattern = pattern;
-                for (SyntaxNode current = pattern; current != null; current = current.Parent)
+                for (SyntaxNode? current = pattern; current != null; current = current.Parent)
                 {
                     if (current is PatternSyntax currentPattern)
                     {
@@ -91,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                 }
 
+                Contract.ThrowIfNull(lastPattern.Parent);
                 return lastPattern.Parent;
             }
 
@@ -101,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     .OfType<CrefSyntax>()
                     .LastOrDefault();
 
+                Contract.ThrowIfNull(topMostCref.Parent);
                 return topMostCref.Parent;
             }
 
@@ -111,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 Func<TNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TNode : SyntaxNode
             {
-                Debug.Assert(parentNode != null);
+                RequireInitialized();
 
                 this.CancellationToken.ThrowIfCancellationRequested();
 
@@ -155,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> simplifier)
             {
+                RequireInitialized();
+
                 this.CancellationToken.ThrowIfCancellationRequested();
 
                 return token.HasAnnotation(Simplifier.Annotation)

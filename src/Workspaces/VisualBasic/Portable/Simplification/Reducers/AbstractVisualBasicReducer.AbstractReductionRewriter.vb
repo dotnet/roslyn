@@ -49,6 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _pool.Free(Me)
             End Sub
 
+            Public Sub RequireInitialized()
+                Contract.ThrowIfNull(ParseOptions)
+                Debug.Assert(_simplificationOptions IsNot Nothing)
+                Debug.Assert(_semanticModel IsNot Nothing)
+            End Sub
+
             Public ReadOnly Property HasMoreWork As Boolean Implements IReductionRewriter.HasMoreWork
                 Get
                     Return _hasMoreWork
@@ -77,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 simplifyFunc As Func(Of TNode, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
+                RequireInitialized()
                 Debug.Assert(parentNode IsNot Nothing)
 
                 CancellationToken.ThrowIfCancellationRequested()
