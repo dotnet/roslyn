@@ -1703,11 +1703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
-
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
-                    // PROTOTYPE(semi-auto-props): Consider `public int P { get => field; set; }`
-                    sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
+                    (sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } || sourceProperty.FieldKeywordBackingField is not null) &&
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
                     // PROTOTYPE(semi-auto-props): TODO: Do we need to use `GetOwnOrInheritedSetMethod` instead of `SetMethod`?
                     // Legacy auto-properties are required to override all accessors. If this is not the case with semi auto props, we may need to use GetOwnOrInheritedSetMethod

@@ -844,7 +844,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
+        [Fact]
         public void TestFieldOnlyGetter()
         {
             var comp = CreateCompilation(@"
@@ -928,7 +928,7 @@ public class C
 	}
 } // end of class C
 ");
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         // PROTOTYPE(semi-auto-props): All success scenarios should be executed, expected runtime behavior should be observed.
