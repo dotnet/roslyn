@@ -59,6 +59,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
                          End Function)
 
+            ' Go To Definition
+            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously)
+
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)

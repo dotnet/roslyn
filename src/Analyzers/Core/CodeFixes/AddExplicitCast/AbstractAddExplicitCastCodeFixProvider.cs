@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     {
         /// <summary>
         /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix,
-        /// but logs telemetry 
+        /// but logs telemetry
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
         /// <summary>
-        /// Output the current type information of the target node and the conversion type(s) that the target node is 
+        /// Output the current type information of the target node and the conversion type(s) that the target node is
         /// going to be cast by.
         /// Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation, Attribute
         /// <para/>
         /// For example:
-        /// Base b; Derived d = [||]b;       
+        /// Base b; Derived d = [||]b;
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by
         /// is {Derived}
         /// </summary>

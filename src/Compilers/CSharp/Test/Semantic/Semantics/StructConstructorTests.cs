@@ -876,21 +876,18 @@ class Program
                 // (13,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S1() { Y = 1; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(13, 12),
-                // (13,12): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
+                // (13,12): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1() { Y = 1; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(13, 12),
-                // (20,12): error CS0171: Field 'S2.X' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.X", "preview").WithLocation(13, 12),
+                // (20,12): error CS0171: Field 'S2.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2(object y) { Y = y; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.X").WithLocation(20, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.X", "preview").WithLocation(20, 12));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (13,12): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
-                //     public S1() { Y = 1; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(13, 12),
-                // (20,12): error CS0171: Field 'S2.X' must be fully assigned before control is returned to the caller
-                //     public S2(object y) { Y = y; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.X").WithLocation(20, 12));
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput:
+@"(, )
+(, 1)
+(, )");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1397,18 +1394,18 @@ struct S4
                 // (11,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 12),
-                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
+                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(11, 12),
                 // (16,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object Y = 3;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(16, 21),
                 // (17,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S3").WithArguments("parameterless struct constructors", "10.0").WithLocation(17, 12),
-                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S3() { Y = 3; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(17, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12),
                 // (22,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object Y = 4;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(22, 21),
@@ -1416,24 +1413,23 @@ struct S4
                 //     public S4() { X = 4; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S4").WithArguments("parameterless struct constructors", "10.0").WithLocation(23, 12));
 
-            var expectedDiagnostics = new[]
-            {
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
-                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller
+                // (11,12): error CS0171: Field 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.Y").WithLocation(11, 12),
-                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(11, 12),
+                // (17,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S3() { Y = 3; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(17, 12),
-            };
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8));
         }
 
         [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
@@ -1480,18 +1476,18 @@ struct S4
                 // (11,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 12),
-                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(11, 12),
                 // (16,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object Y { get; } = 3;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(16, 21),
                 // (17,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S3").WithArguments("parameterless struct constructors", "10.0").WithLocation(17, 12),
-                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S3() { Y = 3; }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12),
                 // (22,21): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     internal object Y { get; } = 4;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(22, 21),
@@ -1499,24 +1495,23 @@ struct S4
                 //     public S4() { X = 4; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S4").WithArguments("parameterless struct constructors", "10.0").WithLocation(23, 12));
 
-            var expectedDiagnostics = new[]
-            {
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8),
-                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
-                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(11, 12),
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S3() { Y = 3; }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12),
-            };
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 8));
         }
 
         [WorkItem(57870, "https://github.com/dotnet/roslyn/issues/57870")]
@@ -1550,168 +1545,261 @@ record struct S4
 }
 ";
 
-            var expectedDiagnostics = new[]
-            {
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
                 // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S1
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 15),
-                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                // (11,12): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(11, 12),
-                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(11, 12),
+                // (17,12): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public S3() { Y = 3; }
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(17, 12)
-            };
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(17, 12));
 
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // record struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(2, 15));
         }
 
         [Fact]
         public void FieldInitializers_09()
         {
-            var source =
-@"#pragma warning disable 649
+            var source = @"
+using System;
+
+#pragma warning disable 649
 record struct S1()
 {
-    internal object X = 1;
-    internal object Y;
+    public object X = 1;
+    public object Y;
 }
 record struct S2()
 {
-    internal object X { get; } = 2;
-    internal object Y { get; }
+    public object X { get; } = 2;
+    public object Y { get; }
 }
 record struct S3()
 {
-    internal object X { get; init; }
-    internal object Y { get; init; } = 3;
+    public object X { get; init; }
+    public object Y { get; init; } = 3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S3());
+    }
 }
 ";
 
-            var expectedDiagnostics = new[]
-            {
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
-                // record struct S1()
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
-                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
-                // record struct S2()
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
-                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
-                // record struct S3()
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15)
-            };
-
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // record struct S1()
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.Y", "preview").WithLocation(5, 15),
+                // (10,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S2()
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(10, 15),
+                // (15,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S3()
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(15, 15));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+@"
+S1 { X = 1, Y =  }
+S2 { X = 2, Y =  }
+S3 { X = , Y = 3 }
+", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S1..ctor", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""object S1.Y""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  box        ""int""
+  IL_000e:  stfld      ""object S1.X""
+  IL_0013:  ret
+}");
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""object S2.<Y>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  box        ""int""
+  IL_000e:  stfld      ""object S2.<X>k__BackingField""
+  IL_0013:  ret
+}");
+
+            verifier.VerifyIL("S3..ctor", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""object S3.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.3
+  IL_0009:  box        ""int""
+  IL_000e:  stfld      ""object S3.<Y>k__BackingField""
+  IL_0013:  ret
+}");
         }
 
         [Fact]
         public void FieldInitializers_10()
         {
-            var source =
-@"#pragma warning disable 649
+            var source = @"
+using System;
+
+#pragma warning disable 649
 record struct S1(object X)
 {
-    internal object X = 1;
-    internal object Y;
+    public object X = 1;
+    public object Y;
 }
 record struct S2(object X)
 {
-    internal object X { get; } = 2;
-    internal object Y { get; }
+    public object X { get; } = 2;
+    public object Y { get; }
 }
 record struct S3(object Y)
 {
-    internal object X { get; init; }
-    internal object Y { get; init; } = 3;
+    public object X { get; init; }
+    public object Y { get; init; } = 3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(""a""));
+        Console.WriteLine(new S2(""b""));
+        Console.WriteLine(new S3(""c""));
+    }
 }
 ";
 
-            var expectedDiagnostics = new[]
-            {
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
-                // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
-                // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
-                // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25)
-            };
-
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.Y", "preview").WithLocation(5, 15),
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.Y", "preview").WithLocation(10, 15),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(15, 15),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+@"S1 { X = 1, Y =  }
+S2 { X = 2, Y =  }
+S3 { X = , Y = 3 }
+", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics(
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
         }
 
         [Fact]
         public void FieldInitializers_11()
         {
-            var source =
-@"#pragma warning disable 649
+            var source = @"
+using System;
+
+#pragma warning disable 649
 record struct S1(object X)
 {
-    internal object X;
-    internal object Y = 1;
+    public object X;
+    public object Y = 1;
 }
 record struct S2(object X)
 {
-    internal object X { get; }
-    internal object Y { get; } = 2;
+    public object X { get; }
+    public object Y { get; } = 2;
 }
 record struct S3(object Y)
 {
-    internal object X { get; init; } = 3;
-    internal object Y { get; init; }
+    public object X { get; init; } = 3;
+    public object Y { get; init; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(""a""));
+        Console.WriteLine(new S2(""b""));
+        Console.WriteLine(new S3(""c""));
+    }
 }
 ";
-
-            var expectedDiagnostics = new[]
-            {
-                // (2,15): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
-                // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(2, 15),
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,15): error CS0843: Auto-implemented property 'S2.X' must be fully assigned before control is returned to the caller.
-                // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.X").WithLocation(7, 15),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,15): error CS0843: Auto-implemented property 'S3.Y' must be fully assigned before control is returned to the caller.
-                // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.Y").WithLocation(12, 15),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25)
-            };
-
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.X", "preview").WithLocation(5, 15),
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,15): error CS0843: Auto-implemented property 'S2.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S2").WithArguments("S2.X", "preview").WithLocation(10, 15),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,15): error CS0843: Auto-implemented property 'S3.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S3").WithArguments("S3.Y", "preview").WithLocation(15, 15),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
+@"S1 { X = , Y = 1 }
+S2 { X = , Y = 2 }
+S3 { X = 3, Y =  }", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics(
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S1(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S2(object X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct S3(object Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
         }
 
         [Fact]
@@ -2027,20 +2115,35 @@ struct S3
     public S3() { F3 = GetValue(); }
     static object? GetValue() => null;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
-                // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller
+                // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.F1").WithLocation(10, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.F1", "preview").WithLocation(10, 12),
                 // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
-                // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller
+                // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     S2(object? obj) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.F2").WithLocation(16, 5),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.F2", "preview").WithLocation(16, 5),
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S3() { F3 = GetValue(); }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
+                // (21,24): warning CS8601: Possible null reference assignment.
+                //     public S3() { F3 = GetValue(); }
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     S2(object? obj) { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
                 // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
@@ -2142,17 +2245,27 @@ unsafe struct S5
     public S5() { X = 5; }
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S3() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(20, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S3").WithArguments("S3.X", "preview").WithLocation(20, 12),
                 // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // unsafe struct S4
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S4").WithLocation(22, 15),
                 // (29,9): warning CS0414: The field 'S5.X' is assigned but its value is never used
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // unsafe struct S4
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S4").WithLocation(22, 15),
+                // (29,9): warning CS0414: The field 'S5.X' is assigned but its value is never used
+                //     int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9)
+            );
         }
 
         [Fact]
@@ -2407,6 +2520,288 @@ public struct S1
                 // (6,18): error CS1757: Embedded interop struct 'S1' can contain only public instance fields.
                 //         var s1 = i.F1();
                 Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedField_Simple()
+        {
+            var source = @"
+public struct S
+{
+    public int x;
+    public S() { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular10)
+                .VerifyDiagnostics(
+                    // (5,12): error CS0171: Field 'S.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                    //     public S() { }
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.x", "preview").WithLocation(5, 12));
+
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
+                .VerifyDiagnostics(
+                    // (5,12): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S() { }
+                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.x").WithLocation(5, 12));
+
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Error), parseOptions: TestOptions.RegularNext)
+                .VerifyDiagnostics(
+                // (5,12): error CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S() { }
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.x").WithLocation(5, 12).WithWarningAsError(true));
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S..ctor()", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.x""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedField_NotOtherStruct()
+        {
+            var source = @"
+public struct S
+{
+    public int x;
+    public S() // 1
+    {
+        S other;
+        other.x.ToString(); // 2
+
+        S other2;
+        other2.ToString(); // 3
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular10)
+                .VerifyDiagnostics(
+                    // (5,12): error CS0171: Field 'S.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                    //     public S() // 1
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.x", "preview").WithLocation(5, 12),
+                    // (8,9): error CS0170: Use of possibly unassigned field 'x'
+                    //         other.x.ToString(); // 2
+                    Diagnostic(ErrorCode.ERR_UseDefViolationField, "other.x").WithArguments("x").WithLocation(8, 9),
+                    // (11,9): error CS0165: Use of unassigned local variable 'other2'
+                    //         other2.ToString(); // 3
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "other2").WithArguments("other2").WithLocation(11, 9));
+
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
+                .VerifyDiagnostics(
+                    // (5,12): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S() // 1
+                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.x").WithLocation(5, 12),
+                    // (8,9): error CS0170: Use of possibly unassigned field 'x'
+                    //         other.x.ToString(); // 2
+                    Diagnostic(ErrorCode.ERR_UseDefViolationField, "other.x").WithArguments("x").WithLocation(8, 9),
+                    // (11,9): error CS0165: Use of unassigned local variable 'other2'
+                    //         other2.ToString(); // 3
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "other2").WithArguments("other2").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedField_ExplicitReturn()
+        {
+            var source = @"
+public struct S
+{
+    public int x;
+    public S()
+    {
+        return;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0171: Field 'S.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                //         return;
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "return;").WithArguments("S.x", "preview").WithLocation(7, 9));
+
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics(
+                // (7,9): warning CS9021: Control is returned to caller before field 'S.x' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         return;
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "return;").WithArguments("S.x").WithLocation(7, 9));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.x""
+  IL_0007:  nop
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedField_FieldLikeEvent()
+        {
+            var source = @"
+using System;
+
+public struct S
+{
+    public event Action E;
+    public S()
+    {
+        E?.Invoke();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                //     public S()
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.E", "preview").WithLocation(7, 12),
+                // (9,9): error CS9014: Use of possibly unassigned field 'E'. Consider updating to language version 'preview' to auto-default the field.
+                //         E?.Invoke();
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "E").WithArguments("E", "preview").WithLocation(9, 9));
+
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics(
+                // (7,12): warning CS9021: Control is returned to caller before field 'S.E' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.E").WithLocation(7, 12),
+                // (9,9): warning CS9018: Field 'E' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         E?.Invoke();
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "E").WithArguments("E").WithLocation(9, 9));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""System.Action S.E""
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""System.Action S.E""
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  pop
+  IL_0012:  br.s       IL_001a
+  IL_0014:  callvirt   ""void System.Action.Invoke()""
+  IL_0019:  nop
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonNullableReferenceTypeField()
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12),
+                // (4,12): error CS0171: Field 'S.Item' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.Item", "preview").WithLocation(4, 12)
+                );
+
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12));
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S.Item""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Struct_ExplicitThisConstructorInitializer_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused) : this()
+    {
+    }
+}";
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            verifier.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12)
+                );
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Struct_ExplicitThisConstructorInitializer_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused) : this()
+    {
+    }
+    public S() { Item = ""a""; }
+}";
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S..ctor(bool)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S..ctor()""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("S..ctor()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""a""
+  IL_0006:  stfld      ""string S.Item""
+  IL_000b:  ret
+}
+");
         }
     }
 }

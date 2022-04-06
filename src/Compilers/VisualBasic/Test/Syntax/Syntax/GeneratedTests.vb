@@ -86,6 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
             Return MessageProvider.Instance.GetErrorDisplayString(symbol)
         End Function
+
+        Public Overrides Function GetIsEnabledByDefault(code As Integer) As Boolean
+            Return True
+        End Function
     End Class
 
     Friend Class RedIdentityRewriter

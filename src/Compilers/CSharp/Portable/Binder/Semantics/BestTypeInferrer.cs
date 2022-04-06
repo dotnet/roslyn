@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeSymbol? InferBestTypeForConditionalOperator(
             BoundExpression expr1,
             BoundExpression expr2,
-            ConversionsBase conversions,
+            Conversions conversions,
             out bool hadMultipleCandidates,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
