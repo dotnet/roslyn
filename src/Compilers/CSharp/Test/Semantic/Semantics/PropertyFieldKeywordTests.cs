@@ -370,8 +370,8 @@ public class MyAttribute : System.Attribute
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void TestFieldIsShadowed_ReferencedFromRegularLocalFunction()
+        [Theory, CombinatorialData]
+        public void TestFieldIsShadowed_ReferencedFromRegularLocalFunction([CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 System.Console.WriteLine(new C().P);
@@ -389,7 +389,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp, expectedOutput: "5");
@@ -460,8 +460,8 @@ public class C
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void TestFieldIsShadowed_ReferencedFromRegularLambda()
+        [Theory, CombinatorialData]
+        public void TestFieldIsShadowed_ReferencedFromRegularLambda([CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 System.Console.WriteLine(new C().P);
@@ -477,7 +477,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp, expectedOutput: "5");
@@ -550,7 +550,7 @@ public class C
 } // end of class C
 ");
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory, CombinatorialData]
@@ -765,8 +765,8 @@ public class C
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void TestFieldIsShadowedByField_ReferencedFromRegularLambda()
+        [Theory, CombinatorialData]
+        public void TestFieldIsShadowedByField_ReferencedFromRegularLambda([CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 System.Console.WriteLine(new C().P);
@@ -783,7 +783,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp, expectedOutput: "5");
