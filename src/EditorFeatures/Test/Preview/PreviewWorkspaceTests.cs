@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetPersistentStorageService(previewWorkspace.CurrentSolution.Options);
+            var persistentService = previewWorkspace.Services.GetPersistentStorageService();
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);

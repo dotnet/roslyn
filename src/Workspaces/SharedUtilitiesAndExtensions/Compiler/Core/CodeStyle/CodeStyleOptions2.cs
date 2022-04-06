@@ -309,13 +309,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private static string GetAccessibilityModifiersRequiredEditorConfigString(CodeStyleOption2<AccessibilityModifiersRequired> option, CodeStyleOption2<AccessibilityModifiersRequired> defaultValue)
         {
-            // If they provide 'never', they don't need a notification level.
-            if (option.Notification == null)
-            {
-                Debug.Assert(s_accessibilityModifiersRequiredMap.ContainsValue(AccessibilityModifiersRequired.Never));
-                return s_accessibilityModifiersRequiredMap.GetKeyOrDefault(AccessibilityModifiersRequired.Never)!;
-            }
-
             Debug.Assert(s_accessibilityModifiersRequiredMap.ContainsValue(option.Value));
             return $"{s_accessibilityModifiersRequiredMap.GetKeyOrDefault(option.Value)}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
@@ -425,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_parenthesesPreferenceMap.ContainsValue(option.Value));
             var value = s_parenthesesPreferenceMap.GetKeyOrDefault(option.Value) ?? s_parenthesesPreferenceMap.GetKeyOrDefault(ParenthesesPreference.AlwaysForClarity);
-            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            return $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
 
         private static CodeStyleOption2<UnusedParametersPreference> ParseUnusedParametersPreference(string optionString, CodeStyleOption2<UnusedParametersPreference> defaultValue)
@@ -443,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             Debug.Assert(s_unusedParametersPreferenceMap.ContainsValue(option.Value));
             var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(defaultValue.Value);
-            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            return $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
     }
 

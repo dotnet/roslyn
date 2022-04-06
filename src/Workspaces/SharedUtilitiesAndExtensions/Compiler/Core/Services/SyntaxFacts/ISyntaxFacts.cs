@@ -535,6 +535,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
+        bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+
         #region IsXXX members
 
         bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);

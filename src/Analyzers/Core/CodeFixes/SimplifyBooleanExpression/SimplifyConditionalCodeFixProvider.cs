@@ -32,13 +32,12 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Simplify_conditional_expression,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(AnalyzersResources.Simplify_conditional_expression)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -75,14 +74,6 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
                 editor.ReplaceNode(
                     expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_conditional_expression, createChangedDocument, AnalyzersResources.Simplify_conditional_expression)
-            {
             }
         }
     }

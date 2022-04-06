@@ -35,13 +35,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
 #if CODE_STYLE
-        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
 #endif
 
         protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
 
 #if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
+            var provider = GetSyntaxFormatting();
             var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken));
 #else
             var provider = document.Project.Solution.Workspace.Services;
