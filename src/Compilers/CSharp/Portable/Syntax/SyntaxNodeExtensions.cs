@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 default:
-                    return syntax is StatementSyntax
-                        || IsValidScopeDesignator(syntax as ExpressionSyntax);
+                    return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
             }
         }
 
