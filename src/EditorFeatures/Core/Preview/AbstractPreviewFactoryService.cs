@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextViewRoleSet previewRoleSet,
             IGlobalOptionService globalOptions)
         {
-            threadingContext.ThrowIfNotOnUIThread();
             ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
