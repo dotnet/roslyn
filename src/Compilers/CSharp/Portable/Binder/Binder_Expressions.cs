@@ -1563,6 +1563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
+                            if (IsInsideNameof)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_FieldKeywordInsideNameOf, node);
+                            }
                         }
                     }
                 }

@@ -107,6 +107,61 @@ public class MyAttribute : System.Attribute
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,24): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
+                //             [My(nameof(field))]
+                Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(10, 24)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestNameOfField()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //             return nameof(field);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nameof(field)").WithArguments("string", "int").WithLocation(8, 20),
+                // (8,27): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
+                //             return nameof(field);
+                Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(8, 27)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestNameOfField_NameofIsMethodInvocation()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+        }
+    }
+
+    public int nameof(int x) => 0;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics();
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             VerifyTypeIL(comp, "C", @"
@@ -123,36 +178,35 @@ public class MyAttribute : System.Attribute
 		instance int32 get_P () cil managed 
 	{
 		// Method begins at RVA 0x2050
-		// Code size 6 (0x6)
+		// Code size 13 (0xd)
 		.maxstack 8
-		IL_0000: call int32 C::'<get_P>g__local|1_0'()
-		IL_0005: ret
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C::'<P>k__BackingField'
+		IL_0007: call instance int32 C::nameof(int32)
+		IL_000c: ret
 	} // end of method C::get_P
+	.method public hidebysig 
+		instance int32 nameof (
+			int32 x
+		) cil managed 
+	{
+		// Method begins at RVA 0x205e
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::nameof
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2057
+		// Method begins at RVA 0x2061
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
 		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
-	.method assembly hidebysig static 
-		int32 '<get_P>g__local|1_0' () cil managed 
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		.custom instance void MyAttribute::.ctor(string) = (
-			01 00 05 66 69 65 6c 64 00 00
-		)
-		// Method begins at RVA 0x205f
-		// Code size 2 (0x2)
-		.maxstack 8
-		IL_0000: ldc.i4.0
-		IL_0001: ret
-	} // end of method C::'<get_P>g__local|1_0'
 	// Properties
 	.property instance int32 P()
 	{
@@ -766,6 +820,81 @@ public class C
         }
 
         [Fact]
+        public void TestNameOfField_NameofIsLocalFunctionInvocation()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+
+            int nameof(int x) => 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: call int32 C::'<get_P>g__nameof|1_0'(int32)
+		IL_000b: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x205d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method assembly hidebysig static 
+		int32 '<get_P>g__nameof|1_0' (
+			int32 x
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2065
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__nameof|1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
         public void TestFieldIsShadowedByField_ReferencedFromRegularLambda()
         {
             var comp = CreateCompilation(@"
@@ -841,6 +970,34 @@ public class C
 ");
             var field = comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single();
             Assert.Equal("System.Int32 C.field", field.ToTestDisplayString());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData("private void field() { }")]
+        [InlineData("private int field { get => 0; }")]
+        [InlineData("private int field;")]
+        public void TestNameOfField_FieldIsMember(string member)
+        {
+            var comp = CreateCompilation($@"
+System.Console.WriteLine(new C().P);
+
+public class C
+{{
+    {member}
+
+    public string P
+    {{
+        get
+        {{
+            return nameof(field);
+        }}
+    }}
+}}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "field");
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -4535,6 +4692,8 @@ public class MyAttribute : System.Attribute
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
                 Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
@@ -4542,8 +4701,7 @@ public class MyAttribute : System.Attribute
             }
             else
             {
-                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
@@ -4597,14 +4755,16 @@ public class MyAttribute : System.Attribute
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
-            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
-            {
-                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            }
-            else
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
                 Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
                 Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
@@ -4616,7 +4776,6 @@ public class MyAttribute : System.Attribute
             Assert.Null(aliasInfo);
 
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 

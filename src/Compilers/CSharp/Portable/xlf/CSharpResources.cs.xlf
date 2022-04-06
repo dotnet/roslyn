@@ -532,6 +532,11 @@
         <target state="translated">Funkce {0} není v C# 9.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FieldKeywordInsideNameOf">
+        <source>Cannot use 'field' keyword inside 'nameof' expressions.</source>
+        <target state="new">Cannot use 'field' keyword inside 'nameof' expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
         <target state="translated">Událost podobná poli {0} nemůže mít modifikátor readonly.</target>

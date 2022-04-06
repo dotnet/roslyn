@@ -532,6 +532,11 @@
         <target state="translated">Die Funktion "{0}" ist in C# 9.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FieldKeywordInsideNameOf">
+        <source>Cannot use 'field' keyword inside 'nameof' expressions.</source>
+        <target state="new">Cannot use 'field' keyword inside 'nameof' expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
         <target state="translated">Ein feldähnliches Ereignis "{0}" darf nicht "readonly" sein.</target>
