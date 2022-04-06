@@ -168,7 +168,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
                 var options = AutoFormattingOptions.From(document.Project);
-                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
+                var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions2.SmartIndent, document.Project.Language);
+                if (!service.SupportsFormattingOnTypedCharacter(document, options, indentStyle, typeCharArgs.TypedChar))
                 {
                     return;
                 }

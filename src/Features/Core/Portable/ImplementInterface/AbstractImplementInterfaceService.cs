@@ -72,7 +72,28 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                var totalMemberCount = 0;
+                var inaccessibleMemberCount = 0;
+
+                foreach (var (_, members) in state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented)
+                {
+                    foreach (var member in members)
+                    {
+                        totalMemberCount++;
+
+                        if (AccessibilityHelper.IsLessAccessibleThan(member, state.ClassOrStructType))
+                        {
+                            inaccessibleMemberCount++;
+                        }
+                    }
+                }
+
+                // If all members to implement are inaccessible, then "Implement interface" codeaction
+                // will be the same as "Implement interface explicitly", so there is no point in having both of them
+                if (totalMemberCount != inaccessibleMemberCount)
+                {
+                    yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                }
 
                 if (ShouldImplementDisposePattern(state, explicitly: false))
                 {

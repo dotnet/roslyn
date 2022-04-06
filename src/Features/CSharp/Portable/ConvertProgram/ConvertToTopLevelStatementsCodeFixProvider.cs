@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseTopLevelStatementsId);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeStyle;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;

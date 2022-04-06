@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         }
 
 #if CODE_STYLE
-        private static ISyntaxFormattingService GetSyntaxFormattingService()
-            => CSharpSyntaxFormattingService.Instance;
+        private static ISyntaxFormatting GetSyntaxFormatting()
+            => CSharpSyntaxFormatting.Instance;
 #endif
 
         protected override IUnnecessaryImportsProvider UnnecessaryImportsProvider
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
                 cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
-                var provider = GetSyntaxFormattingService();
+                var provider = GetSyntaxFormatting();
                 var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
 #else
                 var provider = document.Project.Solution.Workspace.Services;

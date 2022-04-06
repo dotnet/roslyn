@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -33,7 +34,6 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -115,11 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
                 // If so, default to that.
-                return optionStore.GetOption(VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
             });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, LanguageNames.CSharp);

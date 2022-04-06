@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticTableControlEventProcessorProvider(
-            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+            VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
         {
-            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
+            _suppressionStateService = suppressionStateService;
         }
 
         protected override EventProcessor CreateEventProcessor()

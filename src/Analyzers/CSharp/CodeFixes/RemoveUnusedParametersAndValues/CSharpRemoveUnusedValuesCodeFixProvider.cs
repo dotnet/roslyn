@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         }
 
 #if CODE_STYLE
-        protected override ISyntaxFormattingService GetSyntaxFormattingService()
-            => CSharpSyntaxFormattingService.Instance;
+        protected override ISyntaxFormatting GetSyntaxFormatting()
+            => CSharpSyntaxFormatting.Instance;
 #endif
 
         protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)

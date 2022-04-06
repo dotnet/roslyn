@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return new CodeActionWithNestedActions(
+            return CodeActionWithNestedActions.Create(
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 

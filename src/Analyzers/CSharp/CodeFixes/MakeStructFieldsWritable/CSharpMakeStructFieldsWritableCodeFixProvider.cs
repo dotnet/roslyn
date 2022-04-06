@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeStructFieldsWritable);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Make_readonly_fields_writable,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(CSharpAnalyzersResources.Make_readonly_fields_writable)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -74,14 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable))
-            {
-            }
         }
     }
 }

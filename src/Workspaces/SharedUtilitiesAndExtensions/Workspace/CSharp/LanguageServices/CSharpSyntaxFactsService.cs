@@ -25,16 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal static new readonly CSharpSyntaxFactsService Instance = new();
 
-            public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                if (syntaxTree == null)
-                {
-                    return false;
-                }
-
-                return syntaxTree.IsInInactiveRegion(position, cancellationToken);
-            }
-
             public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {
                 if (syntaxTree == null)
