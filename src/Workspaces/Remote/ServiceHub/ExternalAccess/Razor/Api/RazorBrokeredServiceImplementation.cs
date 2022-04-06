@@ -18,7 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
         public static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
             => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
 
+        [Obsolete("Use RunWithSolutionAsync instead", error: false)]
         public static ValueTask<Solution> GetSolutionAsync(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
+
+        public static ValueTask<T> RunWithSolutionAsync<T>(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            => RemoteWorkspaceManager.Default.RunWithSolutionAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
     }
 }
