@@ -323,7 +323,7 @@ public class MyAttribute : System.Attribute
 } // end of class C
 ");
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -457,7 +457,7 @@ public class C
 } // end of class C
 ");
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -550,7 +550,7 @@ public class C
 } // end of class C
 ");
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory, CombinatorialData]
@@ -762,7 +762,7 @@ public class C
 ");
             var field = comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single();
             Assert.Equal("System.Int32 C.field", field.ToTestDisplayString());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -841,7 +841,7 @@ public class C
 ");
             var field = comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>().Single();
             Assert.Equal("System.Int32 C.field", field.ToTestDisplayString());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -870,7 +870,7 @@ public class C
 
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
-    .class public auto ansi beforefieldinit C
+.class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
 {
 	// Fields
@@ -929,6 +929,81 @@ public class C
 } // end of class C
 ");
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestAssigningFromConstructorNoAccessors()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public C()
+    {
+        P = 5;
+    }
+
+    public int P { }
+
+    public static void Main()
+    {
+        System.Console.WriteLine(new C().P);
+    }
+}
+", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = 5;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 9),
+                // (9,16): error CS0548: 'C.P': property or indexer must have at least one accessor
+                //     public int P { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(9, 16),
+                // (13,34): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
+                //         System.Console.WriteLine(new C().P);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C().P").WithArguments("C.P").WithLocation(13, 34)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData("get;", 0)]
+        [InlineData("get; set;", 0)]
+        // [InlineData("set;")] PROTOTYPE(semi-auto-props): Not yet supported.
+        [InlineData("get => field;", 1)]
+        // [InlineData("get => field; set;")] PROTOTYPE(semi-auto-props): Not yet supported
+        public void TestAssigningFromConstructorThroughBackingField(string accessors, int bindingCount)
+        {
+            var comp = CreateCompilation($@"
+public class C
+{{
+    public C()
+    {{
+        P = 5;
+    }}
+
+    public int P {{ {accessors} }}
+
+    public static void Main()
+    {{
+        System.Console.WriteLine(new C().P);
+    }}
+}}
+", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}
+");
+            Assert.Equal(bindingCount, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         // PROTOTYPE(semi-auto-props): All success scenarios should be executed, expected runtime behavior should be observed.
@@ -2376,7 +2451,7 @@ public class Point
             comp.TestOnlyCompilationData = data;
             Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics();
-            Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
+            Assert.Equal(2, data.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
