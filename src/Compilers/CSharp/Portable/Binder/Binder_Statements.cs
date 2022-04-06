@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            return  propertySymbol is SourcePropertySymbolBase sourceProperty &&
+            return propertySymbol is SourcePropertySymbolBase sourceProperty &&
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
                     (sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } || sourceProperty.FieldKeywordBackingField is not null) &&
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
