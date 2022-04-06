@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 [IntentProvider(WellKnownIntents.Rename, LanguageNames.CSharp), Shared]
 internal class RenameIntentProvider : IIntentProvider
 {
+    private record RenameIntentData(string NewName);
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RenameIntentProvider()
@@ -50,6 +52,4 @@ internal class RenameIntentProvider : IIntentProvider
 
         return ImmutableArray.Create(new IntentProcessorResult(renameReplacementInfo.NewSolution, renameReplacementInfo.DocumentIds.ToImmutableArray(), EditorFeaturesResources.Rename, WellKnownIntents.Rename));
     }
-
-    private record RenameIntentData(string NewName);
 }
