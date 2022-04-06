@@ -2386,7 +2386,7 @@ Punctuation.CloseCurly);
         [Theory]
         [CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
-        public async Task TestAsyncAsLocalMemberType(TestHost testHost)
+        public async Task TestAsyncAsLocalMemberType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
 @"class Test
@@ -2398,7 +2398,7 @@ Punctuation.CloseCurly);
 }",
                 testHost,
                 parseOptions: null,
-Identifier("async"),
+Keyword("async"),
 Local("a"),
 Punctuation.Semicolon);
         }
@@ -2406,7 +2406,30 @@ Punctuation.Semicolon);
         [Theory]
         [CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
-        public async Task TestAsyncAsPropertyType(TestHost testHost)
+        public async Task TestAsyncAsLocalMemberType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Class("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
 @"class Test
@@ -2416,7 +2439,7 @@ Punctuation.Semicolon);
                 testHost,
                 parseOptions: null,
 Keyword("public"),
-Identifier("async"),
+Keyword("async"),
 Property("Prop"),
 Punctuation.OpenCurly,
 Keyword("get"),
@@ -2429,7 +2452,33 @@ Punctuation.CloseCurly);
         [Theory]
         [CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
-        public async Task TestAsyncAsMethodReturnType(TestHost testHost)
+        public async Task TestAsyncAsPropertyType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
 @"class Test
@@ -2439,7 +2488,29 @@ Punctuation.CloseCurly);
                 testHost,
                 parseOptions: null,
 Keyword("public"),
-Identifier("async"),
+Keyword("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
 Method("M"),
 Punctuation.OpenParen,
 Punctuation.CloseParen);
