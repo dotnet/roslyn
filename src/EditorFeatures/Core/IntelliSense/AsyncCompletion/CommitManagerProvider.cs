@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
@@ -22,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
+        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, LanguageServerSnippetExpander languageServerSnippetExpander)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _globalOptions = globalOptions;
+            _languageServerSnippetExpander = languageServerSnippetExpander;
         }
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
+            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext, _languageServerSnippetExpander);
         }
     }
 }

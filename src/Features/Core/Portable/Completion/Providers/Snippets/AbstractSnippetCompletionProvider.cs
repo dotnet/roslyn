@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allChangesDocument = document.WithText(allChangesText);
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lspSnippet = GenerateLSPSnippet(snippet);
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
