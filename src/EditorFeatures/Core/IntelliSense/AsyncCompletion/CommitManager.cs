@@ -26,7 +26,6 @@ using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCo
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
+        private readonly object _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext, LanguageServerSnippetExpander languageServerSnippetExpander)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext, object languageServerSnippetExpander)
             : base(threadingContext)
         {
             _globalOptions = globalOptions;
