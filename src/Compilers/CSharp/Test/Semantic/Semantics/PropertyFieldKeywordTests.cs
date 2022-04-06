@@ -969,12 +969,12 @@ public class C
         }
 
         [Theory]
-        [InlineData("get;", 0)]
-        [InlineData("get; set;", 0)]
+        [InlineData("get;", 0, false)]
+        [InlineData("get; set;", 0, true)]
         // [InlineData("set;")] PROTOTYPE(semi-auto-props): Not yet supported.
-        [InlineData("get => field;", 1)]
+        [InlineData("get => field;", 1, false)]
         // [InlineData("get => field; set;")] PROTOTYPE(semi-auto-props): Not yet supported
-        public void TestAssigningFromConstructorThroughBackingField(string accessors, int bindingCount)
+        public void TestAssigningFromConstructorThroughBackingField(string accessors, int bindingCount, bool callsSynthesizedSetter)
         {
             var comp = CreateCompilation($@"
 public class C
@@ -994,6 +994,38 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            var expectedCtorIL = callsSynthesizedSetter switch
+            {
+                true => @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.5
+  IL_000a:  call       ""void C.P.set""
+  IL_000f:  nop
+  IL_0010:  ret
+}
+",
+                false => @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.5
+  IL_000a:  stfld      ""int C.<P>k__BackingField""
+  IL_000f:  ret
+}
+",
+            };
             CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C.P.get", @"
 {
   // Code size        7 (0x7)
@@ -1002,8 +1034,187 @@ public class C
   IL_0001:  ldfld      ""int C.<P>k__BackingField""
   IL_0006:  ret
 }
-");
+").VerifyIL("C..ctor", expectedCtorIL);
             Assert.Equal(bindingCount, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestAssigningFromConstructorThroughSetterWithFieldKeyword_NoGetter()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public C()
+    {
+        P = 5;
+    }
+
+    public int P { set => field = value * 2; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp).VerifyIL("C.P.set", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  mul
+  IL_0004:  stfld      ""int C.<P>k__BackingField""
+  IL_0009:  ret
+}
+").VerifyIL("C..ctor", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldc.i4.5
+  IL_0008:  call       ""void C.P.set""
+  IL_000d:  ret
+}
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        //[InlineData("get; set => field = value * 2;")] PROTOTYPE(semi-auto-props): Not yet supported.
+        [InlineData("get => field; set => field = value * 2;")]
+        public void TestAssigningFromConstructorThroughSetterWithFieldKeyword_HasGetter(string accessors)
+        {
+            var comp = CreateCompilation($@"
+public class C
+{{
+    public C()
+    {{
+        P = 5;
+    }}
+
+    public int P {{ {accessors} }}
+
+    public static void Main()
+    {{
+        System.Console.WriteLine(new C().P);
+    }}
+}}
+", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "10").VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}
+").VerifyIL("C..ctor", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.5
+  IL_000a:  call       ""void C.P.set""
+  IL_000f:  nop
+  IL_0010:  ret
+}
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Not supported yet.")]
+        [InlineData("get; set => _ = value;")]
+        [InlineData("set => _ = value;")]
+        [InlineData("get => field; set => _ = value;")]
+        public void TestAssigningFromConstructorThroughSetter_RegularSetter(string accessors)
+        {
+            var comp = CreateCompilation($@"
+public class C
+{{
+    public C()
+    {{
+        P = 5;
+    }}
+
+    public int P {{ {accessors} }}
+
+    public static void Main()
+    {{
+        System.Console.WriteLine(new C().P);
+    }}
+}}
+", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "0").VerifyIL("C.P.get", @"
+").VerifyIL("C..ctor", @"
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        // [InlineData("get => 0; set;")] PROTOTYPE(semi-auto-props): Not yet supported.
+        [InlineData("get => 0; set => field = value;")]
+        public void TestAssigningFromConstructorThroughSetter_RegularGetter_CanAssignInCtor(string accessors)
+        {
+            var comp = CreateCompilation($@"
+public class C
+{{
+    public C()
+    {{
+        P = 5;
+    }}
+
+    public int P {{ {accessors} }}
+
+    public static void Main()
+    {{
+        System.Console.WriteLine(new C().P);
+    }}
+}}
+", options: TestOptions.DebugExe);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0").VerifyIL("C.P.get", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}
+").VerifyIL("C.P.set", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ret
+}
+").VerifyIL("C..ctor", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.5
+  IL_000a:  call       ""void C.P.set""
+  IL_000f:  nop
+  IL_0010:  ret
+}
+");
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         // PROTOTYPE(semi-auto-props): All success scenarios should be executed, expected runtime behavior should be observed.
