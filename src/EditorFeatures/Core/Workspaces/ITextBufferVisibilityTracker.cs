@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -42,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Workspaces
         /// </summary>
         public static async Task DelayWhileNonVisibleAsync(
             this ITextBufferVisibilityTracker? service,
+            IAsynchronousOperationListener asyncListener,
             IThreadingContext threadingContext,
             ITextBuffer subjectBuffer,
-            TimeSpan timeSpan,
             CancellationToken cancellationToken)
         {
             // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             try
             {
                 // Listen to when the active document changed so that we startup work on a document once it becomes visible.
-                var delayTask = Task.Delay(timeSpan, cancellationToken);
+                var delayTask = asyncListener.Delay(DelayTimeSpan.NonFocus, cancellationToken);
                 await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).ConfigureAwait(false);
             }
             finally

@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
                 // we're on the UI thread that we stay on it.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+                    _asyncListener, _dataSource.ThreadingContext, _subjectBuffer, cancellationToken).ConfigureAwait(true);
 
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

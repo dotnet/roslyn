@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+                    _asyncListener, _threadingContext, _subjectBuffer, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
