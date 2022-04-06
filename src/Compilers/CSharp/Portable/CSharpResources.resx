@@ -7001,4 +7001,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MisplacedRecord" xml:space="preserve">
     <value>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</value>
   </data>
+  <data name="ERR_FieldKeywordInsideNameOf" xml:space="preserve">
+    <value>Cannot use 'field' keyword inside 'nameof' expressions.</value>
+  </data>
 </root>
