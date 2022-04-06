@@ -597,6 +597,11 @@
         <target state="translated">この要素は、移動できない場所にあるため、名前を変更できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Esc_to_cancel">
+        <source>{0} (Esc to cancel)</source>
+        <target state="new">{0} (Esc to cancel)</target>
+        <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">{0} 個の競合が解決されます</target>
