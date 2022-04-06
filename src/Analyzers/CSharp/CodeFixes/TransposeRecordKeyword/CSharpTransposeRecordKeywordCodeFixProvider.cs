@@ -94,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
                 TryGetTokens(recordDeclaration, out _, out _))
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(c => this.FixAsync(document, diagnostic, c)),
+                    CodeAction.Create(
+                        CSharpCodeFixesResources.Fix_record_declaration,
+                        c => this.FixAsync(document, diagnostic, c),
+                        nameof(CSharpCodeFixesResources.Fix_record_declaration)),
                     diagnostic);
             }
 
@@ -125,15 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Fix_record_declaration, createChangedDocument, nameof(CSharpTransposeRecordKeywordCodeFixProvider))
-            {
-            }
         }
     }
 }

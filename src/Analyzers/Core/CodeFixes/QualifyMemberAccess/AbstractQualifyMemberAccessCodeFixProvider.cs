@@ -26,9 +26,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(),
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            var title = GetTitle();
+            context.RegisterCodeFix(CodeAction.Create(
+                title,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                title),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -58,13 +60,5 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         }
 
         protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }
