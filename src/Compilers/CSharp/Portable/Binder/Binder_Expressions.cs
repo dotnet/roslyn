@@ -7076,6 +7076,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
             }
 
+            if (fieldSymbol.RefKind != RefKind.None &&
+                receiver is { } &&
+                receiver.Kind != BoundKind.ThisReference)
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefFields, diagnostics);
+            }
+
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
