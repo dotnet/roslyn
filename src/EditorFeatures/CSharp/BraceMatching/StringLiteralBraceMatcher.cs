@@ -34,18 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
             {
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
-                    if (token.IsVerbatimStringLiteral())
-                    {
-                        return new BraceMatchingResult(
-                            new TextSpan(token.SpanStart, 2),
-                            new TextSpan(token.Span.End - 1, 1));
-                    }
-                    else
-                    {
-                        return new BraceMatchingResult(
-                            new TextSpan(token.SpanStart, 1),
-                            new TextSpan(token.Span.End - 1, 1));
-                    }
+                    return GetSimpleStringBraceMatchingResult(token, 1);
+                }
+                else if (token.IsKind(SyntaxKind.UTF8StringLiteralToken))
+                {
+                    return GetSimpleStringBraceMatchingResult(token, 3);
                 }
                 else if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedVerbatimStringStartToken))
                 {
@@ -64,6 +57,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
             }
 
             return null;
+        }
+
+        private static BraceMatchingResult GetSimpleStringBraceMatchingResult(SyntaxToken token, int endTokenLength)
+        {
+            if (token.IsVerbatimStringLiteral())
+            {
+                return new BraceMatchingResult(
+                    new TextSpan(token.SpanStart, 2),
+                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
+            }
+            else
+            {
+                return new BraceMatchingResult(
+                    new TextSpan(token.SpanStart, 1),
+                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
+            }
         }
     }
 }
