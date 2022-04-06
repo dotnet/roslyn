@@ -2108,7 +2108,7 @@ public class C
         }
 
         [Fact]
-        public void AssignReadOnlyOnlyPropertyOutsideConstructor()
+        public void AssignReadOnlyOnlyPropertyOutsideConstructor_FieldAssignedFirst()
         {
             var comp = CreateCompilation(@"
 class Test
@@ -2136,6 +2136,66 @@ class Test
                 // (9,13): error CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only
                 //             X = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(9, 13)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void AssignReadOnlyOnlyPropertyOutsideConstructor_FieldAssignedAfterProperty()
+        {
+            var comp = CreateCompilation(@"
+class Test
+{
+    int X
+    {
+        get
+        {
+            X = 3;
+            field = 3;
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("Test").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only
+                //             X = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(8, 13),
+                // PROTOTYPE(semi-auto-props):
+                // Should the generated field not be readonly?
+                // (9,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //             field = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(9, 13)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void AssignReadOnlyOnlyPropertyOutsideConstructor_FieldNotAssigned()
+        {
+            var comp = CreateCompilation(@"
+class Test
+{
+    int X
+    {
+        get
+        {
+            X = 3;
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("Test").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0200: Property or indexer 'Test.X' cannot be assigned to -- it is read only
+                //             X = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("Test.X").WithLocation(8, 13)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
