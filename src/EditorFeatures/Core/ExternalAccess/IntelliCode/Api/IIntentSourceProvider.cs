@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
         /// <summary>
         /// The text changes that should be applied to each document.
         /// </summary>
-        public readonly ImmutableDictionary<Uri, ImmutableArray<TextChange>> DocumentChanges;
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<TextChange>> DocumentChanges;
 
         /// <summary>
         /// Contains metadata that can be used to identify the kind of sub-action these edits
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
         /// </summary>
         public readonly string ActionName { get; }
 
-        public IntentSource(string title, ImmutableArray<TextChange> textChanges, string actionName, ImmutableDictionary<Uri, ImmutableArray<TextChange>> documentChanges)
+        public IntentSource(string title, ImmutableArray<TextChange> textChanges, string actionName, ImmutableDictionary<DocumentId, ImmutableArray<TextChange>> documentChanges)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             TextChanges = textChanges;

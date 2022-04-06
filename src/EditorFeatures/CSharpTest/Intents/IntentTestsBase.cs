@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -85,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             foreach (var documentChange in result.DocumentChanges)
             {
                 // Get the document and open it.  Since we're modifying the text buffer we don't care about linked documents.
-                var documentToChange = workspace.CurrentSolution.GetDocumentIdsWithFilePath(documentChange.Key.OriginalString).First();
-                var documentBuffer = workspace.GetTestDocument(documentToChange).GetTextBuffer();
+                var documentBuffer = workspace.GetTestDocument(documentChange.Key).GetTextBuffer();
 
                 using var edit = documentBuffer.CreateEdit();
                 foreach (var change in documentChange.Value)
