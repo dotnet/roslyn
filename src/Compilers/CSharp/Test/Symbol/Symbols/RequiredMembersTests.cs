@@ -3562,6 +3562,87 @@ public class Derived : Base
         );
     }
 
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_08()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                [SetsRequiredMembers]
+                protected Base() {}
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; }
+                public string Prop4 { get; set; }
+            
+                public Derived() : base()
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                    Prop3.ToString(); // 1
+                    Prop4.ToString(); // 2
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (21,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop3.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
+            // (22,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop4.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(22, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_10()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                protected Base() {}
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; }
+                public string Prop4 { get; set; }
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                    Prop4 = null!;
+                }
+            
+                public Derived() : this(0)
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                    Prop3.ToString();
+                    Prop4.ToString();
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+        );
+    }
+
     [Fact]
     public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType()
     {

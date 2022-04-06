@@ -625,6 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useConstructorExitWarnings: true,
                         initialNullableState: null,
                         getFinalNullableState: false,
+                        baseOrThisInitializer: null,
                         finalNullableState: out _);
                 }
             }
@@ -1011,7 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             useConstructorExitWarnings: false,
                             initialNullableState: null,
                             getFinalNullableState: true,
-                            out processedInitializers.AfterInitializersState);
+                            baseOrThisInitializer: null,
+                            out _);
                     }
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
@@ -1031,28 +1033,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
                     }
 
-                    if (includeInitializersInBody &&
-                        processedInitializers.AfterInitializersState is null &&
-                        ReportNullableDiagnostics)
-                    {
-                        NullableWalker.AnalyzeIfNeeded(
-                            _compilation,
-                            methodSymbol,
-                            // we analyze to produce an AfterInitializersState even if there are no initializers
-                            // because it conveniently allows us to capture all the 'default' states for applicable members
-                            analyzedInitializers ?? GetSynthesizedEmptyBody(methodSymbol),
-                            diagsForCurrentMethod.DiagnosticBag,
-                            useConstructorExitWarnings: false,
-                            initialNullableState: null,
-                            getFinalNullableState: true,
-                            out processedInitializers.AfterInitializersState);
-                    }
-
                     body = BindMethodBody(
                         methodSymbol,
                         compilationState,
                         diagsForCurrentMethod,
-                        processedInitializers.AfterInitializersState,
+                        includeInitializersInBody,
+                        analyzedInitializers,
                         ReportNullableDiagnostics,
                         includesFieldInitializers: includeInitializersInBody && !processedInitializers.BoundInitializers.IsEmpty,
                         out importChain,
@@ -1702,20 +1688,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // NOTE: can return null if the method has no body.
-        internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+#nullable enable
+        internal static BoundBlock? BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, reportNullableDiagnostics: true, includesFieldInitializers: false, out _, out _, out _);
+            return BindMethodBody(
+                method,
+                compilationState,
+                diagnostics,
+                includeInitializersInBody: false,
+                initializersBody: null,
+                reportNullableDiagnostics: true,
+                includesFieldInitializers: false,
+                importChain: out _,
+                originalBodyNested: out _,
+                forSemanticModel: out _);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(
+        private static BoundBlock? BindMethodBody(
             MethodSymbol method,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
-            NullableWalker.VariableState nullableInitialState,
+            bool includeInitializersInBody,
+            BoundNode? initializersBody,
             bool reportNullableDiagnostics,
             bool includesFieldInitializers,
-            out ImportChain importChain,
+            out ImportChain? importChain,
             out bool originalBodyNested,
             out MethodBodySemanticModel.InitialState forSemanticModel)
         {
@@ -1723,11 +1721,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             importChain = null;
             forSemanticModel = default;
 
-            BoundBlock body;
+            BoundBlock? body;
+            NullableWalker.VariableState? nullableInitialState = null;
+
+            initializersBody ??= GetSynthesizedEmptyBody(method);
 
             if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
             {
                 body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+                nullableInitialState = getInitializerState(body);
             }
             else if (method is SourceMemberMethodSymbol sourceMethod)
             {
@@ -1756,12 +1758,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     importChain = bodyBinder.ImportChain;
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics, includesFieldInitializers);
                     BoundNode methodBodyForSemanticModel = methodBody;
-                    NullableWalker.SnapshotManager snapshotManager = null;
-                    ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
+                    NullableWalker.SnapshotManager? snapshotManager = null;
+                    ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
+
+                    nullableInitialState = getInitializerState(methodBody);
 
                     if (reportNullableDiagnostics)
                     {
+                        Debug.Assert(diagnostics.DiagnosticBag != null);
                         if (compilation.IsNullableAnalysisEnabledIn(method))
                         {
                             var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
@@ -1789,17 +1794,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 useConstructorExitWarnings: true,
                                 nullableInitialState,
                                 getFinalNullableState: false,
+                                baseOrThisInitializer: null,
                                 finalNullableState: out _);
                         }
                     }
-
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
                     switch (methodBody.Kind)
                     {
                         case BoundKind.ConstructorMethodBody:
                             var constructor = (BoundConstructorMethodBody)methodBody;
-                            body = constructor.BlockBody ?? constructor.ExpressionBody;
+                            body = constructor.BlockBody ?? constructor.ExpressionBody!;
+                            Debug.Assert(body != null);
 
                             if (constructor.Initializer is BoundNoOpStatement)
                             {
@@ -1832,7 +1838,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundKind.NonConstructorMethodBody:
                             var nonConstructor = (BoundNonConstructorMethodBody)methodBody;
-                            body = nonConstructor.BlockBody ?? nonConstructor.ExpressionBody;
+                            body = nonConstructor.BlockBody ?? nonConstructor.ExpressionBody!;
+                            Debug.Assert(body != null);
                             break;
 
                         case BoundKind.Block:
@@ -1845,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor)
+                    if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -1862,15 +1869,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stmts = ArrayBuilder<BoundStatement>.GetInstance();
                 ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
                 body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
+                nullableInitialState = getInitializerState(body);
             }
             else
             {
                 // synthesized methods should return their bound bodies
                 body = null;
+                nullableInitialState = getInitializerState(null);
             }
 
             if (reportNullableDiagnostics && method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
             {
+                Debug.Assert(diagnostics.AccumulatesDiagnostics);
                 NullableWalker.AnalyzeIfNeeded(
                     compilationState.Compilation,
                     method,
@@ -1879,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useConstructorExitWarnings: true,
                     nullableInitialState,
                     getFinalNullableState: false,
+                    baseOrThisInitializer: null,
                     finalNullableState: out _);
             }
 
@@ -1910,7 +1921,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
+
+            NullableWalker.VariableState? getInitializerState(BoundNode? body)
+            {
+                if (reportNullableDiagnostics && includeInitializersInBody)
+                {
+                    return NullableWalker.GetAfterInitializersState(compilationState.Compilation, method, initializersBody, body, diagnostics);
+                }
+
+                return null;
+            }
         }
+#nullable disable
 
         private static BoundBlock GetSynthesizedEmptyBody(Symbol symbol)
         {
