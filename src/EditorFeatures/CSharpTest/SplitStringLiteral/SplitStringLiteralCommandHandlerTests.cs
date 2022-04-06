@@ -149,6 +149,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingBeforeUTF8String()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = [||]""""u8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMissingBeforeInterpolatedString()
         {
             TestNotHandled(
@@ -266,6 +279,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUTF8String_1()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"[||]u8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUTF8String_2()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||];
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUTF8String_3()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u8[||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUTF8String_4()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""u8 [||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
@@ -274,6 +339,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = @""a[||]b"";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInUTF8VerbatimString()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = @""a[||]b""u8;
     }
 }");
         }
@@ -445,6 +523,48 @@ $""[||]"";
     {
         var v = ""now is "" +
             ""[||]the time"";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestUTF8String_1()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""u8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""u8 +
+            ""[||]the time""u8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestUTF8String_2()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""now is [||]the time""U8;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = ""now is ""U8 +
+            ""[||]the time""U8;
     }
 }");
         }
@@ -942,6 +1062,21 @@ world
         var v = ${|#0:|}$""""""Hello[||]there
 world
 """""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawUTF8StringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+""""""u8;
     }
 }");
         }
