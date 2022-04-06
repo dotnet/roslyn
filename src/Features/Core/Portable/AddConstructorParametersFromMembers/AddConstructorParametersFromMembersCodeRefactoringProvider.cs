@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 if (!result.RequiredParameterActions.IsDefaultOrEmpty)
                 {
-                    actions.Add(new CodeAction.CodeActionWithNestedActions(
+                    actions.Add(CodeAction.CodeActionWithNestedActions.Create(
                         FeaturesResources.Add_parameter_to_constructor,
                         result.RequiredParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                         isInlinable: false));
                 }
 
-                actions.Add(new CodeAction.CodeActionWithNestedActions(
+                actions.Add(CodeAction.CodeActionWithNestedActions.Create(
                     FeaturesResources.Add_optional_parameter_to_constructor,
                     result.OptionalParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
                     isInlinable: false));

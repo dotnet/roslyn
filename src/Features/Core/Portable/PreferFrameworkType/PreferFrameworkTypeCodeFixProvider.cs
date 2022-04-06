@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];

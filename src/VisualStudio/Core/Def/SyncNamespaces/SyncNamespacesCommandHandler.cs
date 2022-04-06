@@ -7,8 +7,11 @@ using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         private readonly VisualStudioWorkspace _workspace;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
@@ -35,23 +39,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         public SyncNamespacesCommandHandler(
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serviceProvider);
 
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IServiceProvider)serviceProvider;
 
             // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-            var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
+            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.SyncNamespaces, Guids.RoslynGroupId, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
             }
         }
@@ -130,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
             {
-                solution = ThreadHelper.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
+                solution = _threadingContext.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
             });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)

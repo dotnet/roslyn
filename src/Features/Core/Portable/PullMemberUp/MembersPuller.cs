@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
-            return new SolutionChangeAction(
+            return SolutionChangeAction.Create(
                 title,
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
                 title);

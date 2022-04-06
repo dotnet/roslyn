@@ -16,7 +16,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
-using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -2987,6 +2987,174 @@ return;
                 indentStyle: IndentStyle.Smart);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void Operator()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator +(Class x, Class y)
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CastOperator()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static explicit operator Class(int x)
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void OperatorBody()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator +(Class x, Class y)
+        {
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CastOperatorBody()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static explicit operator Class(int x)
+        {
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CheckedOperator()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator checked +(Class x, Class y)
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12,
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExplicitCastCheckedOperator()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static explicit operator checked Class(int x)
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12,
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void CheckedOperatorBody()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator checked +(Class x, Class y)
+        {
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12,
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExplicitCastCheckedOperatorBody()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static explicit operator checked Class(int x)
+        {
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12,
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
         private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
@@ -3013,7 +3181,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(FormattingOptions2.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var subjectDocument = workspace.Documents.Single();
 
@@ -3061,7 +3229,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(FormattingOptions2.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 TestIndentation(workspace, indentationLine, expectedIndentation);
             }
@@ -3093,7 +3261,7 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(FormattingOptions2.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var wpfTextView = workspace.Documents.First().GetTextView();
                 var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;

@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                 return true;
             }
 
-            var navigationTool = IServiceProviderExtensions.GetService<SVsClassView, IVsNavigationTool>(_serviceProvider);
+            var navigationTool = _serviceProvider.GetServiceOnMainThread<SVsClassView, IVsNavigationTool>();
             navigationTool.NavigateToNavInfo(navInfo);
             return true;
         }

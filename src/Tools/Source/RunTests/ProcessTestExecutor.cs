@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,6 +70,7 @@ namespace RunTests
                 }
             }
 
+            builder.Append($@" --arch {assemblyInfo.Architecture}");
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
@@ -80,18 +79,26 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
+            if (!Options.CollectDumps)
+            {
+                // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
+                // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
+                // interferes with automatic crash dump collection on Windows.
+                builder.Append(" --blame-crash");
+            }
+
             // The 25 minute timeout accounts for the fact that VSIX deployment and/or experimental hive reset and
             // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
             // functionality cannot separate this configuration overhead from the first test which will eventually run.
             // https://github.com/dotnet/roslyn/issues/59851
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 25minutes");
+            builder.Append(" --blame-hang-dump-type full --blame-hang-timeout 25minutes");
 
             return builder.ToString();
         }
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -110,7 +117,7 @@ namespace RunTests
             static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
             {
                 // vs-extension-testing handles test retry internally.
-                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests";
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
             }
         }
 

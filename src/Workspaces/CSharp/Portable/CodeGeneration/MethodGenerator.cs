@@ -313,6 +313,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
                     }
                 }
+                else if (destination is CodeGenerationDestination.CompilationUnit)
+                {
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+                }
 
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
                 {

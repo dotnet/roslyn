@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
                     (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -473,8 +473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -1362,6 +1365,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
+        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node)
+            => ((CommonForEachStatementSyntax)node).Expression;
+
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
@@ -1595,6 +1601,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+
+        public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            if (syntaxTree == null)
+            {
+                return false;
+            }
+
+            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
+        }
 
         #region IsXXX members
 

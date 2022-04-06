@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
-        private readonly WellKnownLspServerKinds _serverKind;
         private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
 
         protected readonly IDiagnosticService DiagnosticService;
@@ -57,17 +56,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<(int, VersionStamp), (int, Checksum)> _versionedCache;
+        private readonly VersionedPullCache<(int, VersionStamp?), (int, Checksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
-            WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService,
             EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
         {
-            _serverKind = serverKind;
             DiagnosticService = diagnosticService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
             _versionedCache = new(this.GetType().Name);
@@ -135,11 +132,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 context.TraceInformation($"Processing: {document.FilePath}");
 
-                if (!IncludeDocument(document, context.ClientName))
-                {
-                    context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
-                    continue;
-                }
+                // not be asked for workspace docs in razor.
+                // not send razor docs in workspace docs for c#
 
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
@@ -173,17 +167,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReturn(progress);
         }
 
-        private static bool IncludeDocument(Document document, string? clientName)
-        {
-            // Documents either belong to Razor or not.  We can determine this by checking if the doc has a span-mapping
-            // service or not.  If we're not in razor, we do not include razor docs.  If we are in razor, we only
-            // include razor docs.
-            var isRazorDoc = document.IsRazorDocument();
-            var wantsRazorDoc = clientName != null;
-
-            return wantsRazorDoc == isRazorDoc;
-        }
-
         private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousDiagnosticParams(
             RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
         {
@@ -210,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var diagnosticModeOption = _serverKind switch
+            var diagnosticModeOption = context.ServerKind switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
                 WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,

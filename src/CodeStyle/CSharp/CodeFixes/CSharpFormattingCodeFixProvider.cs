@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,8 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixFormatting)]
-    [Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixFormatting), Shared]
     internal class CSharpFormattingCodeFixProvider : AbstractFormattingCodeFixProvider
     {
         [ImportingConstructor]
@@ -23,6 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        protected override ISyntaxFormattingService SyntaxFormattingService => CSharpSyntaxFormattingService.Instance;
+        protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
     }
 }
