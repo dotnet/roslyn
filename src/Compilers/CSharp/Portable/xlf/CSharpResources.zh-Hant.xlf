@@ -222,6 +222,11 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'{0}' 不可為 Null。</target>
@@ -285,6 +290,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不得包含 'in' 或 'out' 傳遞的引數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -492,6 +502,11 @@
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">運算式樹狀架構不得包含 with 運算式。</target>
@@ -610,6 +625,11 @@
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">此內容不允許隱藏項目運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
+        <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
+        <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -1017,6 +1037,11 @@
         <target state="translated">不允許在目前的內容中省略型別引數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorCantBeChecked">
+        <source>User-defined operator '{0}' cannot be declared checked</source>
+        <target state="new">User-defined operator '{0}' cannot be declared checked</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 變數不可宣告為 ref local</target>
@@ -1080,6 +1105,11 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">因為部分方法 '{0}' 有 'out' 參數，所以其必須有存取範圍修飾詞。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -1342,6 +1372,16 @@
         <target state="translated">類型 '{0}' 必須是公用，才能用為呼叫慣例。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法直接呼叫。取得此方法的函式指標。</target>
@@ -1367,6 +1407,21 @@
         <target state="new">Unterminated raw string literal.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">應存在類似泛型工作的傳回型別，但在 'AsyncMethodBuilder' 屬性中找到的類型 '{0}' 不適用。它必須是 arity one 的未綁定泛型型別，並且其包含類型 (如果有) 必須是非泛型。</target>
@@ -1385,6 +1440,16 @@
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">非同步方法建立器覆寫</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAutoDefaultStructs">
+        <source>auto default struct fields</source>
+        <target state="new">auto default struct fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
+        <source>checked user-defined operators</source>
+        <target state="new">checked user-defined operators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -1492,6 +1557,11 @@
         <target state="translated">結構欄位初始設定式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="translated">在匿名型別上</target>
@@ -1510,6 +1580,11 @@
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">檢查參數是否為 Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3556,24 +3631,44 @@
         <target state="translated">類型參數與外部方法的類型參數，類型相同。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">在程式控制權回到呼叫端之前，必須完整指派欄位 '{0}'</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
+        <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">在控制權回到呼叫端之前，必須完整指派自動實作的屬性 '{0}'。</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion_Title">
+        <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
-        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">在控制權傳回給呼叫端之前，必須完整指派自動實作屬性。</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis_Title">
-        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
-        <target state="translated">在控制權傳回給呼叫端之前，必須在建構函式中完全指派結構的欄位</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</source>
+        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion">
+        <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion_Title">
+        <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
@@ -3636,6 +3731,26 @@
         <target state="translated">使用可能未指派的欄位 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion">
+        <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion_Title">
+        <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
+        <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field. Consider updating the language version to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
         <source>Use of possibly unassigned field</source>
         <target state="translated">使用可能未指派的欄位</target>
@@ -3656,19 +3771,49 @@
         <target state="translated">可能使用了未指派的自動實作屬性 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion">
+        <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion_Title">
+        <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
+        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">使用可能未指派的自動實作屬性</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">在指派 'this' 物件的所有欄位前，無法加以使用</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis_Title">
-        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
-        <target state="translated">在指派 'this' 物件的所有欄位前，無法在建構函式中加以使用</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion_Title">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation_Title">
@@ -4436,11 +4581,6 @@
         <target state="translated">可能使用了未指派的自動實作屬性 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">在程式控制權回到呼叫端之前，必須完整指派欄位 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AmbigQM">
         <source>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</source>
         <target state="translated">無法判斷條件運算式的類型，因為 '{0}' 和 '{1}' 會互相隱含轉換</target>
@@ -4539,11 +4679,6 @@
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
         <target state="translated">在此內容中使用預設常值無效</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">在指派 'this' 物件的所有欄位前，無法加以使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -6693,11 +6828,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">無法推斷 '{0}' 的類型，因為其初始設定式會直接或間接參考定義。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">在控制權回到呼叫端之前，必須完整指派自動實作的屬性 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableUsedBeforeDeclarationAndHidesField">

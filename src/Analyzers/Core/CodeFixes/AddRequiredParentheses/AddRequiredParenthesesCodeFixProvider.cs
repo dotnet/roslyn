@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var firstDiagnostic = context.Diagnostics[0];
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
+                    AnalyzersResources.Add_parentheses_for_clarity,
                     c => FixAsync(context.Document, firstDiagnostic, c),
                     firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
                 context.Diagnostics);
@@ -62,14 +63,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(AnalyzersResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

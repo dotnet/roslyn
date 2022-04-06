@@ -36,8 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
 
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_compound_assignment,
+                c => FixAsync(document, diagnostic, c),
+                nameof(AnalyzersResources.Use_compound_assignment)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -81,14 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                             ? finalAssignment
                             : generator.CastExpression(type, finalAssignment);
                     });
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_compound_assignment, createChangedDocument, AnalyzersResources.Use_compound_assignment)
-            {
             }
         }
     }

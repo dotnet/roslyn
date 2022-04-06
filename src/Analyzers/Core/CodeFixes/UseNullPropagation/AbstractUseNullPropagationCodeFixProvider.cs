@@ -50,8 +50,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_null_propagation,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(AnalyzersResources.Use_null_propagation)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -155,14 +157,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             return currentConditional;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_null_propagation, createChangedDocument, nameof(AnalyzersResources.Use_null_propagation))
-            {
-            }
         }
     }
 }

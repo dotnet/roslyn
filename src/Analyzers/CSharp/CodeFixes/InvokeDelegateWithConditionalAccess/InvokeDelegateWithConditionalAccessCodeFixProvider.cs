@@ -40,8 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Simplify_delegate_invocation,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Simplify_delegate_invocation)),
                context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -157,14 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var ifStatementTrivia = ifStatement.GetTrailingTrivia();
 
             return newStatement.WithTrailingTrivia(expressionTriviaWithoutEndOfLine.Concat(ifStatementTrivia));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Simplify_delegate_invocation, createChangedDocument, nameof(CSharpAnalyzersResources.Simplify_delegate_invocation))
-            {
-            }
         }
     }
 }

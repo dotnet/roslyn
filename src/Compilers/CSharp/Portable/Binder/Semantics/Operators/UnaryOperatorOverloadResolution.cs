@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
         }
 
-        public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
             Debug.Assert(result.Results.Count == 0);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate user-defined operators provided by X for the operation operator 
             // SPEC: op(x) is determined using the rules of 7.3.5.
 
-            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, operand, result.Results, ref useSiteInfo);
+            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, isChecked, operand, result.Results, ref useSiteInfo);
 
             // SPEC: If the set of candidate user-defined operators is not empty, then this becomes the 
             // SPEC: set of candidate operators for the operation. Otherwise, the predefined unary operator 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hadUserDefinedCandidate)
             {
                 result.Results.Clear();
-                GetAllBuiltInOperators(kind, operand, result.Results, ref useSiteInfo);
+                GetAllBuiltInOperators(kind, isChecked, operand, result.Results, ref useSiteInfo);
             }
 
             // SPEC: The overload resolution rules of 7.5.3 are applied to the set of candidate operators 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BetterResult.Neither;
         }
 
-        private void GetAllBuiltInOperators(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void GetAllBuiltInOperators(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // The spec states that overload resolution is performed upon the infinite set of
             // operators defined on enumerated types, pointers and delegates. Clearly we cannot
@@ -262,17 +262,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operators.Add(pointerOperator.Value);
             }
 
-            CandidateOperators(operators, operand, results, ref useSiteInfo);
+            CandidateOperators(isChecked, operators, operand, results, ref useSiteInfo);
             operators.Free();
         }
 
         // Returns true if there were any applicable candidates.
-        private bool CandidateOperators(ArrayBuilder<UnaryOperatorSignature> operators, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool CandidateOperators(bool isChecked, ArrayBuilder<UnaryOperatorSignature> operators, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             bool anyApplicable = false;
             foreach (var op in operators)
             {
-                var conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, ref useSiteInfo);
+                var conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, isChecked: isChecked, ref useSiteInfo);
                 if (conversion.IsImplicit)
                 {
                     anyApplicable = true;
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were any applicable candidates.
-        private bool GetUserDefinedOperators(UnaryOperatorKind kind, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool GetUserDefinedOperators(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
 
@@ -383,7 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            string name = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind);
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
             bool hadApplicableCandidates = false;
 
@@ -401,9 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (; (object)current != null; current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 operators.Clear();
-                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, name, operators);
+
+                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, isChecked, operators);
+
                 results.Clear();
-                if (CandidateOperators(operators, operand, results, ref useSiteInfo))
+                if (CandidateOperators(isChecked, operators, operand, results, ref useSiteInfo))
                 {
                     hadApplicableCandidates = true;
                     break;
@@ -445,8 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         operators.Clear();
                         resultsFromInterface.Clear();
-                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, name, operators);
-                        if (CandidateOperators(operators, operand, resultsFromInterface, ref useSiteInfo))
+                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, isChecked, operators);
+                        if (CandidateOperators(isChecked, operators, operand, resultsFromInterface, ref useSiteInfo))
                         {
                             hadApplicableCandidates = true;
                             results.AddRange(resultsFromInterface);
@@ -470,22 +471,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol constrainedToTypeOpt,
             NamedTypeSymbol type,
             UnaryOperatorKind kind,
-            string name,
+            bool isChecked,
             ArrayBuilder<UnaryOperatorSignature> operators)
         {
-            foreach (MethodSymbol op in type.GetOperators(name))
+            Debug.Assert(operators.Count == 0);
+
+            string name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
+
+            getDeclaredOperators(constrainedToTypeOpt, type, kind, name1, operators);
+
+            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
             {
-                // If we're in error recovery, we might have bad operators. Just ignore it.
-                if (op.ParameterCount != 1 || op.ReturnsVoid)
+                string name2 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
+                var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
+
+                // Add regular operators as well.
+                getDeclaredOperators(constrainedToTypeOpt, type, kind, name2, operators2);
+
+                // Drop operators that have a match among the checked ones.
+                if (operators.Count != 0)
                 {
-                    continue;
+                    for (int i = operators2.Count - 1; i >= 0; i--)
+                    {
+                        foreach (UnaryOperatorSignature signature1 in operators)
+                        {
+                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(signature1.Method, operators2[i].Method))
+                            {
+                                operators2.RemoveAt(i);
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                TypeSymbol operandType = op.GetParameterType(0);
-                TypeSymbol resultType = op.ReturnType;
+                operators.AddRange(operators2);
+                operators2.Free();
+            }
 
-                operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
+            addLiftedOperators(constrainedToTypeOpt, kind, operators);
 
+            static void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+            {
+                foreach (MethodSymbol op in type.GetOperators(name))
+                {
+                    // If we're in error recovery, we might have bad operators. Just ignore it.
+                    if (op.ParameterCount != 1 || op.ReturnsVoid)
+                    {
+                        continue;
+                    }
+
+                    TypeSymbol operandType = op.GetParameterType(0);
+                    TypeSymbol resultType = op.ReturnType;
+
+                    operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
+                }
+            }
+
+            void addLiftedOperators(TypeSymbol constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+            {
                 // SPEC: For the unary operators + ++ - -- ! ~ a lifted form of an operator exists
                 // SPEC: if the operand and its result types are both non-nullable value types.
                 // SPEC: The lifted form is constructed by adding a single ? modifier to the
@@ -500,12 +543,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UnaryOperatorKind.PostfixIncrement:
                     case UnaryOperatorKind.LogicalNegation:
                     case UnaryOperatorKind.BitwiseComplement:
-                        if (operandType.IsValidNullableTypeArgument() &&
-                            resultType.IsValidNullableTypeArgument())
+
+                        for (int i = operators.Count - 1; i >= 0; i--)
                         {
-                            operators.Add(new UnaryOperatorSignature(
-                                UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,
-                                MakeNullable(operandType), MakeNullable(resultType), op, constrainedToTypeOpt));
+                            MethodSymbol op = operators[i].Method;
+                            TypeSymbol operandType = op.GetParameterType(0);
+                            TypeSymbol resultType = op.ReturnType;
+
+                            if (operandType.IsValidNullableTypeArgument() &&
+                                resultType.IsValidNullableTypeArgument())
+                            {
+                                operators.Add(new UnaryOperatorSignature(
+                                    UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,
+                                    MakeNullable(operandType), MakeNullable(resultType), op, constrainedToTypeOpt));
+                            }
                         }
                         break;
                 }

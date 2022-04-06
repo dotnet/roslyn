@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override bool IsEnabledByDefault
         {
-            // All compiler errors and warnings are enabled by default.
-            get { return true; }
+            get { return this.Info.Descriptor.IsEnabledByDefault; }
         }
 
         public override bool IsSuppressed

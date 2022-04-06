@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     internal static partial class CSharpCodeStyleOptions
     {
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = CodeStyleOptions2.TrueWithSilentEnforcement;
 
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
@@ -344,6 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             defaultValue: s_trueWithSilentEnforcement,
             "csharp_style_prefer_method_group_conversion",
             "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
+
+        public static readonly Option2<CodeStyleOption2<bool>> PreferTopLevelStatements = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferTopLevelStatements),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_top_level_statements",
+            $"TextEditor.CSharp.Specific.{nameof(PreferTopLevelStatements)}");
 
 #if false
 
