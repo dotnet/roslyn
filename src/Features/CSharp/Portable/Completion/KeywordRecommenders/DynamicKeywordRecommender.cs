@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected static bool IsDynamicTypeContext(
             int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            if (context.IsAsyncMemberDeclarationContext)
+            {
+                return false;
+            }
+
             var syntaxTree = context.SyntaxTree;
 
             // first do quick exit check
@@ -45,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return
-                !context.IsAsyncMemberDeclarationContext &&
-                (context.IsStatementContext ||
+                context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsDefiniteCastTypeContext ||
                 syntaxTree.IsPossibleCastTypeContext(position, context.LeftToken, cancellationToken) ||
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken));
+                    cancellationToken: cancellationToken);
         }
 
         private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)

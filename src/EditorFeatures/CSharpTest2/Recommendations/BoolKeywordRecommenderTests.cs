@@ -308,16 +308,16 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPartial()
+            => await VerifyAbsenceAsync(@"partial $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedPartial()
         {
             await VerifyAbsenceAsync(
 @"class C {
     partial $$");
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPartial()
-            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedAbstract()

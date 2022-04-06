@@ -22,10 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            if (context.IsAsyncMemberDeclarationContext)
+            {
+                return false;
+            }
+
             var syntaxTree = context.SyntaxTree;
             return
-                !context.IsAsyncMemberDeclarationContext &&
-                (context.IsAnyExpressionContext ||
+                context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken));
+                    cancellationToken: cancellationToken);
         }
 
         protected override SpecialType SpecialType => SpecialType.System_String;

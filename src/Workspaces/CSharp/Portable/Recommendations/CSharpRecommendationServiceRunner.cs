@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return symbols;
         }
 
-        private bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
+        private static bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
         {
             if (symbol.IsNamespace())
             {
@@ -238,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             if (namedType.TypeKind == TypeKind.Class &&
-                namedType.Name == "Task" &&
+                namedType.Name == nameof(Task) &&
                 namedType.TypeParameters.Length < 2 &&
                 namedType.IsFromSystemRuntimeOrMscorlibAssembly())
             {
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var attributes = namedType.GetAttributes();
 
-            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && el.AttributeClass!.IsFromSystemRuntimeOrMscorlibAssembly()))
+            if (attributes.Any(el => el.AttributeClass?.Name == nameof(AsyncMethodBuilderAttribute) && el.AttributeClass!.IsFromSystemRuntimeOrMscorlibAssembly()))
             {
                 return true;
             }
