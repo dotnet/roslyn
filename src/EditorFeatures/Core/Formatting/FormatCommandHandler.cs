@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -26,7 +27,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Formatting
 {
     [Export]
     [Export(typeof(ICommandHandler))]
@@ -167,7 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
                 var options = AutoFormattingOptions.From(document.Project);
-                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
+                var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions2.SmartIndent, document.Project.Language);
+                if (!service.SupportsFormattingOnTypedCharacter(document, options, indentStyle, typeCharArgs.TypedChar))
                 {
                     return;
                 }

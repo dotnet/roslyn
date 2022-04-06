@@ -288,7 +288,7 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
             }
 
             return list;
@@ -386,7 +386,8 @@ namespace RunTests
                 testResultsDirectory: options.TestResultsDirectory,
                 testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
-                retry: options.Retry);
+                retry: options.Retry,
+                collectDumps: options.CollectDumps);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 

@@ -24,13 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
-                context.RegisterCodeFix(New MyCodeAction(
+                context.RegisterCodeFix(CodeAction.Create(
                     VisualBasicCodeFixesResources.Simplify_object_creation,
-                    Function(ct) FixAsync(context.Document, diagnostic, ct)),
+                    Function(ct) FixAsync(context.Document, diagnostic, ct),
+                    NameOf(VisualBasicCodeFixesResources.Simplify_object_creation)),
                     diagnostic)
             Next
 
@@ -49,13 +48,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 editor.ReplaceNode(node, newNode)
             Next
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Friend Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument, NameOf(VisualBasicCodeFixesResources.Simplify_object_creation))
-            End Sub
-        End Class
     End Class
 End Namespace

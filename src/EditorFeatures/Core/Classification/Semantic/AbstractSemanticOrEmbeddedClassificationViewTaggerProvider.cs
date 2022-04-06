@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -17,12 +16,13 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Classification
 {
     /// <summary>
     /// This is the tagger we use for view classification scenarios.  It is used for classifying code
@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             ClassificationType type)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _globalOptions = globalOptions;
@@ -55,9 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
@@ -69,23 +71,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 subjectBuffer,
                 AsyncListener,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptionsStorage.ClassifyReassignedVariables));
         }
 
-        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
             // if the user scrolls up/down, we'll already have the results.
             var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
             if (visibleSpanOpt == null)
-            {
                 // Couldn't find anything visible, just fall back to classifying everything.
                 return base.GetSpansToTag(textView, subjectBuffer);
-            }
 
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
@@ -117,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
             var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
-            {
                 return Task.CompletedTask;
-            }
 
             var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
             return ClassificationUtilities.ProduceTagsAsync(

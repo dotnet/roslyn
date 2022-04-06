@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -104,7 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
         private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption2<bool> option, bool enabled)[] options)
         {
-            using var workspace = CreateWorkspace(codeWithMarker);
+            AssertFormatWithView(expectedWithMarker, codeWithMarker, parseOptions: null, options);
+        }
+
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, params (PerLanguageOption2<bool> option, bool enabled)[] options)
+        {
+            using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 
             if (options != null)
             {
@@ -138,10 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
-        private TestWorkspace CreateWorkspace(string codeWithMarker)
+        private TestWorkspace CreateWorkspace(string codeWithMarker, ParseOptions parseOptions = null)
             => this.GetLanguageName() == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition)
-                : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition);
+                ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition, parseOptions: parseOptions)
+                : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition, parseOptions: parseOptions);
 
         private static string ApplyResultAndGetFormattedText(ITextBuffer buffer, IList<TextChange> changes)
         {

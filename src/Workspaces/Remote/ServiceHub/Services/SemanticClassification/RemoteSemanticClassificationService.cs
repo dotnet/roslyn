@@ -26,15 +26,19 @@ namespace Microsoft.CodeAnalysis.Remote
             TextSpan span,
             ClassificationType type,
             ClassificationOptions options,
-            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
+
+                if (options.ForceFrozenPartialSemanticsForCrossProcessOperations)
+                {
+                    // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                }
 
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork((document, type, options, database));
+                    _workQueue.AddWork((document, type, options));
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());

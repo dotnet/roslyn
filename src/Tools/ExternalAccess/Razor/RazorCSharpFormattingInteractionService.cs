@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
             var options = AutoFormattingOptions.From(document.Project);
-            return formattingService.SupportsFormattingOnTypedCharacter(document, options, ch);
+            var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions2.SmartIndent, document.Project.Language);
+            return formattingService.SupportsFormattingOnTypedCharacter(document, options, indentStyle, ch);
         }
 
         /// <summary>

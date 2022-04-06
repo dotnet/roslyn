@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -3605,7 +3604,7 @@ class Program{
                 return;
             }
 
-            var changes = formatter.FormatRange(workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
             var actual = GetFormattedText(buffer, changes);
             Assert.Equal(expected, actual);
         }

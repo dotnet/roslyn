@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -17,13 +18,14 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
@@ -40,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             IThreadingContext threadingContext,
             IBraceMatchingService braceMatcherService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
         {
             _braceMatcherService = braceMatcherService;
         }
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return Task.CompletedTask;
             }
 
-            var options = BraceMatchingOptions.From(document.Project);
+            var options = GlobalOptions.GetBraceMatchingOptions(document.Project.Language);
 
             return ProduceTagsAsync(
                 context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken);

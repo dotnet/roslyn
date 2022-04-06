@@ -40,13 +40,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     return null;
 
                 var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-                return new MyCodeAction(
+                return CodeAction.Create(
                     title,
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
                         fixAllContext.GetProgressTracker(),
-                        cancellationToken));
+                        cancellationToken),
+                    title);
 
                 static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
                 {

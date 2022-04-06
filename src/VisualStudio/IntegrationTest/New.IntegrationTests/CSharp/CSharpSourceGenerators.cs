@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -79,8 +80,15 @@ internal static class Program
 
             if (invokeFromSourceGeneratedFile)
             {
+                var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+
+                // clear configuration options already read by initialization above, so that the global option update below is effective:
+                var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+                configurationService.Clear();
+
                 var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-                globalOptions.SetGlobalOption(new OptionKey(VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
+                globalOptions.SetGlobalOption(new OptionKey(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
+
                 await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
                 Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             }
@@ -144,13 +152,7 @@ internal static class Program
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForEditorOperationsAsync(HangMitigatingCancellationToken);
-
-            // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
-            // of one of the above waiters, but GetActiveWindowCaptionAsync appears to return "Program.cs" (the previous
-            // window caption) for a short delay after the above complete.
-            await Task.Delay(2000);
+            await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("HelloWorld", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));

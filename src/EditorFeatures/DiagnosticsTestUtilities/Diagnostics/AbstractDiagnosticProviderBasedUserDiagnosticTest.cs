@@ -192,13 +192,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
-            OptionsCollection options,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
+            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            OptionsCollection options = null,
             LocalizableString diagnosticMessage = null)
         {
-            await TestDiagnosticInfoAsync(initialMarkup, null, null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
-            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, ideAnalyzerOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, ideAnalyzerOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
         }
 
         private protected async Task TestDiagnosticInfoAsync(
@@ -206,16 +207,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollection options,
+            IdeAnalyzerOptions? ideAnalyzerOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
         {
-            var testOptions = new TestParameters(parseOptions, compilationOptions, options);
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options: options, ideAnalyzerOptions: ideAnalyzerOptions);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
                 diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
-                Assert.Equal(1, diagnostics.Count());
+                Assert.Equal(1, diagnostics.Length);
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
                 var expected = hostDocument.SelectedSpans.Single();

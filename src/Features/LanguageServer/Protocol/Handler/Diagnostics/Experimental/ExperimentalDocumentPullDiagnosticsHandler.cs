@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -27,10 +28,10 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     public ExperimentalDocumentPullDiagnosticsHandler(
-        WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
-        IDiagnosticAnalyzerService analyzerService)
-        : base(serverKind, diagnosticService)
+        IDiagnosticAnalyzerService analyzerService,
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+        : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
     {
         _analyzerService = analyzerService;
     }

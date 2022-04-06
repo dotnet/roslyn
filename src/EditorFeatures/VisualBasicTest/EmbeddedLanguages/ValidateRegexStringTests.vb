@@ -17,10 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Shared Function OptionOn() As OptionsCollection
-            Dim values = New OptionsCollection(LanguageNames.VisualBasic)
-            values.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, True)
-            Return values
+        Private Shared Function OptionOn() As IdeAnalyzerOptions
+            Return New IdeAnalyzerOptions(ReportInvalidRegexPatterns:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -33,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        ideAnalyzerOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
@@ -49,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""""""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        ideAnalyzerOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))

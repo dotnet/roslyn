@@ -5,6 +5,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -17,15 +18,16 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Classification
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TagType(typeof(IClassificationTag))]
-    internal partial class SyntacticClassificationTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
+    internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
         private readonly SyntacticClassificationTypeMap _typeMap;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -38,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             SyntacticClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, assertIsForeground: false)
         {
+            _threadingContext = threadingContext;
             _typeMap = typeMap;
             _globalOptions = globalOptions;
             _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            this.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SyntacticColorizer))
                 return null;
 

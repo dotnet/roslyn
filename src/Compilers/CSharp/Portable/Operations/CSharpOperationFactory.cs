@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.UTF8String:
+                    return CreateBoundUTF8StringOperation((BoundUTF8String)boundNode);
                 case BoundKind.DynamicInvocation:
                     return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
                 case BoundKind.DynamicIndexerAccess:
@@ -659,6 +661,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
+        private IUTF8StringOperation CreateBoundUTF8StringOperation(BoundUTF8String boundNode)
+        {
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol? type = boundNode.GetPublicTypeSymbol();
+            bool isImplicit = boundNode.WasCompilerGenerated;
+            return new UTF8StringOperation(boundNode.Value, _semanticModel, syntax, type, isImplicit);
+        }
+
         private IAnonymousObjectCreationOperation CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
         {
             SyntaxNode syntax = boundAnonymousObjectCreationExpression.Syntax;
@@ -1085,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     bool isTryCast = false;
                     // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
-                    bool isChecked = conversion.IsNumeric && boundConversion.Checked;
+                    bool isChecked = boundConversion.Checked && (conversion.IsNumeric || (boundConversion.SymbolOpt is not null && SyntaxFacts.IsCheckedOperator(boundConversion.SymbolOpt.Name)));
                     IOperation operand = forceOperandImplicitLiteral
                         ? CreateBoundLiteralOperation((BoundLiteral)correctedConversionNode.Operand, @implicit: true)
                         : Create(correctedConversionNode.Operand);
@@ -1256,8 +1266,9 @@ namespace Microsoft.CodeAnalysis.Operations
             Conversion inConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.LeftConversion, boundCompoundAssignmentOperator.LeftPlaceholder);
             Conversion outConversion = BoundNode.GetConversion(boundCompoundAssignmentOperator.FinalConversion, boundCompoundAssignmentOperator.FinalPlaceholder);
             bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
-            bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
-            IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method.GetPublicSymbol();
+            var method = boundCompoundAssignmentOperator.Operator.Method;
+            bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked() || (method is not null && SyntaxFacts.IsCheckedOperator(method.Name));
+            IMethodSymbol? operatorMethod = method.GetPublicSymbol();
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
             ITypeSymbol? type = boundCompoundAssignmentOperator.GetPublicTypeSymbol();
             bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
@@ -1269,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationKind operationKind = Helper.IsDecrement(boundIncrementOperator.OperatorKind) ? OperationKind.Decrement : OperationKind.Increment;
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);
             bool isLifted = boundIncrementOperator.OperatorKind.IsLifted();
-            bool isChecked = boundIncrementOperator.OperatorKind.IsChecked();
+            bool isChecked = boundIncrementOperator.OperatorKind.IsChecked() || (boundIncrementOperator.MethodOpt is not null && SyntaxFacts.IsCheckedOperator(boundIncrementOperator.MethodOpt.Name));
             IOperation target = Create(boundIncrementOperator.Operand);
             IMethodSymbol? operatorMethod = boundIncrementOperator.MethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundIncrementOperator.Syntax;
@@ -1317,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundUnaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundUnaryOperator.ConstantValue;
             bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundUnaryOperator.OperatorKind.IsChecked();
+            bool isChecked = boundUnaryOperator.OperatorKind.IsChecked() || (boundUnaryOperator.MethodOpt is not null && SyntaxFacts.IsCheckedOperator(boundUnaryOperator.MethodOpt.Name));
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
             return new UnaryOperation(unaryOperatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1396,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
+            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (boundBinaryOperator.Method is not null && SyntaxFacts.IsCheckedOperator(boundBinaryOperator.Method.Name));
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
             return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
@@ -1743,18 +1754,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
-                                                        ? Operation.SetParentOperation(
-                                                            DeriveArguments(
-                                                                getEnumeratorInfo.Method,
-                                                                getEnumeratorInfo.Arguments,
-                                                                argumentsToParametersOpt: default,
-                                                                getEnumeratorInfo.DefaultArguments,
-                                                                getEnumeratorInfo.Expanded,
-                                                                boundForEachStatement.Expression.Syntax,
-                                                                invokedAsExtensionMethod: true),
-                                                            null)
-                                                        : default,
+                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
+                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
                                                         ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
@@ -1765,6 +1766,29 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return info;
+
+            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
+                 SyntaxNode invocationSyntax)
+            {
+                if (info == null)
+                {
+                    return default;
+                }
+                if (info.Arguments.Length == 0)
+                {
+                    return ImmutableArray<IArgumentOperation>.Empty;
+                }
+                var args = DeriveArguments(
+                    info.Method,
+                    info.Arguments,
+                    argumentsToParametersOpt: default,
+                    info.DefaultArguments,
+                    info.Expanded,
+                    invocationSyntax: invocationSyntax,
+                    invokedAsExtensionMethod: info.Method.IsExtensionMethod
+                );
+                return Operation.SetParentOperation(args, null);
+            }
         }
 
         internal IOperation CreateBoundForEachStatementLoopControlVariable(BoundForEachStatement boundForEachStatement)

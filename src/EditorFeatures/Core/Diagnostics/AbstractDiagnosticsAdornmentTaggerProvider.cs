@@ -4,27 +4,28 @@
 
 using System;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
         AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : class, ITag
     {
-        public AbstractDiagnosticsAdornmentTaggerProvider(
+        protected AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

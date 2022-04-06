@@ -4,16 +4,16 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Classification
 {
     /// <summary>
     /// This is the tagger we use for buffer classification scenarios.  It is only used for 
@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IThreadingContext _threadingContext;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _typeMap = typeMap;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
             _globalOptions = globalOptions;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            this.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.

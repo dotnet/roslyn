@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Same as C# and VB but for XAML. See also <seealso cref="Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActionsHandlerProvider"/>.
     /// </remarks>
     [ExportXamlLspRequestHandlerProvider(typeof(CodeActionsHandler), typeof(CodeActionResolveHandler), typeof(RunCodeActionHandler)), Shared]
-    internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
+    internal class CodeActionsHandlerProvider : IRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             var codeActionsCache = new CodeActionsCache();
             return ImmutableArray.Create<IRequestHandler>(

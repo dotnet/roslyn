@@ -78,6 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function SupportsConstantInterpolatedStrings(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsConstantInterpolatedStrings
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
@@ -1446,6 +1450,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
+        Public Function GetExpressionOfForeachStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
+            Return DirectCast(node, ForEachStatementSyntax).Expression
+        End Function
+
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
@@ -1802,6 +1810,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
+        End Function
+
+        Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsInInactiveRegion
+            If syntaxTree Is Nothing Then
+                Return False
+            End If
+
+            Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
         End Function
 
 #Region "IsXXX members"
