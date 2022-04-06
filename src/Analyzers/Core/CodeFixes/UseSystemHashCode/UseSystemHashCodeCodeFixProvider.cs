@@ -30,16 +30,15 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
 
-        internal override CodeFixCategory CodeFixCategory { get; }
-            = CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
 
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_System_HashCode,
+                c => FixAsync(document, diagnostic, c),
+                nameof(AnalyzersResources.Use_System_HashCode)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -93,14 +92,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             generatorInternal, analyzer.SystemHashCodeType, components));
                     editor.ReplaceNode(methodBlock, updatedDecl);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_System_HashCode, createChangedDocument, AnalyzersResources.Use_System_HashCode)
-            {
             }
         }
     }

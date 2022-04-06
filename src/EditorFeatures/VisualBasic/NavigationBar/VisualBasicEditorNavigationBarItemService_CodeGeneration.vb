@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ShouldApplyLineAdjustmentFormattingRule(generateCodeItem) Then
-                formatterRules = LineAdjustmentFormattingRule.Instance.Concat(formatterRules)
+                formatterRules = ImmutableArray.Create(Of AbstractFormattingRule)(LineAdjustmentFormattingRule.Instance).AddRange(formatterRules)
             End If
 
             Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)

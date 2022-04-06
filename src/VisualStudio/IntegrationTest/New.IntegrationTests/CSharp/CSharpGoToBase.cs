@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60386")]
+        [IdeFact]
         public async Task GoToBaseFromMetadataAsSource()
         {
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);

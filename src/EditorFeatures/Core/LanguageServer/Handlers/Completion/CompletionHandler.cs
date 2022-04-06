@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
                     request, document, item, completionItemResolveData, lspVSClientCapability, commitCharactersRuleCache,
-                    completionService, context.ClientName, returnTextEdits, snippetsSupported, stringBuilder, documentText,
+                    completionService, returnTextEdits, snippetsSupported, stringBuilder, documentText,
                     defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
@@ -177,7 +177,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool supportsVSExtensions,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
-                string? clientName,
                 bool returnTextEdits,
                 bool snippetsSupported,
                 StringBuilder stringBuilder,

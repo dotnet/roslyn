@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         {
             return new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
                 { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
                 { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
@@ -1072,7 +1072,7 @@ class C : Attribute
 }";
             var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }

@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.UseIsNotExpressionDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            context.RegisterCodeFix(New MyCodeAction(
-                Function(c) FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                VisualBasicAnalyzersResources.Use_IsNot_expression,
+                Function(c) FixAsync(context.Document, context.Diagnostics.First(), c),
+                NameOf(VisualBasicAnalyzersResources.Use_IsNot_expression)),
                 context.Diagnostics)
             Return Task.CompletedTask
         End Function
@@ -78,13 +78,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
                 notExpression,
                 replacement.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia()))
         End Sub
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(VisualBasicAnalyzersResources.Use_IsNot_expression, createChangedDocument, VisualBasicAnalyzersResources.Use_IsNot_expression)
-            End Sub
-        End Class
     End Class
 End Namespace

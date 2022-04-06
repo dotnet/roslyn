@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             bool MutatesSolutionState { get; }
 
-            /// <inheritdoc cref="RequestContext.ClientName" />
-            string? ClientName { get; }
-
             string MethodName { get; }
 
             /// <summary>
@@ -67,8 +64,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public bool MutatesSolutionState { get; }
 
-            public string? ClientName { get; }
-
             public string MethodName { get; }
 
             public TextDocumentIdentifier? TextDocument { get; }
@@ -83,7 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
-                string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 TRequestType request,
@@ -107,7 +101,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 MutatesSolutionState = mutatesSolutionState;
                 RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
-                ClientName = clientName;
                 MethodName = methodName;
                 TextDocument = textDocument;
             }
@@ -116,7 +109,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
-                string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 TRequestType request,
@@ -130,7 +122,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     mutatesSolutionState,
                     requiresLSPSolution,
                     clientCapabilities,
-                    clientName,
                     methodName,
                     textDocument,
                     request,
