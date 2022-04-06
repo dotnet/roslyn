@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBCodeStyleResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
