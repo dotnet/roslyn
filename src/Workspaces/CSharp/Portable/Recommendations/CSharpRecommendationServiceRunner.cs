@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return symbols;
         }
 
-        private static bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
+        private bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
         {
             if (symbol.IsNamespace())
             {
@@ -235,27 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 // The only interfaces, that are valid in async context are IAsyncEnumerable and IAsyncEnumerator.
                 // So if we are validating an interface, then we can just check for 2 of this possible variants
-                return (namedType.Name == "IAsyncEnumerable" || namedType.Name == "IAsyncEnumerator") &&
+                return (namedType.Name == nameof(IAsyncEnumerable<object>) || namedType.Name == nameof(IAsyncEnumerator<object>)) &&
                     namedType.TypeParameters.Length == 1 &&
                     namedType.IsFromSystemRuntimeOrMscorlibAssembly();
             }
 
-            if (namedType.TypeKind == TypeKind.Class &&
-                namedType.Name == nameof(Task) &&
-                namedType.TypeParameters.Length < 2 &&
-                namedType.IsFromSystemRuntimeOrMscorlibAssembly())
-            {
-                return true;
-            }
-
-            var attributes = namedType.GetAttributes();
-
-            if (attributes.Any(el => el.AttributeClass?.Name == nameof(AsyncMethodBuilderAttribute) && el.AttributeClass!.IsFromSystemRuntimeOrMscorlibAssembly()))
-            {
-                return true;
-            }
-
-            return false;
+            return symbol.IsAwaitableNonDynamic(_context.SemanticModel, _context.Position);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()

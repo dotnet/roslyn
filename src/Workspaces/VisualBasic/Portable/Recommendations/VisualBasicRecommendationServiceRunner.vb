@@ -411,13 +411,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbols
         End Function
 
-        Private Shared Function IsSymbolValidForAsyncDeclarationContext(symbol As ISymbol) As Boolean
+        Private Function IsSymbolValidForAsyncDeclarationContext(symbol As ISymbol) As Boolean
             Dim namedType As INamedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
             Return namedType IsNot Nothing AndAlso
-                namedType.TypeKind = TypeKind.Class AndAlso
-                namedType.Name = "Task" AndAlso
-                namedType.TypeParameters.Length < 2 AndAlso
-                namedType.IsFromSystemRuntimeOrMscorlibAssembly()
+                namedType.IsAwaitableNonDynamic(_context.SemanticModel, _context.Position) AndAlso
+                namedType.Name = NameOf(Task)
         End Function
 
         Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean
