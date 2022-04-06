@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             getTelemetryInfo: arguments.GetTelemetryInfo,
                             cancellationToken).ConfigureAwait(false);
 
-                            // save log for debugging
+                        // save log for debugging
                         var diagnosticCount = result.Diagnostics.Sum(
                             entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
 
