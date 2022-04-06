@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var field = boundInitializer.Field;
                                     if (field.Type.IsRefLikeType)
                                     {
-                                        var value = parentBinder.ValidateEscape(boundInitializer.Value, ExternalScope, isByRef: false, diagnostics);
+                                        BoundExpression value = parentBinder.ValidateEscape(boundInitializer.Value, ExternalScope, isByRef: false, diagnostics);
                                         boundInitializer = boundInitializer.Update(field, boundInitializer.Locals, value);
                                     }
                                 }

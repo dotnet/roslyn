@@ -3437,5 +3437,19 @@ class Example
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        public void FieldInitializer_EscapeAnalysis_Script()
+        {
+            var source =
+@"using System;
+Span<byte> s = stackalloc byte[512];
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Script, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                // Span<byte> s = stackalloc byte[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(2, 1));
+        }
     }
 }
