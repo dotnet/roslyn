@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
 
-        ERR_FieldKeywordInsideNameOf = 9013,
+        ERR_FieldKeywordInsideNameOf = 9028,
 
         #endregion
 
