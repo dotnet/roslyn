@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -19,6 +18,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly BaseTypeSymbolsFinder Instance = new();
 
+        /// <summary>
+        /// Return all the base interfaces and base types of <param name="symbol"/> in topological order.
+        /// e.g
+        /// 'class A : B { }'
+        /// 'class B : IB { }'
+        /// 'interface IB : IC { }'
+        /// If 'class A' is the input symbol, the result should be in the order like: 'B', 'IB', 'IC'.
+        /// </summary>
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(
             ISymbol symbol,
             Solution solution,
@@ -31,9 +38,27 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 return Task.FromResult(namedTypeSymbol.AllInterfaces.CastArray<ISymbol>());
             }
 
-            // Calculate indegree for all the symbols
-            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
+            // If the symbol has base type, it means we need to topologically sort all the base interfaces and base types.
+            // Consider the all the base types and base interfaces as vertices, and each of them is pointed by its derived types/interfaces in the graph.
+            // We need an 'incomingSymbols' map, whose key is the vertice of the graph,
+            // the values is its derived types and interfaces to perform topologically sort.
+            // e.g.
+            // interface IA { }
+            // interface IB { }
+            // class A : IA { }
+            // class B : A, IB, IA { }
+            // 
+            // The map would be
+            // {
+            //     "IA": ["A", "B"],
+            //     "IB": ["B"],
+            //     "A": ["B"],
+            //     "B": []
+            // }
+            using var _ = GetPooledHashSetDictionary(out var incomingSymbolsMapBuilder);
             var baseTypes = BaseTypeFinder.FindBaseTypes(namedTypeSymbol);
+
+            // Add the entry for all base types.
             for (var i = 0; i < baseTypes.Length; i++)
             {
                 // baseTypes are order like,
@@ -43,61 +68,66 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // And since interface can't have base class, the item before a baseClass is just the previous item in the array.
                 // e.g. 'baseClass2' could only be pointed by 'baseClass1'.
                 var baseType = baseTypes[i];
-                if (i == 0)
+                var incomingSymbolsSetForBaseType = s_symbolHashSetPool.Allocate();
+                incomingSymbolsMapBuilder[baseType] = incomingSymbolsSetForBaseType;
+                if (i > 0)
                 {
-                    indegreeSymbolsMapBuilder[baseType] = new HashSet<ISymbol>();
-                }
-                else
-                {
-                    indegreeSymbolsMapBuilder[baseType] = new HashSet<ISymbol>() { baseTypes[i - 1] };
+                    incomingSymbolsSetForBaseType.Add(baseTypes[i - 1]);
                 }
 
+                // Then for the interfaces of this base type, add a set containing this base type
                 foreach (var baseInterface in baseType.Interfaces)
                 {
-                    if (indegreeSymbolsMapBuilder.TryGetValue(baseInterface, out var indegreeSymbols))
+                    if (incomingSymbolsMapBuilder.TryGetValue(baseInterface, out var indegreeSymbols))
                     {
                         indegreeSymbols.Add(baseType);
                     }
                     else
                     {
-                        indegreeSymbolsMapBuilder[baseInterface] = new HashSet<ISymbol>() { baseType };
+                        var incomingSymbolSetForBaseInterface = s_symbolHashSetPool.Allocate();
+                        incomingSymbolSetForBaseInterface.Add(baseType);
+                        incomingSymbolsMapBuilder[baseInterface] = incomingSymbolSetForBaseInterface;
                     }
                 }
             }
 
             foreach (var baseInterface in namedTypeSymbol.AllInterfaces)
             {
-                if (!indegreeSymbolsMapBuilder.ContainsKey(baseInterface))
+                if (!incomingSymbolsMapBuilder.ContainsKey(baseInterface))
                 {
-                    indegreeSymbolsMapBuilder[baseInterface] = new HashSet<ISymbol>();
+                    incomingSymbolsMapBuilder[baseInterface] = s_symbolHashSetPool.Allocate();
                 }
 
+                // For all the interfaces of this interface, add a set containing this interface.
                 foreach (var @interface in baseInterface.Interfaces)
                 {
-                    if (indegreeSymbolsMapBuilder.TryGetValue(@interface, out var indegreeSymbols))
+                    if (incomingSymbolsMapBuilder.TryGetValue(@interface, out var indegreeSymbols))
                     {
                         indegreeSymbols.Add(baseInterface);
                     }
                     else
                     {
-                        indegreeSymbolsMapBuilder[@interface] = new HashSet<ISymbol>() { baseInterface };
+                        var incomingSymbolSetForBaseInterface = s_symbolHashSetPool.Allocate();
+                        incomingSymbolSetForBaseInterface.Add(baseInterface);
+                        incomingSymbolsMapBuilder[@interface] = incomingSymbolSetForBaseInterface;
                     }
                 }
             }
 
+            // Topological sort all the base type and base interface
             return Task.FromResult(TopologicalSortAsArray(
                 baseTypes.AddRange(namedTypeSymbol.AllInterfaces).CastArray<ISymbol>(),
-                indegreeSymbolsMapBuilder.ToImmutableDictionary()));
+                incomingSymbolsMapBuilder));
         }
 
         public async Task<(ImmutableArray<SymbolGroup> baseTypes, ImmutableArray<SymbolGroup> baseInterfaces)> GetBaseTypeAndBaseInterfaceSymbolGroupsAsync(
             ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
+            using var _1 = GetPooledHashSetDictionary(out var builder);
             await GetSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
-            using var _1 = ArrayBuilder<SymbolGroup>.GetInstance(out var baseTypesBuilder);
-            using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var baseInterfacesBuilder);
-            foreach (var (symbol, symbolGroup) in builder)
+            using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var baseTypesBuilder);
+            using var _3 = ArrayBuilder<SymbolGroup>.GetInstance(out var baseInterfacesBuilder);
+            foreach (var (symbol, symbolSet) in builder)
             {
                 // Filter out
                 // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -112,12 +142,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 {
                     if (symbol.IsInterfaceType())
                     {
-                        baseInterfacesBuilder.Add(symbolGroup);
+                        baseInterfacesBuilder.Add(new SymbolGroup(symbolSet));
                     }
                     else
                     {
                         Debug.Assert(symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct });
-                        baseTypesBuilder.Add(symbolGroup);
+                        baseTypesBuilder.Add(new SymbolGroup(symbolSet));
                     }
                 }
             }

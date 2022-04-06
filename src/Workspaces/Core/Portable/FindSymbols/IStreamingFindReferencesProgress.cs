@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -32,6 +33,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public SymbolGroup(ImmutableArray<ISymbol> symbols)
         {
             Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty, "Symbols should be non empty");
+
+            Symbols = ImmutableHashSet.CreateRange(
+                MetadataUnifyingEquivalenceComparer.Instance, symbols);
+        }
+
+        public SymbolGroup(HashSet<ISymbol> symbols)
+        {
+            Contract.ThrowIfTrue(symbols.Count == 0, "Symbols should be non empty");
 
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);

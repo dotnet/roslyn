@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
-    internal abstract class InheritanceSymbolsFinder
+    internal abstract partial class InheritanceSymbolsFinder
     {
         /// <summary>
         /// Get the assoicated symbols for this finder for the given starting <param name="symbol"/>.
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         protected async Task GetSymbolGroupsAsync(
             ISymbol initialSymbol,
             Solution solution,
-            IDictionary<ISymbol, SymbolGroup> builder,
+            PooledDictionary<ISymbol, PooledHashSet<ISymbol>> builder,
             CancellationToken cancellationToken)
         {
             var queue = new Queue<ISymbol>();
@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                         if (!builder.ContainsKey(originalAssociatedSymbol) && InheritanceMarginServiceHelper.IsNavigableSymbol(originalAssociatedSymbol))
                         {
                             var linkedGroupSymbols = linkedSymbols.SelectAsArray(s => s.OriginalDefinition);
-                            builder[originalAssociatedSymbol] = new SymbolGroup(linkedSymbols);
+                            var symbolSet = s_symbolHashSetPool.Allocate();
+                            symbolSet.AddRange(linkedGroupSymbols);
+                            builder[originalAssociatedSymbol] = symbolSet;
                         }
                     }
                 }
@@ -63,10 +65,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         }
 
         protected static ImmutableArray<ISymbol> TopologicalSortAsArray(
-            ImmutableArray<ISymbol> symbols, ImmutableDictionary<ISymbol, HashSet<ISymbol>> indegreeSymbolsMap)
+            ImmutableArray<ISymbol> symbols, PooledDictionary<ISymbol, PooledHashSet<ISymbol>> incomingSymbolsMap)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-            foreach (var sortedSymbol in symbols.TopologicalSort(symbol => indegreeSymbolsMap[symbol]))
+            foreach (var sortedSymbol in symbols.TopologicalSort(symbol => incomingSymbolsMap[symbol]))
             {
                 builder.Add(sortedSymbol);
             }

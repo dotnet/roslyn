@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,31 +17,44 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly ImplementingSymbolsFinder Instance = new();
 
+        /// <summary>
+        /// Get all the implementing members in derived types for <param name="symbol"/> in topological order.
+        /// </summary>
         protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
+            var implementingSymbols = await InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+
             // ImplementingSymbols contains
             // 1. The directly implemeting members's symbol for a interface member.
-            // 2. The overridden symbols for implementing members.
+            // 2. The overriding symbols of implementing members.
+            // Consider each of the symbols as a vertice, and it would be pointed by its overridden member or implemented members in interfaces.
+            // We need an 'IncomingSymbolMap' whose key is the vertice, and value is a set of the overridden member and implemented members in interfaces to perform topological sort
             // e.g 
-            // interface IBar { void Sub(); } class Bar : IBar { public virtual void Sub(); } class Bar2 : Bar { public overridden void Sub() { } }
-            // For 'IBar.Sub', it would contains 'Bar.Sub()' and 'Bar2.Sub()'
-            var implementingSymbols = await InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
+            // interface IBar { void Sub(); }
+            // class Bar : IBar { public virtual void Sub(); }
+            // class Bar2 : Bar, IBar { public overridden void Sub() { } }
+            // The map would looks like
+            // {
+            //     "IBar.Sub()" : [],
+            //     "Bar.Sub()" : ["IBar.Sub()"],
+            //     "Bar2.Sub()" : ["IBar.Sub()", "Bar.Sub()"],
+            // }
+            using var _ = GetPooledHashSetDictionary(out var incomingSymbolsMap);
             foreach (var implementingSymbol in implementingSymbols)
             {
-                if (!indegreeSymbolsMapBuilder.ContainsKey(implementingSymbol))
+                if (!incomingSymbolsMap.ContainsKey(implementingSymbol))
                 {
-                    var indegreeSymbols = new HashSet<ISymbol>();
+                    var indegreeSymbols = s_symbolHashSetPool.Allocate();
 
-                    // 1. If this symbol has overridden member, and it is in implemeting symbols.
-                    // It means overriden member could point to this symbol.
+                    // 1. If this symbol has an overridden member, and it is in implemeting symbols list.
+                    // It means overriden member point to this symbol.
                     var overriddenMember = implementingSymbol.GetOverriddenMember();
                     if (overriddenMember != null && implementingSymbols.Contains(overriddenMember))
                     {
                         indegreeSymbols.Add(overriddenMember);
                     }
 
-                    // 2. Also check all the implemented interface member.
+                    // 2. Also check all the implemented interface member. If the i
                     foreach (var implementedInterfaceMember in implementingSymbol.ExplicitOrImplicitInterfaceImplementations())
                     {
                         if (implementingSymbols.Contains(implementedInterfaceMember))
@@ -51,24 +63,24 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                         }
                     }
 
-                    indegreeSymbolsMapBuilder[implementingSymbol] = indegreeSymbols;
+                    incomingSymbolsMap[implementingSymbol] = indegreeSymbols;
                 }
             }
 
-            return TopologicalSortAsArray(implementingSymbols, indegreeSymbolsMapBuilder.ToImmutableDictionary());
+            return TopologicalSortAsArray(implementingSymbols, incomingSymbolsMap);
         }
 
         public async Task<ImmutableArray<SymbolGroup>> GetImplementingSymbolsGroupAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(initialSymbol.ContainingSymbol.IsInterfaceType());
-            var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
+            using var _1 = GetPooledHashSetDictionary(out var builder);
             await GetSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var implementingSymbolGroupBuilder);
-            foreach (var (symbol, symbolGroup) in builder)
+            using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var implementingSymbolGroupBuilder);
+            foreach (var (symbol, symbolSet) in builder)
             {
                 if (symbol.Locations.Any(l => l.IsInSource))
-                    implementingSymbolGroupBuilder.Add(symbolGroup);
+                    implementingSymbolGroupBuilder.Add(new SymbolGroup(symbolSet));
             }
 
             return implementingSymbolGroupBuilder.ToImmutable();
