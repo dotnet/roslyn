@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static ValueTask<Solution> GetSolutionAsync(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
 
-        public static ValueTask<T> RunWithSolutionAsync<T>(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
-            => RemoteWorkspaceManager.Default.RunWithSolutionAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
+        public static ValueTask<T> RunServiceAsync<T>(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
     }
 }

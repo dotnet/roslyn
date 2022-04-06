@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return solution;
         }
 
-        public async ValueTask<T> RunWithSolutionAsync<T>(
+        public async ValueTask<T> RunServiceAsync<T>(
             ServiceBrokerClient client,
             PinnedSolutionInfo solutionInfo,
             Func<Solution, ValueTask<T>> implementation,
