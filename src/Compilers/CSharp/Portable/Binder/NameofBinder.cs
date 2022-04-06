@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// If a proper method named "nameof" exists in the outer scopes, this binder does nothing.
+    /// If a proper method named "nameof" exists in the outer scopes, <see cref="IsNameofOperator"/> is false and this binder does nothing.
     /// Otherwise, it relaxes the instance-vs-static requirement for top-level member access expressions
     /// and when inside an attribute on a method it adds type parameters from the target of that attribute.
     /// To do so, it works together with <see cref="ContextualAttributeBinder"/>.
@@ -22,11 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntaxNode _nameofArgument;
         private readonly WithTypeParametersBinder? _withTypeParametersBinder;
-
-        // One bit encodes whether this was computed, the other bit encodes a boolean value
-        private int _lazyIsInsideNameof;
-        private const byte _lazyIsInsideNameof_IsInitialized = 1 << 0;
-        private const byte _lazyIsInsideNameof_Value = 1 << 1;
+        private ThreeState _lazyIsNameofOperator;
 
         internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder)
             : base(next)
@@ -35,28 +31,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             _withTypeParametersBinder = withTypeParametersBinder;
         }
 
-        internal override bool IsInsideNameof
+        private bool IsNameofOperator
         {
             get
             {
-                if ((_lazyIsInsideNameof & _lazyIsInsideNameof_IsInitialized) == 0)
+                if (!_lazyIsNameofOperator.HasValue())
                 {
-                    bool isInsideNameof = !NextRequired.InvocableNameofInScope() || base.IsInsideNameof;
-
-                    int value = _lazyIsInsideNameof_IsInitialized;
-                    value |= isInsideNameof ? _lazyIsInsideNameof_Value : 0;
-                    ThreadSafeFlagOperations.Set(ref _lazyIsInsideNameof, value);
+                    _lazyIsNameofOperator = ThreeStateHelpers.ToThreeState(!NextRequired.InvocableNameofInScope());
                 }
 
-                return (_lazyIsInsideNameof & _lazyIsInsideNameof_Value) != 0;
+                return _lazyIsNameofOperator.Value();
             }
         }
 
-        protected override SyntaxNode? EnclosingNameofArgument => IsInsideNameof ? _nameofArgument : base.EnclosingNameofArgument;
+        internal override bool IsInsideNameof => IsNameofOperator || base.IsInsideNameof;
+
+        protected override SyntaxNode? EnclosingNameofArgument => IsNameofOperator ? _nameofArgument : base.EnclosingNameofArgument;
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (_withTypeParametersBinder is not null && IsInsideNameof)
+            if (_withTypeParametersBinder is not null && IsNameofOperator)
             {
                 _withTypeParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
             }
@@ -64,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
-            if (_withTypeParametersBinder is not null && IsInsideNameof)
+            if (_withTypeParametersBinder is not null && IsNameofOperator)
             {
                 _withTypeParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
             }

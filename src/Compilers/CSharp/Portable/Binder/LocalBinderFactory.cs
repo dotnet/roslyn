@@ -210,8 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argumentExpression = node.ArgumentList.Arguments[0].Expression;
                 var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder);
-
                 AddToMap(node, possibleNameofBinder);
+
+                _enclosing = possibleNameofBinder;
                 base.VisitInvocationExpression(node);
                 _enclosing = oldEnclosing;
                 return;
