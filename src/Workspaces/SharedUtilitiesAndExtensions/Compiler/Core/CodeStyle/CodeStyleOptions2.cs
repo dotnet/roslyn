@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             Debug.Assert(s_forEachExplicitCastInSourcePreferencePreferenceMap.ContainsValue(option.Value));
             var value = s_forEachExplicitCastInSourcePreferencePreferenceMap.GetKeyOrDefault(option.Value) ??
                 s_forEachExplicitCastInSourcePreferencePreferenceMap.GetKeyOrDefault(defaultValue.Value);
-            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            return $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
 
         #endregion
