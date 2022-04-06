@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         {
             var queue = new Queue<ISymbol>();
             var initialSymbols = await SymbolFinder.FindLinkedSymbolsAsync(initialSymbol, solution, cancellationToken).ConfigureAwait(false);
+            // Use a normal Hashset here to make sure it has visited all the linked symbol seperately
+            // e.g.
+            // currentSymbol -> SubClass1 (TFM1)
+            //                      ↓ 
+            //                  SubClass1 -> SubClass2 (TFM2)
+            // We need to make sure SubClass1 (TFM1) and SubClass1 (TFM2) are visited seperately.
             using var _ = PooledHashSet<ISymbol>.GetInstance(out var visitedSet);
             EnqueueAll(queue, initialSymbols);
             while (queue.Count > 0)
