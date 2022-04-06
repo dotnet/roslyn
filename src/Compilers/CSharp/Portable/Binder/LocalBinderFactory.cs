@@ -203,14 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.MayBeNameofOperator())
             {
-                WithTypeParametersBinder nextWhenNameofOperator = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && MessageID.IDS_FeatureExtendedNameofScope.IsFeatureAvailable(node)
+                var oldEnclosing = _enclosing;
+                WithTypeParametersBinder withTypeParametersBinder = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && node.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope)
                     ? getExtraWithTypeParametersBinder(_enclosing, getAttributeTarget(_enclosing))
                     : null;
 
                 var argumentExpression = node.ArgumentList.Arguments[0].Expression;
-                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, nextWhenNameofOperator);
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder);
 
                 AddToMap(node, possibleNameofBinder);
+                base.VisitInvocationExpression(node);
+                _enclosing = oldEnclosing;
+                return;
             }
 
             base.VisitInvocationExpression(node);

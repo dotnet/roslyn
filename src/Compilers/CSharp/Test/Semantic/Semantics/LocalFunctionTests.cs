@@ -7162,6 +7162,85 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
+        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_InMethodAttributeNameOfNameOf()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(nameof(nameof(TParameter)))] // 1
+        void local<TParameter>() { }
+    }
+
+    [My(nameof(nameof(TParameter)))] // 2
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS0103: The name 'TParameter' does not exist in the current context
+                //         [My(nameof(nameof(TParameter)))] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 27),
+                // (12,23): error CS0103: The name 'TParameter' does not exist in the current context
+                //     [My(nameof(nameof(TParameter)))] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 23)
+                );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,20): error CS8081: Expression does not have a name.
+                //         [My(nameof(nameof(TParameter)))] // 1
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "nameof(TParameter)").WithLocation(8, 20),
+                // (12,16): error CS8081: Expression does not have a name.
+                //     [My(nameof(nameof(TParameter)))] // 2
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "nameof(TParameter)").WithLocation(12, 16)
+                );
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
+        }
+
+        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_InMethodAttributeNameOf_TopLevel()
+        {
+            var source = @"
+local<object>();
+
+[My(nameof(TParameter))] // 1
+void local<TParameter>() { }
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0103: The name 'TParameter' does not exist in the current context
+                // [My(nameof(TParameter))] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(4, 12)
+                );
+
+            VerifyTParameter(comp, 0, null);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+        }
+
         [Fact]
         public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithNewAttribute()
         {

@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return targetSyntax switch
             {
                 MethodDeclarationSyntax methodDeclaration => GetDeclaredMemberSymbol(methodDeclaration),
-                LocalFunctionStatementSyntax localFunction => GetMemberModel(localFunction).GetDeclaredLocalFunction(localFunction),
+                LocalFunctionStatementSyntax localFunction => GetMemberModel(localFunction)?.GetDeclaredLocalFunction(localFunction),
                 _ => null
             };
         }

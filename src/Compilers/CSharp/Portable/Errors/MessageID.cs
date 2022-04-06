@@ -310,11 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal static bool IsFeatureAvailable(this MessageID feature, SyntaxNode syntax)
-        {
-            return ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(feature);
-        }
-
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             BindingDiagnosticBag diagnostics,

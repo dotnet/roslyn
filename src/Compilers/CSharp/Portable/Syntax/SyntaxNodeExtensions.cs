@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind kind = syntax.Kind();
             switch (kind)
             {
+                case SyntaxKind.InvocationExpression when ((InvocationExpressionSyntax)syntax).MayBeNameofOperator():
+                    return true;
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -105,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return syntax is StatementSyntax
-                        || IsValidScopeDesignator(syntax as ExpressionSyntax)
-                        || (kind == SyntaxKind.InvocationExpression && ((InvocationExpressionSyntax)syntax).MayBeNameofOperator());
+                        || IsValidScopeDesignator(syntax as ExpressionSyntax);
             }
         }
 

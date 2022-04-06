@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        internal ParameterSymbol GetLambdaOrLocalFunctionParameterSymbol(
+        private ParameterSymbol GetLambdaOrLocalFunctionParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)
         {
