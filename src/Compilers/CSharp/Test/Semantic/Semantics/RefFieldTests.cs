@@ -27,6 +27,126 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [Theory]
+        public void LanguageVersion(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct S<T>
+{
+    public ref T F1;
+    public ref readonly T F2;
+    public S(ref T t)
+    {
+        F1 = ref t;
+        F2 = ref t;
+    }
+    S(object unused, T t0)
+    {
+        this = default;
+        this = new S<T>();
+        this = new S<T>(ref t0);
+        this = new S<T> { F1 = t0 };
+        this = default;
+        S<T> s;
+        s = new S<T>();
+        s = new S<T>(ref t0);
+        s = new S<T> { F1 = t0 };
+    }
+    static void M1(T t1)
+    {
+        S<T> s1;
+        s1 = default;
+        s1 = new S<T>();
+        s1 = new S<T>(ref t1);
+        s1 = new S<T> { F1 = t1 };
+    }
+    static void M2(ref T t2)
+    {
+        S<T> s2;
+        s2 = new S<T>(ref t2);
+        s2 = new S<T> { F1 = t2 };
+    }
+    static void M3(S<T> s3)
+    {
+        var other = s3;
+        M1(s3.F1);
+        M1(s3.F2);
+        M2(ref s3.F1);
+    }
+    void M4(T t4)
+    {
+        this = default;
+        this = new S<T>();
+        this = new S<T>(ref t4);
+        this = new S<T> { F1 = t4 };
+        S<T> s;
+        s = new S<T>();
+        s = new S<T>(ref t4);
+        s = new S<T> { F1 = t4 };
+    }
+    void M5(S<T> s5)
+    {
+        var other = this;
+        M1(F1);
+        M1(F2);
+        M2(ref F1);
+        M1(this.F1);
+        M1(this.F2);
+        M2(ref this.F1);
+        M1(s5.F1);
+        M1(s5.F2);
+        M2(ref s5.F1);
+    }
+}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public ref T F1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public ref readonly T F2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12));
+
+            comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void M1<T>(T t)
+    {
+        S<T> s1;
+        s1 = default;
+        s1 = new S<T>();
+        s1 = new S<T>(ref t);
+        s1 = new S<T> { F1 = t };
+    }
+    static void M2<T>(ref T t)
+    {
+        S<T> s2;
+        s2 = new S<T>(ref t);
+        s2 = new S<T> { F1 = t };
+    }
+    static void M3<T>(S<T> s)
+    {
+        var s3 = s;
+        M1(s.F1);
+        M1(s.F2);
+        M2(ref s.F1);
+    }
+}";
+
+            // PROTOTYPE: Use of ref field should be tied to -langversion:preview,
+            // for field from metadata or compilation reference.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [CombinatorialData]
+        [Theory]
         public void RefField(bool useCompilationReference)
         {
             var sourceA =
@@ -41,17 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
 
-            var field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.Ref, field.RefKind);
-            Assert.Equal("ref T S<T>.F", field.ToTestDisplayString());
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
-
-            field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.Ref, field.RefKind);
-            Assert.Equal("ref T S<T>.F", field.ToTestDisplayString());
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
 
             var sourceB =
 @"using System;
@@ -69,8 +184,13 @@ class Program
         Console.WriteLine(x);
     }
 }";
+
             // PROTOTYPE: Use of ref field should be tied to -langversion:preview,
             // for field from metadata or compilation reference.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
+
             var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -78,10 +198,13 @@ class Program
 3
 "));
             comp = (CSharpCompilation)verifier.Compilation;
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
 
-            field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.Ref, field.RefKind);
-            Assert.Equal("ref T S<T>.F", field.ToTestDisplayString());
+            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
+            {
+                Assert.Equal(refKind, field.RefKind);
+                Assert.Equal(displayName, field.ToTestDisplayString());
+            }
         }
 
         [CombinatorialData]
@@ -103,17 +226,12 @@ class Program
                 //     public ref readonly T F;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(3, 12));
 
-            var field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.RefReadOnly, field.RefKind);
-            Assert.Equal("ref readonly T S<T>.F", field.ToTestDisplayString());
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
-
-            field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.RefReadOnly, field.RefKind);
-            Assert.Equal("ref readonly T S<T>.F", field.ToTestDisplayString());
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
 
             var sourceB =
 @"using System;
@@ -136,8 +254,13 @@ class Program
         Console.WriteLine(a.G);
     }
 }";
+
             // PROTOTYPE: Use of ref field should be tied to -langversion:preview,
             // for field from metadata or compilation reference.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
+
             var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -145,10 +268,13 @@ class Program
 3
 "));
             comp = (CSharpCompilation)verifier.Compilation;
+            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
 
-            field = comp.GetMember<FieldSymbol>("S.F");
-            Assert.Equal(RefKind.RefReadOnly, field.RefKind);
-            Assert.Equal("ref readonly T S<T>.F", field.ToTestDisplayString());
+            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
+            {
+                Assert.Equal(refKind, field.RefKind);
+                Assert.Equal(displayName, field.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -914,7 +1040,7 @@ class Program
                 // (44,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         S<T>.M3(out s.F);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 21));
-         }
+        }
 
         [Fact]
         public void RefParameter_ReadonlyRef()
