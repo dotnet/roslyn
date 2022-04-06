@@ -3444,12 +3444,16 @@ class Example
             var source =
 @"using System;
 Span<byte> s = stackalloc byte[512];
+ReadOnlySpan<int> r = stackalloc int[512];
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Script, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 // Span<byte> s = stackalloc byte[512];
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(2, 1),
+                // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                // ReadOnlySpan<int> r = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(3, 1));
         }
     }
 }
