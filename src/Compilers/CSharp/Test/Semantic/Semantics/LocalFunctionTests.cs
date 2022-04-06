@@ -7508,6 +7508,80 @@ public class MyAttribute : System.Attribute
                 => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
         }
 
+        [Fact]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithReplacementAttributeInsideExisting()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(positionA)]
+        void local<TParameter>() { }
+    }
+
+    [My(positionB)]
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            // C# 10
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'positionA' does not exist in the current context
+                //         [My(positionA)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'positionB' does not exist in the current context
+                //     [My(positionB)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var parentModel = comp.GetSemanticModel(tree);
+            var localFuncPosition = tree.GetText().ToString().IndexOf("positionA", StringComparison.Ordinal);
+            var methodPosition = tree.GetText().ToString().IndexOf("positionB", StringComparison.Ordinal);
+
+            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            // C# 11
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'positionA' does not exist in the current context
+                //         [My(positionA)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'positionB' does not exist in the current context
+                //     [My(positionB)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
+                );
+
+            tree = comp.SyntaxTrees.Single();
+            parentModel = comp.GetSemanticModel(tree);
+
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            return;
+
+            static AttributeSyntax parseAttributeSyntax(string source, CSharpParseOptions parseOptions)
+                => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
+        }
+
         [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
         [WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InMethodAttributeNameOf_CompatBreak()
