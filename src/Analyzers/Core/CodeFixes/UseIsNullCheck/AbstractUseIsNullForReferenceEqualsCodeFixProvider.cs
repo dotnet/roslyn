@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract string GetTitle(bool negated, ParseOptions options);
 
         protected abstract SyntaxNode CreateNullCheck(TExpressionSyntax argument, bool isUnconstrainedGeneric);

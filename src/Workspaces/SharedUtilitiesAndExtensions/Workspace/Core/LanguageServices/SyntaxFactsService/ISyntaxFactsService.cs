@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal interface ISyntaxFactsService : ISyntaxFacts, ILanguageService
     {
-        bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         // Violation.  This is feature level code.

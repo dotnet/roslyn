@@ -231,13 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-
-            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -251,12 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
@@ -279,6 +268,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return boundNode;
+        }
+
+        protected static Binder AddSpeculativeFieldKeywordBinderIfNeeded(Binder binder)
+        {
+            var symbol = binder.ContainingMember();
+            if (symbol.CanHaveFieldKeywordBackingField())
+            {
+                return new SpeculativeFieldKeywordBinder((SourcePropertyAccessorSymbol)symbol, binder);
+            }
+
+            return binder;
         }
 
         /// <summary>

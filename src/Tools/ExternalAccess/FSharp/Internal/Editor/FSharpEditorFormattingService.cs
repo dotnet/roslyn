@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
         }
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, FormattingOptions2.IndentStyle indentStyle, char ch)
         {
             return _service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions ?
-                serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options), ch) :
+                serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options, indentStyle), ch) :
                 _service.SupportsFormattingOnTypedCharacter(document, ch);
         }
 

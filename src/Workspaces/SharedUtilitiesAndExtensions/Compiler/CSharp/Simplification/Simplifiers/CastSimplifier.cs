@@ -358,12 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
+                originalParentConversion.GetConversion().IsImplicit)
             {
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -659,8 +660,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
-                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }

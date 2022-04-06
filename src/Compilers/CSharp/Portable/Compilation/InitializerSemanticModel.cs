@@ -217,12 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, GetRemappedSymbols(), position);
             return true;

@@ -206,11 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterCast));
             }
 
+            // List patterns
             if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
             {
-                // is [
-                // and [
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // For the space after the middle comma in ([1, 2], [1, 2])
+                if (previousKind == SyntaxKind.CommaToken)
+                {
+                    return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
+                }
+
+                // For "is [", "and [", but not "(["
+                if (previousKind != SyntaxKind.OpenParenToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // For spacing Before Square Braces
