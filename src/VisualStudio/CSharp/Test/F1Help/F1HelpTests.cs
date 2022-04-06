@@ -987,7 +987,6 @@ class Program
 }", "UTF8StringLiteral_CSharpKeyword");
         }
 
-
         [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVerbatimString()
