@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// a NotificationOption, so <paramref name="notification"/> will default to <paramref name="defaultNotification"/>.
         /// </summary>
         public static bool TryGetCodeStyleValueAndOptionalNotification(
-            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2? notification)
+            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2 notification)
         {
             var args = arg.Split(':');
             Debug.Assert(args.Length > 0);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             // We only support 0 or 1 args.  Anything else can't be parsed properly.
             value = null;
-            notification = null;
+            notification = default;
             return false;
         }
 

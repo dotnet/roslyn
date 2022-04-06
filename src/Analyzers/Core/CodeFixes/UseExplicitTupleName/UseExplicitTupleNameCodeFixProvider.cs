@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_explicitly_provided_tuple_name,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(AnalyzersResources.Use_explicitly_provided_tuple_name)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -59,16 +59,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_explicitly_provided_tuple_name,
-                       createChangedDocument,
-                       AnalyzersResources.Use_explicitly_provided_tuple_name)
-            {
-            }
         }
     }
 }

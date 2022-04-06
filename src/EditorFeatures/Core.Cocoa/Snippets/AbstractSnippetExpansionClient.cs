@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
-    internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IExpansionClient
+    internal abstract class AbstractSnippetExpansionClient : IExpansionClient
     {
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
         protected readonly IContentType LanguageServiceGuid;
@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public IExpansionSession? ExpansionSession { get; private set; }
 
-        public AbstractSnippetExpansionClient(IThreadingContext threadingContext, IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
-            : base(threadingContext)
+        public AbstractSnippetExpansionClient(IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
         {
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;

@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_inferred_member_name,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(AnalyzersResources.Use_inferred_member_name)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -46,14 +46,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_inferred_member_name, createChangedDocument, AnalyzersResources.Use_inferred_member_name)
-            {
-            }
         }
     }
 }

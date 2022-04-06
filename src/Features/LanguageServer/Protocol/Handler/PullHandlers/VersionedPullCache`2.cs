@@ -65,9 +65,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Func<Task<TExpensiveVersion>> computeExpensiveVersionAsync,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
             TCheapVersion cheapVersion;
             TExpensiveVersion expensiveVersion;
+
+            var workspace = document.Project.Solution.Workspace;
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&

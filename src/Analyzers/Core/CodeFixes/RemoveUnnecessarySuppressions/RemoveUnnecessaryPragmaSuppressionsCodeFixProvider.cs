@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
@@ -47,7 +44,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                        CodeAction.Create(
+                            AnalyzersResources.Remove_unnecessary_suppression,
+                            c => FixAsync(context.Document, diagnostic, c),
+                            nameof(AnalyzersResources.Remove_unnecessary_suppression)),
                         diagnostic);
                 }
             }
@@ -98,14 +98,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 {
                     editor.RemoveNode(node, options);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryInlineSuppressionsCodeFixProvider))
-            {
             }
         }
     }

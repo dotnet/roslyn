@@ -22,10 +22,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var title = GetTitle();
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                CodeAction.Create(
+                    title,
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    title),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -37,14 +39,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }
