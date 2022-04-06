@@ -3674,6 +3674,26 @@ public class Derived : Base
         }
     }
 
+    [Fact]
+    public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType_SetsRequiredMembersMissing()
+    {
+        var code = """
+            public record C
+            {
+                public required string Prop1 { get; set; }
+                public required int Field1;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor);
+        comp.VerifyDiagnostics(
+            // (1,15): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor'
+            // public record C
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ".ctor").WithLocation(1, 15)
+        );
+    }
+
     [Theory]
     [CombinatorialData]
     public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInBase(bool useMetadataReference)
