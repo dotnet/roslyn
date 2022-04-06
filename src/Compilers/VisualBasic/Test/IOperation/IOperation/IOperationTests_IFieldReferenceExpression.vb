@@ -31,7 +31,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Conditional(
   IObjectCreationOperation (Constructor: Sub System.Diagnostics.ConditionalAttribute..ctor(conditionString As System.String)) (OperationKind.ObjectCreation, Type: System.Diagnostics.ConditionalAttribute, IsImplicit) (Syntax: 'Conditional(field)')
     Arguments(1):
         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: conditionString) (OperationKind.Argument, Type: null) (Syntax: 'field')
-          IFieldReferenceOperation: C.field As System.String (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
+          IFieldReferenceOperation: C.field As System.String (Static) (OperationKind.FieldReference, Type: System.String, Constant: "field") (Syntax: 'field')
             Instance Receiver:
               null
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

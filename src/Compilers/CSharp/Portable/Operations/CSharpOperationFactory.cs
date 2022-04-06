@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
             var isAttributeImplicit = boundAttribute.WasCompilerGenerated;
-            if (boundAttribute.HasErrors)
+            if (boundAttribute.Constructor is null)
             {
                 var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
                 return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);

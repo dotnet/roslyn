@@ -193,7 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments = default;
             MethodSymbol? attributeConstructor = null;
             ImmutableArray<BoundExpression> boundConstructorArguments;
-            bool hasErrors = false;
             if (attributeTypeForBinding.IsErrorType())
             {
                 boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
@@ -245,11 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In))
                     {
                         Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                        hasErrors = true;
                     }
-
-                    // Validate attribute constructor parameters have valid attribute parameter type
-                    ValidateTypeForAttributeParameters(attributeConstructor.Parameters, node.Name, diagnostics, ref hasErrors);
                 }
             }
 
@@ -272,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundNamedArguments,
                 resultKind,
                 attributeType,
-                hasErrors: hasErrors || resultKind != LookupResultKind.Viable);
+                hasErrors: resultKind != LookupResultKind.Viable);
         }
 
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, BindingDiagnosticBag diagnostics)
@@ -291,6 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(hasErrors);
                 return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, hasErrors);
             }
+
+            // Validate attribute constructor parameters have valid attribute parameter type
+            ValidateTypeForAttributeParameters(attributeConstructor.Parameters, ((AttributeSyntax)boundAttribute.Syntax).Name, diagnostics, ref hasErrors);
 
             // Validate the attribute arguments and generate TypedConstant for argument's BoundExpression.
             var visitor = new AttributeExpressionVisitor(this);

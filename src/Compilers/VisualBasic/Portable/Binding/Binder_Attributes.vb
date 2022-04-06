@@ -351,7 +351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
                             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node.Name, methodResult, boundArguments, diagnostics)
-                            
                             boundArguments = argumentInfo.Arguments
                             defaultArguments = argumentInfo.DefaultArguments
                             Debug.Assert(Not boundArguments.Any(Function(a) a.Kind = BoundKind.ByRefArgumentWithCopyBack))

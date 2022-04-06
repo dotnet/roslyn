@@ -770,6 +770,45 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
         }
 
         [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative_AssemblyTarget()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: Attr(""a"")]
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = ""default_value"") { } }
+
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().First();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            VerifyOperationTree(comp, speculativeOperation, @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+    IObjectCreationOperation (Constructor: Attr..ctor([System.String s = ""default_value""])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default_value"", IsImplicit) (Syntax: 'Attr()')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+");
+        }
+
+        [Fact]
         public void NotNullIfNotNullDefinitionUsesCallerMemberName()
         {
             var definitionSource = @"

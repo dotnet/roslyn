@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     // - VB tests
     // - params tests
     // - named arguments tests
-    // source and module attribute targets tests.
     // multiple attributes on declaration tests
     // local function tests.
     [CompilerTrait(CompilerFeature.IOperation)]
@@ -506,12 +505,17 @@ class Boom : System.Attribute
             };
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom')
-  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Boom')
-    Children(1):
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'Boom')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'Boom')
+  IObjectCreationOperation (Constructor: Boom..ctor([System.Int32? x = 0])) (OperationKind.ObjectCreation, Type: Boom, IsInvalid, IsImplicit) (Syntax: 'Boom')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'Boom')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'Boom')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'Boom')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -669,10 +673,44 @@ class MyAttribute : Attribute
             };
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
-  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
-    Children(0)
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(params System.Int32[][,] x)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,], IsInvalid, IsImplicit) (Syntax: 'My')
+            Dimension Sizes(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'My')
+            Initializer:
+              IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
+                Element Values(0)
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AssemblyAttributeTarget()
+        {
+            string source = @"
+using System;
+
+[assembly: /*<bind>*/CLSCompliant(true)/*</bind>*/]
+";
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant(true)')
+  IObjectCreationOperation (Constructor: System.CLSCompliantAttribute..ctor(System.Boolean isCompliant)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'CLSCompliant(true)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: isCompliant) (OperationKind.Argument, Type: null) (Syntax: 'true')
+          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, DiagnosticDescription.None);
         }
     }
 }

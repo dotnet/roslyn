@@ -25,16 +25,14 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.OperationKind.Attribute = 124 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.Attribute = 125 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IAttributeOperation
-Microsoft.CodeAnalysis.Operations.IAttributeOperation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IArgumentOperation!>
-Microsoft.CodeAnalysis.Operations.IAttributeOperation.NamedArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ISimpleAssignmentOperation!>
+Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitAttribute(Microsoft.CodeAnalysis.Operations.IAttributeOperation! operation, TArgument argument) -> TResult?
-
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementOperatorName = "op_CheckedDecrement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementOperatorName = "op_CheckedIncrement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedUnaryNegationOperatorName = "op_CheckedUnaryNegation" -> string!
