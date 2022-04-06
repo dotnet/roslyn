@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             private bool CursorIsAfterQuotesInUTF8String()
             {
-                return _token.IsKind(SyntaxKind.UTF8StringLiteralToken) && CursorPosition >= _token.Span.End - 2;
+                return _token.IsKind(SyntaxKind.UTF8StringLiteralToken) && CursorPosition >= _token.Span.End - "u8".Length;
             }
 
             protected override SyntaxNode GetNodeToReplace() => _token.Parent;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 // If we're spliting a UTF8 string we need to keep the u8 suffix on the first part. We copy whatever
                 // the user had on the second part, for consistency.
                 var firstTokenSuffix = _token.Kind() == SyntaxKind.UTF8StringLiteralToken
-                    ? SourceText.GetSubText(TextSpan.FromBounds(_token.Span.End - 2, _token.Span.End)).ToString()
+                    ? SourceText.GetSubText(TextSpan.FromBounds(_token.Span.End - "u8".Length, _token.Span.End)).ToString()
                     : "";
 
                 var firstToken = SyntaxFactory.Token(

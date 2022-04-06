@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
             {
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
-                    return GetSimpleStringBraceMatchingResult(token, 1);
+                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 1);
                 }
                 else if (token.IsKind(SyntaxKind.UTF8StringLiteralToken))
                 {
-                    return GetSimpleStringBraceMatchingResult(token, 3);
+                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
                 }
                 else if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedVerbatimStringStartToken))
                 {

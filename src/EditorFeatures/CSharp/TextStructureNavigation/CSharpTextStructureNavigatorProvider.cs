@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             if (token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken) || token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken))
             {
                 // Skip past the u8 suffix
-                end -= 2;
+                end -= "u8".Length;
             }
 
             while (start < end && text[start] == '"')
