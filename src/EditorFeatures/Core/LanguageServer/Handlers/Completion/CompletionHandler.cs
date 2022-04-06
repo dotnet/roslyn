@@ -226,10 +226,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     vsItem.VsResolveTextEditOnCommit = true;
                     // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
                     // We can enable it for regular C# once LSP is used for local completion.
-                    if (snippetsSupported)
-                    {
-                        lspItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
-                    }
+
+                    // Old contract - no insert text / textedit / and snippet means the client resolved.
+                    // Once we have inserted VsResolveTextEditOnCommit and the client has removed the old code path we can delete.
+                    lspItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                 }
                 else
                 {
@@ -248,6 +248,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // map the additional text edits for all the completion items.
                         // Tracking issue: https://github.com/dotnet/razor-tooling/issues/6242
                         vsCompletionItem.VsResolveTextEditOnCommit = true;
+
+                        // Old contract - no insert text / textedit / and snippet means the client resolved.
+                        // Once we have inserted VsResolveTextEditOnCommit and the client has removed the old code path we can delete.
+                        lspItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                     }
                     else
                     {
