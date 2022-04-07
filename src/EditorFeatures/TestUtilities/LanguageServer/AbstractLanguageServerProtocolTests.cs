@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestSyntaxTreeConfigurationService))
+            .AddParts(typeof(TestWorkspaceConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
@@ -288,8 +288,8 @@ namespace Roslyn.Test.Utilities
         protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
 
-        protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities);
+        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities, serverKind);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
@@ -312,8 +312,8 @@ namespace Roslyn.Test.Utilities
         private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
-            var syntaxTreeConfigurationService = exportProvider.GetExportedValue<TestSyntaxTreeConfigurationService>();
-            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
+            var workspaceConfigurationService = exportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
 
             var workspace = languageName switch
             {
@@ -579,7 +579,6 @@ namespace Roslyn.Test.Utilities
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     ProtocolConstants.RoslynLspLanguages,
-                    clientName: null,
                     serverKind);
 
                 jsonRpc.StartListening();

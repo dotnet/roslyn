@@ -111,10 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            // CodeStyleOptions2.OperatorPlacementWhenWrapping is included in whitespace options so we need to substract one
-            // We do not yet support the following options as they are strings and we need to build a UI to show arbitrary strings:
+            // We need to substract as a UI for arbitrary strings for:
+            //
+            // CodeStyleOptions2.OperatorPlacementWhenWrapping
             // CodeStyleOptions2.FileHeaderTemplate
-            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 2;
+            // CodeStyleOptions2.ForEachExplicitCastInSource
+            var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 3;
             Assert.Equal(optionsCount, dataSnapShot.Length);
         }
 
@@ -169,8 +171,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             var optionsCount = FormattingOptions2.Options.Length;
-            // we also include CodeStyleOptions2.OperatorPlacementWhenWrapping so we need to add one
-            optionsCount += 1;
             Assert.Equal(optionsCount, dataSnapShot.Length);
         }
 

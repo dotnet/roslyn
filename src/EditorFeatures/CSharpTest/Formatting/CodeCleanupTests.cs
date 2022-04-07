@@ -553,9 +553,9 @@ namespace A
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        [InlineData(LanguageNames.CSharp, 32)]
-        [InlineData(LanguageNames.VisualBasic, 67)]
-        public void VerifyAllVisualBasicCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
+        [InlineData(LanguageNames.CSharp, 35)]
+        [InlineData(LanguageNames.VisualBasic, 70)]
+        public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
         {
             var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 

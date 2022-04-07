@@ -18,6 +18,7 @@ pr:
   paths:
     exclude:
       - docs/*
+      - eng/config/PublishData.json
       - .vscode/*
       - .github/*
       - .devcontainer/*
@@ -97,7 +98,7 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+    testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml

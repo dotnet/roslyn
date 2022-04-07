@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
             // parameter names to improve clarity.  The parameter is clear from the context of the method name.
 
-            // First, this only applies to methods (as we're looking at the method name itself) so filter down to those.
-            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary } method })
+            // First, this only applies to methods/local functions (as we're looking at the method name itself) so filter down to those.
+            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction } method })
                 return false;
 
             // We only care when dealing with the first parameter.  Note: we don't have to worry parameter reordering

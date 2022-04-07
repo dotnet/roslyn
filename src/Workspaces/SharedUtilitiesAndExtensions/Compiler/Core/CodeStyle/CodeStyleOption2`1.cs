@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
             Value = value;
-            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            _notification = notification;
         }
 
         public T Value { get; }
