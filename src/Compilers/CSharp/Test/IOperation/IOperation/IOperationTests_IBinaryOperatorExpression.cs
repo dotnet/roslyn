@@ -416,6 +416,32 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void TestBinaryOperators_UnsignedRightShift()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int a, int b)
+    {
+        _ = /*<bind>*/ a >>> b /*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void TestBinaryOperators_Checked()
         {
             string source = @"
@@ -546,6 +572,35 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestBinaryOperators_UnsignedRightShift_Checked()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int a, int b)
+    {
+        checked
+        {
+            _ = /*<bind>*/ a >>> b /*</bind>*/;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >>> b')
+  Left:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+  Right:
+    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

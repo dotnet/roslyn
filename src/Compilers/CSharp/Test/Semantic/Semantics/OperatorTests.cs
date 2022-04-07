@@ -7349,6 +7349,7 @@ public class RubyTime
                 BinaryOperatorKind.Or,
                 BinaryOperatorKind.And,
                 BinaryOperatorKind.Xor,
+                BinaryOperatorKind.UnsignedRightShift,
             };
 
             foreach (var op in operators)
@@ -7744,7 +7745,8 @@ class Module1
                         BinaryOperatorKind.Or,
                         BinaryOperatorKind.And,
                         BinaryOperatorKind.LogicalOr,
-                        BinaryOperatorKind.LogicalAnd
+                        BinaryOperatorKind.LogicalAnd,
+                        BinaryOperatorKind.UnsignedRightShift,
                         };
 
             string[] opTokens = {
@@ -7765,7 +7767,8 @@ class Module1
                                  "|",
                                  "&",
                                  "||",
-                                 "&&"};
+                                 "&&",
+                                 ">>>"};
 
             string[] typeNames =
                             {
@@ -7910,7 +7913,8 @@ class Module1
                         BinaryOperatorKind.RightShift,
                         BinaryOperatorKind.Xor,
                         BinaryOperatorKind.Or,
-                        BinaryOperatorKind.And
+                        BinaryOperatorKind.And,
+                        BinaryOperatorKind.UnsignedRightShift
                         };
 
             string[] opTokens = {
@@ -7923,7 +7927,8 @@ class Module1
                                  ">>=",
                                  "^=",
                                  "|=",
-                                 "&="};
+                                 "&=",
+                                 ">>>="};
 
             string[] typeNames =
                             {
@@ -8128,10 +8133,13 @@ class Module1
                 Assert.NotEqual(symbol1.Parameters[0], symbol5.Parameters[1]);
             }
 
+            bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
+
             switch (op)
             {
                 case BinaryOperatorKind.LogicalAnd:
                 case BinaryOperatorKind.LogicalOr:
+                case BinaryOperatorKind.UnsignedRightShift when isDynamic:
                     Assert.Null(symbol1);
                     Assert.Null(symbol2);
                     Assert.Null(symbol3);
@@ -8139,10 +8147,8 @@ class Module1
                     return;
             }
 
-
             BinaryOperatorKind result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType);
             BinaryOperatorSignature signature;
-            bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
 
             if (result == BinaryOperatorKind.Error)
             {

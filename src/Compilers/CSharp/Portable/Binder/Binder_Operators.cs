@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left.HasDynamicType() || right.HasDynamicType())
             {
-                if (IsLegalDynamicOperand(right) && IsLegalDynamicOperand(left))
+                if (IsLegalDynamicOperand(right) && IsLegalDynamicOperand(left) && kind != BinaryOperatorKind.UnsignedRightShift)
                 {
                     left = BindToNaturalType(left, diagnostics);
                     right = BindToNaturalType(right, diagnostics);
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool leftValidOperand = IsLegalDynamicOperand(left);
             bool rightValidOperand = IsLegalDynamicOperand(right);
 
-            if (!leftValidOperand || !rightValidOperand)
+            if (!leftValidOperand || !rightValidOperand || kind == BinaryOperatorKind.UnsignedRightShift)
             {
                 // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
                 Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
-                    // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftExpression
+                case SyntaxKind.UnsignedRightShiftExpression:
                     return true;
             }
             return false;
@@ -1951,12 +1951,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.IntRightShift:
                 case BinaryOperatorKind.NIntRightShift:
                     return valueLeft.Int32Value >> valueRight.Int32Value;
+                case BinaryOperatorKind.IntUnsignedRightShift:
+                    return (int)(((uint)valueLeft.Int32Value) >> valueRight.Int32Value); // Switch to `valueLeft.Int32Value >>> valueRight.Int32Value` once >>> becomes available
+                case BinaryOperatorKind.NIntUnsignedRightShift:
+                    return (valueLeft.Int32Value >= 0) ? valueLeft.Int32Value >> valueRight.Int32Value : null;
                 case BinaryOperatorKind.LongRightShift:
                     return valueLeft.Int64Value >> valueRight.Int32Value;
+                case BinaryOperatorKind.LongUnsignedRightShift:
+                    return (long)(((ulong)valueLeft.Int64Value) >> valueRight.Int32Value); // Switch to `valueLeft.Int64Value >>> valueRight.Int32Value` once >>> becomes available 
                 case BinaryOperatorKind.UIntRightShift:
                 case BinaryOperatorKind.NUIntRightShift:
+                case BinaryOperatorKind.UIntUnsignedRightShift:
+                case BinaryOperatorKind.NUIntUnsignedRightShift:
                     return valueLeft.UInt32Value >> valueRight.Int32Value;
                 case BinaryOperatorKind.ULongRightShift:
+                case BinaryOperatorKind.ULongUnsignedRightShift:
                     return valueLeft.UInt64Value >> valueRight.Int32Value;
                 case BinaryOperatorKind.BoolAnd:
                     return valueLeft.BooleanValue & valueRight.BooleanValue;
@@ -2159,9 +2168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.SubtractExpression: return BinaryOperatorKind.Subtraction;
                 case SyntaxKind.RightShiftAssignmentExpression:
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.RightShiftExpression: return BinaryOperatorKind.RightShift;
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftExpression
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftExpression: return BinaryOperatorKind.UnsignedRightShift;
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.LeftShiftExpression: return BinaryOperatorKind.LeftShift;
                 case SyntaxKind.EqualsExpression: return BinaryOperatorKind.Equal;
@@ -2922,7 +2931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiplyAssignmentExpression:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression:
                     return BindValueKind.CompoundAssignment;

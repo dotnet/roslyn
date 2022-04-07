@@ -225,6 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     break;
 
+                case BinaryOperatorKind.UnsignedRightShift:
+                    _builder.EmitOpCode(ILOpCode.Shr_un);
+                    break;
+
                 case BinaryOperatorKind.And:
                     _builder.EmitOpCode(ILOpCode.And);
                     break;

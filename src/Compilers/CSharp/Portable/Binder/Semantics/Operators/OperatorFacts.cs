@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.NotEqual: return WellKnownMemberNames.InequalityOperatorName;
                 case BinaryOperatorKind.Remainder: return WellKnownMemberNames.ModulusOperatorName;
                 case BinaryOperatorKind.RightShift: return WellKnownMemberNames.RightShiftOperatorName;
+                case BinaryOperatorKind.UnsignedRightShift: return WellKnownMemberNames.UnsignedRightShiftOperatorName;
                 case BinaryOperatorKind.Subtraction: return isChecked ? WellKnownMemberNames.CheckedSubtractionOperatorName : WellKnownMemberNames.SubtractionOperatorName;
                 case BinaryOperatorKind.Xor: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 default:
