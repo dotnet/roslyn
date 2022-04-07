@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
             => UnitTestingIncrementalAnalyzerProvider.TryRegister(RemoteWorkspaceManager.Default.GetWorkspace(), analyzerName, provider);
 
-        [Obsolete("Use RunWithSolutionAsync instead", error: false)]
+        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
         public static ValueTask<Solution> GetSolutionAsync(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
 

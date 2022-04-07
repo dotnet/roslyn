@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <see cref="PinnedSolutionInfo.SolutionChecksum"/>). However, this is used by
         /// Pythia/Razor/UnitTesting which all assume they can get that solution instance and use as desired by them.
         /// </summary>
-        [Obsolete("Use RunWithSolutionAsync instead", error: false)]
+        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
         public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);
