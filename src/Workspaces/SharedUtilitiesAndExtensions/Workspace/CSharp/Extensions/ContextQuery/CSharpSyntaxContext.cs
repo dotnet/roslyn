@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isAnyExpressionContext, isAttributeNameContext, isEnumTypeMemberAccessContext,
                    isNameOfContext, isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
                    isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
-                   ComputeIsInTaskLikeTypeContext(targetToken, semanticModel, cancellationToken),
+                   ComputeIsInTaskLikeTypeContext(targetToken, semanticModel, precedingModifiers, cancellationToken),
                    cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
@@ -274,18 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 cancellationToken: cancellationToken);
         }
 
-        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, ISet<SyntaxKind> precedingModifiers, CancellationToken cancellationToken)
         {
             // Check if we're immediately after 'async' (which the compiler either figured out was a keyword, or it
             // thinks is an unbound identifier).
             if (targetToken.Kind() == SyntaxKind.AsyncKeyword)
                 return true;
 
-            if (targetToken.Parent is IdentifierNameSyntax { Identifier.Text: "async" } identifier &&
-                semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is null)
+            if (targetToken is { RawKind: (int)SyntaxKind.IdentifierToken, Text: "async" } &&
+                semanticModel.GetSymbolInfo(targetToken.GetRequiredParent(), cancellationToken).GetAnySymbol() is null)
             {
                 return true;
             }
+
+            if (precedingModifiers.Contains(SyntaxKind.AsyncKeyword))
+                return true;
 
             return false;
         }
