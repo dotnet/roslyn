@@ -117,6 +117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.VisualBasicShortErrorMessageFormat)
         End Function
 
+        Public Overrides Function GetIsEnabledByDefault(code As Integer) As Boolean
+            Return True
+        End Function
+
         ' Given a message identifier (e.g., CS0219), severity, warning as error and a culture, 
         ' get the entire prefix (e.g., "error BC42024:" for VB) used on error messages.
         Public Overrides Function GetMessagePrefix(id As String, severity As DiagnosticSeverity, isWarningAsError As Boolean, culture As CultureInfo) As String

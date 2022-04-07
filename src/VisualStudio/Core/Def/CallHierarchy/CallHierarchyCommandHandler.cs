@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                     if (mapping.Symbol != null)
                     {
-                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).WaitAndGetResult(cancellationToken);
                         if (node != null)
                         {
                             _presenter.PresentRoot((CallHierarchyItem)node);

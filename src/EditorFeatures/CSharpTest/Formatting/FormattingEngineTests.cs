@@ -2289,9 +2289,243 @@ namespace TestApp
             Assert.Single(annotatedTrivia);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        [WpfFact]
+        public void FormatUserDefinedOperator()
         {
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            var code = @"$$
+class C
+{
+    public static C operator + ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator ++(C x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator C(int x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string(T x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked + ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked ++(C x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator checked C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator checked C(int x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null, ParseOptions parseOptions = null)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
             if (changedOptionSet != null)
             {
                 var options = workspace.Options;

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -26,12 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
+    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where TTag : ITag
     {
         private readonly object _uniqueKey = new();
 
         protected readonly IAsynchronousOperationListener AsyncListener;
+        protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
+        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -85,23 +88,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListener asyncListener)
-            : base(threadingContext)
         {
+            ThreadingContext = threadingContext;
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
+            _visibilityTracker = visibilityTracker;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
 #endif
         }
 
-        protected ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        protected ITagger<T>? CreateTaggerWorker<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
 
-            var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
+            var tagSource = GetOrCreateTagSource(textView, subjectBuffer);
             var tagger = new Tagger(tagSource);
 
             // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
@@ -116,29 +121,29 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             return result;
         }
 
-        private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private TagSource GetOrCreateTagSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
+            if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener);
-                this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
+                tagSource = new TagSource(textView, subjectBuffer, _visibilityTracker, this, AsyncListener);
+                this.StoreTagSource(textView, subjectBuffer, tagSource);
             }
 
             return tagSource;
         }
 
-        private bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, [NotNullWhen(true)] out TagSource? tagSource)
+        private bool TryRetrieveTagSource(ITextView? textView, ITextBuffer subjectBuffer, [NotNullWhen(true)] out TagSource? tagSource)
         {
-            return textViewOpt != null
-                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, _uniqueKey, out tagSource)
+            return textView != null
+                ? textView.TryGetPerSubjectBufferProperty(subjectBuffer, _uniqueKey, out tagSource)
                 : subjectBuffer.Properties.TryGetProperty(_uniqueKey, out tagSource);
         }
 
-        private void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private void RemoveTagSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            if (textViewOpt != null)
+            if (textView != null)
             {
-                textViewOpt.RemovePerSubjectBufferProperty<TagSource, ITextView>(subjectBuffer, _uniqueKey);
+                textView.RemovePerSubjectBufferProperty<TagSource, ITextView>(subjectBuffer, _uniqueKey);
             }
             else
             {
@@ -146,11 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
         }
 
-        private void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TagSource tagSource)
+        private void StoreTagSource(ITextView? textView, ITextBuffer subjectBuffer, TagSource tagSource)
         {
-            if (textViewOpt != null)
+            if (textView != null)
             {
-                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, _uniqueKey, tagSource);
+                textView.AddPerSubjectBufferProperty(subjectBuffer, _uniqueKey, tagSource);
             }
             else
             {
@@ -164,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
         /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
         /// </summary>
-        protected virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            => textViewOpt?.GetCaretPoint(subjectBuffer);
+        protected virtual SnapshotPoint? GetCaretPoint(ITextView? textView, ITextBuffer subjectBuffer)
+            => textView?.GetCaretPoint(subjectBuffer);
 
         /// <summary>
         /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
@@ -176,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
         /// the future to produce tags for these spans.
         /// </summary>
-        protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
             return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
-        protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
+        protected abstract ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer);
 
         /// <summary>
         /// Produce tags for the given context.

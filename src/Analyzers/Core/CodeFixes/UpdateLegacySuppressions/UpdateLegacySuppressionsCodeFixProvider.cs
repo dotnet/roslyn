@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
                     root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                        CodeAction.Create(
+                            CodeFixesResources.Update_suppression_format,
+                            c => FixAsync(context.Document, diagnostic, c),
+                            nameof(CodeFixesResources.Update_suppression_format)),
                         diagnostic);
                 }
             }
@@ -54,14 +57,6 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Update_suppression_format, createChangedDocument, nameof(UpdateLegacySuppressionsCodeFixProvider))
-            {
-            }
         }
     }
 }

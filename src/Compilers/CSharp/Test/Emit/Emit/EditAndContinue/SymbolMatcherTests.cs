@@ -1811,5 +1811,261 @@ class C
             var field1 = (Cci.IFieldDefinition)matcher.MapDefinition(field0);
             Assert.Equal("<>9__0_0", field1.Name);
         }
+
+        [Fact]
+        public void CheckedUserDefinedOperators_01()
+        {
+            const string source =
+@"
+class A 
+{
+    public static A operator -(A c) => c;
+    public static A operator checked -(A c) => c;
+
+    public static A operator +(A c, A d) => c;
+    public static A operator checked +(A c, A d) => c;
+
+    public static explicit operator int(A c) => 0;
+    public static explicit operator checked int(A c) => 0;
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                null,
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+            var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            Assert.Equal(6, members1.Length);
+            Assert.Equal(members1.Length, members0.Length);
+
+            for (int i = 0; i < members0.Length; i++)
+            {
+                Assert.Same(members0[i], matcher.MapDefinition(members1[i].GetCciAdapter()).GetInternalSymbol());
+            }
+        }
+
+        [Fact]
+        public void CheckedUserDefinedOperators_02()
+        {
+            const string source0 =
+@"
+class A 
+{
+    public static A operator -(A c) => c;
+    public static A operator +(A c, A d) => c;
+    public static explicit operator int(A c) => 0;
+}
+";
+
+            const string source1 =
+@"
+class A 
+{
+    public static A operator -(A c) => c;
+    public static A operator checked -(A c) => c;
+
+    public static A operator +(A c, A d) => c;
+    public static A operator checked +(A c, A d) => c;
+
+    public static explicit operator int(A c) => 0;
+    public static explicit operator checked int(A c) => 0;
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                null,
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+            var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            Assert.Equal(6, members1.Length);
+            Assert.Equal(3, members0.Length);
+
+            for (int i = 0; i < members0.Length; i++)
+            {
+                Assert.Same(members0[i], matcher.MapDefinition(members1[i * 2].GetCciAdapter()).GetInternalSymbol());
+            }
+
+            for (int i = 0; i < members1.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    continue;
+                }
+
+                Assert.Null(matcher.MapDefinition(members1[i].GetCciAdapter()));
+            }
+        }
+
+        [Fact]
+        public void CheckedUserDefinedOperators_03()
+        {
+            const string source0 =
+@"
+class A 
+{
+    public static A operator -(A c) => c;
+    public static A operator checked -(A c) => c;
+
+    public static A operator +(A c, A d) => c;
+    public static A operator checked +(A c, A d) => c;
+
+    public static explicit operator int(A c) => 0;
+    public static explicit operator checked int(A c) => 0;
+}
+";
+
+            const string source1 =
+@"
+class A 
+{
+    public static A operator -(A c) => c;
+    public static A operator +(A c, A d) => c;
+    public static explicit operator int(A c) => 0;
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                null,
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+            var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            var members0 = compilation0.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            Assert.Equal(3, members1.Length);
+            Assert.Equal(6, members0.Length);
+
+            for (int i = 0; i < members1.Length; i++)
+            {
+                Assert.Same(members0[i * 2], matcher.MapDefinition(members1[i].GetCciAdapter()).GetInternalSymbol());
+            }
+        }
+
+        [Fact]
+        public void CheckedUserDefinedOperators_04()
+        {
+            const string source0 =
+@"
+class A 
+{
+    public static A operator -(A c) => default;
+    public static A operator checked -(A c) => default;
+
+    public static A operator +(A c, A d) => default;
+    public static A operator checked +(A c, A d) => default;
+
+    public static explicit operator int(A c) => default;
+    public static explicit operator checked int(A c) => default;
+}
+";
+
+            const string source1 =
+@"
+class A 
+{
+    public static int operator -(A c) => default;
+    public static int operator checked -(A c) => default;
+
+    public static int operator +(A c, A d) => default;
+    public static int operator checked +(A c, A d) => default;
+
+    public static explicit operator long(A c) => default;
+    public static explicit operator checked long(A c) => default;
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                null,
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+            var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            Assert.Equal(6, members1.Length);
+
+            foreach (var member in members1)
+            {
+                Assert.Null(matcher.MapDefinition(member.GetCciAdapter()));
+            }
+        }
+
+        [Fact]
+        public void CheckedUserDefinedOperators_05()
+        {
+            const string source0 =
+@"
+class A 
+{
+    public static A operator -(A c) => default;
+    public static A operator checked -(A c) => default;
+
+    public static A operator +(A c, A d) => default;
+    public static A operator checked +(A c, A d) => default;
+
+    public static explicit operator int(A c) => default;
+    public static explicit operator checked int(A c) => default;
+}
+";
+
+            const string source1 =
+@"
+class A 
+{
+    public static A operator -(int c) => default;
+    public static A operator checked -(int c) => default;
+
+    public static A operator +(A c, int d) => default;
+    public static A operator checked +(A c, int d) => default;
+
+    public static explicit operator int(int c) => default;
+    public static explicit operator checked int(int c) => default;
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                null,
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+            var members1 = compilation1.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind is (MethodKind.Conversion or MethodKind.UserDefinedOperator)).ToArray();
+            Assert.Equal(6, members1.Length);
+
+            foreach (var member in members1)
+            {
+                Assert.Null(matcher.MapDefinition(member.GetCciAdapter()));
+            }
+        }
     }
 }
