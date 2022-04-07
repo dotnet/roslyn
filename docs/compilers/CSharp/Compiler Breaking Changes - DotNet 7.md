@@ -13,7 +13,7 @@ class C
 {
   class TParameter
   {
-    const string Constant = """";
+    internal const string Constant = """";
   }
   [MyAttribute(nameof(TParameter.Constant))]
   void M<TParameter>() { }

@@ -224,19 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             static Symbol getAttributeTarget(Binder current)
             {
                 Debug.Assert((current.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+                var contextualAttributeBinder = Binder.TryGetContextualAttributeBinder(current);
 
-                do
-                {
-                    if (current is ContextualAttributeBinder contextualAttributeBinder)
-                    {
-                        return contextualAttributeBinder.AttributeTarget;
-                    }
-
-                    current = current.Next;
-                }
-                while (current != null);
-
-                throw ExceptionUtilities.Unreachable;
+                Debug.Assert(contextualAttributeBinder is not null);
+                return contextualAttributeBinder.AttributeTarget;
             }
 
             static WithTypeParametersBinder getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
