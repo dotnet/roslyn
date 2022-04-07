@@ -15,13 +15,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
             Debug.Fail("For backwards API compat only, should not be called");
-            var defaultOptions = CompletionOptions.Default;
-            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, defaultOptions.TriggerOnTypingLetters, defaultOptions.ExpandedCompletionBehavior);
+            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default.TriggerOnTypingLetters);
         }
 
         internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
-            => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters, options.ExpandedCompletionBehavior);
+        {
+            if (options.ExpandedCompletionBehavior == ExpandedCompletionMode.NonExpandedItemsOnly)
+            {
+                return ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
+            }
 
-        protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters, ExpandedCompletionMode completionMode);
+            return false;
+        }
+
+        protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters);
     }
 }
