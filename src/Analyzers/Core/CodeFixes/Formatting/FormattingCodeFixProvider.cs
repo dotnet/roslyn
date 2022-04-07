@@ -8,16 +8,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        CodeStyleResources.Fix_formatting,
+                        AnalyzersResources.Fix_formatting,
                         c => FixOneAsync(context, diagnostic, c),
                         nameof(AbstractFormattingCodeFixProvider)),
                     diagnostic);
@@ -54,14 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return this.SyntaxFormatting.GetFormattingOptions(analyzerConfigOptions);
         }
 
-        public sealed override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) =>
-            {
-                var cancellationToken = context.CancellationToken;
-                var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var updatedSyntaxRoot = Formatter.Format(syntaxRoot, this.SyntaxFormatting, options, cancellationToken);
-                return document.WithSyntaxRoot(updatedSyntaxRoot);
-            });
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, options, cancellationToken);
+            editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
+        }
     }
 }
