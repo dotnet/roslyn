@@ -180,13 +180,16 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
-            var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+            var documentText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+            var lspItem = new LSP.CompletionItem();
+
+            var completionChange = await (new TestCaretOutOfScopeCompletionService()).GetChangeAsync(document, selectedItem).ConfigureAwait(false);
+            CompletionResolveHandler.AddTextEdits(lspItem, completionChange, documentText, TextSpan.FromBounds(77, 77), itemDefaultSpan: null, snippetsSupported: true);
 
             Assert.Equal(@"public override void M()
     {
         throw new System.NotImplementedException();
-    }", textEdit.NewText);
+    }", lspItem.TextEdit.NewText);
         }
 
         [Fact]
@@ -342,6 +345,32 @@ link text";
                 testLspServer, clientCompletionItem).ConfigureAwait(false);
             Assert.Equal("(byte)", results.Label);
             Assert.NotNull(results.Description);
+            Assert.Equal(")", results.TextEdit.NewText);
+            Assert.Equal("((byte)", results.AdditionalTextEdits.Single().NewText);
+        }
+
+        [Fact]
+        public async Task TestResolveCompletionItemWithAdditionalEditsAsync()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    {|insert:|}Task M()
+    {
+        aw{|caret:|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
+            var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "await").ConfigureAwait(false);
+
+            var result = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, clientCompletionItem).ConfigureAwait(false);
+            Assert.Equal("await", result.Label);
+            Assert.NotNull(result.Description);
+            Assert.Equal(testLspServer.GetLocations("caret").Single().Range.End, result.TextEdit.Range.End);
+            Assert.Equal("await", result.TextEdit.NewText);
+            Assert.Equal(testLspServer.GetLocations("insert").Single().Range, result.AdditionalTextEdits.Single().Range);
         }
 
         private static async Task<LSP.CompletionItem> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem)
