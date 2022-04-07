@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -76,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInArgumentList As Boolean,
             cancellationToken As CancellationToken
         )
+
             MyBase.New(
                 document,
                 semanticModel,
@@ -107,26 +109,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Dim syntaxTree = semanticModel.SyntaxTree
 
-            FollowsEndOfStatement = targetToken.FollowsEndOfStatement(position)
-            MustBeginNewStatement = targetToken.MustBeginNewStatement(position)
+            Me.FollowsEndOfStatement = targetToken.FollowsEndOfStatement(position)
+            Me.MustBeginNewStatement = targetToken.MustBeginNewStatement(position)
 
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
-            IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
+            Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
 
-            IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
-            IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
-            IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
+            Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
+            Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
+            Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
-            ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
+            Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
             Me.IsInLambda = isInLambda
-            IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
-            IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
-            IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
+            Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
+            Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
+            Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
-            EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
+            Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
         Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
@@ -223,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
-            Dim enclosingSymbol = SemanticModel.GetEnclosingSymbol(TargetToken.SpanStart, cancellationToken)
+            Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
             If container Is Nothing Then
                 container = enclosingSymbol.ContainingType
