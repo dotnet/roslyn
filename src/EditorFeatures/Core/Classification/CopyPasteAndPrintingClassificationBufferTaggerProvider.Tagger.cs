@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
     {
-        private sealed class Tagger : ForegroundThreadAffinitizedObject, IAccurateTagger<IClassificationTag>, IDisposable
+        private sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
         {
             private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
@@ -43,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 IGlobalOptionService globalOptions)
-                : base(owner.ThreadingContext)
             {
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public void Dispose()
             {
-                this.AssertIsForeground();
+                _owner._threadingContext.ThrowIfNotOnUIThread();
                 _eventSource.Changed -= OnEventSourceChanged;
                 _eventSource.Disconnect();
             }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                this.AssertIsForeground();
+                _owner._threadingContext.ThrowIfNotOnUIThread();
 
                 // we never return any tags for GetTags.  This tagger is only for 'Accurate' scenarios.
                 return Array.Empty<ITagSpan<IClassificationTag>>();
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                _owner._threadingContext.ThrowIfNotOnUIThread();
                 if (spans.Count == 0)
                     return Array.Empty<ITagSpan<IClassificationTag>>();
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     var context = new TaggerContext<IClassificationTag>(document, snapshot);
                     var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                    ThreadingContext.JoinableTaskFactory.Run(async () =>
+                    _owner._threadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         var snapshotSpan = new DocumentSnapshotSpan(document, spanToTag);
 

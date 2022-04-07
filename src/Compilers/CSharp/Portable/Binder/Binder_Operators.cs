@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left = BindToNaturalType(left, diagnostics);
                     right = BindToNaturalType(right, diagnostics);
                     var placeholder = new BoundValuePlaceholder(right.Syntax, left.HasDynamicType() ? left.Type : right.Type).MakeCompilerGenerated();
-                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(placeholder, left.Type, ref useSiteInfo);
+                    var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(placeholder, left.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
                     var conversion = (BoundConversion)CreateConversion(node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, left.Type, diagnostics);
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isPredefinedOperator &&
                 !kind.IsShift())
             {
-                Conversion rightToLeftConversion = this.Conversions.ClassifyConversionFromExpression(right, leftType, ref useSiteInfo);
+                Conversion rightToLeftConversion = this.Conversions.ClassifyConversionFromExpression(right, leftType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 if (!rightToLeftConversion.IsImplicit || !rightToLeftConversion.IsValid)
                 {
                     hasError = true;
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol delegateType = left.Type;
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, ref useSiteInfo);
+            Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             if (!argumentConversion.IsImplicit || !argumentConversion.IsValid) // NOTE: dev10 appears to allow user-defined conversions here.
             {
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BinaryOperatorSignature resultSignature, out BinaryOperatorAnalysisResult best)
         {
             bool foundOperator;
-            best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
             // However, as an implementation detail, we never "fail to find an applicable
             // operator" during overload resolution if we have x == null, x == default, etc. We always
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                var conversion = this.Conversions.ClassifyConversionFromExpression(right, left.Type, ref discardedUseSiteInfo);
+                var conversion = this.Conversions.ClassifyConversionFromExpression(right, left.Type, isChecked: CheckOverflowAtRuntime, ref discardedUseSiteInfo);
                 Debug.Assert(!conversion.IsImplicit);
                 GenerateImplicitConversionError(diagnostics, right.Syntax, conversion, right, left.Type);
                 // discard use-site diagnostics
@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind lookupResult;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
+            var best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
 
             // SPEC: If overload resolution fails to find a single best operator, or if overload
             // SPEC: resolution selects one of the predefined integer logical operators, a binding-
@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), ref useSiteInfo);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -1242,7 +1242,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+        private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(
+            BinaryOperatorKind kind,
+            bool isChecked,
+            BoundExpression left,
+            BoundExpression right,
+            CSharpSyntaxNode node,
+            BindingDiagnosticBag diagnostics,
+            out LookupResultKind resultKind,
+            out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
             if (!IsTypelessExpressionAllowedInBinaryOperator(kind, left, right))
             {
@@ -1253,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = BinaryOperatorOverloadResolutionResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.OverloadResolution.BinaryOperatorOverloadResolution(kind, left, right, result, ref useSiteInfo);
+            this.OverloadResolution.BinaryOperatorOverloadResolution(kind, isChecked, left, right, result, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
             var possiblyBest = result.Best;
@@ -1346,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = UnaryOperatorOverloadResolutionResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.OverloadResolution.UnaryOperatorOverloadResolution(kind, operand, result, ref useSiteInfo);
+            this.OverloadResolution.UnaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, operand, result, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
             var possiblyBest = result.Best;
@@ -2322,6 +2330,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (methodOpt is not null && SyntaxFacts.IsCheckedOperator(methodOpt.Name) &&
+                Compilation.SourceModule != methodOpt.ContainingModule)
+            {
+                result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
+            }
+
             return result;
         }
 #nullable disable
@@ -3171,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    See Test SyntaxBinderTests.TestIsOperatorWithTypeParameter
 
                 Error(diagnostics, ErrorCode.WRN_IsAlwaysFalse, node, targetType);
-                Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteInfo);
+                Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
                 return new BoundIsOperator(node, operand, typeExpression, conv.Kind, resultType);
             }
@@ -3193,7 +3207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
@@ -3645,7 +3659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteInfo);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
 
@@ -3772,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             leftOperand = BindToTypeForErrorRecovery(leftOperand);
             rightOperand = BindToTypeForErrorRecovery(rightOperand);
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
+                leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindNullCoalescingOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -3787,7 +3801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leftOperand = BindToTypeForErrorRecovery(leftOperand);
                 rightOperand = BindToTypeForErrorRecovery(rightOperand);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
+                    leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
             }
 
             // The specification does not permit the left hand side to be a default literal
@@ -3796,7 +3810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, node.OperatorToken.Text, "default");
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
+                    leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
             }
 
             // SPEC: The type of the expression a ?? b depends on which implicit conversions are available
@@ -3846,13 +3860,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
                 var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
                 var leftConversion = CreateConversion(node, leftPlaceholder,
-                                                      Conversions.ClassifyConversionFromExpression(leftOperand, objectType, ref useSiteInfo),
+                                                      Conversions.ClassifyConversionFromExpression(leftOperand, objectType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo),
                                                       isCast: false, conversionGroupOpt: null, objectType, diagnostics);
 
                 rightOperand = BindToNaturalType(rightOperand, diagnostics);
                 diagnostics.Add(node, useSiteInfo);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftPlaceholder, leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, optRightType);
+                    leftPlaceholder, leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, @checked: CheckOverflowAtRuntime, optRightType);
             }
 
             // SPEC:    Otherwise, if A exists and is a nullable type and an implicit conversion exists from b to A0,
@@ -3870,7 +3884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
                     // Note: we use an identity conversion for LHS and let lowering get 'a0' from 'a' with GetValueOrDefault
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, optLeftType0);
+                        leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, @checked: CheckOverflowAtRuntime, optLeftType0);
                 }
             }
 
@@ -3887,7 +3901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
                     diagnostics.Add(node, useSiteInfo);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, optLeftType);
+                        leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: CheckOverflowAtRuntime, optLeftType);
                 }
             }
 
@@ -3938,7 +3952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
-                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, optRightType);
+                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
                     }
                 }
                 else
@@ -3952,7 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
-                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, optRightType);
+                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
                     }
                 }
             }

@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var syntaxTree = await context.Document.GetRequiredSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
@@ -50,7 +48,10 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             if (_syntaxFacts.GetModifiers(syntaxNode) != default)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                    CodeAction.Create(
+                        AnalyzersResources.Order_modifiers,
+                        c => FixAsync(context.Document, context.Diagnostics[0], c),
+                        nameof(AnalyzersResources.Order_modifiers)),
                     context.Diagnostics);
             }
         }
@@ -90,14 +91,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             int GetOrder(SyntaxToken token)
                 => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Order_modifiers, createChangedDocument, AnalyzersResources.Order_modifiers)
-            {
-            }
         }
     }
 }

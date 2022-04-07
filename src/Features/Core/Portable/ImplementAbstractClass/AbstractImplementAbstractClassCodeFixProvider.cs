@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
             => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
                 : base(title, createChangedDocument, id)

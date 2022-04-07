@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxKind.ArgListExpression => SyntaxKind.ArgListKeyword,
                 SyntaxKind.NumericLiteralExpression => SyntaxKind.NumericLiteralToken,
                 SyntaxKind.StringLiteralExpression => SyntaxKind.StringLiteralToken,
+                SyntaxKind.UTF8StringLiteralExpression => SyntaxKind.UTF8StringLiteralToken,
                 SyntaxKind.CharacterLiteralExpression => SyntaxKind.CharacterLiteralToken,
                 SyntaxKind.TrueLiteralExpression => SyntaxKind.TrueKeyword,
                 SyntaxKind.FalseLiteralExpression => SyntaxKind.FalseKeyword,

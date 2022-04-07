@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return new TextChange(new TextSpan(textLine.Start, commonIndentation), newText: "");
         }
 
-        private static async Task<Document> ConvertFileScopedNamespaceAsync(
+        public static async Task<Document> ConvertFileScopedNamespaceAsync(
             Document document, FileScopedNamespaceDeclarationSyntax fileScopedNamespace, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

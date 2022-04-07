@@ -1179,7 +1179,7 @@ class D
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
@@ -1252,7 +1252,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1286,7 +1286,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1319,7 +1319,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1349,7 +1349,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1384,7 +1384,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1411,7 +1411,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1438,7 +1438,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1464,7 +1464,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1493,7 +1493,7 @@ public partial class C
                 },
                 composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(

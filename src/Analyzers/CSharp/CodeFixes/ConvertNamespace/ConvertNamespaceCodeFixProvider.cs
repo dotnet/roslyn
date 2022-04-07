@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         public ConvertNamespaceCodeFixProvider()
         {
         }
-
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
 
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 });
 
             context.RegisterCodeFix(
-                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
+                CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -67,14 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             editor.ReplaceNode(
                 editor.OriginalRoot,
                 await converted.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }
