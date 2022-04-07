@@ -69,8 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (tree.IsInNonUserCode(position, cancellationToken))
                     return;
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                .GetPreviousTokenIfTouchingWord(position);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+
+                if (syntaxContext.IsInTaskLikeTypeContext)
+                    return;
+
+                var token = context.TargetToken;
 
                 if (token.IsMandatoryNamedParameterPosition())
                     return;
@@ -95,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
 
                 if (types.Length == 0)
@@ -107,27 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-
-            static bool IsAsyncMemberDeclarationContext(SyntaxToken token)
-            {
-                var memberDeclaration = token.Parent is Syntax.MemberDeclarationSyntax member ? member :
-                    (token.Parent is not null && token.Parent.Parent is Syntax.MemberDeclarationSyntax member2 ? member2 : null);
-
-                if (memberDeclaration is not null)
-                {
-                    foreach (var modifier in memberDeclaration.Modifiers)
-                    {
-                        if (modifier.IsKind(SyntaxKind.AsyncKeyword))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return token.HasMatchingText(SyntaxKind.AsyncKeyword);
-                }
-
-                return false;
             }
         }
 
