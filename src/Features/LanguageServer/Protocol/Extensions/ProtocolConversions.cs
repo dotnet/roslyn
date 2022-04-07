@@ -148,18 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
 
-            if (Path.IsPathRooted(filePath))
-            {
-                return new Uri(filePath, UriKind.Absolute);
-            }
-            else if (Uri.TryCreate(filePath, UriKind.Relative, out var uri))
-            {
-                return uri;
-            }
-            else
-            {
-                throw new ArgumentException($"Failed to create URI for {filePath}");
-            }
+            return new Uri(filePath, UriKind.Absolute);
         }
 
         public static Uri GetUriFromPartialFilePath(string? filePath)

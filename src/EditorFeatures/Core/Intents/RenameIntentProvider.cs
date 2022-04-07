@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,19 +28,22 @@ internal class RenameIntentProvider : IIntentProvider
     {
     }
 
-    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+        Document priorDocument,
+        TextSpan priorSelection,
+        Document currentDocument,
+        IntentDataProvider intentDataProvider,
+        CancellationToken cancellationToken)
     {
         var renameIntentData = intentDataProvider.GetIntentData<RenameIntentData>();
         Contract.ThrowIfNull(renameIntentData);
 
-        var renameService = priorDocument.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
+        var renameService = priorDocument.GetRequiredLanguageService<IEditorInlineRenameService>();
         var renameInfo = await renameService.GetRenameInfoAsync(priorDocument, priorSelection.Start, cancellationToken).ConfigureAwait(false);
         if (!renameInfo.CanRename)
         {
             return ImmutableArray<IntentProcessorResult>.Empty;
         }
-
-        Contract.ThrowIfNull(renameIntentData);
 
         var options = new SymbolRenameOptions(
             RenameOverloads: false,

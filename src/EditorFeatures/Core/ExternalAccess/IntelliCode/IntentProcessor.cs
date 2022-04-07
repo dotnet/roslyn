@@ -97,27 +97,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             // Merge linked file changes so all linked files have the same text changes.
             newSolution = await newSolution.WithMergedLinkedFileChangesAsync(originalDocument.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var results = new Dictionary<DocumentId, ImmutableArray<TextChange>>();
+            using var _ = PooledDictionary<DocumentId, ImmutableArray<TextChange>>.GetInstance(out var results);
             foreach (var changedDocumentId in processorResult.ChangedDocuments)
             {
                 // Calculate the text changes by comparing the solution with intent applied to the current solution (not to be confused with the original solution, the one prior to intent detection).
                 var docChanges = await GetTextChangesForDocumentAsync(newSolution, currentDocument.Project.Solution, changedDocumentId, cancellationToken).ConfigureAwait(false);
                 if (docChanges != null)
                 {
-                    var (documentId, textChanges) = docChanges.Value;
-                    results[documentId] = textChanges;
+                    results[changedDocumentId] = docChanges.Value;
                 }
             }
 
             return new IntentSource(processorResult.Title, results[originalDocument.Id], processorResult.ActionName, results.ToImmutableDictionary());
         }
 
-        private static async Task<(DocumentId, ImmutableArray<TextChange>)?> GetTextChangesForDocumentAsync(Solution changedSolution, Solution currentSolution, DocumentId changedDocumentId, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<TextChange>?> GetTextChangesForDocumentAsync(
+            Solution changedSolution,
+            Solution currentSolution,
+            DocumentId changedDocumentId,
+            CancellationToken cancellationToken)
         {
             var changedDocument = changedSolution.GetRequiredDocument(changedDocumentId);
             var currentDocument = currentSolution.GetRequiredDocument(changedDocumentId);
-
-            Contract.ThrowIfNull(changedDocument.FilePath, $"{changedDocumentId} missing file path");
 
             var textDiffService = changedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
             // Compute changes against the current version of the document.
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return null;
             }
 
-            return (changedDocumentId, textDiffs);
+            return textDiffs;
         }
     }
 }
