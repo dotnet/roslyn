@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     internal class FSharpEditorFormattingService : IFormattingInteractionService
     {
         private readonly IFSharpEditorFormattingService _service;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpEditorFormattingService(IFSharpEditorFormattingService service)
+        public FSharpEditorFormattingService(IFSharpEditorFormattingService service, IGlobalOptionService globalOptions)
         {
             _service = service;
+            _globalOptions = globalOptions;
         }
 
         public bool SupportsFormatDocument => _service.SupportsFormatDocument;
@@ -58,26 +60,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
         }
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, FormattingOptions2.IndentStyle indentStyle, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
-            return _service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions ?
-                serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options, indentStyle), ch) :
-                _service.SupportsFormattingOnTypedCharacter(document, ch);
+            if (_service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions)
+            {
+                var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.FSharp);
+                var options = _globalOptions.GetAutoFormattingOptions(LanguageNames.FSharp);
+
+                return serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options, indentStyle), ch);
+            }
+            else
+            {
+                return _service.SupportsFormattingOnTypedCharacter(document, ch);
+            }
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, TextSpan? textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, char typedChar, int position, IndentationOptions options, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
         }
 
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;

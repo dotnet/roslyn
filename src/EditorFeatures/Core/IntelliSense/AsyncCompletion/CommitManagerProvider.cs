@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
-        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
@@ -29,12 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public CommitManagerProvider(
             IThreadingContext threadingContext,
             RecentItemsManager recentItemsManager,
-            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
-            _indentationManager = indentationManager;
             _globalOptions = globalOptions;
         }
 
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CommitManager(textView, _recentItemsManager, _indentationManager, _globalOptions, _threadingContext);
+            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
         }
     }
 }

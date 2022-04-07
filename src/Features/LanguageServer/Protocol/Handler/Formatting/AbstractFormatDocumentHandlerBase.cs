@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,22 +31,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var edits = new ArrayBuilder<LSP.TextEdit>();
-
-            var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            TextSpan? textSpan = null;
-            if (range != null)
-            {
-                textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-            }
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var rangeSpan = (range != null) ? ProtocolConversions.RangeToTextSpan(range, text) : new TextSpan(0, root.FullSpan.Length);
+            var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, rangeSpan);
 
             // We should use the options passed in by LSP instead of the document's options.
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
 
-            var textChanges = await formattingService.GetFormattingChangesAsync(document, textSpan, formattingOptions, cancellationToken).ConfigureAwait(false);
-            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+            var services = document.Project.Solution.Workspace.Services;
+            var textChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, rules: null, cancellationToken);
 
+            var edits = new ArrayBuilder<LSP.TextEdit>();
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             return edits.ToArrayAndFree();
         }
     }

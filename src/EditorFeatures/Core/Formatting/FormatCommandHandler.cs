@@ -10,10 +10,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
@@ -55,12 +52,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _indentationManager = indentationManager;
             _globalOptions = globalOptions;
         }
 
@@ -71,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: true, cancellationToken).WaitAndGetResult(cancellationToken);
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
                     return;
@@ -170,18 +164,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var autoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language);
-                var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, document.Project.Language);
-                if (!service.SupportsFormattingOnTypedCharacter(document, autoFormattingOptions, indentStyle, typeCharArgs.TypedChar))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
 
-                var formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: false, cancellationToken).WaitAndGetResult(cancellationToken);
-                var indentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions, indentStyle);
-
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, indentationOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

@@ -1117,7 +1117,6 @@ class Goo
     }
 }";
 
-
             using var session = CreateSession(code);
             Assert.NotNull(session);
 

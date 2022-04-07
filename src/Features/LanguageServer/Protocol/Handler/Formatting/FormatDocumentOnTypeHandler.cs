@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -47,38 +48,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var edits = new ArrayBuilder<TextEdit>();
-
-            var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(request.Character))
+            if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
             {
-                return edits.ToArrayAndFree();
+                return Array.Empty<TextEdit>();
             }
 
-            IList<TextChange>? textChanges;
-            if (SyntaxFacts.IsNewLine(request.Character[0]))
-            {
-                textChanges = await formattingService.GetFormattingChangesOnReturnAsync(
-                    document, position, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // We should use the options passed in by LSP instead of the document's options.
-                var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
-                var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+            var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
 
-                textChanges = await formattingService.GetFormattingChangesAsync(
-                    document, request.Character[0], position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false))
+            {
+                return Array.Empty<TextEdit>();
             }
 
+            // We should use the options passed in by LSP instead of the document's options.
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
+            var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+
+            var textChanges = await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            if (textChanges.IsEmpty)
+            {
+                return Array.Empty<TextEdit>();
+            }
+
+            var edits = new ArrayBuilder<TextEdit>();
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (textChanges != null)
-            {
-                edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
-            }
-
+            edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             return edits.ToArrayAndFree();
         }
     }

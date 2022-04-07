@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// the character been inserted into the document.
         /// </summary>
         [Obsolete("Use the other overload")]
-        public static Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
+        public static async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
             Document document,
             char typedChar,
             int position,
@@ -37,7 +37,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
-            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+
+            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
+            {
+                return ImmutableArray<TextChange>.Empty;
+            }
+
             var services = document.Project.Solution.Workspace.Services;
 
             var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
@@ -46,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language),
                globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
 
-            return formattingService.GetFormattingChangesAsync(document, typedChar, position, indentationOptions, cancellationToken);
+            return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -64,12 +70,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
-            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+
+            if (!await formattingService.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
+            {
+                return ImmutableArray<TextChange>.Empty;
+            }
 
             var formattingOptions = GetFormattingOptions(indentationOptions);
             var roslynIndentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions.UnderlyingObject, (FormattingOptions2.IndentStyle)indentStyle);
 
-            return await formattingService.GetFormattingChangesAsync(document, typedChar, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
+            return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public static IList<TextChange> GetFormattedTextChanges(

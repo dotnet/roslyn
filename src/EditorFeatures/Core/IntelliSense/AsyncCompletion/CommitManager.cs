@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
-        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal CommitManager(
             ITextView textView,
             RecentItemsManager recentItemsManager,
-            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
@@ -67,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
-            _indentationManager = indentationManager;
         }
 
         /// <summary>
@@ -290,10 +287,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     if (currentDocument != null && formattingService != null)
                     {
-                        var formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: true, cancellationToken).WaitAndGetResult(cancellationToken);
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                         var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                            currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                         currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }

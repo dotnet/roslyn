@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -23,25 +21,25 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// True if this service would like to format the document based on the user typing the
         /// provided character.
         /// </summary>
-        bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, FormattingOptions2.IndentStyle indentStyle, char ch);
+        bool SupportsFormattingOnTypedCharacter(Document document, char ch);
 
         /// <summary>
         /// Returns the text changes necessary to format the document. If <paramref name="textSpan"/> is provided,
         /// only the text changes necessary to format that span are needed.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document on paste operation.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
         /// character.  The position provided is the position of the caret in the document after
         /// the character been inserted into the document.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, IndentationOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a Return
