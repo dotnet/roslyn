@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -118,53 +118,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    ComputeIsInTaskLikeTypeContext(targetToken, semanticModel, cancellationToken),
                    cancellationToken)
         {
-            ContainingTypeDeclaration = containingTypeDeclaration;
-            ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
-            IsInNonUserCode = isInNonUserCode;
-            IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
-            IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
-            IsConstantExpressionContext = isConstantExpressionContext;
-            IsLabelContext = isLabelContext;
-            IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
-            IsIsOrAsOrSwitchOrWithExpressionContext = isIsOrAsOrSwitchOrWithExpressionContext;
-            IsObjectCreationTypeContext = isObjectCreationTypeContext;
-            IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
-            IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
-            IsEnumBaseListContext = isEnumBaseListContext;
-            IsIsOrAsTypeContext = isIsOrAsTypeContext;
-            IsLocalVariableDeclarationContext = isLocalVariableDeclarationContext;
-            IsDeclarationExpressionContext = isDeclarationExpressionContext;
-            IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
-            IsParameterTypeContext = isParameterTypeContext;
-            IsPossibleLambdaOrAnonymousMethodParameterTypeContext = isPossibleLambdaOrAnonymousMethodParameterTypeContext;
-            IsImplicitOrExplicitOperatorTypeContext = isImplicitOrExplicitOperatorTypeContext;
-            IsPrimaryFunctionExpressionContext = isPrimaryFunctionExpressionContext;
-            IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
-            IsTypeOfExpressionContext = isTypeOfExpressionContext;
-            PrecedingModifiers = precedingModifiers;
-            IsInstanceContext = isInstanceContext;
-            IsCrefContext = isCrefContext;
-            IsCatchFilterContext = isCatchFilterContext;
-            IsDestructorTypeContext = isDestructorTypeContext;
-            IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
-            IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
-            IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
-        }
-
-        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            // Check if we're immediately after 'async' (which the compiler either figured out was a keyword, or it
-            // thinks is an unbound identifier).
-            if (targetToken.Kind() == SyntaxKind.AsyncKeyword)
-                return true;
-
-            if (targetToken.Parent is IdentifierNameSyntax { Identifier.Text: "async" } identifier &&
-                semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is null)
-            {
-                return true;
-            }
-
-            return false;
+            this.ContainingTypeDeclaration = containingTypeDeclaration;
+            this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
+            this.IsInNonUserCode = isInNonUserCode;
+            this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
+            this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
+            this.IsConstantExpressionContext = isConstantExpressionContext;
+            this.IsLabelContext = isLabelContext;
+            this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
+            this.IsIsOrAsOrSwitchOrWithExpressionContext = isIsOrAsOrSwitchOrWithExpressionContext;
+            this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
+            this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
+            this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
+            this.IsEnumBaseListContext = isEnumBaseListContext;
+            this.IsIsOrAsTypeContext = isIsOrAsTypeContext;
+            this.IsLocalVariableDeclarationContext = isLocalVariableDeclarationContext;
+            this.IsDeclarationExpressionContext = isDeclarationExpressionContext;
+            this.IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
+            this.IsParameterTypeContext = isParameterTypeContext;
+            this.IsPossibleLambdaOrAnonymousMethodParameterTypeContext = isPossibleLambdaOrAnonymousMethodParameterTypeContext;
+            this.IsImplicitOrExplicitOperatorTypeContext = isImplicitOrExplicitOperatorTypeContext;
+            this.IsPrimaryFunctionExpressionContext = isPrimaryFunctionExpressionContext;
+            this.IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
+            this.IsTypeOfExpressionContext = isTypeOfExpressionContext;
+            this.PrecedingModifiers = precedingModifiers;
+            this.IsInstanceContext = isInstanceContext;
+            this.IsCrefContext = isCrefContext;
+            this.IsCatchFilterContext = isCatchFilterContext;
+            this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
+            this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
+            this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -185,26 +169,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            var isPreProcessorKeywordContext = isPreProcessorDirectiveContext &&
-                syntaxTree.IsPreProcessorKeywordContext(position, leftToken);
+            var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
+                ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
+                : false;
 
-            var isPreProcessorExpressionContext = isPreProcessorDirectiveContext &&
-                targetToken.IsPreProcessorExpressionContext();
+            var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
+                ? targetToken.IsPreProcessorExpressionContext()
+                : false;
 
-            var isStatementContext = !isPreProcessorDirectiveContext &&
-                targetToken.IsBeginningOfStatementContext();
+            var isStatementContext = !isPreProcessorDirectiveContext
+                ? targetToken.IsBeginningOfStatementContext()
+                : false;
 
-            var isGlobalStatementContext = !isPreProcessorDirectiveContext &&
-                syntaxTree.IsGlobalStatementContext(position, cancellationToken);
+            var isGlobalStatementContext = !isPreProcessorDirectiveContext
+                ? syntaxTree.IsGlobalStatementContext(position, cancellationToken)
+                : false;
 
-            var isAnyExpressionContext = !isPreProcessorDirectiveContext &&
-                syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+            var isAnyExpressionContext = !isPreProcessorDirectiveContext
+                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel)
+                : false;
 
-            var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext &&
-                syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+            var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext
+                ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModelOpt: semanticModel)
+                : false;
 
-            var isConstantExpressionContext = !isPreProcessorDirectiveContext &&
-                syntaxTree.IsConstantExpressionContext(position, leftToken);
+            var isConstantExpressionContext = !isPreProcessorDirectiveContext
+                ? syntaxTree.IsConstantExpressionContext(position, leftToken)
+                : false;
 
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
             var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
@@ -281,6 +272,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
                 isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
                 cancellationToken: cancellationToken);
+        }
+
+        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Check if we're immediately after 'async' (which the compiler either figured out was a keyword, or it
+            // thinks is an unbound identifier).
+            if (targetToken.Kind() == SyntaxKind.AsyncKeyword)
+                return true;
+
+            if (targetToken.Parent is IdentifierNameSyntax { Identifier.Text: "async" } identifier &&
+                semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static new bool IsWithinAsyncMethod()
