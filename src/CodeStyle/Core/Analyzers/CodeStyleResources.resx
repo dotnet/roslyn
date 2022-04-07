@@ -126,9 +126,6 @@
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Fix_formatting" xml:space="preserve">
-    <value>Fix formatting</value>
-  </data>
   <data name="Indentation_and_spacing" xml:space="preserve">
     <value>Indentation and spacing</value>
   </data>

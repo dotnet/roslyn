@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    AnalyzersResources.Convert_to_conditional_expression,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(AnalyzersResources.Convert_to_conditional_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -84,14 +87,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (ifOperation.WhenFalse == null)
             {
                 editor.RemoveNode(falseStatement.Syntax, GetRemoveOptions(syntaxFacts, falseStatement.Syntax));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
-            {
             }
         }
     }

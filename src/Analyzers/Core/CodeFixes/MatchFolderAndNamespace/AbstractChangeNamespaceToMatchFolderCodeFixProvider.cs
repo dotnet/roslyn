@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             if (context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(AnalyzersResources.Change_namespace_to_match_folder_structure, cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken)),
+                    CodeAction.Create(
+                        AnalyzersResources.Change_namespace_to_match_folder_structure,
+                        cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken),
+                        nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                     context.Diagnostics);
             }
 
@@ -62,13 +65,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override FixAllProvider? GetFixAllProvider()
             => CustomFixAllProvider.Instance;
-
-        private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
-        }
     }
 }

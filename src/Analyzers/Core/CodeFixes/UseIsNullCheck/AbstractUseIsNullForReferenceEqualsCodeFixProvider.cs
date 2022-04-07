@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract string GetTitle(bool negated, ParseOptions options);
 
         protected abstract SyntaxNode CreateNullCheck(TExpressionSyntax argument, bool isUnconstrainedGeneric);
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
                 var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), title),
                     context.Diagnostics);
             }
 
@@ -83,14 +81,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

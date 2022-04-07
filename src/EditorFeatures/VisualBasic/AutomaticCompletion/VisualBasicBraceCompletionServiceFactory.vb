@@ -3,9 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.AutomaticCompletion
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
@@ -16,9 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <ImportMany(LanguageNames.VisualBasic)> braceCompletionServices As IEnumerable(Of IBraceCompletionService),
-            threadingContext As IThreadingContext)
-            MyBase.New(braceCompletionServices, threadingContext)
+            <ImportMany(LanguageNames.VisualBasic)> braceCompletionServices As IEnumerable(Of IBraceCompletionService))
+            MyBase.New(braceCompletionServices)
         End Sub
     End Class
 End Namespace

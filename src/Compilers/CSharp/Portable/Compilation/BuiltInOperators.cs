@@ -899,13 +899,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteInfo);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, isChecked: false, ref useSiteInfo);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteInfo);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, isChecked: false, ref useSiteInfo);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

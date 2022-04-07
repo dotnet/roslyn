@@ -267,14 +267,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            // When the analysis scope is set to 'ActiveFile' and the active document is switched,
-            // we retrigger analysis of newly active document.
-            // For the remaining analysis scopes, we always analyze all the open files, so switching active
-            // documents between two open files doesn't require us to retrigger analysis of the newly active document.
-            if (GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
-            {
-                return;
-            }
+            // Retrigger analysis of newly active document to always get up-to-date diagnostics.
+            // Note that we do so regardless of the current background analysis scope,
+            // as we might have switched the document _while_ the diagnostic refresh was in progress for
+            // all open documents, which can lead to cancellation of diagnostic recomputation task
+            // for the newly active document.  This can lead to a race condition where we end up with
+            // stale diagnostics for the active document.  We avoid that by always recomputing
+            // the diagnostics for the newly active document whenever active document is switched.
 
             // First reset the document states.
             await TextDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
@@ -540,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                    && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }

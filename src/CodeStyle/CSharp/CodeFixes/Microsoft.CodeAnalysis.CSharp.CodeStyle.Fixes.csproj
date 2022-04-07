@@ -56,9 +56,6 @@
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="CSharpCodeStyleFixesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

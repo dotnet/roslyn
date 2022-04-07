@@ -31,14 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 FixAllState fixAllState,
                 CancellationToken cancellationToken)
             {
-                // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
-#pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
                 return CodeAction.Create(
                     ((CodeAction)pragmaActions[0]).Title,
                     createChangedDocument: ct =>
                         BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, cancellationToken),
                     equivalenceKey: fixAllState.CodeActionEquivalenceKey);
-#pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
             }
 
             private static async Task<Document> BatchPragmaFixesAsync(

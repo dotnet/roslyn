@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         }
 
         protected abstract void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
-
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractJsonDetectionAnalyzer.DiagnosticId);
