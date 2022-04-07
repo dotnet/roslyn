@@ -763,27 +763,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 MetadataName: nameof(ObsoleteAttribute),
                 ContainingNamespace.Name: nameof(System),
             });
-
-        public static bool IsFromSystemRuntimeOrMscorlibAssembly(this ISymbol symbol)
-        {
-            if ((symbol.ContainingAssembly.Name != "System.Runtime" && symbol.ContainingAssembly.Name != "mscorlib") ||
-                !symbol.ContainingAssembly.Identity.IsStrongName ||
-                symbol.ContainingAssembly.Identity.PublicKeyToken.Length != 8)
-            {
-                return false;
-            }
-
-            var publicTokenKey = symbol.ContainingAssembly.Identity.PublicKeyToken;
-
-            // Left column - tokens for System.Runtime, right column - for mscorlib
-            return (publicTokenKey[0] == 176 || publicTokenKey[0] == 183) &&
-                   (publicTokenKey[1] == 63 || publicTokenKey[1] == 122) &&
-                   (publicTokenKey[2] == 95 || publicTokenKey[2] == 92) &&
-                   (publicTokenKey[3] == 127 || publicTokenKey[3] == 86) &&
-                   (publicTokenKey[4] == 17 || publicTokenKey[4] == 25) &&
-                   (publicTokenKey[5] == 213 || publicTokenKey[5] == 52) &&
-                   (publicTokenKey[6] == 10 || publicTokenKey[6] == 224) &&
-                   (publicTokenKey[7] == 58 || publicTokenKey[7] == 137);
-        }
     }
 }

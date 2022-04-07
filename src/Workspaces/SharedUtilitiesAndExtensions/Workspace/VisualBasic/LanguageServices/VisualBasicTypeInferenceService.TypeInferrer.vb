@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
                     Function(arrayType As ArrayTypeSyntax) InferTypeInArrayType(arrayType),
-                    Function(asClause As AsClauseSyntax) InferTypeInAsClause(asClause, previousToken:=token),
+                    Function(asClause As AsClauseSyntax) InferTypeInAsClause(asClause, previousToken:=token, position:=position),
                     Function(assignmentStatement As AssignmentStatementSyntax) InferTypeInAssignmentStatement(assignmentStatement, previousToken:=token),
                     Function(attribute As AttributeSyntax) InferTypeInAttribute(),
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
@@ -428,16 +428,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInAsClause(asClause As AsClauseSyntax,
                                                  Optional expressionOpt As ExpressionSyntax = Nothing,
-                                                 Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                                                 Optional previousToken As SyntaxToken = Nothing,
+                                                 Optional position As Integer = -1) As IEnumerable(Of TypeInferenceInfo)
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.AsKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Dim possibleMethod = TryCast(asClause.Parent, MethodStatementSyntax)
+                If Not position = -1 Then
+                    Dim possibleMethod = TryCast(asClause.Parent, MethodStatementSyntax)
+                    If possibleMethod IsNot Nothing Then
+                        Return InferTypeForPossibleAsyncMethodDeclaration(possibleMethod, position)
+                    End If
+                End If
 
-                If possibleMethod IsNot Nothing Then
-                    Return InferTypeForPossibleAsyncMethodDeclaration(possibleMethod)
-                ElseIf asClause.IsParentKind(SyntaxKind.CatchStatement) Then
+                If asClause.IsParentKind(SyntaxKind.CatchStatement) Then
                     If expressionOpt Is asClause.Type OrElse previousToken.Kind = SyntaxKind.AsKeyword Then
                         Return CreateResult(Compilation.ExceptionType)
                     End If
@@ -876,13 +880,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return CreateResult(SpecialType.System_Boolean)
             End Function
 
-            Private Function InferTypeForPossibleAsyncMethodDeclaration(methodDeclaration As MethodStatementSyntax) As IEnumerable(Of TypeInferenceInfo)
+            Private Function InferTypeForPossibleAsyncMethodDeclaration(methodDeclaration As MethodStatementSyntax, position As Integer) As IEnumerable(Of TypeInferenceInfo)
                 If Not methodDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
                 End If
 
                 Dim possibleTaskTypes = Compilation.GetTypesByMetadataName("System.Threading.Tasks.Task")
-                Dim possibleTask = possibleTaskTypes.Where(Function(el) el.TypeParameters.Length = 0 AndAlso el.IsFromSystemRuntimeOrMscorlibAssembly()).SingleOrDefault()
+                Dim possibleTask = possibleTaskTypes.Where(Function(el) el.IsAwaitableNonDynamic(SemanticModel, position)).FirstOrDefault()
 
                 If (possibleTask Is Nothing) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
