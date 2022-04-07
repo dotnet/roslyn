@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     {
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (EventHookupSessionManager.CurrentSession != null)
             {
                 return CommandState.Available;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private void HandleTabWorker(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // For test purposes only!
             if (EventHookupSessionManager.CurrentSession.TESTSessionHookupMutex != null)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private void GenerateAndAddEventHandler(ITextView textView, ITextBuffer subjectBuffer, string eventHandlerMethodName, Action nextHandler, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             using (Logger.LogBlock(FunctionId.EventHookup_Generate_Handler, cancellationToken))
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             out int plusEqualTokenEndPosition,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Mark the += token with an annotation so we can find it after formatting
             var plusEqualsTokenAnnotation = new SyntaxAnnotation();
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private void BeginInlineRename(ITextView textView, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (_inlineRenameService.ActiveSession == null)
             {

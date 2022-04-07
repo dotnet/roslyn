@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                CodeAction.Create(
+                    AnalyzersResources.Remove_unnecessary_parentheses,
+                    c => FixAsync(context.Document, context.Diagnostics[0], c),
+                    nameof(AnalyzersResources.Remove_unnecessary_parentheses)),
                     context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -50,14 +50,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel, cancellationToken),
                 (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
                 cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_parentheses, createChangedDocument, AnalyzersResources.Remove_unnecessary_parentheses)
-            {
-            }
         }
     }
 }

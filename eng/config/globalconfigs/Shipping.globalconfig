@@ -3,7 +3,5 @@ is_global = true
 dotnet_diagnostic.CA1802.severity = warning
 dotnet_diagnostic.CA2007.severity = warning
 
-dotnet_diagnostic.RS0005.severity = warning
-
 # CA2016: Forward the 'CancellationToken' parameter to methods
 dotnet_diagnostic.CA2016.severity = warning

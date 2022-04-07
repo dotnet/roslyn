@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,6 +54,27 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return SpecializedTasks.False;
             }
 
+            // If the single token that the user typed is a string literal that is more than just
+            // the one double quote character they typed, and the line doesn't have errors, then
+            // it means it is completing an existing token, from the start. For example given:
+            //
+            // var s = "te$$st";
+            //
+            // When the user types `" + "` to split the string into two literals, the first
+            // quote won't be completed (because its in a string literal), and with this check
+            // the second quote won't either.
+            //
+            // We don't do this optimization for verbatim strings because they are multi-line so
+            // the flow on effects from us getting it wrong are much greater, and it can really change
+            // the tree.
+            if (token.IsKind(SyntaxKind.StringLiteralToken) &&
+                !token.IsVerbatimStringLiteral() &&
+                token.Span.Length > 1 &&
+                !RestOfLineContainsDiagnostics(token))
+            {
+                return SpecializedTasks.False;
+            }
+
             if (token.SpanStart == position)
             {
                 return SpecializedTasks.True;
@@ -62,6 +84,22 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // doesn't match the position.  Check if we're in a verbatim string token @" where the token span start
             // is the @ character and the " is one past the token start.
             return Task.FromResult(token.SpanStart + 1 == position && token.IsVerbatimStringLiteral());
+        }
+
+        private static bool RestOfLineContainsDiagnostics(SyntaxToken token)
+        {
+            while (!token.TrailingTrivia.Contains(t => t.IsEndOfLine()))
+            {
+                if (token.ContainsDiagnostics)
+                    return true;
+
+                token = token.GetNextToken();
+            }
+
+            if (token.ContainsDiagnostics)
+                return true;
+
+            return false;
         }
     }
 }

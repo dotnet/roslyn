@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Remove_Unnecessary_Cast,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(AnalyzersResources.Remove_Unnecessary_Cast)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -92,14 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(old);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_Unnecessary_Cast, createChangedDocument, nameof(AnalyzersResources.Remove_Unnecessary_Cast))
-            {
             }
         }
     }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(requestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(requestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
         {
             _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
         }

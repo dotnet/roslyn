@@ -20,14 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub New()
             End Sub
 
-            Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-                If syntaxTree Is Nothing Then
-                    Return False
-                End If
-
-                Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
-            End Function
-
             Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
                 If syntaxTree Is Nothing Then
                     Return False

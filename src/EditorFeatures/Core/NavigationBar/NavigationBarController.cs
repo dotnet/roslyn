@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
@@ -28,10 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// The threading model for this class is simple: all non-static members are affinitized to the
     /// UI thread.
     /// </remarks>
-    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, IDisposable
+    internal partial class NavigationBarController : IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
+        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
 
@@ -67,12 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IAsynchronousOperationListener asyncListener)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
+            _visibilityTracker = visibilityTracker;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         void IDisposable.Dispose()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             _presenter.CaretMoved -= OnCaretMoved;
             _presenter.ViewFocused -= OnViewFocused;
@@ -153,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private void OnCaretMoved(object? sender, EventArgs e)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             StartSelectedItemUpdateTask();
         }
 
         private void OnViewFocused(object? sender, EventArgs e)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             StartSelectedItemUpdateTask();
         }
 
@@ -189,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             var token = _asyncListener.BeginAsyncOperation(nameof(OnItemSelected));
             var task = OnItemSelectedAsync(e.Item);
             _ = task.CompletesAsyncOperation(token);
@@ -197,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private async Task OnItemSelectedAsync(NavigationBarItem item)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             using var waitContext = _uiThreadOperationExecutor.BeginExecute(
                 EditorFeaturesResources.Navigation_Bars,
                 EditorFeaturesResources.Refreshing_navigation_bars,
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private async Task ProcessItemSelectionAsync(NavigationBarItem item, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (item is NavigationBarProjectItem projectItem)
             {
