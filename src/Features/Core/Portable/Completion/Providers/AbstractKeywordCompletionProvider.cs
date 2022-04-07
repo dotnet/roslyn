@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => _keywordRecommenders = keywordRecommenders;
 
         protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context, CancellationToken cancellationToken);
-        protected abstract bool IsInTaskLikeTypeOnlyContext(TContext syntaxContext, CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -47,9 +46,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = (TContext)syntaxContextService.CreateContext(document, semanticModel, position, cancellationToken);
-
-            if (IsInTaskLikeTypeOnlyContext(syntaxContext, cancellationToken))
-                return ImmutableArray<CompletionItem>.Empty;
 
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));

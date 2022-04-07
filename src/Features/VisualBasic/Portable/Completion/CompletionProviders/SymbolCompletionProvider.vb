@@ -119,9 +119,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
             Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
         End Function
-
-        Protected Overrides Function IsInTaskLikeTypeOnlyContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
-            Return CompletionUtilities.IsInTaskLikeTypeOnlyContext(context.TargetToken)
-        End Function
     End Class
 End Namespace

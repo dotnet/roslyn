@@ -150,18 +150,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return insertionText
         End Function
-
-        Public Function IsInTaskLikeTypeOnlyContext(targetToken As SyntaxToken) As Boolean
-            ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
-            If targetToken.Kind() = SyntaxKind.AsKeyword Then
-                Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
-                Dim methodStatement = TryCast(asClause?.Parent, MethodBaseSyntax)
-                If methodStatement IsNot Nothing Then
-                    Return methodStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
-                End If
-            End If
-
-            Return False
-        End Function
     End Module
 End Namespace

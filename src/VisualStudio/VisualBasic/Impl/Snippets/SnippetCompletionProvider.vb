@@ -85,8 +85,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Dim targetToken = leftToken.GetPreviousTokenIfTouchingWord(position)
 
-            If syntaxTree.IsPossibleTupleContext(leftToken, position) OrElse
-               Microsoft.CodeAnalysis.VisualBasic.Completion.Providers.IsInTaskLikeTypeOnlyContext(targetToken) Then
+            If syntaxTree.IsPossibleTupleContext(leftToken, position) Then
+                Return
+            End If
+
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
+            Dim syntaxContext = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
+            If syntaxContext.IsInTaskLikeTypeContext Then
                 Return
             End If
 

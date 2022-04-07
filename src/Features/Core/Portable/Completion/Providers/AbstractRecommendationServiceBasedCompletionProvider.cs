@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
-        protected abstract bool IsInTaskLikeTypeOnlyContext(TSyntaxContext context, CancellationToken cancellationToken);
 
         protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
 
@@ -38,18 +36,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var recommender = context.GetLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
 
-            if (this.IsInTaskLikeTypeOnlyContext(context, cancellationToken))
+            if (context.IsInTaskLikeTypeContext)
             {
-                // We're in a place where we know we want only task-like items shown.  Filter out everything else
-                // (including snippets) to keep the experience clean and focused.
-                if (completionContext != null)
-                    completionContext.IsExclusive = true;
-
                 // If we get 'Task' back, attempt to preselect that as the most likely result.
                 var taskType = context.SemanticModel.Compilation.TaskType();
                 return recommendedSymbols.NamedSymbols.SelectAsArray(
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
-                    s => (s, preselect: s.OriginalDefinition.Equals(taskOfTType)));
+                    s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
             }
             else
             {

@@ -194,9 +194,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 tags:=s_tags,
                 rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
-
-        Protected Overrides Function IsInTaskLikeTypeOnlyContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
-            Return CompletionUtilities.IsInTaskLikeTypeOnlyContext(context.TargetToken)
-        End Function
     End Class
 End Namespace

@@ -244,8 +244,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return base.GetInsertionText(item, ch);
         }
-
-        protected override bool IsInTaskLikeTypeOnlyContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => CompletionUtilities.IsInTaskLikeTypeOnlyContext(context.TargetToken, context.SemanticModel, cancellationToken);
     }
 }

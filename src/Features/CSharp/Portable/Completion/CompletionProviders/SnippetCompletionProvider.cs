@@ -85,16 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var leftToken = root.FindTokenOnLeftOfPosition(position, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
                 syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax ||
-                syntaxTree.IsPossibleTupleContext(leftToken, position) |
-                CompletionUtilities.IsInTaskLikeTypeOnlyContext(targetToken, semanticModel, cancellationToken))
+                syntaxTree.IsPossibleTupleContext(leftToken, position))
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }
+
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+            if (context.IsInTaskLikeTypeContext)
+                return ImmutableArray<CompletionItem>.Empty;
 
             if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {
