@@ -5,12 +5,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     /// <summary>
