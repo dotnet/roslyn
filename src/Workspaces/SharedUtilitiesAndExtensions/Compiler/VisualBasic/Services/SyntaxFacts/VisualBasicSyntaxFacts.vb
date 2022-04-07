@@ -1515,31 +1515,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, EqualsValueSyntax).Value
         End Function
 
-        Public Function IsScopeBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsScopeBlock
-            ' VB has no equivalent of curly braces.
-            Return False
-        End Function
-
-        Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExecutableBlock
-            Return node.IsExecutableBlock()
-        End Function
-
-        Public Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
-            Return node.GetExecutableBlockStatements()
-        End Function
-
-        Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFacts.FindInnermostCommonExecutableBlock
-            Return nodes.FindInnermostCommonExecutableBlock()
-        End Function
-
-        Public Function IsStatementContainer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsStatementContainer
-            Return IsExecutableBlock(node)
-        End Function
-
-        Public Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetStatementContainerStatements
-            Return GetExecutableBlockStatements(node)
-        End Function
-
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
             Return node.Kind = SyntaxKind.CTypeExpression
         End Function
