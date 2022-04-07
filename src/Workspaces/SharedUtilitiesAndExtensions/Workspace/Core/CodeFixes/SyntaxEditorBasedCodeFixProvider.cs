@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
     {
+        private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
+            ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution,
+                FixAllScope.ContainingMember, FixAllScope.ContainingType);
+
         private readonly bool _supportsFixAll;
 
         protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
@@ -41,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return document;
 
                     return await this.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
-                });
+                },
+                s_defaultSupportedFixAllScopes);
         }
 
         protected Task<Document> FixAsync(
