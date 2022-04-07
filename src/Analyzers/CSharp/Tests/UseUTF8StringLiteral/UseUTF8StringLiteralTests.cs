@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUTF8StringLiteral
 {
     using VerifyCS = CSharpCodeFixVerifier<
         UseUTF8StringLiteralDiagnosticAnalyzer,
-        EmptyCodeFixProvider>;
+        UseUTF8StringLiteralCodeFixProvider>;
 
     public class UseUTF8StringLiteralTests
     {
@@ -178,6 +178,16 @@ public class C
         var x = {|IDE0230:new byte[] { 65, 66, 67 }|};
     }
 }",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -196,6 +206,16 @@ public class C
         var x = {|IDE0230:new [] { (byte)65, (byte)66, (byte)67 }|};
     }
 }",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -214,6 +234,16 @@ public class C
         var x = {|IDE0230:new byte[] { 65, (byte)'B', 67 }|};
     }
 }",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -232,6 +262,16 @@ public class C
         var x = {|IDE0230:new byte[] { 0x40, 0x41, 0x42 }|};
     }
 }",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -248,6 +288,15 @@ public class C
     public void M()
     {
         var x = {|IDE0230:new byte[] { }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = """"u8;
     }
 }",
                 LanguageVersion = LanguageVersion.Preview
