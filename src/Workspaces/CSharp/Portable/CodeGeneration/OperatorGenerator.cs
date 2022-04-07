@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateOperatorDeclaration(method, options, cancellationToken);
+            var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), options, cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -33,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
+            CodeGenerationDestination destination,
             CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = GenerateOperatorDeclarationWorker(method, options);
+            var declaration = GenerateOperatorDeclarationWorker(method, destination, options);
             declaration = UseExpressionBodyIfDesired(options, declaration);
 
             return AddAnnotationsTo(method,
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
             IMethodSymbol method,
+            CodeGenerationDestination destination,
             CSharpCodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern || method.IsAbstract;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(method),
+                modifiers: GenerateModifiers(method, destination),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
@@ -97,11 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return operatorDecl;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
         {
             using var tokens = TemporaryArray<SyntaxToken>.Empty;
 
-            if (method.ExplicitInterfaceImplementations.Length == 0)
+            if (method.ExplicitInterfaceImplementations.Length == 0 &&
+                destination is not CodeGenerationDestination.InterfaceType)
             {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
             }

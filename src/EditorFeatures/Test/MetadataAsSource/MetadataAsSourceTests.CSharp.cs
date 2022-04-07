@@ -555,6 +555,51 @@ public record [|R|]
 
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
             }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
+            public async Task TestStaticInterfaceMembers()
+            {
+                var metadataSource = @"
+interface I<T> where T : I<T>
+{
+    static abstract T P { get; set; }
+    static abstract event System.Action E;
+    static abstract void M();
+    static void NonAbstract() { }
+    static abstract T operator +(T l, T r);
+    static abstract bool operator ==(T l, T r);
+    static abstract bool operator !=(T l, T r);
+    static abstract implicit operator T(string s);
+    static abstract explicit operator string(T t);
+}";
+                var symbolName = "I`1.M";
+
+                var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+internal interface I<T> where T : I<T>
+{{
+    static abstract T P {{ get; set; }}
+
+    static abstract event Action E;
+
+    static abstract void [|M|]();
+    static void NonAbstract();
+
+    static abstract T operator +(T l, T r);
+    static abstract bool operator ==(T l, T r);
+    static abstract bool operator !=(T l, T r);
+
+    static abstract implicit operator T(string s);
+    static abstract explicit operator string(T t);
+}}";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
+            }
         }
     }
 }
