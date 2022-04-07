@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         // fortunately, editor provides another extension point where we have more control over brace completion but we do not
         // want to re-implement logics base session provider already provides. so I ported editor's default session and 
         // modified it little bit so that we can use it as base class.
-        private class BraceCompletionSession : ForegroundThreadAffinitizedObject, IBraceCompletionSession
+        private class BraceCompletionSession : IBraceCompletionSession
         {
             #region Private Members
 
@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
             private readonly IBraceCompletionService _service;
+            private readonly IThreadingContext _threadingContext;
 
             #endregion
 
@@ -55,7 +56,6 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
                 IEditorOperationsFactoryService editorOperationsFactoryService, IBraceCompletionService service,
                 IThreadingContext threadingContext)
-                : base(threadingContext, assertIsForeground: true)
             {
                 this.TextView = textView;
                 this.SubjectBuffer = subjectBuffer;
@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
                 _service = service;
+                _threadingContext = threadingContext;
             }
 
             #endregion
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void Start()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 // Brace completion is not cancellable.
                 if (!this.TryStart(CancellationToken.None))
                 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private bool TryStart(CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position < 1)
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreBackspace(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
 
                 var caretPos = this.GetCaretPosition();
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreOverType(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
                 if (ClosingPoint == null)
                 {
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreTab(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
 
                 if (!HasForwardTyping)
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PostReturn()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 if (this.GetCaretPosition().HasValue)
                 {
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                     if (closingSnapshotPoint.Position > 0)
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private void MoveCaretToClosingPoint()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 // find the position just after the closing brace in the view's text buffer
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private BraceCompletionContext? GetBraceCompletionContext()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var snapshot = SubjectBuffer.CurrentSnapshot;
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private void ApplyBraceCompletionResult(BraceCompletionResult result)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 using var edit = SubjectBuffer.CreateEdit();
                 foreach (var change in result.TextChanges)
                 {

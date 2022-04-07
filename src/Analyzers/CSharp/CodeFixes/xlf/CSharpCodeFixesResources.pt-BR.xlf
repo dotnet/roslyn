@@ -37,6 +37,11 @@
         <target state="translated">Converter 'typeof' em 'nameof'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_constraint">
+        <source>Fix constraint</source>
+        <target state="new">Fix constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="new">Declare as nullable</target>
@@ -48,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Fix_record_declaration">
-        <source>Fix_record_declaration</source>
-        <target state="new">Fix_record_declaration</target>
+        <source>Fix record declaration</source>
+        <target state="new">Fix record declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">

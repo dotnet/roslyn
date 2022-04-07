@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 
@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageEditorFeatures(info),
                 new JsonEmbeddedLanguageEditorFeatures(info),
-                new RegexEmbeddedLanguageEditorFeatures(this, info),
-                new FallbackEmbeddedLanguage(info));
+                new RegexEmbeddedLanguageEditorFeatures(this, info));
         }
     }
 }

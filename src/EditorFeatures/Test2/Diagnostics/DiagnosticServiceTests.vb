@@ -2222,16 +2222,14 @@ class C
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' Verify diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Dim diagnostic = Assert.Single(diagnostics)
+                Dim t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Dim diagnostic = Assert.Single(t.diagnostics)
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                diagnostics.Clear()
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
-                Assert.Empty(diagnostics)
+                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
+                Assert.Empty(t.diagnostics)
             End Using
         End Function
 
@@ -2321,8 +2319,7 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Try get diagnostics for span
-                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
-                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
 
                 ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
                 Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
