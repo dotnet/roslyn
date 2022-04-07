@@ -7076,9 +7076,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
             }
 
-            if (fieldSymbol.RefKind != RefKind.None &&
-                receiver is { } &&
-                receiver.Kind != BoundKind.ThisReference)
+            // If this is a ref field from another compilation, check for support for ref fields.
+            // No need to check for a reference to a field declared in this compilation since
+            // we check at the declaration site. (Check RefKind after IsFromCompilation() to
+            // avoid cycles for source symbols.
+            if (!fieldSymbol.OriginalDefinition.IsFromCompilation(Compilation) &&
+                fieldSymbol.RefKind != RefKind.None)
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefFields, diagnostics);
             }

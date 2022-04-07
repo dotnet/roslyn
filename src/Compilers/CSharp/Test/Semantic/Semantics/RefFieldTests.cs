@@ -104,43 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
                 // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12),
-                // (15,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         this = new S<T> { F1 = t0 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(15, 27),
-                // (20,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s = new S<T> { F1 = t0 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(20, 24),
-                // (28,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1 = new S<T> { F1 = t1 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(28, 25),
-                // (34,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = new S<T> { F1 = t2 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(34, 25),
-                // (39,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M1(s3.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s3.F1").WithArguments("ref fields").WithLocation(39, 12),
-                // (40,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M1(s3.F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s3.F2").WithArguments("ref fields").WithLocation(40, 12),
-                // (41,16): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M2(ref s3.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s3.F1").WithArguments("ref fields").WithLocation(41, 16),
-                // (48,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         this = new S<T> { F1 = t4 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(48, 27),
-                // (52,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s = new S<T> { F1 = t4 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(52, 24),
-                // (63,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M1(s5.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s5.F1").WithArguments("ref fields").WithLocation(63, 12),
-                // (64,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M1(s5.F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s5.F2").WithArguments("ref fields").WithLocation(64, 12),
-                // (65,16): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         M2(ref s5.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s5.F1").WithArguments("ref fields").WithLocation(65, 16));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12));
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -194,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
 
             // PROTOTYPE: Verify there are no use-site diagnostics associated with the PEFieldSymbol, regardless of LanguageVersion.
-            // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error (since we generally don't look at how the property is implemented).
+            // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error (since we generally don't look at how properties are implemented).
         }
 
         [CombinatorialData]
