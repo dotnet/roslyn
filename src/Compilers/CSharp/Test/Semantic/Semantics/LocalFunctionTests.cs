@@ -7533,14 +7533,14 @@ public class MyAttribute : System.Attribute
 ";
             // C# 10
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            //comp.VerifyDiagnostics(
-            //    // (8,13): error CS0103: The name 'positionA' does not exist in the current context
-            //    //         [My(positionA)]
-            //    Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
-            //    // (12,9): error CS0103: The name 'positionB' does not exist in the current context
-            //    //     [My(positionB)]
-            //    Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
-            //    );
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'positionA' does not exist in the current context
+                //         [My(positionA)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionA").WithArguments("positionA").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'positionB' does not exist in the current context
+                //     [My(positionB)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "positionB").WithArguments("positionB").WithLocation(12, 9)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var parentModel = comp.GetSemanticModel(tree);
