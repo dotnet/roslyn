@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
@@ -766,7 +767,7 @@ class Class
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
                     return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                        new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
                 protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
@@ -1011,7 +1012,7 @@ class Class
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
                     return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                        new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
                 protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)

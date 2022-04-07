@@ -32,11 +32,6 @@
         <target state="translated">Erro</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Corrigir a formatação</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Recuo e espaçamento</target>

@@ -59,9 +59,6 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="VBCodeStyleFixesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>

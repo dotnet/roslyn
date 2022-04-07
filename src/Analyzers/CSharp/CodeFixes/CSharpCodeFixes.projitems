@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\CSharpDisambiguateSameVariableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\CSharpFixReturnTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />

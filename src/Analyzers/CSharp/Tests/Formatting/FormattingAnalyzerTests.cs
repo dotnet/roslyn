@@ -2,24 +2,57 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.IO;
-using System.Text;
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
-    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider>;
+    using Verify = CSharpCodeFixVerifier<CodeStyle.CSharpFormattingAnalyzer, CodeStyle.CSharpFormattingCodeFixProvider>;
 
     public class FormattingAnalyzerTests
     {
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TrailingWhitespace()
+        {
+            var testCode =
+                "class X[| |]" + Environment.NewLine +
+                "{" + Environment.NewLine +
+                "}" + Environment.NewLine;
+            var expected =
+                "class X" + Environment.NewLine +
+                "{" + Environment.NewLine +
+                "}" + Environment.NewLine;
+            await Verify.VerifyCodeFixAsync(testCode, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestMissingSpace()
+        {
+            var testCode = @"
+class TypeName
+{
+    void Method()
+    {
+        if[||](true)[||]return;
+    }
+}
+";
+            var expected = @"
+class TypeName
+{
+    void Method()
+    {
+        if (true) return;
+    }
+}
+";
+            await Verify.VerifyCodeFixAsync(testCode, expected);
+        }
+
         [Fact]
         public async Task TestAlreadyFormatted()
         {
@@ -255,7 +288,7 @@ class MyClass
 }
 ";
 
-            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+            await new Verify.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
@@ -284,12 +317,11 @@ class MyClass {
 ";
             var editorConfig = @"
 root = true
-
 [*.cs]
 csharp_new_line_before_open_brace = methods
 ";
 
-            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+            await new Verify.Test
             {
                 TestState =
                 {
