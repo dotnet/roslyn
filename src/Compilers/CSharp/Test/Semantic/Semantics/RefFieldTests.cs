@@ -154,11 +154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         M2(ref s.F1);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(22, 16));
 
+            verifyField(comp.GetMember<FieldSymbol>("S.F1"), RefKind.Ref, "ref T S<T>.F1");
+            verifyField(comp.GetMember<FieldSymbol>("S.F2"), RefKind.RefReadOnly, "ref readonly T S<T>.F2");
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
 
-            // PROTOTYPE: Verify there are no use-site diagnostics associated with the PEFieldSymbol, regardless of LanguageVersion.
-            // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error (since we generally don't look at how properties are implemented).
+            verifyField(comp.GetMember<FieldSymbol>("S.F1"), RefKind.Ref, "ref T S<T>.F1");
+            verifyField(comp.GetMember<FieldSymbol>("S.F2"), RefKind.RefReadOnly, "ref readonly T S<T>.F2");
+
+            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
+            {
+                Assert.Equal(refKind, field.RefKind);
+                Assert.Equal(displayName, field.ToTestDisplayString());
+                Assert.Null(field.GetUseSiteDiagnostic());
+            }
         }
 
         [CombinatorialData]
@@ -409,16 +419,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2<T>.F").WithLocation(8, 12));
         }
 
-        // PROTOTYPE: Report a diagnostic when assigning a value rather than a ref
-        // in the constructor because a NullReferenceException will be thrown at runtime?
         [Fact]
         public void DefiniteAssignment_02()
         {
+            // Should we report a warning when assigning a value rather than a ref in the
+            // constructor, because a NullReferenceException will be thrown at runtime?
             var source =
 @"ref struct S<T>
 {
     public ref T F;
-    public S(T t)
+    public S(ref T t)
     {
         F = t;
     }
@@ -1910,6 +1920,47 @@ class Program
         }
 
         [Fact]
+        public void Deconstruct()
+        {
+            var source =
+@"using System;
+class Pair<T, U>
+{
+    public readonly T First;
+    public readonly U Second;
+    public Pair(T first, U second)
+    {
+        First = first;
+        Second = second;
+    }
+    public void Deconstruct(out T first, out U second)
+    {
+        first = First;
+        second = Second;
+    }
+}
+ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int i = 0;
+        string s = null;
+        var s1 = new S<int>(ref i);
+        var s2 = new S<string>(ref s);
+        var pair = new Pair<int, string>(1, ""Hello world"");
+        (s1.F, s2.F) = pair;
+        Console.WriteLine((i, s));
+    }
+}";
+            CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
+        }
+
+        [Fact]
         public void InParamReorder()
         {
             var source =
@@ -1998,6 +2049,8 @@ class Program
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should this scenario be supported? Test all valid combinations of { get, set, init }.
+            // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error
+            // (since we generally don't look at how properties are implemented).
             comp.VerifyEmitDiagnostics(
                 // (4,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P { get; }
