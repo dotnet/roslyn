@@ -376,16 +376,27 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (8,18): error CS0019: Operator '>>' cannot be applied to operands of type 'object' and 'object'
                 //         var z1 = x >> y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >> y").WithArguments(">>", left, right).WithLocation(8, 18),
                 // (9,18): error CS0019: Operator '>>>' cannot be applied to operands of type 'object' and 'object'
                 //         var z2 = x >>> y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", left, right).WithLocation(9, 18)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         [Theory]
@@ -868,16 +879,27 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (8,9): error CS0019: Operator '>>=' cannot be applied to operands of type 'double' and 'char'
                 //         x >>= y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>= y").WithArguments(">>=", left, right).WithLocation(8, 9),
                 // (9,9): error CS0019: Operator '>>>=' cannot be applied to operands of type 'double' and 'char'
                 //         x >>>= y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>>= y").WithArguments(">>>=", left, right).WithLocation(9, 9)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -969,9 +991,8 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (6,13): error CS0019: Operator '>>>' cannot be applied to operands of type 'dynamic' and 'int'
                 //         _ = x >>> y;        
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "dynamic", "int").WithLocation(6, 13),
@@ -981,7 +1002,19 @@ class C
                 // (8,13): error CS0019: Operator '>>>' cannot be applied to operands of type 'dynamic' and 'dynamic'
                 //         _ = x >>> x;        
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> x").WithArguments(">>>", "dynamic", "dynamic").WithLocation(8, 13)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -999,9 +1032,8 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (6,9): error CS0019: Operator '>>>=' cannot be applied to operands of type 'dynamic' and 'int'
                 //         x >>>= y;        
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>>= y").WithArguments(">>>=", "dynamic", "int").WithLocation(6, 9),
@@ -1011,7 +1043,19 @@ class C
                 // (8,9): error CS0019: Operator '>>>=' cannot be applied to operands of type 'dynamic' and 'dynamic'
                 //         x >>>= x;        
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>>= x").WithArguments(">>>=", "dynamic", "dynamic").WithLocation(8, 9)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         [Theory]
@@ -1389,16 +1433,27 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (8,18): error CS0019: Operator '>>' cannot be applied to operands of type 'object' and 'object'
                 //         var z1 = x >> y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >> y").WithArguments(">>", nullableLeft, nullableRight).WithLocation(8, 18),
                 // (9,18): error CS0019: Operator '>>>' cannot be applied to operands of type 'object' and 'object'
                 //         var z2 = x >>> y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", nullableLeft, nullableRight).WithLocation(9, 18)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         private static string NullableIfPossible(string type)
@@ -1786,16 +1841,27 @@ class C
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview);
-            compilation1.VerifyEmitDiagnostics(
+            var expected = new[]
+                {
                 // (8,9): error CS0019: Operator '>>=' cannot be applied to operands of type 'double' and 'char'
                 //         x >>= y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>= y").WithArguments(">>=", nullableLeft, nullableRight).WithLocation(8, 9),
                 // (9,9): error CS0019: Operator '>>>=' cannot be applied to operands of type 'double' and 'char'
                 //         x >>>= y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>>= y").WithArguments(">>>=", nullableLeft, nullableRight).WithLocation(9, 9)
-                );
+                };
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular10);
+            compilation1.VerifyEmitDiagnostics(expected);
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
@@ -2544,6 +2610,32 @@ class C
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
+
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics(
+                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>'
+                // /// See <see cref="operator >>>"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator >>>").WithArguments("operator >>>").WithLocation(3, 20),
+                // (3,29): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                // /// See <see cref="operator >>>"/>.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
+                // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C operator >>>(C c, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
+                );
+
+            crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
+            expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
+            actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
+            Assert.Equal(expectedSymbol, actualSymbol);
+
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
+            expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
+            actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
+            Assert.Equal(expectedSymbol, actualSymbol);
         }
 
         [Fact]
@@ -2690,6 +2782,32 @@ class C
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
+
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics(
+                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator >>>(C, int)'
+                // /// See <see cref="operator >>>(C, int)"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator >>>(C, int)").WithArguments("operator >>>(C, int)").WithLocation(3, 20),
+                // (3,29): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                // /// See <see cref="operator >>>(C, int)"/>.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ">>>").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
+                // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C operator >>>(C c, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
+                );
+
+            crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
+            expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
+            actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
+            Assert.Equal(expectedSymbol, actualSymbol);
+
+            compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+
+            crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
+            expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).First();
+            actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation);
+            Assert.Equal(expectedSymbol, actualSymbol);
         }
 
         [Fact]
@@ -2812,6 +2930,590 @@ class C
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
+        }
+
+        [Theory]
+        [InlineData("char", "char")]
+        [InlineData("char", "sbyte")]
+        [InlineData("char", "short")]
+        [InlineData("char", "int")]
+        [InlineData("char", "byte")]
+        [InlineData("char", "ushort")]
+        [InlineData("sbyte", "char")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "short")]
+        [InlineData("sbyte", "int")]
+        [InlineData("sbyte", "byte")]
+        [InlineData("sbyte", "ushort")]
+        [InlineData("short", "char")]
+        [InlineData("short", "sbyte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "int")]
+        [InlineData("short", "byte")]
+        [InlineData("short", "ushort")]
+        [InlineData("int", "char")]
+        [InlineData("int", "sbyte")]
+        [InlineData("int", "short")]
+        [InlineData("int", "int")]
+        [InlineData("int", "byte")]
+        [InlineData("int", "ushort")]
+        [InlineData("long", "char")]
+        [InlineData("long", "sbyte")]
+        [InlineData("long", "short")]
+        [InlineData("long", "int")]
+        [InlineData("long", "byte")]
+        [InlineData("long", "ushort")]
+        [InlineData("byte", "char")]
+        [InlineData("byte", "sbyte")]
+        [InlineData("byte", "short")]
+        [InlineData("byte", "int")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "ushort")]
+        [InlineData("ushort", "char")]
+        [InlineData("ushort", "sbyte")]
+        [InlineData("ushort", "short")]
+        [InlineData("ushort", "int")]
+        [InlineData("ushort", "byte")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("uint", "char")]
+        [InlineData("uint", "sbyte")]
+        [InlineData("uint", "short")]
+        [InlineData("uint", "int")]
+        [InlineData("uint", "byte")]
+        [InlineData("uint", "ushort")]
+        [InlineData("ulong", "char")]
+        [InlineData("ulong", "sbyte")]
+        [InlineData("ulong", "short")]
+        [InlineData("ulong", "int")]
+        [InlineData("ulong", "byte")]
+        [InlineData("ulong", "ushort")]
+        [InlineData("nint", "char")]
+        [InlineData("nint", "sbyte")]
+        [InlineData("nint", "short")]
+        [InlineData("nint", "int")]
+        [InlineData("nint", "byte")]
+        [InlineData("nint", "ushort")]
+        [InlineData("nuint", "char")]
+        [InlineData("nuint", "sbyte")]
+        [InlineData("nuint", "short")]
+        [InlineData("nuint", "int")]
+        [InlineData("nuint", "byte")]
+        [InlineData("nuint", "ushort")]
+        public void BuiltIn_LangVersion_01(string left, string right)
+        {
+            var source1 =
+@"
+class C
+{
+    static void Main()
+    {
+        " + left + @" x = default;
+        " + right + @" y = default;
+        _ = x >>> y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (8,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x >>> y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(8, 13)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext);
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("char", "char")]
+        [InlineData("char", "sbyte")]
+        [InlineData("char", "short")]
+        [InlineData("char", "int")]
+        [InlineData("char", "byte")]
+        [InlineData("char", "ushort")]
+        [InlineData("sbyte", "char")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "short")]
+        [InlineData("sbyte", "int")]
+        [InlineData("sbyte", "byte")]
+        [InlineData("sbyte", "ushort")]
+        [InlineData("short", "char")]
+        [InlineData("short", "sbyte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "int")]
+        [InlineData("short", "byte")]
+        [InlineData("short", "ushort")]
+        [InlineData("int", "char")]
+        [InlineData("int", "sbyte")]
+        [InlineData("int", "short")]
+        [InlineData("int", "int")]
+        [InlineData("int", "byte")]
+        [InlineData("int", "ushort")]
+        [InlineData("long", "char")]
+        [InlineData("long", "sbyte")]
+        [InlineData("long", "short")]
+        [InlineData("long", "int")]
+        [InlineData("long", "byte")]
+        [InlineData("long", "ushort")]
+        [InlineData("byte", "char")]
+        [InlineData("byte", "sbyte")]
+        [InlineData("byte", "short")]
+        [InlineData("byte", "int")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "ushort")]
+        [InlineData("ushort", "char")]
+        [InlineData("ushort", "sbyte")]
+        [InlineData("ushort", "short")]
+        [InlineData("ushort", "int")]
+        [InlineData("ushort", "byte")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("uint", "char")]
+        [InlineData("uint", "sbyte")]
+        [InlineData("uint", "short")]
+        [InlineData("uint", "int")]
+        [InlineData("uint", "byte")]
+        [InlineData("uint", "ushort")]
+        [InlineData("ulong", "char")]
+        [InlineData("ulong", "sbyte")]
+        [InlineData("ulong", "short")]
+        [InlineData("ulong", "int")]
+        [InlineData("ulong", "byte")]
+        [InlineData("ulong", "ushort")]
+        [InlineData("nint", "char")]
+        [InlineData("nint", "sbyte")]
+        [InlineData("nint", "short")]
+        [InlineData("nint", "int")]
+        [InlineData("nint", "byte")]
+        [InlineData("nint", "ushort")]
+        [InlineData("nuint", "char")]
+        [InlineData("nuint", "sbyte")]
+        [InlineData("nuint", "short")]
+        [InlineData("nuint", "int")]
+        [InlineData("nuint", "byte")]
+        [InlineData("nuint", "ushort")]
+        public void BuiltIn_CompoundAssignment_LangVersion_01(string left, string right)
+        {
+            var source1 =
+@"
+class C
+{
+    static void Main()
+    {
+        " + left + @" x = default;
+        " + right + @" y = default;
+        x >>>= y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (8,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x >>>= y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(8, 9)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext);
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("char", "char")]
+        [InlineData("char", "sbyte")]
+        [InlineData("char", "short")]
+        [InlineData("char", "int")]
+        [InlineData("char", "byte")]
+        [InlineData("char", "ushort")]
+        [InlineData("sbyte", "char")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "short")]
+        [InlineData("sbyte", "int")]
+        [InlineData("sbyte", "byte")]
+        [InlineData("sbyte", "ushort")]
+        [InlineData("short", "char")]
+        [InlineData("short", "sbyte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "int")]
+        [InlineData("short", "byte")]
+        [InlineData("short", "ushort")]
+        [InlineData("int", "char")]
+        [InlineData("int", "sbyte")]
+        [InlineData("int", "short")]
+        [InlineData("int", "int")]
+        [InlineData("int", "byte")]
+        [InlineData("int", "ushort")]
+        [InlineData("long", "char")]
+        [InlineData("long", "sbyte")]
+        [InlineData("long", "short")]
+        [InlineData("long", "int")]
+        [InlineData("long", "byte")]
+        [InlineData("long", "ushort")]
+        [InlineData("byte", "char")]
+        [InlineData("byte", "sbyte")]
+        [InlineData("byte", "short")]
+        [InlineData("byte", "int")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "ushort")]
+        [InlineData("ushort", "char")]
+        [InlineData("ushort", "sbyte")]
+        [InlineData("ushort", "short")]
+        [InlineData("ushort", "int")]
+        [InlineData("ushort", "byte")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("uint", "char")]
+        [InlineData("uint", "sbyte")]
+        [InlineData("uint", "short")]
+        [InlineData("uint", "int")]
+        [InlineData("uint", "byte")]
+        [InlineData("uint", "ushort")]
+        [InlineData("ulong", "char")]
+        [InlineData("ulong", "sbyte")]
+        [InlineData("ulong", "short")]
+        [InlineData("ulong", "int")]
+        [InlineData("ulong", "byte")]
+        [InlineData("ulong", "ushort")]
+        [InlineData("nint", "char")]
+        [InlineData("nint", "sbyte")]
+        [InlineData("nint", "short")]
+        [InlineData("nint", "int")]
+        [InlineData("nint", "byte")]
+        [InlineData("nint", "ushort")]
+        [InlineData("nuint", "char")]
+        [InlineData("nuint", "sbyte")]
+        [InlineData("nuint", "short")]
+        [InlineData("nuint", "int")]
+        [InlineData("nuint", "byte")]
+        [InlineData("nuint", "ushort")]
+        public void BuiltIn_Lifted_LangVersion_01(string left, string right)
+        {
+            var source1 =
+@"
+class C
+{
+    static void Main()
+    {
+        " + left + @"? x = default;
+        " + right + @"? y = default;
+        _ = x >>> y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (8,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x >>> y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(8, 13)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext);
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("char", "char")]
+        [InlineData("char", "sbyte")]
+        [InlineData("char", "short")]
+        [InlineData("char", "int")]
+        [InlineData("char", "byte")]
+        [InlineData("char", "ushort")]
+        [InlineData("sbyte", "char")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "short")]
+        [InlineData("sbyte", "int")]
+        [InlineData("sbyte", "byte")]
+        [InlineData("sbyte", "ushort")]
+        [InlineData("short", "char")]
+        [InlineData("short", "sbyte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "int")]
+        [InlineData("short", "byte")]
+        [InlineData("short", "ushort")]
+        [InlineData("int", "char")]
+        [InlineData("int", "sbyte")]
+        [InlineData("int", "short")]
+        [InlineData("int", "int")]
+        [InlineData("int", "byte")]
+        [InlineData("int", "ushort")]
+        [InlineData("long", "char")]
+        [InlineData("long", "sbyte")]
+        [InlineData("long", "short")]
+        [InlineData("long", "int")]
+        [InlineData("long", "byte")]
+        [InlineData("long", "ushort")]
+        [InlineData("byte", "char")]
+        [InlineData("byte", "sbyte")]
+        [InlineData("byte", "short")]
+        [InlineData("byte", "int")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "ushort")]
+        [InlineData("ushort", "char")]
+        [InlineData("ushort", "sbyte")]
+        [InlineData("ushort", "short")]
+        [InlineData("ushort", "int")]
+        [InlineData("ushort", "byte")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("uint", "char")]
+        [InlineData("uint", "sbyte")]
+        [InlineData("uint", "short")]
+        [InlineData("uint", "int")]
+        [InlineData("uint", "byte")]
+        [InlineData("uint", "ushort")]
+        [InlineData("ulong", "char")]
+        [InlineData("ulong", "sbyte")]
+        [InlineData("ulong", "short")]
+        [InlineData("ulong", "int")]
+        [InlineData("ulong", "byte")]
+        [InlineData("ulong", "ushort")]
+        [InlineData("nint", "char")]
+        [InlineData("nint", "sbyte")]
+        [InlineData("nint", "short")]
+        [InlineData("nint", "int")]
+        [InlineData("nint", "byte")]
+        [InlineData("nint", "ushort")]
+        [InlineData("nuint", "char")]
+        [InlineData("nuint", "sbyte")]
+        [InlineData("nuint", "short")]
+        [InlineData("nuint", "int")]
+        [InlineData("nuint", "byte")]
+        [InlineData("nuint", "ushort")]
+        public void BuiltIn_Lifted_CompoundAssignment_LangVersion_01(string left, string right)
+        {
+            var source1 =
+@"
+class C
+{
+    static void Main()
+    {
+        " + left + @"? x = default;
+        " + right + @"? y = default;
+        x >>>= y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (8,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x >>>= y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(8, 9)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext);
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UserDefined_LangVersion_01()
+        {
+            var source0 = @"
+public class C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1 Test1(C1 x, int y) => x >>> y; 
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C1 operator >>>(C1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                );
+
+            compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular10);
+                compilation2.VerifyDiagnostics(
+                    // (4,37): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static C1 Test1(C1 x, int y) => x >>> y; 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(4, 37)
+                    );
+
+                compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                 parseOptions: TestOptions.RegularNext);
+                compilation2.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void UserDefined_CompountAssignment_LangVersion_01()
+        {
+            var source0 = @"
+public class C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1 Test1(C1 x, int y) => x >>>= y; 
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C1 operator >>>(C1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                );
+
+            compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular10);
+                compilation2.VerifyDiagnostics(
+                    // (4,37): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static C1 Test1(C1 x, int y) => x >>>= y; 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(4, 37)
+                    );
+
+                compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                 parseOptions: TestOptions.RegularNext);
+                compilation2.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void UserDefined_Lifted_LangVersion_01()
+        {
+            var source0 = @"
+public struct C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1? Test1(C1? x, int? y) => x >>> y; 
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C1 operator >>>(C1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                );
+
+            compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular10);
+                compilation2.VerifyDiagnostics(
+                    // (4,40): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static C1? Test1(C1? x, int? y) => x >>> y; 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(4, 40)
+                    );
+
+                compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                 parseOptions: TestOptions.RegularNext);
+                compilation2.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void UserDefined_Lifted_CompountAssignment_LangVersion_01()
+        {
+            var source0 = @"
+public struct C1
+{
+    public static C1 operator >>>(C1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1? Test1(C1? x, int? y) => x >>>= y; 
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static C1 operator >>>(C1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 31)
+                );
+
+            compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext);
+            compilation1.VerifyDiagnostics();
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular10);
+                compilation2.VerifyDiagnostics(
+                    // (4,40): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static C1? Test1(C1? x, int? y) => x >>>= y; 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(4, 40)
+                    );
+
+                compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { reference },
+                                                 parseOptions: TestOptions.RegularNext);
+                compilation2.VerifyDiagnostics();
+            }
         }
     }
 }

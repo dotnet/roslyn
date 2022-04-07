@@ -10334,12 +10334,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("checked user-defined operators").WithLocation(6, 13)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
                     // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         _ = x - y;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x >>> y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
+                    // (6,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x >>> y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(6, 13)
                     );
             }
 
@@ -10358,12 +10369,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator - (I1 x, int y);
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static I1 operator >>> (I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 33),
+                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator >>> (I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
                     );
             }
         }
@@ -10502,12 +10524,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("checked user-defined operators").WithLocation(6, 9)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
                     // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         x <<= y;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x >>>= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                    // (6,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x >>>= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(6, 9)
                     );
             }
 
@@ -10526,12 +10559,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 40)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation3.VerifyDiagnostics(
                     // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator << (T x, int y);
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator >>> (T x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator >>> (T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
                     );
             }
         }
@@ -15727,11 +15771,28 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
-                    );
+                if (op != ">>>")
+                {
+                    compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator +(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                        );
+                }
+                else
+                {
+                    compilation2.VerifyDiagnostics(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
+                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public static Test2 operator >>>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34)
+                        );
+                }
             }
             else
             {
@@ -15754,17 +15815,46 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator +(I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator +(T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
-                    );
+                if (op != ">>>")
+                {
+                    compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator +(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static I1 operator +(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static T operator +(T x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                        );
+                }
+                else
+                {
+                    compilation3.VerifyDiagnostics(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
+                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public static Test2 operator >>>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34),
+                        // (14,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     abstract static I1 operator >>>(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(14, 33),
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static I1 operator >>>(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                        // (19,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     abstract static T operator >>>(T x, int y);
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(19, 32),
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static T operator >>>(T x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                        );
+                }
             }
             else
             {

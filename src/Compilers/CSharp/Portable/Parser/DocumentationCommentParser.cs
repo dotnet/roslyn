@@ -1037,6 +1037,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
                                 operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
                                 operatorToken3.GetTrailingTrivia());
+
+                            operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUnsignedRightShift, forceWarning: true);
                         }
                         else
                         {

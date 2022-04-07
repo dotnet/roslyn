@@ -704,6 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsUnsignedBinaryOperator(BoundBinaryOperator op)
         {
             BinaryOperatorKind opKind = op.OperatorKind;
+            Debug.Assert(opKind.Operator() != BinaryOperatorKind.UnsignedRightShift);
+
             BinaryOperatorKind type = opKind.OperandTypes();
             switch (type)
             {
