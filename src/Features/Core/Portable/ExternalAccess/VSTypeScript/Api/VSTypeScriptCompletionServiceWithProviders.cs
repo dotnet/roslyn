@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
@@ -17,5 +21,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => GetRulesImpl();
 
         internal abstract CompletionRules GetRulesImpl();
+
+        internal override Task<CompletionList> GetCompletionsAsync(
+            Document document,
+            int caretPosition,
+            CompletionOptions options,
+            OptionSet passThroughOptions,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            CancellationToken cancellationToken)
+        {
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
+        }
     }
 }
