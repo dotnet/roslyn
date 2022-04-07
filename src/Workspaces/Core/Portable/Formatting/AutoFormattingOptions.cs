@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Solution-wide formatting options.
     /// </summary>
-    internal readonly record struct AutoFormattingOptions(
-        FormattingOptions.IndentStyle IndentStyle,
-        bool FormatOnReturn,
-        bool FormatOnTyping,
-        bool FormatOnSemicolon,
-        bool FormatOnCloseBrace)
+    internal readonly partial record struct AutoFormattingOptions
     {
         public static AutoFormattingOptions From(Project project)
             => From(project.Solution.Options, project.Language);
 
         public static AutoFormattingOptions From(OptionSet options, string language)
             => new(
-                IndentStyle: options.GetOption(Metadata.SmartIndent, language),
                 FormatOnReturn: options.GetOption(Metadata.AutoFormattingOnReturn, language),
                 FormatOnTyping: options.GetOption(Metadata.AutoFormattingOnTyping, language),
                 FormatOnSemicolon: options.GetOption(Metadata.AutoFormattingOnSemicolon, language),
@@ -42,17 +36,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                SmartIndent,
                 AutoFormattingOnReturn,
                 AutoFormattingOnTyping,
                 AutoFormattingOnSemicolon,
                 AutoFormattingOnCloseBrace);
 
             private const string FeatureName = "FormattingOptions";
-
-            // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-            public static PerLanguageOption2<FormattingOptions.IndentStyle> SmartIndent { get; } =
-                new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: FormattingOptions.IndentStyle.Smart);
 
             internal static readonly PerLanguageOption2<bool> AutoFormattingOnReturn =
                 new(FeatureName, OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,

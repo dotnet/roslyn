@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly RequestExecutionQueue _queue;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ILspLogger _logger;
-        private readonly string? _clientName;
 
         // Set on first LSP initialize request.
         private ClientCapabilities? _clientCapabilities;
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
-            string? clientName,
             WellKnownLspServerKinds serverKind)
         {
             _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
@@ -62,7 +60,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            _clientName = clientName;
 
             _queue = new RequestExecutionQueue(
                 logger,
@@ -115,7 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     _method,
                     requestType,
                     _target._clientCapabilities,
-                    _target._clientName,
                     _target._queue,
                     cancellationToken).ConfigureAwait(false);
                 return result;
@@ -224,7 +220,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 requestMethod,
                 request,
                 _clientCapabilities,
-                _clientName,
                 _queue,
                 cancellationToken).ConfigureAwait(false);
             return result;

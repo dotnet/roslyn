@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
@@ -42,12 +41,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var id = _state.Document.Id;
+                var document = _state.Document;
                 var solution = _state.Document.Project.Solution;
-                var document = solution.GetDocument(id);
                 var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
 
-                solution = solution.RemoveDocument(id);
+                solution = solution.RemoveDocument(document.Id);
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);

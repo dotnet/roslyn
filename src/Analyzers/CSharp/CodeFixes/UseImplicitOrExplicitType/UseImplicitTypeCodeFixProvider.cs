@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.use_var_instead_of_explicit_type,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(CSharpAnalyzersResources.use_var_instead_of_explicit_type)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -66,16 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                                             .WithTriviaFrom(type);
 
             editor.ReplaceNode(type, implicitType);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.use_var_instead_of_explicit_type,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.use_var_instead_of_explicit_type)
-            {
-            }
         }
     }
 }

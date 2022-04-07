@@ -79,7 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, GetAllUsingDirectives(compilationUnit), placement, token)),
+                    CodeAction.Create(
+                        CSharpAnalyzersResources.Move_misplaced_using_directives,
+                        token => GetTransformedDocumentAsync(document, compilationUnit, GetAllUsingDirectives(compilationUnit), placement, token),
+                        nameof(CSharpAnalyzersResources.Move_misplaced_using_directives)),
                     diagnostic);
             }
         }
@@ -425,14 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var newFirstToken = firstToken.WithLeadingTrivia(newLeadingTrivia);
 
             return compilationUnit.ReplaceToken(firstToken, newFirstToken);
-        }
-
-        private class MoveMisplacedUsingsCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MoveMisplacedUsingsCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Move_misplaced_using_directives, createChangedDocument, nameof(CSharpAnalyzersResources.Move_misplaced_using_directives))
-            {
-            }
         }
     }
 }

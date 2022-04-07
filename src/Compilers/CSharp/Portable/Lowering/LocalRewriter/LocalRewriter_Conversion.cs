@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var utf8Bytes = new BoundArrayCreation(
                                     resultSyntax,
                                     ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
-                                    new BoundArrayInitialization(resultSyntax, builder.ToImmutableAndFree()),
+                                    new BoundArrayInitialization(resultSyntax, isInferred: false, builder.ToImmutableAndFree()),
                                     byteArray);
             return utf8Bytes;
         }
@@ -280,9 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(rewrittenOperand.Type is { });
 
                     // Spec 6.1.1:
-                    //   An identity conversion converts from any type to the same type. 
+                    //   An identity conversion converts from any type to the same type.
                     //   This conversion exists such that an entity that already has a required type can be said to be convertible to that type.
-                    //   Because object and dynamic are considered equivalent there is an identity conversion between object and dynamic, 
+                    //   Because object and dynamic are considered equivalent there is an identity conversion between object and dynamic,
                     //   and between constructed types that are the same when replacing all occurrences of dynamic with object.
 
                     // Why ignoreDynamic: false?
@@ -415,8 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case ConversionKind.ImplicitEnumeration:
-                    // A conversion from constant zero to nullable is actually classified as an 
-                    // implicit enumeration conversion, not an implicit nullable conversion. 
+                    // A conversion from constant zero to nullable is actually classified as an
+                    // implicit enumeration conversion, not an implicit nullable conversion.
                     // Lower it to (E?)(E)0.
                     if (rewrittenType.IsNullableType())
                     {
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // This is where we handle conversion from Decimal to Enum: e.g., E e = (E) d;
                         // where 'e' is of type Enum E and 'd' is of type Decimal.
-                        // Conversion can be simply done by applying its underlying numeric type to RewriteDecimalConversion(). 
+                        // Conversion can be simply done by applying its underlying numeric type to RewriteDecimalConversion().
 
                         Debug.Assert(rewrittenType.IsEnumType());
                         var underlyingTypeTo = rewrittenType.GetEnumUnderlyingType()!;
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType sourceST = GetUnderlyingSpecialType(source);
             SpecialType targetST = GetUnderlyingSpecialType(target);
 
-            // integral to double or float is never checked, but float/double to integral 
+            // integral to double or float is never checked, but float/double to integral
             // may be checked.
             return (explicitCastInCode || sourceST != targetST) &&
                 IsInRange(sourceST, SpecialType.System_Char, SpecialType.System_Double) &&
@@ -675,17 +675,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // However, it is possible that we have cached a conversion (for example, to be used
             // in an increment or decrement operator) and are only just realizing it now.
             //
-            // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D? 
-            // (required backwards compatibility with the native compiler) we can end up in a situation 
+            // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D?
+            // (required backwards compatibility with the native compiler) we can end up in a situation
             // where we have:
             //
             // a standard conversion from A to B?
             // then a standard conversion from B? to B
             // then a user-defined  conversion from B to C
-            // then a standard conversion from C to C? 
+            // then a standard conversion from C to C?
             // then a standard conversion from C? to D?
             //
-            // In that scenario, the "from type" of the conversion will be B? and the "from conversion" will be 
+            // In that scenario, the "from type" of the conversion will be B? and the "from conversion" will be
             // from A to B?. Similarly the "to type" of the conversion will be C? and the "to conversion"
             // of the conversion will be from C? to D?. We still need to induce the conversions from B? to B
             // and from C to C?.
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (rewrittenType.IsNullableType())
             {
-                // SPEC: If the nullable conversion is from S to T?, the conversion is 
+                // SPEC: If the nullable conversion is from S to T?, the conversion is
                 // SPEC: evaluated as the underlying conversion from S to T followed
                 // SPEC: by a wrapping from T to T?.
 
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression? value = NullableAlwaysHasValue(rewrittenOperand);
                 if (value == null)
                 {
-                    // (If the source is known to be possibly null then we need to keep the call to get Value 
+                    // (If the source is known to be possibly null then we need to keep the call to get Value
                     // in place so that it throws at runtime.)
                     MethodSymbol get_Value = UnsafeGetNullableMethod(syntax, rewrittenOperandType, SpecialMember.System_Nullable_T_get_Value);
                     value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value);
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDefaultExpression(syntax, type);
             }
 
-            // If the converted expression is known to never be null then we can return 
+            // If the converted expression is known to never be null then we can return
             // new R?(op_Whatever(nonNullableValue))
             BoundExpression? nonNullValue = NullableAlwaysHasValue(operand);
             if (nonNullValue != null)
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, @checked: @checked, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null, rewrittenType);
             }
 
-            // DELIBERATE SPEC VIOLATION: 
+            // DELIBERATE SPEC VIOLATION:
             // The native compiler allows for a "lifted" conversion even when the return type of the conversion
             // not a non-nullable value type. For example, if we have a conversion from struct S to string,
             // then a "lifted" conversion from S? to string is considered by the native compiler to exist,
@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return optimized;
             }
 
-            // We have no optimizations we can perform. If the return type of the 
+            // We have no optimizations we can perform. If the return type of the
             // conversion method is a non-nullable value type R then we lower this as:
             //
             // temp = operand

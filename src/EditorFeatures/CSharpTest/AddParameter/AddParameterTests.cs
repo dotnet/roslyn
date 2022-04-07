@@ -2902,5 +2902,31 @@ namespace System.Runtime.CompilerServices
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record Test();
+", @"new Test(""repro"");
+
+record Test(string V);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions_RecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record struct Test();
+", @"new Test(""repro"");
+
+record struct Test(string V);
+");
+        }
     }
 }
