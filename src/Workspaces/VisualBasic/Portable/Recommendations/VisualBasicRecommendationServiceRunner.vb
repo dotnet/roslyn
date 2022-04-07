@@ -404,18 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
             End If
 
-            If _context.IsAsyncMemberDeclarationContext Then
-                Return symbols.WhereAsArray(Function(s) IsSymbolValidForAsyncDeclarationContext(s))
-            End If
-
             Return symbols
-        End Function
-
-        Private Function IsSymbolValidForAsyncDeclarationContext(symbol As ISymbol) As Boolean
-            Dim namedType As INamedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
-            Return namedType IsNot Nothing AndAlso
-                namedType.IsAwaitableNonDynamic(_context.SemanticModel, _context.Position) AndAlso
-                namedType.Name = NameOf(Task)
         End Function
 
         Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean

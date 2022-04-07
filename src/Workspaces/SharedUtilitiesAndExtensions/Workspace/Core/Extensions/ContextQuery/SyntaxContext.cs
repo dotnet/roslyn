@@ -43,35 +43,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAtEndOfPattern,
             bool isRightSideOfNumericType,
             bool isOnArgumentListBracketOrComma,
+            bool isInTaskLikeTypeContext,
             CancellationToken cancellationToken)
         {
-            Document = document;
-            SemanticModel = semanticModel;
-            SyntaxTree = semanticModel.SyntaxTree;
-            Position = position;
-            LeftToken = leftToken;
-            TargetToken = targetToken;
-            IsTypeContext = isTypeContext;
-            IsNamespaceContext = isNamespaceContext;
-            IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
-            IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
-            IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
-            IsRightOfNameSeparator = isRightOfNameSeparator;
-            IsStatementContext = isStatementContext;
-            IsGlobalStatementContext = isGlobalStatementContext;
-            IsAnyExpressionContext = isAnyExpressionContext;
-            IsAttributeNameContext = isAttributeNameContext;
-            IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
-            IsNameOfContext = isNameOfContext;
-            IsInQuery = isInQuery;
-            IsInImportsDirective = isInImportsDirective;
-            IsWithinAsyncMethod = isWithinAsyncMethod;
-            IsPossibleTupleContext = isPossibleTupleContext;
-            IsAtStartOfPattern = isAtStartOfPattern;
-            IsAtEndOfPattern = isAtEndOfPattern;
-            InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
-            IsRightSideOfNumericType = isRightSideOfNumericType;
-            IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
+            this.Document = document;
+            this.SemanticModel = semanticModel;
+            this.SyntaxTree = semanticModel.SyntaxTree;
+            this.Position = position;
+            this.LeftToken = leftToken;
+            this.TargetToken = targetToken;
+            this.IsTypeContext = isTypeContext;
+            this.IsNamespaceContext = isNamespaceContext;
+            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
+            this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
+            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
+            this.IsRightOfNameSeparator = isRightOfNameSeparator;
+            this.IsStatementContext = isStatementContext;
+            this.IsGlobalStatementContext = isGlobalStatementContext;
+            this.IsAnyExpressionContext = isAnyExpressionContext;
+            this.IsAttributeNameContext = isAttributeNameContext;
+            this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
+            this.IsNameOfContext = isNameOfContext;
+            this.IsInQuery = isInQuery;
+            this.IsInImportsDirective = isInImportsDirective;
+            this.IsWithinAsyncMethod = isWithinAsyncMethod;
+            this.IsPossibleTupleContext = isPossibleTupleContext;
+            this.IsAtStartOfPattern = isAtStartOfPattern;
+            this.IsAtEndOfPattern = isAtEndOfPattern;
+            this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
+            this.IsRightSideOfNumericType = isRightSideOfNumericType;
+            this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
+            this.IsInTaskLikeTypeContext = isInTaskLikeTypeContext;
         }
 
         public Document Document { get; }
@@ -105,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAttributeNameContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsNameOfContext { get; }
-        public abstract bool IsAsyncMemberDeclarationContext { get; }
 
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
@@ -116,6 +117,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsRightSideOfNumericType { get; }
         public bool IsOnArgumentListBracketOrComma { get; }
+
+        /// <summary>
+        /// A location where only tasks/task-like types should go.
+        /// </summary>
+        public bool IsInTaskLikeTypeContext { get; }
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 

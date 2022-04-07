@@ -50,13 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
-        Public Overrides ReadOnly Property IsAsyncMemberDeclarationContext As Boolean
-            Get
-                ' In VB cursor placed in "Public Async Function MyFunc() As $$" is treated as within async method
-                Return MyBase.IsWithinAsyncMethod AndAlso TryCast(TargetToken.Parent.Parent, MethodStatementSyntax) IsNot Nothing
-            End Get
-        End Property
-
         Private Sub New(
             document As Document,
             semanticModel As SemanticModel,
@@ -83,7 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInArgumentList As Boolean,
             cancellationToken As CancellationToken
         )
-
             MyBase.New(
                 document,
                 semanticModel,
@@ -110,6 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtEndOfPattern:=False,
                 isRightSideOfNumericType:=False,
                 isOnArgumentListBracketOrComma:=isInArgumentList,
+                isInTaskLikeTypeContext:=ComputeIsInTaskLikeTypeContext(targetToken),
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -135,6 +128,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
+
+        Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
+            ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
+            If targetToken.Kind() = SyntaxKind.AsKeyword Then
+                Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
+                Dim methodStatement = TryCast(asClause?.Parent, MethodBaseSyntax)
+                If methodStatement IsNot Nothing Then
+                    Return methodStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End If
+            End If
+
+            Return False
+        End Function
 
         Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()

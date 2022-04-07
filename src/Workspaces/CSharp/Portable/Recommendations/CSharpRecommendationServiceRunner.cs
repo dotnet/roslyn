@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -209,37 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
             }
 
-            if (_context.IsAsyncMemberDeclarationContext)
-            {
-                return symbols.WhereAsArray(IsSymbolValidForAsyncDeclarationContext);
-            }
-
             return symbols;
-        }
-
-        private bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
-        {
-            if (symbol.IsNamespace())
-            {
-                return true;
-            }
-
-            if (symbol is not INamedTypeSymbol namedType ||
-                symbol.IsDelegateType() ||
-                namedType.IsEnumType())
-            {
-                return false;
-            }
-
-            if (namedType.TypeKind == TypeKind.Interface)
-            {
-                // The only interfaces, that are valid in async context are IAsyncEnumerable and IAsyncEnumerator.
-                // So if we are validating an interface, then we can just check for 2 of this possible variants
-                return namedType == _context.SemanticModel.Compilation.IAsyncEnumerableOfTType() ||
-                       namedType == _context.SemanticModel.Compilation.IAsyncEnumeratorOfTType();
-            }
-
-            return symbol.IsAwaitableNonDynamic(_context.SemanticModel, _context.Position);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLeftSideOfImportAliasDirective;
         public readonly bool IsFunctionPointerTypeArgumentContext;
         public readonly bool IsLocalFunctionDeclarationContext;
-
-        public override bool IsAsyncMemberDeclarationContext => PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword);
 
         private CSharpSyntaxContext(
             Document document,
@@ -116,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isAnyExpressionContext, isAttributeNameContext, isEnumTypeMemberAccessContext,
                    isNameOfContext, isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
                    isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
+                   ComputeIsInTaskLikeTypeContext(targetToken, semanticModel, cancellationToken),
                    cancellationToken)
         {
             ContainingTypeDeclaration = containingTypeDeclaration;
@@ -149,6 +149,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
             IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
             IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
+        }
+
+        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // Check if we're immediately after 'async' (which the compiler either figured out was a keyword, or it
+            // thinks is an unbound identifier).
+            if (targetToken.Kind() == SyntaxKind.AsyncKeyword)
+                return true;
+
+            if (targetToken.Parent is IdentifierNameSyntax { Identifier.Text: "async" } identifier &&
+                semanticModel.GetSymbolInfo(identifier, cancellationToken).GetAnySymbol() is null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)

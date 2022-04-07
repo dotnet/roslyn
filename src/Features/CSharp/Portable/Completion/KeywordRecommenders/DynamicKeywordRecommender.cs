@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsPreProcessorDirectiveContext)
+            if (context.IsPreProcessorDirectiveContext ||
+                context.IsInTaskLikeTypeContext)
             {
                 return false;
             }
@@ -36,11 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected static bool IsDynamicTypeContext(
             int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsAsyncMemberDeclarationContext)
-            {
-                return false;
-            }
-
             var syntaxTree = context.SyntaxTree;
 
             // first do quick exit check

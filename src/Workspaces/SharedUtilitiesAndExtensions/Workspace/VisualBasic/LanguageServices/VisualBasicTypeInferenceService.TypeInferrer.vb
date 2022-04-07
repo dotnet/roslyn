@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If node.Kind = SyntaxKind.AddressOfExpression Then
                         Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
                         Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
-                        Dim type = symbol.ConvertToType(Compilation)
+                        Dim type = symbol.ConvertToType(Me.Compilation)
                         If type IsNot Nothing Then
                             Return CreateResult(type)
                         End If
                     End If
                 End If
 
-                Return If(objectAsDefault, CreateResult(Compilation.ObjectType), SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
+                Return If(objectAsDefault, CreateResult(Me.Compilation.ObjectType), SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
             End Function
 
             Protected Overrides Function InferTypesWorker_DoNotCallDirectly(node As SyntaxNode) As IEnumerable(Of TypeInferenceInfo)
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Overrides Function InferTypesWorker_DoNotCallDirectly(position As Integer) As IEnumerable(Of TypeInferenceInfo)
-                Dim tree = SemanticModel.SyntaxTree
+                Dim tree = Me.SemanticModel.SyntaxTree
                 Dim token = tree.FindTokenOnLeftOfPosition(position, CancellationToken)
                 token = token.GetPreviousTokenIfTouchingWord(position)
 
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
                     Function(arrayType As ArrayTypeSyntax) InferTypeInArrayType(arrayType),
-                    Function(asClause As AsClauseSyntax) InferTypeInAsClause(asClause, previousToken:=token, position:=position),
+                    Function(asClause As AsClauseSyntax) InferTypeInAsClause(asClause, previousToken:=token),
                     Function(assignmentStatement As AssignmentStatementSyntax) InferTypeInAssignmentStatement(assignmentStatement, previousToken:=token),
                     Function(attribute As AttributeSyntax) InferTypeInAttribute(),
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInArrayRankSpecifier() As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInArrayType(arrayType As ArrayTypeSyntax) As IEnumerable(Of TypeInferenceInfo)
@@ -428,22 +428,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInAsClause(asClause As AsClauseSyntax,
                                                  Optional expressionOpt As ExpressionSyntax = Nothing,
-                                                 Optional previousToken As SyntaxToken = Nothing,
-                                                 Optional position As Integer = -1) As IEnumerable(Of TypeInferenceInfo)
+                                                 Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.AsKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                If Not position = -1 Then
-                    Dim possibleMethod = TryCast(asClause.Parent, MethodStatementSyntax)
-                    If possibleMethod IsNot Nothing Then
-                        Return InferTypeForPossibleAsyncMethodDeclaration(possibleMethod, position)
-                    End If
-                End If
-
                 If asClause.IsParentKind(SyntaxKind.CatchStatement) Then
                     If expressionOpt Is asClause.Type OrElse previousToken.Kind = SyntaxKind.AsKeyword Then
-                        Return CreateResult(Compilation.ExceptionType)
+                        Return CreateResult(Me.Compilation.ExceptionType)
                     End If
                 End If
 
@@ -456,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If assignmentStatement.IsKind(SyntaxKind.LeftShiftAssignmentStatement) OrElse
                     assignmentStatement.IsKind(SyntaxKind.RightShiftAssignmentStatement) Then
-                    Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                    Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                 End If
 
                 If expressionOpt Is assignmentStatement.Right OrElse previousToken = assignmentStatement.OperatorToken Then
@@ -471,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInAttribute() As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Compilation.AttributeType)
+                Return CreateResult(Me.Compilation.AttributeType)
             End Function
 
             Private Function InferTypeInAwaitExpression(awaitExpression As AwaitExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
@@ -479,8 +471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim types = InferTypes(awaitExpression, filterUnusable:=False)
 
-                Dim task = Compilation.GetTypeByMetadataName(GetType(Task).FullName)
-                Dim taskOfT = Compilation.GetTypeByMetadataName(GetType(Task(Of)).FullName)
+                Dim task = Me.Compilation.GetTypeByMetadataName(GetType(Task).FullName)
+                Dim taskOfT = Me.Compilation.GetTypeByMetadataName(GetType(Task(Of)).FullName)
 
                 If task Is Nothing OrElse taskOfT Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
@@ -509,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' value type : If (Goo(), 0)
                     ' otherwise : If (Goo(), "")
                     Return rightTypes.Select(Function(t) If(t.InferredType.IsValueType,
-                                                 New TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(t.InferredType)),
+                                                 New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(t.InferredType)),
                                                  t))
 
                 Else
@@ -538,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.LessThanLessThanEqualsToken,
                         SyntaxKind.GreaterThanGreaterThanEqualsToken
                         If rightSide Then
-                            Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                            Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                         End If
                 End Select
 
@@ -572,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.GreaterThanGreaterThanToken,
                         SyntaxKind.LessThanLessThanEqualsToken,
                         SyntaxKind.GreaterThanGreaterThanEqualsToken
-                        Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
 
                     Case SyntaxKind.AndKeyword,
                         SyntaxKind.AndAlsoKeyword,
@@ -664,11 +656,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If TypeOf declarator.AsClause Is SimpleAsClauseSyntax Then
                             Dim variableTypes = GetTypes(DirectCast(declarator.AsClause, SimpleAsClauseSyntax).Type, objectAsDefault:=True)
 
-                            Dim type = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                            Dim type = Me.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                             Return variableTypes.Select(Function(t) New TypeInferenceInfo(type.Construct(t.InferredType)))
                         End If
                     ElseIf TypeOf forEachStatement.ControlVariable Is SimpleNameSyntax Then
-                        Dim type = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                        Dim type = Me.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                         Return CreateResult(type.Construct(Compilation.GetSpecialType(SpecialType.System_Object)))
                     End If
                 End If
@@ -698,7 +690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' being foreach-ed over.
             Private Function InferTypeInForStepClause(forStepClause As ForStepClauseSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
 #Enable Warning IDE0060 ' Remove unused parameter
-                Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInIfOrElseIfStatement() As IEnumerable(Of TypeInferenceInfo)
@@ -747,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If memberMethod.IsAsync Then
                         Dim typeArguments = memberMethod.ReturnType.GetTypeArguments()
-                        Dim taskOfT = Compilation.TaskOfTType()
+                        Dim taskOfT = Me.Compilation.TaskOfTType()
 
                         Return If(
                             taskOfT IsNot Nothing AndAlso Equals(memberMethod.ReturnType.OriginalDefinition, taskOfT) AndAlso typeArguments.Any(),
@@ -810,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInTernaryConditionalExpression(conditional As TernaryConditionalExpressionSyntax,
@@ -839,13 +831,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Return CreateResult(Compilation.ExceptionType)
+                Return CreateResult(Me.Compilation.ExceptionType)
             End Function
 
             Private Function InferTypeInUnaryExpression(unaryExpressionSyntax As UnaryExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
                 Select Case unaryExpressionSyntax.Kind
                     Case SyntaxKind.UnaryPlusExpression, SyntaxKind.UnaryMinusExpression
-                        Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
+                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                     Case SyntaxKind.NotExpression
                         Dim types = InferTypes(unaryExpressionSyntax)
                         If types.Any(Function(t) t.InferredType.IsNumericType) Then
@@ -878,23 +870,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInWhileOrUntilClause() As IEnumerable(Of TypeInferenceInfo)
                 Return CreateResult(SpecialType.System_Boolean)
-            End Function
-
-            Private Function InferTypeForPossibleAsyncMethodDeclaration(methodDeclaration As MethodStatementSyntax, position As Integer) As IEnumerable(Of TypeInferenceInfo)
-                If Not methodDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword) Then
-                    Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
-                End If
-
-                Dim possibleTaskTypes = Compilation.GetTypesByMetadataName("System.Threading.Tasks.Task")
-                Dim possibleTask = possibleTaskTypes.Where(Function(el) el.IsAwaitableNonDynamic(SemanticModel, position)).FirstOrDefault()
-
-                If (possibleTask Is Nothing) Then
-                    Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
-                End If
-
-                Dim inference = New TypeInferenceInfo(possibleTask)
-
-                Return SpecializedCollections.SingletonEnumerable(inference)
             End Function
 
             Private Function InferTypeInMemberAccessExpression(
@@ -941,14 +916,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' We want to infer Task<T>.  For now, we'll just do Task<object>,
                     ' in the future it would be nice to figure out the actual result
                     ' type based on the argument to ContinueWith.
-                    Dim taskOfT = Compilation.TaskOfTType()
+                    Dim taskOfT = Me.Compilation.TaskOfTType()
                     If taskOfT IsNot Nothing Then
-                        Return CreateResult(taskOfT.Construct(Compilation.ObjectType))
+                        Return CreateResult(taskOfT.Construct(Me.Compilation.ObjectType))
                     End If
                 ElseIf name.Equals(NameOf(Enumerable.Select)) OrElse
                        name.Equals(NameOf(Enumerable.Where)) Then
 
-                    Dim ienumerableType = Compilation.IEnumerableOfTType()
+                    Dim ienumerableType = Me.Compilation.IEnumerableOfTType()
 
                     ' goo.Select
                     ' We want to infer IEnumerable<T>.  We can try to figure out what 
@@ -959,15 +934,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
                             Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
                             Dim argumentTypes = GetTypes(argumentExpression)
-                            Dim delegateType = argumentTypes.FirstOrDefault().InferredType.GetDelegateType(Compilation)
+                            Dim delegateType = argumentTypes.FirstOrDefault().InferredType.GetDelegateType(Me.Compilation)
                             Dim typeArg = If(delegateType?.TypeArguments.Length > 0,
                                 delegateType.TypeArguments(0),
-                                Compilation.ObjectType)
+                                Me.Compilation.ObjectType)
 
                             If delegateType Is Nothing OrElse IsUnusableType(typeArg) Then
                                 If TypeOf argumentExpression Is LambdaExpressionSyntax Then
                                     typeArg = If(InferTypeForFirstParameterOfLambda(DirectCast(argumentExpression, LambdaExpressionSyntax)),
-                                    Compilation.ObjectType)
+                                    Me.Compilation.ObjectType)
                                 End If
                             End If
 
