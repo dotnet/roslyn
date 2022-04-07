@@ -5,9 +5,12 @@
 ***Introduced in .NET SDK 7.0.400, Visual Studio 2022 version 17.3.***
 
 When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
-brings the type parameters of that method in scope. The same applies for local functions.
+brings the type parameters of that method in scope. The same applies for local functions.  
+A `nameof` operator in an attribute on a method, its type parameters or parameters brings
+the parameters of that method in scope. The same applies to local functions, lambdas,
+delegates and indexers.
 
-For instance, this will now be an error:
+For instance, these will now be errors:
 ```csharp
 class C
 {
@@ -20,10 +23,27 @@ class C
 }
 ```
 
+```csharp
+class C
+{
+  class parameter
+  {
+    internal const string Constant = """";
+  }
+  [MyAttribute(nameof(parameter.Constant))]
+  void M(int parameter) { }
+}
+```
+
 Possible workarounds are:
 
-1. Rename the type parameter to avoid shadowing the name from outer scope.
+1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
+1. Use a string literal instead of the `nameof` operator.
 1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
+
+Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
+currently scoped down to users of LangVer=preview.  
+Tracked by https://github.com/dotnet/roslyn/issues/60640
 
 ## UTF8 String Literal conversion
 

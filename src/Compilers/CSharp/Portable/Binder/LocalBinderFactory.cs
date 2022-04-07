@@ -204,13 +204,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var oldEnclosing = _enclosing;
-                WithTypeParametersBinder withTypeParametersBinder = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) &&
-                        _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope)
-                    ? getExtraWithTypeParametersBinder(_enclosing, getAttributeTarget(_enclosing))
-                    : null;
+
+                WithTypeParametersBinder withTypeParametersBinder;
+                InMethodBinder withParametersBinder;
+                // The LangVer check will be removed before shipping .NET 7.
+                // Tracked by https://github.com/dotnet/roslyn/issues/60640
+                if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
+                {
+                    var attributeTarget = getAttributeTarget(_enclosing);
+                    withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
+                    withParametersBinder = getExtraInMethodBinder(_enclosing, attributeTarget);
+                }
+                else
+                {
+                    withTypeParametersBinder = null;
+                    withParametersBinder = null;
+                }
 
                 var argumentExpression = node.ArgumentList.Arguments[0].Expression;
-                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder);
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, withTypeParametersBinder, withParametersBinder);
                 AddToMap(node, possibleNameofBinder);
 
                 _enclosing = possibleNameofBinder;
@@ -233,6 +245,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static WithTypeParametersBinder getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
                 => target.Kind == SymbolKind.Method ? new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing) : null;
+
+            // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
+            // This also applies to local functions, lambdas, indexers and delegates.
+            static InMethodBinder getExtraInMethodBinder(Binder enclosing, Symbol target)
+            {
+                var method = target switch
+                {
+                    MethodSymbol methodSymbol => methodSymbol,
+                    ParameterSymbol parameter => getMethodFromParameter(parameter),
+                    TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter),
+                    PropertySymbol property => property.GetMethod,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod,
+                    _ => null
+                };
+
+                return method is null
+                    ? null
+                    : new InMethodBinder(method, enclosing);
+            }
+
+            static MethodSymbol getMethodFromParameter(ParameterSymbol parameter)
+            {
+                var containingSymbol = parameter.ContainingSymbol;
+                return containingSymbol switch
+                {
+                    MethodSymbol method => method,
+                    PropertySymbol property => property.GetMethod,
+                    _ => null
+                };
+            }
+
+            static MethodSymbol getMethodFromTypeParameter(TypeParameterSymbol typeParameter)
+            {
+                var containingSymbol = typeParameter.ContainingSymbol;
+                return containingSymbol switch
+                {
+                    MethodSymbol method => method,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod,
+                    _ => null
+                };
+            }
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

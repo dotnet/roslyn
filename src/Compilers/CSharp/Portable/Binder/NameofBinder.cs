@@ -21,13 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntaxNode _nameofArgument;
         private readonly WithTypeParametersBinder? _withTypeParametersBinder;
+        private readonly InMethodBinder? _withParametersBinder;
         private ThreeState _lazyIsNameofOperator;
 
-        internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder)
+        internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, InMethodBinder? withParametersBinder)
             : base(next)
         {
             _nameofArgument = nameofArgument;
             _withTypeParametersBinder = withTypeParametersBinder;
+            _withParametersBinder = withParametersBinder;
         }
 
         private bool IsNameofOperator
@@ -49,14 +51,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            bool foundParameter = false;
+            if (_withParametersBinder is not null && IsNameofOperator)
+            {
+                _withParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                if (!result.IsClear)
+                {
+                    if (result.IsMultiViable)
+                    {
+                        return;
+                    }
+
+                    foundParameter = true;
+                }
+            }
+
             if (_withTypeParametersBinder is not null && IsNameofOperator)
             {
-                _withTypeParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                if (foundParameter)
+                {
+                    var tmp = LookupResult.GetInstance();
+                    _withTypeParametersBinder.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                    result.MergeEqual(tmp);
+                }
+                else
+                {
+                    _withTypeParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                }
             }
         }
 
         internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
+            if (_withParametersBinder is not null && IsNameofOperator)
+            {
+                _withParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
+            }
             if (_withTypeParametersBinder is not null && IsNameofOperator)
             {
                 _withTypeParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
