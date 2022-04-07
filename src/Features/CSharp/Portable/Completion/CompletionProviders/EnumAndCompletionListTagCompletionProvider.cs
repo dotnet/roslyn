@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (syntaxContext.IsInTaskLikeTypeContext)
                     return;
 
-                var token = context.TargetToken;
-
+                var token = syntaxContext.TargetToken;
                 if (token.IsMandatoryNamedParameterPosition())
                     return;
 
@@ -85,16 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // in member access expressions.
                 // The regular SymbolCompletionProvider will handle completion after .
                 if (token.IsKind(SyntaxKind.DotToken))
-                    return;
-
-                // Since "Task" is now an inferred type in async member declarations,
-                // we do not want completions from this provider in situations like this:
-                //
-                // class Test
-                // {
-                //   public async $$
-                // }
-                if (IsAsyncMemberDeclarationContext(token))
                     return;
 
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
