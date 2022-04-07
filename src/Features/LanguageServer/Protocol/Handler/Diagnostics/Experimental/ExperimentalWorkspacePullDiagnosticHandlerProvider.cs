@@ -32,6 +32,6 @@ internal class ExperimentalWorkspacePullDiagnosticHandlerProvider : IRequestHand
 
     public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
     {
-        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(serverKind, _diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource));
+        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(_diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource));
     }
 }

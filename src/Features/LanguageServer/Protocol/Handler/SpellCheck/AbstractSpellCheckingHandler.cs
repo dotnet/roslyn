@@ -97,12 +97,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     continue;
                 }
 
-                if (!IncludeDocument(document, context.ClientName))
-                {
-                    context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
-                    continue;
-                }
-
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousParams,
                     document,
@@ -130,17 +124,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting spans");
             return progress.GetValues();
-        }
-
-        private static bool IncludeDocument(Document document, string? clientName)
-        {
-            // Documents either belong to Razor or not.  We can determine this by checking if the doc has a span-mapping
-            // service or not.  If we're not in razor, we do not include razor docs.  If we are in razor, we only
-            // include razor docs.
-            var isRazorDoc = document.IsRazorDocument();
-            var wantsRazorDoc = clientName != null;
-
-            return wantsRazorDoc == isRazorDoc;
         }
 
         private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(

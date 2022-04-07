@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.Remote
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
@@ -59,9 +58,8 @@ namespace Microsoft.CodeAnalysis.Remote
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionInfo, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(

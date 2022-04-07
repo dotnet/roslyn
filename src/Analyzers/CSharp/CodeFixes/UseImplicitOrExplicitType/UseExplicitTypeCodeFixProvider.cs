@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -162,16 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.Use_explicit_type_instead_of_var)
-            {
-            }
         }
     }
 }

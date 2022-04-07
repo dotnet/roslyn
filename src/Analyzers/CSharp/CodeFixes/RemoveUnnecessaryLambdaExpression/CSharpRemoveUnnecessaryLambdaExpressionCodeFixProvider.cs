@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    CSharpAnalyzersResources.Remove_unnecessary_lambda_expression,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -66,14 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression, createChangedDocument, nameof(CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider))
-            {
-            }
         }
     }
 }

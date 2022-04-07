@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool hasMissingCases, bool hasMissingDefaultCase,
             TSwitchSyntax switchNode, TSwitchOperation switchOperation);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Custom;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
@@ -65,33 +63,36 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (missingCases)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         AnalyzersResources.Add_missing_cases,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: false,
-                            cancellationToken: c)),
+                            cancellationToken: c),
+                        nameof(AnalyzersResources.Add_missing_cases)),
                     context.Diagnostics);
             }
 
             if (missingDefaultCase)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         CodeFixesResources.Add_default_case,
                         c => FixAsync(document, diagnostic,
                             addCases: false, addDefaultCase: true,
-                            cancellationToken: c)),
+                            cancellationToken: c),
+                        nameof(CodeFixesResources.Add_default_case)),
                     context.Diagnostics);
             }
 
             if (missingCases && missingDefaultCase)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         CodeFixesResources.Add_both,
                         c => FixAsync(document, diagnostic,
                             addCases: true, addDefaultCase: true,
-                            cancellationToken: c)),
+                            cancellationToken: c),
+                        nameof(CodeFixesResources.Add_both)),
                     context.Diagnostics);
             }
 
@@ -215,14 +216,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return FixWithEditorAsync(document, editor, diagnostics,
                 addCases: true, addDefaultCase: true,
                 cancellationToken: cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS9010, CS9011);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.Compile;
-
         private static bool TryGetConstraint(
             Diagnostic diagnostic,
             CancellationToken cancellationToken,
