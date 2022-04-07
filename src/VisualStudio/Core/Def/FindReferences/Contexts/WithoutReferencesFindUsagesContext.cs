@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,8 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableArray<ITableColumnDefinition> customColumns,
                 IGlobalOptionService globalOptions,
                 bool includeContainingTypeAndMemberColumns,
-                bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn)
+                bool includeKindColumn,
+                IThreadingContext threadingContext)
+                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, threadingContext)
             {
             }
 
@@ -88,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     // No source spans means metadata references.
                     // Display it for Go to Base and try to navigate to metadata.
-                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket));
+                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket, this.ThreadingContext));
                 }
                 else
                 {

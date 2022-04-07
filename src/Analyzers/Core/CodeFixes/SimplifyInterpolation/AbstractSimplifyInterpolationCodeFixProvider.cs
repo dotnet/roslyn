@@ -42,8 +42,10 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Simplify_interpolation,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(AnalyzersResources.Simplify_interpolation)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -105,14 +107,6 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             return result;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_interpolation, createChangedDocument, AnalyzersResources.Simplify_interpolation)
-            {
-            }
         }
     }
 }

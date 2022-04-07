@@ -332,9 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     CheckUserDefinedConversionSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -347,7 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckTrueFalseSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
                     CheckIncrementDecrementSignature(diagnostics);
                     break;
@@ -367,8 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -377,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;

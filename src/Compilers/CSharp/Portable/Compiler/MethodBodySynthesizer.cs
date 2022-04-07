@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (accessor.MethodKind == MethodKind.PropertyGet)
             {
-                statement = new BoundReturnStatement(accessor.SyntaxNode, RefKind.None, fieldAccess);
+                statement = new BoundReturnStatement(accessor.SyntaxNode, RefKind.None, fieldAccess, @checked: false);
             }
             else
             {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return;
                 // }
                 BoundStatement callStatement = new BoundExpressionStatement(syntax, processHandlerCall);
-                BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null);
+                BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false);
                 return BoundBlock.SynthesizedNoLocals(syntax, callStatement, returnStatement);
             }
         }
@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement @return = new BoundReturnStatement(syntax,
                 refKind: RefKind.None,
-                expressionOpt: null)
+                expressionOpt: null,
+                @checked: false)
             { WasCompilerGenerated = true };
 
             if (updateMethod == null)

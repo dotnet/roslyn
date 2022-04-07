@@ -31,8 +31,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Add_readonly_modifier,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(AnalyzersResources.Add_readonly_modifier)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -100,13 +102,5 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
             => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument, nameof(AnalyzersResources.Add_readonly_modifier))
-            {
-            }
-        }
     }
 }

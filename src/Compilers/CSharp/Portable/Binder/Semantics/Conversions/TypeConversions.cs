@@ -58,5 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
+
+        protected override CSharpCompilation Compilation => null;
     }
 }

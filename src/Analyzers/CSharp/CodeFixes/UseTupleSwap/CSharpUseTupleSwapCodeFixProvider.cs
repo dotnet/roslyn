@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Use_tuple_to_swap_values,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -74,14 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                 TupleExpression(SeparatedList(new[] { Argument(exprA), Argument(exprB) }))));
 
             editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_tuple_to_swap_values, createChangedDocument, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values))
-            {
-            }
         }
     }
 }

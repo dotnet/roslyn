@@ -864,9 +864,13 @@ class A
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService), typeof(TestSyntaxTreeConfigurationService)));
-            var syntaxTreeConfigurationService = workspace.GetService<TestSyntaxTreeConfigurationService>();
-            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
+            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles,
+                composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
+                    typeof(TestDocumentTrackingService),
+                    typeof(TestWorkspaceConfigurationService)));
+
+            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
+            workspaceConfigurationService.Options = new(EnableOpeningSourceGeneratedFiles: true);
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
