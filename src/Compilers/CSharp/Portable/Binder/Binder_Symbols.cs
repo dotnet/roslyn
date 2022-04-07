@@ -2433,6 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = binder.Next;
                 }
                 while (binder != null);
+                Debug.Assert(false);
             }
 
             return null;

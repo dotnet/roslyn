@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var oldEnclosing = _enclosing;
-                WithTypeParametersBinder withTypeParametersBinder = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && node.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope)
+                WithTypeParametersBinder withTypeParametersBinder = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) &&
+                        _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope)
                     ? getExtraWithTypeParametersBinder(_enclosing, getAttributeTarget(_enclosing))
                     : null;
 
