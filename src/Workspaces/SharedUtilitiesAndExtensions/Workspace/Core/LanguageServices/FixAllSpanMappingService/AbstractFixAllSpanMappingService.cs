@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (fixAllScope == FixAllScope.ContainingMember)
             {
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                    .Add(document, ImmutableArray.Create(decl.FullSpan));
+                return ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(
+                    KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))));
             }
             else
             {
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 else
                 {
-                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                        .Add(document, ImmutableArray.Create(decl.FullSpan));
+                    return ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(
+                        KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))));
                 }
             }
         }

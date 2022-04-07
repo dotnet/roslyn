@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindNode(diagnosticSpan);
             if (node.GetAncestorOrThis<GlobalStatementSyntax>() is null)
                 return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
+                    // Note: We avoid fixing diagnostics in generated code.
                     if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     break;
 
                 case FixAllScope.ContainingMember or FixAllScope.ContainingType:
+                    // Note: We avoid fixing diagnostics in generated code.
                     if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var diagnosticSpan = fixAllContext.State.DiagnosticSpan;
