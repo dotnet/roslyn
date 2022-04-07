@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isAtEndOfPattern,
             bool isRightSideOfNumericType,
             bool isOnArgumentListBracketOrComma,
+            bool isInTaskLikeTypeContext,
             CancellationToken cancellationToken)
         {
             this.Document = document;
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
+            this.IsInTaskLikeTypeContext = isInTaskLikeTypeContext;
         }
 
         public Document Document { get; }
@@ -115,6 +117,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsRightSideOfNumericType { get; }
         public bool IsOnArgumentListBracketOrComma { get; }
+
+        /// <summary>
+        /// A location where only tasks/task-like types should go.
+        /// </summary>
+        public bool IsInTaskLikeTypeContext { get; }
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 

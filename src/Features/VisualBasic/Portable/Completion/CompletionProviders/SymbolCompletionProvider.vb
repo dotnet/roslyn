@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(AwaitCompletionProvider))>
     <[Shared]>
-    Partial Friend Class SymbolCompletionProvider
+    Friend NotInheritable Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)
 
         Private Shared ReadOnly s_cachedRules As New Dictionary(Of (importDirective As Boolean, preselect As Boolean, tuple As Boolean), CompletionItemRules)
@@ -118,6 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function IsInstrinsic(s As ISymbol) As Boolean
             Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
+        End Function
+
+        Protected Overrides Function IsInTaskLikeTypeOnlyContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
+            Return CompletionUtilities.IsInTaskLikeTypeOnlyContext(context.TargetToken)
         End Function
     End Class
 End Namespace

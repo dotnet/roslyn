@@ -191,5 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
+
+        protected override bool IsInTaskLikeTypeOnlyContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+            => CompletionUtilities.IsInTaskLikeTypeOnlyContext(context.TargetToken, context.SemanticModel, cancellationToken);
     }
 }

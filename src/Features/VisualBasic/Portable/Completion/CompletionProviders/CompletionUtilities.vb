@@ -5,9 +5,9 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
@@ -149,6 +149,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Return insertionText
+        End Function
+
+        Public Function IsInTaskLikeTypeOnlyContext(targetToken As SyntaxToken) As Boolean
+            ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
+            If targetToken.Kind() = SyntaxKind.AsKeyword Then
+                Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
+                Dim methodStatement = TryCast(asClause?.Parent, MethodBaseSyntax)
+                If methodStatement IsNot Nothing Then
+                    Return methodStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End If
+            End If
+
+            Return False
         End Function
     End Module
 End Namespace

@@ -22,5 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
             => context.InferredTypes.Any(t => t.SpecialType == SpecialType);
+
+        protected sealed override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+
+        }
     }
 }

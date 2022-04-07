@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -85,14 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var leftToken = root.FindTokenOnLeftOfPosition(position, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
-                syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax)
+                syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax ||
+                syntaxTree.IsPossibleTupleContext(leftToken, position) |
+                CompletionUtilities.IsInTaskLikeTypeOnlyContext(targetToken, semanticModel, cancellationToken))
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }
-
-            var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
 
             if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {
@@ -112,16 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         SyntaxKind.EndRegionKeyword,
                         SyntaxKind.WarningKeyword))
                 {
-                    var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: true,
-                        isTupleContext: isPossibleTupleContext);
+                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: true);
                 }
             }
             else
             {
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
                 if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
                     semanticFacts.IsExpressionContext(semanticModel, position, cancellationToken) ||
                     semanticFacts.IsStatementContext(semanticModel, position, cancellationToken) ||
@@ -133,19 +131,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
                     return GetSnippetCompletionItems(
-                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: false,
-                        isTupleContext: isPossibleTupleContext);
+                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: false);
                 }
             }
 
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
-          WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
-
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext)
+            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
@@ -159,8 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return snippets.SelectAsArray(snippet =>
             {
-                var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
-                rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
+                var rules = CompletionItemRules.Default.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
 
                 return CommonCompletionItem.Create(
                                 displayText: isPreProcessorContext ? snippet.Shortcut[1..] : snippet.Shortcut,
