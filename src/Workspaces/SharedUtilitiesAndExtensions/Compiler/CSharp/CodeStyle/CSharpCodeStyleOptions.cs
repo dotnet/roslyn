@@ -136,6 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_range_operator",
             "TextEditor.CSharp.Specific.PreferRangeOperator");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferUTF8StringLiteral = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferUTF8StringLiteral),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            "csharp_style_prefer_utf8_string_literal",
+            $"TextEditor.CSharp.Specific.{nameof(PreferUTF8StringLiteral)}");
+
         public static readonly CodeStyleOption2<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new(ExpressionBodyPreference.Never, NotificationOption2.Silent);
 

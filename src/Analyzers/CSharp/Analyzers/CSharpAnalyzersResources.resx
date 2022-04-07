@@ -365,4 +365,10 @@
   <data name="Convert_to_top_level_statements" xml:space="preserve">
     <value>Convert to top-level statements</value>
   </data>
+  <data name="Convert_to_UTF8_string_literal" xml:space="preserve">
+    <value>Convert to UTF8 string literal</value>
+  </data>
+  <data name="Use_UTF8_string_literal" xml:space="preserve">
+    <value>Use UTF8 string literal</value>
+  </data>
 </root>

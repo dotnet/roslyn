@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseUTF8StringLiteral = "CodeActions.CodeActionsUseUTF8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
             public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);

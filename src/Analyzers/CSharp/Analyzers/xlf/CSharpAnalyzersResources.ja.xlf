@@ -32,6 +32,11 @@
         <target state="new">Convert to 'Program.Main' style program</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
+      <trans-unit id="Convert_to_UTF8_string_literal">
+        <source>Convert to UTF8 string literal</source>
+        <target state="new">Convert to UTF8 string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">範囲指定されたブロックが設定された namespace に変換</target>
@@ -180,6 +185,11 @@
       <trans-unit id="Unreachable_code_detected">
         <source>Unreachable code detected</source>
         <target state="translated">到達できないコードが検出されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_UTF8_string_literal">
+        <source>Use UTF8 string literal</source>
+        <target state="new">Use UTF8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
