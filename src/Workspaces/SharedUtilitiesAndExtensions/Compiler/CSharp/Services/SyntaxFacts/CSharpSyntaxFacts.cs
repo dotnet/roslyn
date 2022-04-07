@@ -1087,20 +1087,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
-        {
-            if (token.Kind() == SyntaxKind.CloseBraceToken)
-            {
-                var tuple = token.Parent.GetBraces();
-
-                openBrace = tuple.openBrace;
-                return openBrace.Kind() == SyntaxKind.OpenBraceToken;
-            }
-
-            openBrace = default;
-            return false;
-        }
-
         public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);

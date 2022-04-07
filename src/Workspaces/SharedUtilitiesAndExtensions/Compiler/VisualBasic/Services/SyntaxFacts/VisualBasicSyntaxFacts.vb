@@ -122,17 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
-        Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
-
-            If token.Kind = SyntaxKind.CloseBraceToken Then
-                Dim tuples = token.Parent.GetBraces()
-                openBrace = tuples.openBrace
-                Return openBrace.Kind = SyntaxKind.OpenBraceToken
-            End If
-
-            Return False
-        End Function
-
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral
             If syntaxTree Is Nothing Then
                 Return False

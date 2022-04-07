@@ -475,8 +475,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         // Violation.  This is a feature level API.
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
-        // Violation.  This is a feature level API.
-        bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 
         /// <summary>
         /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
