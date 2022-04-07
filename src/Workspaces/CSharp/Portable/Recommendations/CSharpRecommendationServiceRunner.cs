@@ -235,9 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 // The only interfaces, that are valid in async context are IAsyncEnumerable and IAsyncEnumerator.
                 // So if we are validating an interface, then we can just check for 2 of this possible variants
-                return (namedType.Name == nameof(IAsyncEnumerable<object>) || namedType.Name == nameof(IAsyncEnumerator<object>)) &&
-                    namedType.TypeParameters.Length == 1 &&
-                    namedType.IsFromSystemRuntimeOrMscorlibAssembly();
+                return namedType == _context.SemanticModel.Compilation.IAsyncEnumerableOfTType() ||
+                       namedType == _context.SemanticModel.Compilation.IAsyncEnumeratorOfTType();
             }
 
             return symbol.IsAwaitableNonDynamic(_context.SemanticModel, _context.Position);

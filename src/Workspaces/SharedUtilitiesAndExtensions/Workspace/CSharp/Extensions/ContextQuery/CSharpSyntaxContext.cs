@@ -279,14 +279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // cases:
             //    [ |
             //    class C { [ |
-            var token = TargetToken;
+            var token = this.TargetToken;
 
             // Note that we pass the token.SpanStart to IsTypeDeclarationContext below. This is a bit subtle,
             // but we want to be sure that the attribute itself (i.e. the open square bracket, '[') is in a
             // type declaration context.
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
-                SyntaxTree.IsTypeDeclarationContext(
+                this.SyntaxTree.IsTypeDeclarationContext(
                     token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 return true;
@@ -301,14 +301,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool canBePartial = false,
             CancellationToken cancellationToken = default)
         {
-            return SyntaxTree.IsTypeDeclarationContext(Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
+            return this.SyntaxTree.IsTypeDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
 
         public bool IsMemberAttributeContext(ISet<SyntaxKind> validTypeDeclarations, CancellationToken cancellationToken)
         {
             // cases:
             //   class C { [ |
-            var token = TargetToken;
+            var token = this.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.IsKind(SyntaxKind.AttributeList))
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool canBePartial = false,
             CancellationToken cancellationToken = default)
         {
-            return SyntaxTree.IsMemberDeclarationContext(Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
+            return this.SyntaxTree.IsMemberDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
 
         private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken)
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         /// </summary>
         internal bool IsAwaitStatementContext(int position, CancellationToken cancellationToken)
         {
-            var leftToken = SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
             if (targetToken.IsKind(SyntaxKind.AwaitKeyword))
             {
