@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </remarks>
     internal sealed class InProcTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly ITodoCommentsListener _listener;
+        private readonly TodoCommentsListener _listener;
 
-        public InProcTodoCommentsIncrementalAnalyzerProvider(ITodoCommentsListener listener)
+        public InProcTodoCommentsIncrementalAnalyzerProvider(TodoCommentsListener listener)
             => _listener = listener;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

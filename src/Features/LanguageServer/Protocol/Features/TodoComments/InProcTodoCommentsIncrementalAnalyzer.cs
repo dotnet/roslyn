@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal sealed class InProcTodoCommentsIncrementalAnalyzer : AbstractTodoCommentsIncrementalAnalyzer
     {
-        private readonly ITodoCommentsListener _listener;
+        private readonly TodoCommentsListener _listener;
 
-        public InProcTodoCommentsIncrementalAnalyzer(ITodoCommentsListener listener)
+        public InProcTodoCommentsIncrementalAnalyzer(TodoCommentsListener listener)
             => _listener = listener;
 
         protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
