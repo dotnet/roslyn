@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
-            If (context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext OrElse context.IsNameOfContext) AndAlso
+            If (context.IsAnyExpressionContext OrElse context.IsStatementContext OrElse context.IsNameOfContext) AndAlso
                 targetToken.GetInnermostDeclarationContext().IsKind(SyntaxKind.ClassBlock) Then
                 Return s_keywords
             End If
