@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -493,12 +495,14 @@ new S2().Value: 1
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       12 (0xc)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int Program.One()""
-  IL_0006:  stfld      ""int S0.Value""
-  IL_000b:  ret
+  IL_0001:  initobj    ""S0""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.One()""
+  IL_000d:  stfld      ""int S0.Value""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -596,15 +600,17 @@ new S2().Value: 2
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       30 (0x1e)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int Program.One()""
-  IL_0006:  stfld      ""int S0.Value""
-  IL_000b:  ldarg.0
-  IL_000c:  call       ""int Program.Two()""
-  IL_0011:  stfld      ""int S0.Value""
-  IL_0016:  ret
+  IL_0001:  initobj    ""S0""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.One()""
+  IL_000d:  stfld      ""int S0.Value""
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""int Program.Two()""
+  IL_0018:  stfld      ""int S0.Value""
+  IL_001d:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -713,15 +719,17 @@ new S2().Value: 2
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       19 (0x13)
+  // Code size       26 (0x1a)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int S0.Value""
+  IL_0001:  initobj    ""S0""
   IL_0007:  ldarg.0
-  IL_0008:  call       ""int Program.Two()""
-  IL_000d:  stfld      ""int S0.Value""
-  IL_0012:  ret
+  IL_0008:  ldc.i4.0
+  IL_0009:  stfld      ""int S0.Value""
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int Program.Two()""
+  IL_0014:  stfld      ""int S0.Value""
+  IL_0019:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -833,6 +841,847 @@ new S1((object)1).Value: 2
   IL_0001:  initobj    ""S1""
   IL_0007:  ret
 }");
+        }
+
+        private static CSharpParseOptions GetParseOptions(LanguageVersion? languageVersion)
+        {
+            return languageVersion is null ?
+                null :
+                TestOptions.Regular.WithLanguageVersion(languageVersion.Value);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_01(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x;
+    int y;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x;
+    int y;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(0, 0)
+(0, 0)
+(0, 0)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_02(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x;
+    int y;
+    public S(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x;
+    int y;
+    public R(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(0, 2)
+(0, 0)
+(0, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int S.y""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int R.y""
+  IL_000e:  ret
+}");
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_03(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 0)
+(0, 0)
+(1, 0)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_04(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y = 2;
+    public S(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y = 2;
+    public R(int y) : this()
+    {
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 2)
+(0, 0)
+(1, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int S.y""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int R.y""
+  IL_0015:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_05(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x = 1;
+    int y;
+    public S(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+record struct R
+{
+    int x = 1;
+    int y;
+    public R(int y) : this()
+    {
+        this.y = y;
+    }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(2));
+        Console.WriteLine(new S());
+        Console.WriteLine(new R(2));
+        Console.WriteLine(new R());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(1, 2)
+(0, 0)
+(1, 2)
+(0, 0)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""int S.y""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int R.x""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""int R.y""
+  IL_0015:  ret
+}");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'this.y = y;')
+        Expression:
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'this.y = y')
+            Left:
+              IFieldReferenceOperation: System.Int32 S.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'this.y')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S) (Syntax: 'this')
+            Right:
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+  ExpressionBody:
+    null
+",
+                actualText);
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_06(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S1
+{
+    int x;
+    int y;
+    public S1(int y) : this()
+    {
+    }
+    public S1() { }
+}
+struct S2
+{
+    int x;
+    int y;
+    public S2(int y) : this()
+    {
+        this.y = y;
+    }
+    public S2() { }
+}
+struct S3
+{
+    int x;
+    int y;
+    public S3(int y) : this()
+    {
+    }
+    public S3()
+    {
+        this.y = -3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
+                // (10,12): error CS0171: Field 'S1.x' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.x").WithLocation(10, 12),
+                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12),
+                // (20,12): error CS0171: Field 'S2.x' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.x").WithLocation(20, 12),
+                // (29,12): error CS0171: Field 'S3.x' must be fully assigned before control is returned to the caller
+                //     public S3()
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.x").WithLocation(29, 12));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_07(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S1
+{
+    int x = 1;
+    int y;
+    public S1(int y) : this()
+    {
+    }
+    public S1() { }
+}
+struct S2
+{
+    int x = 2;
+    int y;
+    public S2(int y) : this()
+    {
+        this.y = y;
+    }
+    public S2() { }
+}
+struct S3
+{
+    int x = 3;
+    int y;
+    public S3(int y) : this()
+    {
+    }
+    public S3()
+    {
+        this.y = -3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
+                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_08(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S1
+{
+    int x1 = y1 + 1;
+    int y1;
+    public S1(int y)
+    {
+        this.y1 = y;
+    }
+}
+record struct R1
+{
+    int x1 = y1 + 1;
+    int y1;
+    public R1(int y)
+    {
+        this.y1 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("S1.y1").WithLocation(3, 14),
+                // (3,14): error CS0170: Use of possibly unassigned field 'y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(3, 14),
+                // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("R1.y1").WithLocation(12, 14),
+                // (12,14): error CS0170: Use of possibly unassigned field 'y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(12, 14));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_09(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S2
+{
+    int x2 = y2 + 1;
+    int y2;
+    public S2(int y) : this()
+    {
+        this.y2 = y;
+    }
+}
+record struct R2
+{
+    int x2 = y2 + 1;
+    int y2;
+    public R2(int y) : this()
+    {
+        this.y2 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S2.y2'
+                //     int x2 = y2 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y2").WithArguments("S2.y2").WithLocation(3, 14),
+                // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R2.y2'
+                //     int x2 = y2 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y2").WithArguments("R2.y2").WithLocation(12, 14));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_10(LanguageVersion? languageVersion)
+        {
+            var source =
+@"struct S3
+{
+    int x3 = y3 + 1;
+    int y3;
+    public S3(int y)
+    {
+        this = default;
+        this.y3 = y;
+    }
+}
+record struct R3
+{
+    int x3 = y3 + 1;
+    int y3;
+    public R3(int y)
+    {
+        this = default;
+        this.y3 = y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("S3.y3").WithLocation(3, 14),
+                // (3,14): error CS0170: Use of possibly unassigned field 'y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(3, 14),
+                // (13,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("R3.y3").WithLocation(13, 14),
+                // (13,14): error CS0170: Use of possibly unassigned field 'y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(13, 14));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_11(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { }
+    public S(string unused) : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { }
+    public R(string unused) : this() { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0171: Field 'S.x1' must be fully assigned before control is returned to the caller
+                //     public S(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.x1").WithLocation(7, 12),
+                // (14,12): error CS0171: Field 'R.x2' must be fully assigned before control is returned to the caller
+                //     public R(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "R").WithArguments("R.x2").WithLocation(14, 12));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_12(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { x1 = 2; }
+    public S(string unused) : this() { x1 = 3; }
+    public override string ToString() => (x1, y1).ToString();
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { x2 = -2; }
+    public R(string unused) : this() { x2 = -3; }
+    public override string ToString() => (x2, y2).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(0));
+        Console.WriteLine(new S(string.Empty));
+        Console.WriteLine(new R(0));
+        Console.WriteLine(new R(string.Empty));
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(2, 1)
+(3, 1)
+(-2, -1)
+(-3, -1)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int S.y1""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int S.x1""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S..ctor(string)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.y1""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  stfld      ""int S.x1""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.m1
+  IL_0002:  stfld      ""int R.y2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      ""int R.x2""
+  IL_000f:  ret
+}");
+            verifier.VerifyIL("R..ctor(string)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.m1
+  IL_0009:  stfld      ""int R.y2""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   -3
+  IL_0011:  stfld      ""int R.x2""
+  IL_0016:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_13(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_14(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = 2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
         }
 
         [Fact]
