@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
         internal override Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
