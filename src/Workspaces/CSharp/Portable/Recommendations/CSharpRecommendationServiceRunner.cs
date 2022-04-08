@@ -17,9 +17,11 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
+
+internal partial class CSharpRecommendationService
 {
-    internal partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
+    private sealed partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner
     {
         public CSharpRecommendationServiceRunner(
             CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)

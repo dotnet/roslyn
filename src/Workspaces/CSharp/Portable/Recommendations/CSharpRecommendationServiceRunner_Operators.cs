@@ -7,12 +7,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
+
+internal partial class CSharpRecommendationService
 {
     /// <summary>
     /// Adds user defined operators to the unnamed recommendation set.
     /// </summary>
-    internal partial class CSharpRecommendationServiceRunner
+    private sealed partial class CSharpRecommendationServiceRunner
     {
         private static void AddOperators(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
