@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isInNonUserCode: isInNonUserCode,
                 isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
-                isInTaskLikeTypeContext: ComputeIsInTaskLikeTypeContext(targetToken, semanticModel, precedingModifiers, cancellationToken),
+                isInTaskLikeTypeContext: precedingModifiers.Contains(SyntaxKind.AsyncKeyword),
                 isIsOrAsOrSwitchOrWithExpressionContext: syntaxTree.IsIsOrAsOrSwitchOrWithExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
@@ -299,25 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isWithinAsyncMethod: ComputeIsWithinAsyncMethod(),
                 precedingModifiers: precedingModifiers,
                 cancellationToken: cancellationToken);
-        }
-
-        private static bool ComputeIsInTaskLikeTypeContext(SyntaxToken targetToken, SemanticModel semanticModel, ISet<SyntaxKind> precedingModifiers, CancellationToken cancellationToken)
-        {
-            // Check if we're immediately after 'async' (which the compiler either figured out was a keyword, or it
-            // thinks is an unbound identifier).
-            if (targetToken.Kind() == SyntaxKind.AsyncKeyword)
-                return true;
-
-            if (targetToken is { RawKind: (int)SyntaxKind.IdentifierToken, Text: "async" } &&
-                semanticModel.GetSymbolInfo(targetToken.GetRequiredParent(), cancellationToken).GetAnySymbol() is null)
-            {
-                return true;
-            }
-
-            if (precedingModifiers.Contains(SyntaxKind.AsyncKeyword))
-                return true;
-
-            return false;
         }
 
         private static bool ComputeIsWithinAsyncMethod()
