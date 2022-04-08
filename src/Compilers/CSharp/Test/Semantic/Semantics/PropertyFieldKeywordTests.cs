@@ -3123,8 +3123,8 @@ public class C1
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void InStruct()
+        [Theory, CombinatorialData]
+        public void InStruct([CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 struct S_WithAutoProperty
@@ -3162,7 +3162,7 @@ class C
         S_WithSemiAutoProperty s2 = s1;
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Equal("System.Int32 S_WithAutoProperty.<P>k__BackingField", comp.GetTypeByMetadataName("S_WithAutoProperty").GetMembers().OfType<FieldSymbol>().Single().ToTestDisplayString());
@@ -3177,7 +3177,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(34, 37)
             );
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
