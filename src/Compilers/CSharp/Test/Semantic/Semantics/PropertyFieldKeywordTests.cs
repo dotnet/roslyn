@@ -218,6 +218,119 @@ public class C
         }
 
         [Fact]
+        public void TestPropertyNotAssignedInStructConstructor()
+        {
+            var comp = CreateCompilation(@"
+var x = new C();
+x.P = 10;
+x = new C();
+
+public struct C
+{
+    public C()
+    {
+        System.Console.WriteLine(""In C..ctor: "" + P);
+    }
+
+    public int P { get => field; set => field = value; }
+}
+", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                //         System.Console.WriteLine("In C..ctor: " + P);
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 51)
+                );
+            CompileAndVerify(comp, expectedOutput: @"In C..ctor: 0
+In C..ctor: 0").VerifyIL("C..ctor", @"
+{
+    // Code size       37 (0x25)
+    .maxstack  2
+    .locals init (int V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.0
+    IL_0002:  stfld      ""int C.<P>k__BackingField""
+    IL_0007:  ldstr      ""In C..ctor: ""
+    IL_000c:  ldarg.0
+    IL_000d:  call       ""int C.P.get""
+    IL_0012:  stloc.0
+    IL_0013:  ldloca.s   V_0
+    IL_0015:  call       ""string int.ToString()""
+    IL_001a:  call       ""string string.Concat(string, string)""
+    IL_001f:  call       ""void System.Console.WriteLine(string)""
+    IL_0024:  ret
+}
+");
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestPropertyIsAssignedInStructConstructor()
+        {
+            var comp = CreateCompilation(@"
+var x = new C();
+x.P = 10;
+x = new C();
+
+public struct C
+{
+    public C()
+    {
+        System.Console.WriteLine(""In C..ctor before assignment: "" + P);
+        P = 5;
+        System.Console.WriteLine(""In C..ctor after assignment: "" + P);
+    }
+
+    public int P { get => field; set => field = value; }
+}
+", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                //         System.Console.WriteLine("In C..ctor before assignment: " + P);
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 69)
+                );
+            CompileAndVerify(comp, expectedOutput: @"In C..ctor before assignment: 0
+In C..ctor after assignment: 5
+In C..ctor before assignment: 0
+In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ldstr      ""In C..ctor before assignment: ""
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""int C.P.get""
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""string int.ToString()""
+  IL_001a:  call       ""string string.Concat(string, string)""
+  IL_001f:  call       ""void System.Console.WriteLine(string)""
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.i4.5
+  IL_0026:  call       ""void C.P.set""
+  IL_002b:  ldstr      ""In C..ctor after assignment: ""
+  IL_0030:  ldarg.0
+  IL_0031:  call       ""int C.P.get""
+  IL_0036:  stloc.0
+  IL_0037:  ldloca.s   V_0
+  IL_0039:  call       ""string int.ToString()""
+  IL_003e:  call       ""string string.Concat(string, string)""
+  IL_0043:  call       ""void System.Console.WriteLine(string)""
+  IL_0048:  ret
+}
+");
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
         public void TestFieldInLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -293,6 +406,12 @@ public class MyAttribute : System.Attribute
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // Looks like an incorrect diagnostic. Tracked by https://github.com/dotnet/roslyn/issues/60645
+                // (10,23): warning CS0219: The variable 'field' is assigned but its value is never used
+                //             const int field = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "field").WithArguments("field").WithLocation(10, 23)
+                );
             CompileAndVerify(comp, expectedOutput: "10");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -446,6 +565,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -534,6 +654,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -763,6 +884,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -915,6 +1037,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -997,6 +1120,19 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            if (member == "private int field;")
+            {
+                comp.VerifyDiagnostics(
+                    // (6,17): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
+                    //     private int field;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(6, 17)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
+
             CompileAndVerify(comp, expectedOutput: "field");
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -1025,6 +1161,7 @@ public class C
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
 
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
@@ -1183,6 +1320,7 @@ public class C
 }
 ",
             };
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C.P.get", @"
 {
   // Code size        7 (0x7)
@@ -1211,6 +1349,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp).VerifyIL("C.P.set", @"
 {
   // Code size       10 (0xa)
@@ -1260,6 +1399,7 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "10").VerifyIL("C.P.get", @"
 {
   // Code size        7 (0x7)
@@ -1310,6 +1450,7 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0").VerifyIL("C.P.get", @"
 ").VerifyIL("C..ctor", @"
 ");
@@ -1813,7 +1954,7 @@ public class C : B
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props): Currently has extra diagnostics")]
+        [Fact]
         public void Test_ERR_AutoSetterCantBeReadOnly()
         {
             var comp = CreateCompilation(@"
@@ -1827,7 +1968,7 @@ public struct S
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal("System.Int32 S.<P1>k__BackingField", comp.GetTypeByMetadataName("S").GetMembers().OfType<FieldSymbol>().Single().ToTestDisplayString());
             comp.VerifyDiagnostics(
                 // (4,35): error CS8658: Auto-implemented 'set' accessor 'S.P1.set' cannot be marked 'readonly'.
                 //     public int P1 { get; readonly set; } // ERR_AutoSetterCantBeReadOnly
@@ -1837,9 +1978,13 @@ public struct S
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(6, 51),
                 // (7,42): error CS1604: Cannot assign to 'field' because it is read-only
                 //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 42)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 42),
+                // PROTOTYPE(semi-auto-props): The following diagnostic shouldn't exist. It should go away when mixed scenarios are supported.
+                // (7,21): error CS0501: 'S.P4.get' must declare a body because it is not marked abstract, extern, or partial
+                //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("S.P4.get").WithLocation(7, 21)
             );
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3024,10 +3169,12 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("S_WithManualProperty").GetMembers().OfType<FieldSymbol>());
             Assert.Empty(comp.GetTypeByMetadataName("S_WithSemiAutoProperty").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics(
-                // PROTOTYPE(semi-auto-props): Do we expect a similar error for semi auto props?
                 // (22,33): error CS0165: Use of unassigned local variable 's1'
                 //         S_WithAutoProperty s2 = s1;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(22, 33)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(22, 33),
+                // (34,37): error CS0165: Use of unassigned local variable 's1'
+                //         S_WithSemiAutoProperty s2 = s1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(34, 37)
             );
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
