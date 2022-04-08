@@ -1151,8 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if ((fieldFlags & FieldAttributes.Static) == 0)
                         {
                             // Instance field used to determine underlying type.
-                            FieldInfo<TypeSymbol> fieldInfo;
-                            decoder.DecodeFieldSignature(fieldDef, out fieldInfo);
+                            FieldInfo<TypeSymbol> fieldInfo = decoder.DecodeFieldSignature(fieldDef);
                             TypeSymbol type = fieldInfo.Type;
 
                             if (type.SpecialType.IsValidEnumUnderlyingType() && !fieldInfo.CustomModifiers.AnyRequired())

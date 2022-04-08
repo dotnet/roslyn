@@ -1905,7 +1905,7 @@ tryAgain:
             parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal void DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out FieldInfo<TypeSymbol> info)
+        internal FieldInfo<TypeSymbol> DecodeFieldSignature(FieldDefinitionHandle fieldHandle)
         {
             try
             {
@@ -1916,24 +1916,22 @@ tryAgain:
 
                 if (signatureHeader.Kind != SignatureKind.Field)
                 {
-                    info = new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
+                    return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
                 }
                 else
                 {
-                    DecodeFieldSignature(ref signatureReader, out info);
+                    return DecodeFieldSignature(ref signatureReader);
                 }
             }
             catch (BadImageFormatException mrEx)
             {
-                info = new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
             }
         }
 
         // MetaImport::DecodeFieldSignature
-        protected void DecodeFieldSignature(ref BlobReader signatureReader, out FieldInfo<TypeSymbol> info)
+        protected FieldInfo<TypeSymbol> DecodeFieldSignature(ref BlobReader signatureReader)
         {
-            info = default;
-
             try
             {
                 SignatureTypeCode typeCode;
@@ -1953,15 +1951,15 @@ tryAgain:
                 }
 
                 var type = DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
-                info = new FieldInfo<TypeSymbol>(isByRef, refCustomModifiers, type, customModifiers);
+                return new FieldInfo<TypeSymbol>(isByRef, refCustomModifiers, type, customModifiers);
             }
             catch (UnsupportedSignatureContent)
             {
-                info = new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
             }
             catch (BadImageFormatException mrEx)
             {
-                info = new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
             }
         }
 

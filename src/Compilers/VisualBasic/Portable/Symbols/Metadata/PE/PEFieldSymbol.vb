@@ -347,9 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub EnsureSignatureIsLoaded()
             If _lazyType Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
-                Dim fieldInfo As FieldInfo(Of TypeSymbol) = Nothing
-                Dim metadataDecoder = New MetadataDecoder(moduleSymbol, _containingType)
-                metadataDecoder.DecodeFieldSignature(_handle, fieldInfo)
+                Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
                 Dim type As TypeSymbol = fieldInfo.Type
 
                 ' PROTOTYPE: Report use-site diagnostic if fieldInfo.IsByRef.

@@ -114,8 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             Return Nothing
                         End If
 
-                        Dim fieldInfo As FieldInfo(Of TypeSymbol) = Nothing
-                        Me.DecodeFieldSignature(signaturePointer, fieldInfo)
+                        Dim fieldInfo As FieldInfo(Of TypeSymbol) = Me.DecodeFieldSignature(signaturePointer)
                         Return FindFieldBySignature(_containingType, memberName, fieldInfo.CustomModifiers, fieldInfo.Type)
 
                     Case Else

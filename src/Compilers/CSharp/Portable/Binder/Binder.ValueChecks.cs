@@ -847,7 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (fieldSymbol.RefKind)
                 {
                     case RefKind.None:
-                        Debug.Assert(fieldSymbol.RefKind == RefKind.None);
                         Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
                         return false;
                     case RefKind.Ref:

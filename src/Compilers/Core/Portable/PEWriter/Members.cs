@@ -267,7 +267,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// True if the field is passed by reference (using a managed pointer).
+        /// True if the field contains a managed pointer.
         /// </summary>
         bool IsByReference { get; }
 

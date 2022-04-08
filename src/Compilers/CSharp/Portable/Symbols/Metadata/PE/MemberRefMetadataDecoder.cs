@@ -138,8 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return null;
                         }
 
-                        FieldInfo<TypeSymbol> fieldInfo;
-                        this.DecodeFieldSignature(ref signaturePointer, out fieldInfo);
+                        FieldInfo<TypeSymbol> fieldInfo = this.DecodeFieldSignature(ref signaturePointer);
                         return FindFieldBySignature(_containingType, memberName, fieldInfo.CustomModifiers, fieldInfo.Type);
 
                     default:

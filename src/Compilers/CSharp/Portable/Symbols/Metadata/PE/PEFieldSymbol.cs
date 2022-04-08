@@ -283,8 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
-                FieldInfo<TypeSymbol> fieldInfo;
-                (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out fieldInfo);
+                FieldInfo<TypeSymbol> fieldInfo = new MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle);
                 TypeSymbol typeSymbol = fieldInfo.Type;
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(fieldInfo.CustomModifiers);
 
