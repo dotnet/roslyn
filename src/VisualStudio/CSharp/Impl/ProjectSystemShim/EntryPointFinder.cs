@@ -16,13 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol)
         {
             var visitor = new EntryPointFinder();
-            // Only search source symbols
-            // Some callers will give a symbol that is not part of a compilation
-            if (symbol.ContainingCompilation is not null)
-            {
-                symbol = symbol.ContainingCompilation.SourceModule.GlobalNamespace;
-            }
-
             visitor.Visit(symbol);
             return visitor.EntryPoints;
         }
