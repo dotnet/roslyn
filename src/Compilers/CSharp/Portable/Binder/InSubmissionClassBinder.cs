@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupMembersInSubmissions(result, (NamedTypeSymbol)Container, _declarationSyntax, _inUsings, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             this.AddMemberLookupSymbolsInfoInSubmissions(result, (NamedTypeSymbol)Container, _inUsings, options, originalBinder);
         }

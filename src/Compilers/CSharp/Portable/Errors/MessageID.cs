@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureCheckedUserDefinedOperators = MessageBase + 12821,
         IDS_FeatureUTF8StringLiterals = MessageBase + 12822,
+        IDS_FeatureExtendedNameofScope = MessageBase + 12823,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -370,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                 case MessageID.IDS_FeatureCheckedUserDefinedOperators: // semantic check for declarations, parsing check for doc comments
                 case MessageID.IDS_FeatureUTF8StringLiterals: // semantic check
+                case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

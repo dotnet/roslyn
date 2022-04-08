@@ -336,6 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if ((current is InvocationExpressionSyntax invocation) && invocation.MayBeNameofOperator())
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -698,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetRemappedSymbol<LocalSymbol>(local);
         }
 
-        private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax)
+        internal LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax)
         {
             var originalSymbol = GetDeclaredLocalFunction(this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)), declarationSyntax.Identifier);
             return GetRemappedSymbol(originalSymbol);
@@ -1169,48 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _guardedIOperationNodeMap.TryGetValue(node, out var operation) ? operation : null;
             }
         }
-#nullable disable
 
-        private CSharpSyntaxNode GetBindingRootOrInitializer(CSharpSyntaxNode node)
-        {
-            CSharpSyntaxNode bindingRoot = GetBindingRoot(node);
-
-            // if binding root is parameter, make it equal value
-            // we need to do this since node map doesn't contain bound node for parameter
-            if (bindingRoot is ParameterSyntax parameter && parameter.Default?.FullSpan.Contains(node.Span) == true)
-            {
-                return parameter.Default;
-            }
-
-            // if binding root is field variable declarator, make it initializer
-            // we need to do this since node map doesn't contain bound node for field/event variable declarator
-            if (bindingRoot is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
-            {
-                if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
-                    variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
-                {
-                    return variableDeclarator.Initializer;
-                }
-            }
-
-            // if binding root is enum member declaration, make it equal value
-            // we need to do this since node map doesn't contain bound node for enum member decl
-            if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
-            {
-                return enumMember.EqualsValue;
-            }
-
-            // if binding root is property member declaration, make it equal value
-            // we need to do this since node map doesn't contain bound node for property initializer
-            if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
-            {
-                return propertyMember.Initializer;
-            }
-
-            return bindingRoot;
-        }
-
-#nullable enable
         private IOperation GetRootOperation()
         {
             BoundNode highestBoundNode = GetBoundRoot();

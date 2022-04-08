@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             Debug.Assert(options.AreValid());
 

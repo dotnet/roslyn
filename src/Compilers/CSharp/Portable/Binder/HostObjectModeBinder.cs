@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             var hostObjectType = GetHostObjectType();
             if (hostObjectType.Kind != SymbolKind.ErrorType)

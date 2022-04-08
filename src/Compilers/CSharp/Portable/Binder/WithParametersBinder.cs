@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameters = parameters;
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderLocals())
             {

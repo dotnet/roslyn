@@ -1,5 +1,30 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Nameof operator in attribute on method or local function
+
+***Introduced in .NET SDK 7.0.400, Visual Studio 2022 version 17.3.***
+
+When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
+brings the type parameters of that method in scope. The same applies for local functions.
+
+For instance, this will now be an error:
+```csharp
+class C
+{
+  class TParameter
+  {
+    internal const string Constant = """";
+  }
+  [MyAttribute(nameof(TParameter.Constant))]
+  void M<TParameter>() { }
+}
+```
+
+Possible workarounds are:
+
+1. Rename the type parameter to avoid shadowing the name from outer scope.
+1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
+
 ## UTF8 String Literal conversion
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
