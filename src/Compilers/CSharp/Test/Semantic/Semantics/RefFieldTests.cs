@@ -371,7 +371,7 @@ ref struct B
             Assert.Equal(RefKind.RefReadOnly, field.RefKind);
             // Currently, source symbols cannot declare RefCustomModifiers. If that
             // changes, update this test to verify retargeting of RefCutomModifiers.
-            Assert.Equal(new string[0], field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
+            Assert.Empty(field.RefCustomModifiers);
             Assert.Equal("ref readonly System.Int32 A.F", field.ToTestDisplayString());
         }
 
@@ -657,21 +657,18 @@ class Program
                 // (22,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' because it is a readonly variable
                 //             F = ref GetRefReadonly();
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(22, 21),
-                // (40,20): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                // (37,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tValue;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(37, 9),
+                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tRef;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(38, 9),
+                // (39,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tOut;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(39, 9),
+                // (40,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         s.F =  ref tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(40, 20),
-                // (41,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  tValue;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(41, 9),
-                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  tRef;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(42, 9),
-                // (43,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  tOut;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(43, 9),
-                // (44,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  tIn;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(44, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(40, 9));
         }
 
         [Fact]
@@ -777,17 +774,18 @@ class Program
 }
 class Program
 {
-    static ref T F1<T>(S<T> s) => ref s.F;
-    static ref T F2<T>(ref S<T> s) => ref s.F;
-    static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref T F4<T>(in S<T> s) => ref s.F;
-    static ref readonly T F5<T>(S<T> s) => ref s.F;
-    static ref readonly T F6<T>(ref S<T> s) => ref s.F;
-    static ref readonly T F7<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref readonly T F8<T>(in S<T> s) => ref s.F;
+    static ref T F3<T>(S<T> s) => ref s.F;
+    static ref T F4<T>(ref S<T> s) => ref s.F;
+    static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref T F6<T>(in S<T> s) => ref s.F;
+    static ref readonly T F7<T>(S<T> s) => ref s.F;
+    static ref readonly T F8<T>(ref S<T> s) => ref s.F;
+    static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should not report ERR_RefReturnStructThis.
+            // PROTOTYPE: Should report errors for F5() and F9() since out parameters are implicitly scoped.
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref T F1() => ref F;
@@ -796,13 +794,13 @@ class Program
                 //     public ref readonly T F2() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithArguments("this").WithLocation(5, 39),
                 // (9,39): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
-                //     static ref T F1<T>(S<T> s) => ref s.F;
+                //     static ref T F3<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(9, 39),
                 // (12,42): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
-                //     static ref T F4<T>(in S<T> s) => ref s.F;
+                //     static ref T F6<T>(in S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
-                //     static ref readonly T F5<T>(S<T> s) => ref s.F;
+                //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
         }
 
@@ -818,17 +816,18 @@ class Program
 }
 class Program
 {
-    static ref T F1<T>(S<T> s) => ref s.F;
-    static ref T F2<T>(ref S<T> s) => ref s.F;
-    static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref T F4<T>(in S<T> s) => ref s.F;
-    static ref readonly T F5<T>(S<T> s) => ref s.F;
-    static ref readonly T F6<T>(ref S<T> s) => ref s.F;
-    static ref readonly T F7<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref readonly T F8<T>(in S<T> s) => ref s.F;
+    static ref T F3<T>(S<T> s) => ref s.F;
+    static ref T F4<T>(ref S<T> s) => ref s.F;
+    static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref T F6<T>(in S<T> s) => ref s.F;
+    static ref readonly T F7<T>(S<T> s) => ref s.F;
+    static ref readonly T F8<T>(ref S<T> s) => ref s.F;
+    static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should not report ERR_RefReturnStructThis.
+            // PROTOTYPE: Should report error for F9() since out parameters are implicitly scoped.
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
@@ -837,22 +836,21 @@ class Program
                 //     public ref readonly T F2() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithArguments("this").WithLocation(5, 39),
                 // (9,39): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
-                //     static ref T F1<T>(S<T> s) => ref s.F;
+                //     static ref T F3<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 39),
                 // (10,43): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
-                //     static ref T F2<T>(ref S<T> s) => ref s.F;
+                //     static ref T F4<T>(ref S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 43),
                 // (11,62): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
-                //     static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
+                //     static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 62),
                 // (12,42): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
-                //     static ref T F4<T>(in S<T> s) => ref s.F;
+                //     static ref T F6<T>(in S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
-                //     static ref readonly T F5<T>(S<T> s) => ref s.F;
+                //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
         }
-
 
         [Fact]
         public void RefReturn_ReadonlyRef()
@@ -866,38 +864,33 @@ class Program
 }
 class Program
 {
-    static ref T F1<T>(S<T> s) => ref s.F;
-    static ref T F2<T>(ref S<T> s) => ref s.F;
-    static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref T F4<T>(in S<T> s) => ref s.F;
-    static ref readonly T F5<T>(S<T> s) => ref s.F;
-    static ref readonly T F6<T>(ref S<T> s) => ref s.F;
-    static ref readonly T F7<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref readonly T F8<T>(in S<T> s) => ref s.F;
+    static ref T F3<T>(S<T> s) => ref s.F;
+    static ref T F4<T>(ref S<T> s) => ref s.F;
+    static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref T F6<T>(in S<T> s) => ref s.F;
+    static ref readonly T F7<T>(S<T> s) => ref s.F;
+    static ref readonly T F8<T>(ref S<T> s) => ref s.F;
+    static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should not report ERR_RefReturnStructThis.
+            // PROTOTYPE: Should report errors for F5() and F9() since out parameters are implicitly scoped.
             comp.VerifyEmitDiagnostics(
-                // (4,30): error CS8160: A readonly field cannot be returned by writable reference
+                // (4,30): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref T F1() => ref F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "F").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithArguments("this").WithLocation(4, 30),
                 // (5,39): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref readonly T F2() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithArguments("this").WithLocation(5, 39),
-                // (9,39): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F1<T>(S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(9, 39),
-                // (10,43): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F2<T>(ref S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(10, 43),
-                // (11,62): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(11, 62),
-                // (12,42): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F4<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(12, 42),
+                // (9,39): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
+                //     static ref T F3<T>(S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(9, 39),
+                // (12,42): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
+                //     static ref T F6<T>(in S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
-                //     static ref readonly T F5<T>(S<T> s) => ref s.F;
+                //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
         }
 
@@ -913,38 +906,39 @@ class Program
 }
 class Program
 {
-    static ref T F1<T>(S<T> s) => ref s.F;
-    static ref T F2<T>(ref S<T> s) => ref s.F;
-    static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref T F4<T>(in S<T> s) => ref s.F;
-    static ref readonly T F5<T>(S<T> s) => ref s.F;
-    static ref readonly T F6<T>(ref S<T> s) => ref s.F;
-    static ref readonly T F7<T>(out S<T> s) { s = default; return ref s.F; }
-    static ref readonly T F8<T>(in S<T> s) => ref s.F;
+    static ref T F3<T>(S<T> s) => ref s.F;
+    static ref T F4<T>(ref S<T> s) => ref s.F;
+    static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref T F6<T>(in S<T> s) => ref s.F;
+    static ref readonly T F7<T>(S<T> s) => ref s.F;
+    static ref readonly T F8<T>(ref S<T> s) => ref s.F;
+    static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
+    static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should not report ERR_RefReturnStructThis.
+            // PROTOTYPE: Should report error for F9() since out parameters are implicitly scoped.
             comp.VerifyEmitDiagnostics(
-                // (4,30): error CS8160: A readonly field cannot be returned by writable reference
+                // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "F").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(4, 30),
                 // (5,39): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     public ref readonly T F2() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithArguments("this").WithLocation(5, 39),
-                // (9,39): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F1<T>(S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(9, 39),
-                // (10,43): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F2<T>(ref S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(10, 43),
-                // (11,62): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F3<T>(out S<T> s) { s = default; return ref s.F; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(11, 62),
-                // (12,42): error CS8160: A readonly field cannot be returned by writable reference
-                //     static ref T F4<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "s.F").WithLocation(12, 42),
+                // (9,39): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                //     static ref T F3<T>(S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 39),
+                // (10,43): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                //     static ref T F4<T>(ref S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 43),
+                // (11,62): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                //     static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 62),
+                // (12,42): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                //     static ref T F6<T>(in S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
-                //     static ref readonly T F5<T>(S<T> s) => ref s.F;
+                //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
         }
 
@@ -1136,20 +1130,9 @@ class Program
         S<T>.M4(in s.F);
     }
 }";
+            // PROTOTYPE: Execute code and verify IL for each of the cases.
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (27,16): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         M2(ref F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "F").WithLocation(27, 16),
-                // (28,16): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "F").WithLocation(28, 16),
-                // (43,21): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         S<T>.M2(ref s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F").WithLocation(43, 21),
-                // (44,21): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         S<T>.M3(out s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F").WithLocation(44, 21));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1218,18 +1201,18 @@ class Program
                 // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //             M3(out F);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
-                // (27,16): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M2(ref F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "F").WithLocation(27, 16),
-                // (28,16): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
+                // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "F").WithLocation(28, 16),
-                // (43,21): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16),
+                // (43,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         S<T>.M2(ref s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F").WithLocation(43, 21),
-                // (44,21): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(43, 21),
+                // (44,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         S<T>.M3(out s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F").WithLocation(44, 21));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 21));
         }
 
         [Fact]
@@ -1261,12 +1244,12 @@ class Program
                 // (13,9): error CS8331: Cannot assign to field 'S<T>.F2' because it is a readonly variable
                 //         s.F2 = t;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 9),
-                // (14,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // (14,9): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //         s.F3 = t;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F3").WithLocation(14, 9),
-                // (15,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s.F3").WithArguments("variable", "in S<T>").WithLocation(14, 9),
+                // (15,9): error CS8331: Cannot assign to field 'S<T>.F4' because it is a readonly variable
                 //         s.F4 = t;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F4").WithLocation(15, 9));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 9));
         }
 
         [Fact]
@@ -1282,28 +1265,35 @@ class Program
 }
 class Program
 {
-    static void M<T>(in S<T> s)
+    static void M1<T>(in S<T> s1)
     {
-        ref T t1 = ref s.F1;
-        ref T t2 = ref s.F2;
-        ref T t3 = ref s.F3;
-        ref T t4 = ref s.F4;
+        ref T t1 = ref s1.F1;
+        ref T t2 = ref s1.F2;
+        ref T t3 = ref s1.F3;
+        ref T t4 = ref s1.F4;
+    }
+    static void M2<T>(in S<T> s2)
+    {
+        ref readonly T t1 = ref s2.F1;
+        ref readonly T t2 = ref s2.F2;
+        ref readonly T t3 = ref s2.F3;
+        ref readonly T t4 = ref s2.F4;
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (12,24): error CS8330: Members of variable 'in S<T>' cannot be used as a ref or out value because it is a readonly variable
-                //         ref T t1 = ref s.F1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "s.F1").WithArguments("variable", "in S<T>").WithLocation(12, 24),
+                //         ref T t1 = ref s1.F1;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "s1.F1").WithArguments("variable", "in S<T>").WithLocation(12, 24),
                 // (13,24): error CS8329: Cannot use field 'S<T>.F2' as a ref or out value because it is a readonly variable
-                //         ref T t2 = ref s.F2;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 24),
-                // (14,24): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         ref T t3 = ref s.F3;
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F3").WithLocation(14, 24),
-                // (15,24): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
-                //         ref T t4 = ref s.F4;
-                Diagnostic(ErrorCode.ERR_RefReadonly, "s.F4").WithLocation(15, 24));
+                //         ref T t2 = ref s1.F2;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 24),
+                // (14,24): error CS8330: Members of variable 'in S<T>' cannot be used as a ref or out value because it is a readonly variable
+                //         ref T t3 = ref s1.F3;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "s1.F3").WithArguments("variable", "in S<T>").WithLocation(14, 24),
+                // (15,24): error CS8329: Cannot use field 'S<T>.F4' as a ref or out value because it is a readonly variable
+                //         ref T t4 = ref s1.F4;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 24));
         }
 
         [Fact]
@@ -1579,12 +1569,19 @@ class Program
     {
         int i = 1;
         ReadAndDiscard(ref i);
+        ReadAndDiscardNoArg<int>();
     }
     static void ReadAndDiscard<T>(ref T t)
     {
         _ = new S<T>(ref t).F;
     }
+    static void ReadAndDiscardNoArg<T>()
+    {
+        _ = new S<T>().F;
+    }
 }";
+            // PROTOTYPE: The dereference of `new S<T>(...).F` should not be elided
+            // since the behavior may be observable as a NullReferenceException.
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
             verifier.VerifyIL("Program.ReadAndDiscard<T>",
 @"{
@@ -1594,6 +1591,12 @@ class Program
   IL_0001:  newobj     ""S<T>..ctor(ref T)""
   IL_0006:  pop
   IL_0007:  ret
+}");
+            verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
 }");
         }
 
@@ -1614,15 +1617,21 @@ class Program
         int i = 1;
         var s = new S<int>(ref i);
         RefReturn(s) = 2;
+        i = RefReadonlyReturn(s);
         Console.WriteLine(i);
     }
     static ref T RefReturn<T>(S<T> s) => ref s.F;
+    static ref readonly T RefReadonlyReturn<T>(S<T> s) => ref s.F;
 }";
+            // PROTOTYPE: Should compile without errors.
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (16,46): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
+                // (17,46): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
                 //     static ref T RefReturn<T>(S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(16, 46));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(17, 46),
+                // (18,63): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
+                //     static ref readonly T RefReadonlyReturn<T>(S<T> s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(18, 63));
         }
 
         [Fact]
@@ -1642,19 +1651,23 @@ class Program
         int i = 1;
         var s = new S<int>(ref i);
         RefReturn(ref s) = 2;
+        i = RefReadonlyReturn(ref s);
         Console.WriteLine(i);
     }
     static ref T RefReturn<T>(ref S<T> s) => ref s.F;
+    static ref readonly T RefReadonlyReturn<T>(ref S<T> s) => ref s.F;
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
-            verifier.VerifyIL("Program.RefReturn<T>",
+            var expectedIL =
 @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""ref T S<T>.F""
   IL_0006:  ret
-}");
+}";
+            verifier.VerifyIL("Program.RefReturn<T>", expectedIL);
+            verifier.VerifyIL("Program.RefReadonlyReturn<T>", expectedIL);
         }
 
         [Fact]
@@ -1674,15 +1687,17 @@ class Program
         int i = 1;
         var s = new S<int>(ref i);
         RefReturn(s) = 2;
+        i = RefReadonlyReturn(s);
         Console.WriteLine(i);
     }
     static ref T RefReturn<T>(in S<T> s) => ref s.F;
+    static ref readonly T RefReadonlyReturn<T>(in S<T> s) => ref s.F;
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (16,49): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
+                // (17,49): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
                 //     static ref T RefReturn<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(16, 49));
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(17, 49));
         }
 
         [Fact]
@@ -1702,6 +1717,7 @@ class Program
         int i = 1;
         S<int> s;
         RefReturn(out s, ref i) = 2;
+        i = RefReadonlyReturn(out s, ref i);
         Console.WriteLine(i);
     }
     static ref T RefReturn<T>(out S<T> s, ref T t)
@@ -1709,9 +1725,14 @@ class Program
         s = new S<T>(ref t);
         return ref s.F;
     }
+    static ref readonly T RefReadonlyReturn<T>(out S<T> s, ref T t)
+    {
+        s = new S<T>(ref t);
+        return ref s.F;
+    }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
-            verifier.VerifyIL("Program.RefReturn<T>",
+            var expectedIL =
 @"{
   // Code size       19 (0x13)
   .maxstack  2
@@ -1722,9 +1743,13 @@ class Program
   IL_000c:  ldarg.0
   IL_000d:  ldfld      ""ref T S<T>.F""
   IL_0012:  ret
-}");
+}";
+            verifier.VerifyIL("Program.RefReturn<T>", expectedIL);
+            verifier.VerifyIL("Program.RefReadonlyReturn<T>", expectedIL);
         }
 
+        // PROTOTYPE: Test with { ref readonly, readonly ref, readonly ref readonly }.
+        // PROTOTYPE: Test from constructor and from instance method.
         [Fact]
         public void CompoundOperations()
         {
@@ -1952,12 +1977,38 @@ class Program
         string s = null;
         var s1 = new S<int>(ref i);
         var s2 = new S<string>(ref s);
-        var pair = new Pair<int, string>(1, ""Hello world"");
-        (s1.F, s2.F) = pair;
+        Deconstruct(new Pair<int, string>(1, ""Hello world""), s1, s2);
         Console.WriteLine((i, s));
     }
+    static void Deconstruct<T, U>(Pair<T, U> pair, S<T> s1, S<U> s2)
+    {
+        (s1.F, s2.F) = pair;
+    }
 }";
-            CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
+            verifier.VerifyIL("Program.Deconstruct<T, U>",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                U V_2)
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  ldfld      ""ref T S<T>.F""
+  IL_0007:  stloc.0
+  IL_0008:  ldarga.s   V_2
+  IL_000a:  ldfld      ""ref U S<U>.F""
+  IL_000f:  ldarg.0
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  callvirt   ""void Pair<T, U>.Deconstruct(out T, out U)""
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  stobj      ""T""
+  IL_0020:  ldloc.2
+  IL_0021:  stobj      ""U""
+  IL_0026:  ret
+}");
         }
 
         [Fact]
@@ -2045,12 +2096,15 @@ class Program
         Console.WriteLine(s.P);
         Console.WriteLine(s.Q);
         Console.WriteLine(x);
+        s.P = ref x;
+        s.Q = ref x;
     }
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should this scenario be supported? Test all valid combinations of { get, set, init }.
             // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error
             // (since we generally don't look at how properties are implemented).
+            // PROTOTYPE: Change text of ERR_RefLocalOrParamExpected to "The left-hand side of a ref assignment must be a ref variable."
             comp.VerifyEmitDiagnostics(
                 // (4,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P { get; }
@@ -2069,11 +2123,17 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Q").WithLocation(9, 9),
                 // (9,9): error CS8079: Use of possibly unassigned auto-implemented property 'Q'
                 //         Q = ref t;
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Q").WithArguments("Q").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Q").WithArguments("Q").WithLocation(9, 9),
+                // (26,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         s.P = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P").WithLocation(26, 9),
+                // (27,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         s.Q = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.Q").WithLocation(27, 9));
         }
 
         [Fact]
-        public void RefAccessor()
+        public void RefAccessor_Value()
         {
             var source =
 @"using System;
@@ -2081,6 +2141,38 @@ ref struct S<T>
 {
     internal T t;
     internal ref T F() => ref t;
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        s.t = 1;
+        s.F() = 2;
+        Console.WriteLine(s.F());
+        Console.WriteLine(s.t);
+        s.t = 3;
+        Console.WriteLine(s.F());
+        Console.WriteLine(s.t);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,31): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     internal ref T F() => ref t;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "t").WithArguments("this").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void RefAccessor_Ref()
+        {
+            var source =
+@"using System;
+ref struct S<T>
+{
+    internal ref T t;
+    internal ref T F() => ref t;
+    internal S(ref T t) { this.t = ref t; }
 }
 class Program
 {

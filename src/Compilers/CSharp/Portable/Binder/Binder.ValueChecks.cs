@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = fieldAccess.FieldSymbol;
             var fieldIsStatic = fieldSymbol.IsStatic;
 
-            if (RequiresAssignableVariable(valueKind))
+            if (fieldSymbol.IsReadOnly)
             {
                 // A field is writeable unless 
                 // (1) it is readonly and we are not in a constructor or field initializer
@@ -796,10 +796,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if (fieldSymbol.IsReadOnly)
+                if (RequiresAssignableVariable(valueKind) && fieldSymbol.RefKind == RefKind.None ||
+                    RequiresRefAssignableVariable(valueKind))
                 {
                     var canModifyReadonly = false;
 
+                    // PROTOTYPE: Test all of these cases with ref fields (ref, ref readonly, readonly ref, readonly ref readonly) and value kinds (Ref, RefReadOnly, Out).
                     Symbol containing = this.ContainingMemberOrLambda;
                     if ((object)containing != null &&
                         fieldIsStatic == containing.IsStatic &&
@@ -828,11 +830,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
+            }
 
-                if (fieldSymbol.RefKind == RefKind.RefReadOnly)
+            if (RequiresAssignableVariable(valueKind))
+            {
+                switch (fieldSymbol.RefKind)
                 {
-                    ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
-                    return false;
+                    case RefKind.None:
+                        break;
+                    case RefKind.Ref:
+                        return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+                    case RefKind.RefReadOnly:
+                        ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
                 }
 
                 if (fieldSymbol.IsFixedSizeBuffer)
@@ -1905,7 +1917,7 @@ moreArguments:
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
-            Debug.Assert(RequiresAssignableVariable(kind));
+            Debug.Assert(RequiresAssignableVariable(kind) && field.RefKind == RefKind.None || RequiresRefAssignableVariable(kind));
             Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
@@ -3829,6 +3841,11 @@ moreArguments:
             if (field.IsConst)
             {
                 return false;
+            }
+
+            if (field.RefKind == RefKind.Ref) // PROTOTYPE: What about RefReadOnly?
+            {
+                return true;
             }
 
             // in readonly situations where ref to a copy is not allowed, consider fields as addressable
