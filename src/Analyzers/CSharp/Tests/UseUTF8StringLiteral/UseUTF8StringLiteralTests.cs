@@ -193,7 +193,37 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
-        public async Task TestImplicitTypedArray()
+        public async Task TestConstant()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    private const byte B = 66;
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 65, B, 67 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    private const byte B = 66;
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestImplicitArray()
         {
             await new VerifyCS.Test
             {
@@ -221,7 +251,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
-        public async Task TestWithExplicitCasts()
+        public async Task TestExplicitCast()
         {
             await new VerifyCS.Test
             {
@@ -249,7 +279,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
-        public async Task TestHexLiterals()
+        public async Task TestHexLiteral()
         {
             await new VerifyCS.Test
             {
@@ -259,7 +289,35 @@ public class C
 {
     public void M()
     {
-        var x = {|IDE0230:new byte[] { 0x40, 0x41, 0x42 }|};
+        var x = {|IDE0230:new byte[] { 0x41, 0x42, 0x43 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestBinaryExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 60 + 5, 60 + 6, 60 + 7 }|};
     }
 }",
                 FixedCode =
@@ -302,5 +360,94 @@ public class C
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestTrivia1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 65, 66, 67 }|}; // I wish this byte array was easier to read
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8; // I wish this byte array was easier to read
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestTrivia2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(byte[] b)
+    {
+        M(/* arrays are */ {|IDE0230:new byte[] { 65, 66, 67 }|} /* cool */);
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M(byte[] b)
+    {
+        M(/* arrays are */ ""ABC""u8 /* cool */);
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestMultiple()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 0x41, 0x42, 0x43 }|};
+        var y = {|IDE0230:new byte[] { 0x44, 0x45, 0x46 }|};
+        var z = {|IDE0230:new byte[] { 0x47, 0x48, 0x49 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""ABC""u8;
+        var y = ""DEF""u8;
+        var z = ""GHI""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
     }
 }
