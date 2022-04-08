@@ -49,8 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Inline_variable_declaration,
+                c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                nameof(CSharpAnalyzersResources.Inline_variable_declaration)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -423,16 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             speculativeModel = null;
             return false;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Inline_variable_declaration,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.Inline_variable_declaration)
-            {
-            }
         }
     }
 }

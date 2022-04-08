@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                CodeAction.Create(
+                    AnalyzersResources.Use_throw_expression,
+                    c => FixAsync(context.Document, diagnostic, c),
+                    nameof(AnalyzersResources.Use_throw_expression)),
                 diagnostic);
 
             return Task.CompletedTask;
@@ -67,15 +70,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_throw_expression, createChangedDocument, nameof(AnalyzersResources.Use_throw_expression))
-            {
-            }
         }
     }
 }

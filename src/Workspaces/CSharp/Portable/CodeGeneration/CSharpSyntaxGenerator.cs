@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly DeclarationModifiers s_localFunctionModifiers =
             DeclarationModifiers.Async |
             DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe |
             DeclarationModifiers.Extern;
 
         private static readonly DeclarationModifiers s_lambdaModifiers =

@@ -41,8 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpAnalyzersResources.Use_simple_using_statement,
+                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                nameof(CSharpAnalyzersResources.Use_simple_using_statement)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -173,14 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 modifiers: default,
                 usingStatement.Declaration,
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_simple_using_statement, createChangedDocument, CSharpAnalyzersResources.Use_simple_using_statement)
-            {
-            }
         }
     }
 }

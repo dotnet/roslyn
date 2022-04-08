@@ -108,7 +108,7 @@ public class MyAttribute : System.Attribute
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
-                // (10,24): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
+                // (10,24): error CS9028: Cannot use 'field' keyword inside 'nameof' expressions.
                 //             [My(nameof(field))]
                 Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(10, 24)
             );
@@ -136,7 +136,7 @@ public class C
                 // (8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //             return nameof(field);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "nameof(field)").WithArguments("string", "int").WithLocation(8, 20),
-                // (8,27): error CS9013: Cannot use 'field' keyword inside 'nameof' expressions.
+                // (8,27): error CS9028: Cannot use 'field' keyword inside 'nameof' expressions.
                 //             return nameof(field);
                 Diagnostic(ErrorCode.ERR_FieldKeywordInsideNameOf, "field").WithLocation(8, 27)
             );

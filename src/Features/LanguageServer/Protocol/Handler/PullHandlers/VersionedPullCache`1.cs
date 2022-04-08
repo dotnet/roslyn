@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Task<string?> GetNewResultIdAsync(
             Dictionary<Document, PreviousPullResult> documentToPreviousDiagnosticParams,
             Document document,
-            Func<Task<TVersion>> computeCheapVersionAsync,
+            Func<Task<TVersion>> computeVersionAsync,
             CancellationToken cancellationToken)
         {
             return GetNewResultIdAsync(
                 documentToPreviousDiagnosticParams,
                 document,
-                computeCheapVersionAsync,
+                computeVersionAsync,
                 computeExpensiveVersionAsync: SpecializedTasks.Null<object>,
                 cancellationToken);
         }
