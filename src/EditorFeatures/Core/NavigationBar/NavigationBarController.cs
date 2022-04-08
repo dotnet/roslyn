@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private readonly ITaggerEventSource _eventSource;
 
+        /// <summary>
+        /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
+        /// </summary>
+        private readonly Action _onVisibilityChanged;
+
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
@@ -66,6 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// only compute the selected item once for every batch.
         /// </summary>
         private readonly AsyncBatchingWorkQueue _selectItemQueue;
+
+        /// <summary>
+        /// Whether or not the navbar is paused.  We pause updates when documents become non-visible. See <see
+        /// cref="_visibilityTracker"/>.
+        /// </summary>
+        private bool _paused = false;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -114,22 +125,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // Once we hook this buffer up to the workspace, then we can start computing the nav bar items.
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
             _eventSource.Changed += OnEventSourceChanged;
+
+            _onVisibilityChanged = () =>
+            {
+                threadingContext.ThrowIfNotOnUIThread();
+
+                // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                // themselves immediately afterwards.
+                Resume();
+            };
+
+            // Register to hear about visibility changes so we can pause/resume this tagger.
+            _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
+
             _eventSource.Connect();
 
             // Kick off initial work to populate the navbars
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public TestAccessor GetTestAccessor() => new TestAccessor(this);
-
-        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
-        {
-            StartModelUpdateAndSelectedItemUpdateTasks();
-        }
-
         void IDisposable.Dispose()
         {
             _threadingContext.ThrowIfNotOnUIThread();
+
+            _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
 
             _presenter.CaretMoved -= OnCaretMoved;
             _presenter.ViewFocused -= OnViewFocused;
@@ -145,6 +164,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Cancel off any remaining background work
             _cancellationTokenSource.Cancel();
+        }
+
+        private void Pause()
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            _paused = true;
+            _eventSource.Pause();
+        }
+
+        private void Resume()
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            // if we're not actually paused, no need to do anything.
+            if (_paused)
+            {
+                // Set us back to running, and kick off work to compute tags now that we're visible again.
+                _paused = false;
+                _eventSource.Resume();
+                StartModelUpdateAndSelectedItemUpdateTasks();
+            }
+        }
+
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
+        {
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         private void StartModelUpdateAndSelectedItemUpdateTasks()

@@ -520,6 +520,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_Member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_Type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Converter para LINQ</target>
@@ -698,11 +708,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Falha ao analisar o fluxo de dados para: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">Corrigir a formatação</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
