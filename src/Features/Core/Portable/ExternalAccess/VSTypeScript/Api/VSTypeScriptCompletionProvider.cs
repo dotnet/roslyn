@@ -19,14 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         }
 
         internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
-        {
-            if (options.ExpandedCompletionBehavior == ExpandedCompletionMode.NonExpandedItemsOnly)
-            {
-                return ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
-            }
-
-            return false;
-        }
+            => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
 
         protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters);
     }
