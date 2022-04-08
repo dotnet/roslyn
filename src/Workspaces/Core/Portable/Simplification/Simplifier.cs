@@ -148,6 +148,12 @@ namespace Microsoft.CodeAnalysis.Simplification
             return await ReduceAsync(document, root.FullSpan, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static async Task<Document> ReduceAsync(Document document, SimplifierOptions options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await ReduceAsync(document, root.FullSpan, options, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the subtrees identified with the specified <paramref name="annotation"/>.
         /// The annotated node and all child nodes will be reduced.
@@ -168,6 +174,12 @@ namespace Microsoft.CodeAnalysis.Simplification
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), optionSet, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified span.
         /// The annotated node and all child nodes will be reduced.
@@ -181,6 +193,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
         }
+
+        internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
+            => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
 
         /// <summary>
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
@@ -201,13 +216,16 @@ namespace Microsoft.CodeAnalysis.Simplification
             var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
 
             return await document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
-                document, spans.ToImmutableArrayOrEmpty(), options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, SimplifierOptions options, CancellationToken cancellationToken)
+            => document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
+
         internal static async Task<Document> ReduceAsync(
-            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+            Document document, ImmutableArray<AbstractReducer> reducers, SimplifierOptions options, CancellationToken cancellationToken)
         {
-            var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
                 .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), options,

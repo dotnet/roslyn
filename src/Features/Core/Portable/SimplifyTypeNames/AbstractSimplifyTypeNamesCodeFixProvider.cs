@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = (TSimplifierOptions)await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = (TSimplifierOptions)await SimplifierOptions.FromDocumentAsync(document, context.Options(document.Project.LanguageServices).SimplifierOptions, cancellationToken).ConfigureAwait(false);
 
             var (node, diagnosticId) = GetNodeToSimplify(
                 root, model, span, options, cancellationToken);
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = (TSimplifierOptions)await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = (TSimplifierOptions)await SimplifierOptions.FromDocumentAsync(document, options(document.Project.LanguageServices).SimplifierOptions, cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
                 var (node, _) = GetNodeToSimplify(
                     root, model, diagnostic.Location.SourceSpan,
-                    options, cancellationToken);
+                    simplifierOptions, cancellationToken);
 
                 if (node == null)
                     return;

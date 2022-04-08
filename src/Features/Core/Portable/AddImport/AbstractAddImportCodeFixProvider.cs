@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
             var services = document.Project.Solution.Workspace.Services;
 
-            var searchOptions = context.Options(document.Project.Language).SearchOptions;
+            var searchOptions = context.Options(document.Project.LanguageServices).SearchOptions;
 
             var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var addImportOptions = new AddImportOptions(
                 searchOptions,
-                context.Options(document.Project.Language).HideAdvancedMembers,
+                context.Options(document.Project.LanguageServices).HideAdvancedMembers,
                 placement);
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(

@@ -37,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_reducers)
         End Sub
 
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+            Get
+                Return VisualBasicSimplifierOptions.Default
+            End Get
+        End Property
+
         Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
             Return VisualBasicSimplifierOptions.Create(options, DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
         End Function

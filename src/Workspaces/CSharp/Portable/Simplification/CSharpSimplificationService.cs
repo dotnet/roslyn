@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
+        public override SimplifierOptions DefaultOptions
+            => CSharpSimplifierOptions.Default;
+
         public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions)
             => CSharpSimplifierOptions.Create(options, (CSharpSimplifierOptions?)fallbackOptions);
 

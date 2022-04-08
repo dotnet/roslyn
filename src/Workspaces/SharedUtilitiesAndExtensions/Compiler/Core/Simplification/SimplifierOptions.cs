@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Roslyn.Utilities;
+
+#if !CODE_STYLE
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -61,17 +64,17 @@ namespace Microsoft.CodeAnalysis.Simplification
             };
 
 #if !CODE_STYLE
-        public static SimplifierOptions Create(OptionSet options, HostWorkspaceServices services, string language)
+        public static SimplifierOptions Create(OptionSet options, HostWorkspaceServices services, SimplifierOptions? fallbackOptions, string language)
         {
             var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(language);
             var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
-            return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions: null);
+            return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions);
         }
 
-        public static async Task<SimplifierOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<SimplifierOptions> FromDocumentAsync(Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+            return Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
         }
 #endif
     }

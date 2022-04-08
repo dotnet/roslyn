@@ -6,9 +6,6 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.ImplementType
-Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public MustInherit Class AbstractWrappingTests
@@ -19,11 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
         End Function
 
         Private Protected Shared Function GetIndentionColumn(column As Integer) As CodeActionOptions
-            Return New CodeActionOptions(
-                SymbolSearchOptions.Default,
-                ImplementTypeOptions.Default,
-                ExtractMethodOptions.Default,
-                WrappingColumn:=column)
+            Return New CodeActionOptions(WrappingColumn:=column)
         End Function
 
         Protected Function TestAllWrappingCasesAsync(
