@@ -658,6 +658,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 fixAllState = new FixAllState(
                     fixAllProviderInfo.FixAllProvider,
+                    fixesSpan,
                     document,
                     document.Project,
                     codeFixProvider,

@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationPreferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />
@@ -36,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAll\FixAllState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAll\FixAllState.FixMultipleDiagnosticProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CommandLine\ICommandLineParserService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\FixAllSpanMappingService\AbstractFixAllSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\FixAllSpanMappingService\IFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\AbstractGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.cs" />
