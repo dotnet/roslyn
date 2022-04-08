@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
@@ -80,6 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
             var stringValue = GetStringValue(values);
 
+            if (stringValue is null)
+                return;
+
             var properties = ImmutableDictionary<string, string?>.Empty.Add(StringValuePropertyName, stringValue);
 
             context.ReportDiagnostic(
@@ -91,28 +95,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
         private static string? GetStringValue(ImmutableArray<object?> values)
         {
-            using var _ = ArrayBuilder<byte>.GetInstance(values.Length, out var byteValues);
-
             try
             {
-                foreach (var value in values)
+                var byteValues = new byte[values.Length];
+                for (var i = 0; i < values.Length; i++)
                 {
                     // We shouldn't get nulls, but Convert.ToByte will return (byte)0 if there are any
                     // so better to crash if the analyzer has a bug, that output a buggy string in users code.
-                    if (value is null)
+                    if (values[i] is null)
                         throw ExceptionUtilities.Unreachable;
 
-                    byteValues.Add(Convert.ToByte(value));
+                    byteValues[i] = Convert.ToByte(values[i]);
                 }
 
-                return Encoding.UTF8.GetString(byteValues.ToArray());
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var ros = new ReadOnlySpan<byte>(byteValues);
+                for (var i = 0; i < ros.Length;)
+                {
+                    // If we can't decode a rune from the array then it can't be represented as a string
+                    if (Rune.DecodeFromUtf8(ros.Slice(i), out var rune, out var bytesConsumed) != OperationStatus.Done)
+                        return null;
+
+                    i += bytesConsumed;
+                    builder.Append(GetStringLiteralRepresentation(rune));
+                }
+
+                return pooledBuilder.ToStringAndFree();
             }
             catch
             {
-                // Ignore conversion failures, or GetString failures, and just don't report the diagnostic
+                // Ignore any conversion failures and just don't report the diagnostic
             }
 
             return null;
         }
+
+        private static string GetStringLiteralRepresentation(Rune rune)
+            => rune.Value switch
+            {
+                '"' => "\\\"",
+                '\\' => "\\\\",
+                '\0' => "\\0",
+                '\a' => "\\a",
+                '\b' => "\\b",
+                '\f' => "\\f",
+                '\n' => "\\n",
+                '\r' => "\\r",
+                '\t' => "\\t",
+                '\v' => "\\v",
+                _ => rune.ToString()
+            };
     }
 }

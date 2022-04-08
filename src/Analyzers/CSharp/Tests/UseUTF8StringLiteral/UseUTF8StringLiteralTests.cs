@@ -448,6 +448,149 @@ public class C
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestEscapeChars()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 34, 92, 0, 7, 8, 12, 10, 13, 9, 11 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""\""\\\0\a\b\f\n\r\t\v""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestEmoji()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 240, 159, 152, 128 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""😀""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestHalfEmoji1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[] { 240, 159 };
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestHalfEmoji2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[] { 152, 128 };
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestHalfEmoji3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[] { 65, 152, 128, 66 };
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestUnicodeReplacementChar()
+        {
+            // The unicode replacement character is what is returned when, for example, an unpaired
+            // surrogate is converted to a UTF8 string. This test just ensures that the presence of
+            // that character isn't being used to detect a failure state of some kind.
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = {|IDE0230:new byte[] { 239, 191, 189 }|};
+    }
+}",
+                FixedCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = ""�""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }
