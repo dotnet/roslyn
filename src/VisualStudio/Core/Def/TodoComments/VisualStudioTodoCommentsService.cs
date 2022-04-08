@@ -59,12 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
                 {
                     if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
-                    {
-                        TodoListUpdated?.Invoke(
-                            this, new TodoItemsUpdatedArgs(
-                                documentId, _workspace, _workspace.CurrentSolution,
-                                documentId.ProjectId, documentId, newComments));
-                    }
+                        TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
                 },
                 threadingContext.DisposalToken);
         }
