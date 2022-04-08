@@ -2,13 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
@@ -16,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed partial class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        public const string StringValuePropertyName = "StringValue";
+
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
@@ -59,21 +66,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationExpression.Syntax.Ancestors().OfType<AttributeSyntax>().Any())
                 return;
 
-            // All elements have to be literals
-            if (arrayCreationExpression.Initializer.ElementValues.Any(v => v.WalkDownConversion() is not ILiteralOperation))
-                return;
-
             // Can't use a UTF8 string inside an expression tree.
             var semanticModel = context.Operation.SemanticModel;
             Contract.ThrowIfNull(semanticModel);
             if (arrayCreationExpression.Syntax.IsInExpressionTree(semanticModel, expressionType, context.CancellationToken))
                 return;
 
+            var values = arrayCreationExpression.Initializer.ElementValues.SelectAsArray(v => v.ConstantValue.HasValue && v.ConstantValue.Value is not null, v => v.ConstantValue.Value);
+
+            // If we couldn't get constant values for all elements then we can't offer
+            if (values.Length != arrayCreationExpression.Initializer.ElementValues.Length)
+                return;
+
+            var stringValue = GetStringValue(values);
+
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(StringValuePropertyName, stringValue);
+
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetLocation(), option.Notification.Severity, additionalLocations: null, properties: null));
+                DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetLocation(), option.Notification.Severity, additionalLocations: null, properties));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private static string? GetStringValue(ImmutableArray<object?> values)
+        {
+            using var _ = ArrayBuilder<byte>.GetInstance(values.Length, out var byteValues);
+
+            try
+            {
+                foreach (var value in values)
+                {
+                    // We shouldn't get nulls, but Convert.ToByte will return (byte)0 if there are any
+                    // so better to crash if the analyzer has a bug, that output a buggy string in users code.
+                    if (value is null)
+                        throw ExceptionUtilities.Unreachable;
+
+                    byteValues.Add(Convert.ToByte(value));
+                }
+
+                return Encoding.UTF8.GetString(byteValues.ToArray());
+            }
+            catch
+            {
+                // Ignore conversion failures, or GetString failures, and just don't report the diagnostic
+            }
+
+            return null;
+        }
     }
 }

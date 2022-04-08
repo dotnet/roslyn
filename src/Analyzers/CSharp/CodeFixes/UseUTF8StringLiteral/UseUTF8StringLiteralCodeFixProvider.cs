@@ -50,75 +50,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var arrays = diagnostics.Select(d => d.Location.FindNode(cancellationToken)).ToImmutableArray();
-
-            var root = editor.OriginalRoot;
-            var updatedRoot = root.ReplaceNodes(
-                arrays,
-                (_, current) => ConvertArrayInitializerElementsToUTF8String(current, semanticModel));
-
-            editor.ReplaceNode(root, updatedRoot);
-        }
-
-        private static SyntaxNode ConvertArrayInitializerElementsToUTF8String(SyntaxNode node, SemanticModel semanticModel)
-        {
-            // Convert the expressions into their constant values, as an array
-            var arrayElementExpressions = node switch
+            foreach (var diagnostic in diagnostics)
             {
-                ArrayCreationExpressionSyntax array => array.Initializer!.Expressions,
-                ImplicitArrayCreationExpressionSyntax array => array.Initializer.Expressions,
-                _ => throw ExceptionUtilities.Unreachable
-            };
+                cancellationToken.ThrowIfCancellationRequested();
 
-            if (!TryGetStringForByteArrayElements(semanticModel, arrayElementExpressions, out var stringValue))
-            {
-                // The analyzer shouldn't have issued a diagnostic if the array couldn't be converted
-                throw ExceptionUtilities.Unreachable;
+                var arrayNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var stringValue = diagnostic.Properties[UseUTF8StringLiteralDiagnosticAnalyzer.StringValuePropertyName]!;
+
+                editor.ReplaceNode(arrayNode, CreateUTF8String(stringValue).WithTriviaFrom(arrayNode));
             }
 
+            return Task.CompletedTask;
+        }
+
+        private static SyntaxNode CreateUTF8String(string stringValue)
+        {
             var literal = SyntaxFactory.Token(
-                    node.GetLeadingTrivia(),
-                    SyntaxKind.UTF8StringLiteralToken,
+                    leading: SyntaxTriviaList.Empty,
+                    kind: SyntaxKind.UTF8StringLiteralToken,
                     text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
                     valueText: "",
-                    trailing: node.GetTrailingTrivia());
+                    trailing: SyntaxTriviaList.Empty);
 
             return SyntaxFactory.LiteralExpression(SyntaxKind.UTF8StringLiteralExpression, literal);
-        }
-
-        private static bool TryGetStringForByteArrayElements(SemanticModel semanticModel, SeparatedSyntaxList<ExpressionSyntax> expressions, [NotNullWhen(true)] out string? stringValue)
-        {
-            stringValue = null;
-
-            var value = new byte[expressions.Count];
-
-            try
-            {
-                for (var i = 0; i < expressions.Count; i++)
-                {
-                    var constantValue = semanticModel.GetConstantValue(expressions[i]);
-                    if (!constantValue.HasValue || constantValue.Value is null)
-                        return false;
-
-                    var byteValue = Convert.ToByte(constantValue.Value);
-                    value[i] = byteValue;
-
-                }
-
-                stringValue = Encoding.UTF8.GetString(value);
-                return true;
-            }
-            catch
-            {
-                // Ignore conversion failures, or GetString failures, and just don't offer the fix
-                return false;
-            }
         }
     }
 }
