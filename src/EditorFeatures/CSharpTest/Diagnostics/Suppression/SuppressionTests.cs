@@ -2079,7 +2079,7 @@ using System.Diagnostics.CodeAnalysis;
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
                     private readonly DiagnosticDescriptor _descriptor =
-                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                        new("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                     {
@@ -2360,6 +2360,48 @@ namespace N
                     expected = expected.Replace("int Method()", "[|int Method()|]");
                     await TestMissingAsync(expected);
                 }
+
+                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethodWithXmlDoc()
+                {
+                    var initial = @"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+
+        /// <summary>
+        /// This is a description
+        /// </summary>
+        [|public void Method(int unused)|] { }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace ClassLibrary10
+{{
+    public class Class1
+    {{
+        int x;
+
+        /// <summary>
+        /// This is a description
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        public void Method(int unused) {{ }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
+                    await TestMissingAsync(expected);
+                }
             }
         }
 
@@ -2372,7 +2414,7 @@ namespace N
             private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public static readonly DiagnosticDescriptor Descriptor =
-                    new DiagnosticDescriptor("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
