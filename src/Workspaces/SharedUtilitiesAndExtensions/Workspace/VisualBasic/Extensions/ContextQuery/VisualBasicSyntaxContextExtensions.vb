@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If targetToken.IsChildToken(Of HandlesClauseSyntax)(Function(hc) hc.HandlesKeyword) OrElse
                 targetToken.IsChildSeparatorToken(Function(hc As HandlesClauseSyntax) hc.Events) Then
 
-                Dim container = context.EnclosingNamedType.GetValue(cancellationToken)
-
+                Dim container = context.EnclosingNamedType
                 If container Is Nothing Then
                     Return False
                 End If
