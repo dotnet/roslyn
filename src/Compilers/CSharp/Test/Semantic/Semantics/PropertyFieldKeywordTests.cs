@@ -3176,8 +3176,6 @@ class C
                 //         S_WithSemiAutoProperty s2 = s1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(34, 37)
             );
-
-            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
