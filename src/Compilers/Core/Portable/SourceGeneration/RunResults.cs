@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Contains timing information a full generation pass.
+    /// Contains timing information for a full generation pass.
     /// </summary>
     public readonly struct GeneratorDriverTimingInfo
     {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The Generator that was running during the recorded time.
+        /// The <see cref="ISourceGenerator"/> that was running during the recorded time.
         /// </summary>
         public ISourceGenerator Generator { get; }
 

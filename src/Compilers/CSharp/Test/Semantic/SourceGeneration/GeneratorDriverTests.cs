@@ -2950,6 +2950,7 @@ public static readonly string F = ""a""
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
                 {
                     context.AddSource("generated", "");
+                    Thread.Sleep(1);
                 });
             }).AsSourceGenerator();
 
@@ -2980,6 +2981,7 @@ public static readonly string F = ""a""
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
                 {
                     context.AddSource("generated", "");
+                    Thread.Sleep(1);
                 });
             }).AsSourceGenerator();
 
@@ -2988,6 +2990,7 @@ public static readonly string F = ""a""
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
                 {
                     context.AddSource("generated", "");
+                    Thread.Sleep(1);
                 });
             }).AsSourceGenerator();
 

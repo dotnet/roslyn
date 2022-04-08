@@ -2080,7 +2080,6 @@ class C
         [Fact]
         public void Syntax_Provider_Doesnt_Attribute_Incorrect_Timing()
         {
-
             var source = @"
 class C 
 {
@@ -2093,8 +2092,7 @@ class C
     }
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
@@ -2111,7 +2109,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
             }).AsSourceGenerator();
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 });
             driver = driver.RunGenerators(compilation);
 
             var timing = driver.GetTimingInfo();
@@ -2126,7 +2124,7 @@ class C
             Assert.True(timing.ElapsedTime >= timing1.ElapsedTime);
             Assert.True(timing1.ElapsedTime.TotalMilliseconds >= sleepTimeInMs);
 
-            // check generator one took at least 'sleepTimeInMs' * 2
+            // check generator two took at least 'sleepTimeInMs' * 2
             var timing2 = timing.GeneratorTimes[1];
             Assert.Equal(testGenerator2, timing2.Generator);
             Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);

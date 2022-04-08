@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis
             private readonly bool _enableTracking;
             private readonly SyntaxStore _previous;
             private readonly CancellationToken _cancellationToken;
-            private SyntaxInputNode? _causedUpdate;
 
             internal Builder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken)
             {
@@ -53,8 +52,6 @@ namespace Microsoft.CodeAnalysis
                 // when we don't have a value for this node, we update all the syntax inputs at once
                 if (!_tableBuilder.Contains(syntaxInputNode))
                 {
-                    _causedUpdate = syntaxInputNode;
-
                     // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
                     // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
                     // This step isn't part of the tree, so we can skip recording.
@@ -99,7 +96,14 @@ namespace Microsoft.CodeAnalysis
                                     }
                                     finally
                                     {
-                                        _syntaxTimes[syntaxInputBuilders[i].node] = _syntaxTimes[syntaxInputBuilders[i].node].Add(sw.Elapsed);
+                                        var elapsed = sw.Elapsed;
+
+                                        // if this node isn't the one that caused the update, ensure we remember it and remove the time it took from the requester
+                                        if (syntaxInputBuilders[i].node != syntaxInputNode)
+                                        {
+                                            _syntaxTimes[syntaxInputNode] = _syntaxTimes[syntaxInputNode].Subtract(elapsed);
+                                            _syntaxTimes[syntaxInputBuilders[i].node] = _syntaxTimes[syntaxInputBuilders[i].node].Add(elapsed);
+                                        }
                                     }
                                 }
                                 catch (UserFunctionException ufe)
@@ -151,30 +155,11 @@ namespace Microsoft.CodeAnalysis
                 TimeSpan result = TimeSpan.Zero;
                 foreach (var node in inputNodes)
                 {
-                    // this node might not have run at all this pass
-                    if (!_syntaxTimes.ContainsKey(node))
-                    {
-                        continue;
-                    }
-
-                    Debug.Assert(_causedUpdate is not null);
-
-                    // when this node was the cause of the update, subtract the time that was spent calculating other nodes
-                    if (node == _causedUpdate)
-                    {
-                        foreach (var kvp in _syntaxTimes)
-                        {
-                            if (kvp.Key != node)
-                            {
-                                result = result.Subtract(kvp.Value);
-                            }
-                        }
-                    }
-                    else
+                    // only add if this node ran at all during this pass
+                    if (_syntaxTimes.ContainsKey(node))
                     {
                         result = result.Add(_syntaxTimes[node]);
                     }
-
                 }
                 return result;
             }

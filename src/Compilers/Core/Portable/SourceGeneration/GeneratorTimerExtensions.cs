@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return new RunTimer(adjustRunTime: null);
+                return new RunTimer();
             }
         }
 
@@ -50,10 +50,16 @@ namespace Microsoft.CodeAnalysis
 
             public TimeSpan Elapsed => _adjustRunTime is not null ? _adjustRunTime(_timer.Elapsed) : _timer.Elapsed;
 
-            public RunTimer(Func<TimeSpan, TimeSpan>? adjustRunTime = null)
+            public RunTimer()
             {
                 _timer = SharedStopwatch.StartNew();
                 _callback = null;
+                _adjustRunTime = null;
+            }
+
+            public RunTimer(Func<TimeSpan, TimeSpan>? adjustRunTime)
+                : this()
+            {
                 _adjustRunTime = adjustRunTime;
             }
 
