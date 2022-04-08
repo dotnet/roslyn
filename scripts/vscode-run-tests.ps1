@@ -1,6 +1,6 @@
 param (
   [Parameter(Mandatory = $true)][string]$filePath,
-  [string]$msbuildEngine = "vs",
+  [string]$msbuildEngine = "dotnet",
   [string]$framework = $null,
   [string]$filter = ""
 )

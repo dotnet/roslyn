@@ -18,7 +18,7 @@
 param (
   [string][Alias('c')]$configuration = "Debug",
   [string][Alias('v')]$verbosity = "m",
-  [string]$msbuildEngine = "vs",
+  [string]$msbuildEngine = "dotnet",
 
   # Actions
   [switch][Alias('r')]$restore,
@@ -492,7 +492,7 @@ function TestUsingRunTests() {
 }
 
 function EnablePreviewSdks() {
-  $vsInfo = LocateVisualStudio
+  $vsInfo = LocateVisualStudio("'version': '16.10'")
   if ($vsInfo -eq $null) {
     # Preview SDKs are allowed when no Visual Studio instance is installed
     return
@@ -513,7 +513,7 @@ function Deploy-VsixViaTool() {
   $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
   $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
 
-  $vsInfo = LocateVisualStudio
+  $vsInfo = LocateVisualStudio("'version': '16.10'")
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
   }

@@ -1,6 +1,6 @@
 [CmdletBinding(PositionalBinding=$false)]
 param([string]$configuration = "Debug",
-      [string]$msbuildEngine = "vs",
+      [string]$msbuildEngine = "dotnet",
       [string]$altRootDrive = "q:",
       [switch]$help)
 

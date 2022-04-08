@@ -5,11 +5,7 @@
     "rollForward": "latestPatch"
   },
   "tools": {
-    "dotnet": "6.0.200",
-    "vs": {
-      "version": "16.10"
-    },
-    "xcopy-msbuild": "16.10.0-preview2"
+    "dotnet": "6.0.200"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22179.1",
