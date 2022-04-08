@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
             var recommendationOptions = options.ToRecommendationServiceOptions();
-            var recommender = context.GetLanguageService<IRecommendationService>();
+            var recommender = context.GetRequiredLanguageService<IRecommendationService>();
             var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
 
             if (context.IsInTaskLikeTypeContext)

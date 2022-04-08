@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
-        protected static ISet<INamedTypeSymbol> ComputeOuterTypes(SemanticModel semanticModel, SyntaxToken leftToken, CancellationToken cancellationToken)
+        protected static ISet<INamedTypeSymbol> ComputeOuterTypes(SyntaxContext context, CancellationToken cancellationToken)
         {
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(leftToken.SpanStart, cancellationToken);
+            var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(context.LeftToken.SpanStart, cancellationToken);
             if (enclosingSymbol != null)
             {
                 var containingType = enclosingSymbol.GetContainingTypeOrThis();
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             {
                 if (_lazyOuterTypesAndBases.IsDefault)
                 {
-                    _lazyOuterTypesAndBases = ComputeOuterTypes(_context.SemanticModel, _context.LeftToken, _cancellationToken)
+                    _lazyOuterTypesAndBases = ComputeOuterTypes(_context, _cancellationToken)
                         .SelectMany(o => o.GetBaseTypesAndThis())
                         .SelectAsArray(t => t.OriginalDefinition);
                 }

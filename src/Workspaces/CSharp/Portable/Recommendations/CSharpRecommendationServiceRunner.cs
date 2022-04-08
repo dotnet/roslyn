@@ -234,7 +234,7 @@ internal partial class CSharpRecommendationService
 
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
-            var contextOuterTypes = _context.GetOuterTypes(_cancellationToken);
+            var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
             symbols = symbols.WhereAsArray(symbol =>
