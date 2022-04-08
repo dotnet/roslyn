@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/60364")]
+        [WpfTheory]
         [CombinatorialData]
         public void CodeDefinitionWindowOpensMetadataAsSource(bool enableDecompilation)
         {
