@@ -1268,14 +1268,13 @@ class Program
                 actualText);
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(null)]
-        public void DefaultThisInitializer_06(LanguageVersion? languageVersion)
+        [Fact]
+        public void DefaultThisInitializer_06()
         {
             var source =
 @"#pragma warning disable 169
 #pragma warning disable 414
+using System;
 struct S1
 {
     int x;
@@ -1284,6 +1283,7 @@ struct S1
     {
     }
     public S1() { }
+    public override string ToString() => (x, y).ToString();
 }
 struct S2
 {
@@ -1294,6 +1294,7 @@ struct S2
         this.y = y;
     }
     public S2() { }
+    public override string ToString() => (x, y).ToString();
 }
 struct S3
 {
@@ -1306,35 +1307,119 @@ struct S3
     {
         this.y = -3;
     }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(1));
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S2(2));
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S3(3));
+        Console.WriteLine(new S3());
+    }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                // (11,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
-                // (10,12): error CS0171: Field 'S1.x' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.y", "preview").WithLocation(11, 12),
+                // (11,12): error CS0171: Field 'S1.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.x").WithLocation(10, 12),
-                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.x", "preview").WithLocation(11, 12),
+                // (22,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12),
-                // (20,12): error CS0171: Field 'S2.x' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.y", "preview").WithLocation(22, 12),
+                // (22,12): error CS0171: Field 'S2.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.x").WithLocation(20, 12),
-                // (29,12): error CS0171: Field 'S3.x' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.x", "preview").WithLocation(22, 12),
+                // (32,12): error CS0171: Field 'S3.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S3()
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.x").WithLocation(29, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S3").WithArguments("S3.x", "preview").WithLocation(32, 12));
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"(0, 0)
+(0, 0)
+(0, 2)
+(0, 0)
+(0, -3)
+(0, -3)
+");
+            verifier.VerifyIL("S1..ctor(int)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S1.x""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stfld      ""int S1.y""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S2..ctor(int)",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S2..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""int S2.y""
+  IL_000d:  ret
+}");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S2.x""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  stfld      ""int S2.y""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S3..ctor(int)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S3..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S3..ctor()",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S3.x""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  stfld      ""int S3.y""
+  IL_000f:  ret
+}");
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(null)]
-        public void DefaultThisInitializer_07(LanguageVersion? languageVersion)
+        [Fact]
+        public void DefaultThisInitializer_07()
         {
             var source =
 @"#pragma warning disable 169
 #pragma warning disable 414
+using System;
 struct S1
 {
     int x = 1;
@@ -1343,6 +1428,7 @@ struct S1
     {
     }
     public S1() { }
+    public override string ToString() => (x, y).ToString();
 }
 struct S2
 {
@@ -1353,6 +1439,7 @@ struct S2
         this.y = y;
     }
     public S2() { }
+    public override string ToString() => (x, y).ToString();
 }
 struct S3
 {
@@ -1365,22 +1452,105 @@ struct S3
     {
         this.y = -3;
     }
+    public override string ToString() => (x, y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(1));
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S2(2));
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S3(3));
+        Console.WriteLine(new S3());
+    }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (10,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller
+                // (11,12): error CS0171: Field 'S1.y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.y").WithLocation(10, 12),
-                // (20,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.y", "preview").WithLocation(11, 12),
+                // (22,12): error CS0171: Field 'S2.y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S2() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.y").WithLocation(20, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.y", "preview").WithLocation(22, 12));
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"(1, 0)
+(1, 0)
+(2, 2)
+(2, 0)
+(3, -3)
+(3, -3)
+");
+            verifier.VerifyIL("S1..ctor(int)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S1.y""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S1.x""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S2..ctor(int)",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S2..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""int S2.y""
+  IL_000d:  ret
+}");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S2.y""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int S2.x""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S3..ctor(int)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S3..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("S3..ctor()",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.3
+  IL_0002:  stfld      ""int S3.x""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -3
+  IL_000a:  stfld      ""int S3.y""
+  IL_000f:  ret
+}");
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(null)]
-        public void DefaultThisInitializer_08(LanguageVersion? languageVersion)
+        [Fact]
+        public void DefaultThisInitializer_08()
         {
             var source =
 @"struct S1
@@ -1402,20 +1572,29 @@ record struct R1
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S1.y1'
                 //     int x1 = y1 + 1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("S1.y1").WithLocation(3, 14),
-                // (3,14): error CS0170: Use of possibly unassigned field 'y1'
+                // (3,14): error CS9015: Use of possibly unassigned field 'y1'. Consider updating to language version 'preview' to auto-default the field.
                 //     int x1 = y1 + 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(3, 14),
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "y1").WithArguments("y1", "preview").WithLocation(3, 14),
                 // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R1.y1'
                 //     int x1 = y1 + 1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("R1.y1").WithLocation(12, 14),
-                // (12,14): error CS0170: Use of possibly unassigned field 'y1'
+                // (12,14): error CS9015: Use of possibly unassigned field 'y1'. Consider updating to language version 'preview' to auto-default the field.
                 //     int x1 = y1 + 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y1").WithArguments("y1").WithLocation(12, 14));
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "y1").WithArguments("y1", "preview").WithLocation(12, 14));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("S1.y1").WithLocation(3, 14),
+                // (12,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R1.y1'
+                //     int x1 = y1 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y1").WithArguments("R1.y1").WithLocation(12, 14));
         }
 
         [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
@@ -1454,10 +1633,8 @@ record struct R2
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y2").WithArguments("R2.y2").WithLocation(12, 14));
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(null)]
-        public void DefaultThisInitializer_10(LanguageVersion? languageVersion)
+        [Fact]
+        public void DefaultThisInitializer_10()
         {
             var source =
 @"struct S3
@@ -1481,37 +1658,46 @@ record struct R3
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S3.y3'
                 //     int x3 = y3 + 1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("S3.y3").WithLocation(3, 14),
-                // (3,14): error CS0170: Use of possibly unassigned field 'y3'
+                // (3,14): error CS9015: Use of possibly unassigned field 'y3'. Consider updating to language version 'preview' to auto-default the field.
                 //     int x3 = y3 + 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(3, 14),
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "y3").WithArguments("y3", "preview").WithLocation(3, 14),
                 // (13,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R3.y3'
                 //     int x3 = y3 + 1;
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("R3.y3").WithLocation(13, 14),
-                // (13,14): error CS0170: Use of possibly unassigned field 'y3'
+                // (13,14): error CS9015: Use of possibly unassigned field 'y3'. Consider updating to language version 'preview' to auto-default the field.
                 //     int x3 = y3 + 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(13, 14));
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "y3").WithArguments("y3", "preview").WithLocation(13, 14));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'S3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("S3.y3").WithLocation(3, 14),
+                // (13,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'R3.y3'
+                //     int x3 = y3 + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "y3").WithArguments("R3.y3").WithLocation(13, 14));
         }
 
         [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(null)]
-        public void DefaultThisInitializer_11(LanguageVersion? languageVersion)
+        [Fact]
+        public void DefaultThisInitializer_11()
         {
             var source =
 @"#pragma warning disable 169
 #pragma warning disable 414
+using System;
 struct S
 {
     int x1;
     int y1 = 1;
     public S(int unused) { }
     public S(string unused) : this() { }
+    public override string ToString() => (x1, y1).ToString();
 }
 record struct R
 {
@@ -1519,16 +1705,80 @@ record struct R
     int y2 = -1;
     public R(int unused) { }
     public R(string unused) : this() { }
+    public override string ToString() => (x2, y2).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(0));
+        Console.WriteLine(new S(string.Empty));
+        Console.WriteLine(new R(0));
+        Console.WriteLine(new R(string.Empty));
+    }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,12): error CS0171: Field 'S.x1' must be fully assigned before control is returned to the caller
+                // (8,12): error CS0171: Field 'S.x1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S(int unused) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.x1").WithLocation(7, 12),
-                // (14,12): error CS0171: Field 'R.x2' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.x1", "preview").WithLocation(8, 12),
+                // (16,12): error CS0171: Field 'R.x2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public R(int unused) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "R").WithArguments("R.x2").WithLocation(14, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "R").WithArguments("R.x2", "preview").WithLocation(16, 12));
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"(0, 1)
+(0, 1)
+(0, -1)
+(0, -1)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.x1""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.y1""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S..ctor(string)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.y1""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int R.x2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.m1
+  IL_0009:  stfld      ""int R.y2""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("R..ctor(string)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.m1
+  IL_0009:  stfld      ""int R.y2""
+  IL_000e:  ret
+}");
         }
 
         [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
