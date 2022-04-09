@@ -198,9 +198,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            var options = (optionSet != null) ?
-                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, document.Project.Language) :
-                await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
 
             return await document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
                 document, spans.ToImmutableArrayOrEmpty(), options, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -209,14 +207,18 @@ namespace Microsoft.CodeAnalysis.Simplification
         internal static async Task<Document> ReduceAsync(
             Document document, ImmutableArray<AbstractReducer> reducers, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
         {
-            var options = (optionSet != null) ?
-                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, document.Project.Language) :
-                await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
+            var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
                 .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), options,
                              reducers, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<SimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
+        {
+            return (optionSet != null) ?
+                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, fallbackOptions: null, document.Project.Language) :
+                await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }
