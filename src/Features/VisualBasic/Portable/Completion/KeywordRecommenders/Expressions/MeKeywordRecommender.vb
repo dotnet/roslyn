@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 End If
             End If
 
-            If context.IsAccessibleEventContext(startAtEnclosingBaseType:=False, cancellationToken:=cancellationToken) Then
+            If context.IsAccessibleEventContext(startAtEnclosingBaseType:=False) Then
                 Return ImmutableArray.Create(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MeKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running))
             End If
 

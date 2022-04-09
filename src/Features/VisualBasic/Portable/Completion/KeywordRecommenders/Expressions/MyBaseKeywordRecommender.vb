@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 Return s_keywords
             End If
 
-            If context.IsAccessibleEventContext(startAtEnclosingBaseType:=True, cancellationToken:=cancellationToken) Then
+            If context.IsAccessibleEventContext(startAtEnclosingBaseType:=True) Then
                 Return s_keywords
             End If
 
