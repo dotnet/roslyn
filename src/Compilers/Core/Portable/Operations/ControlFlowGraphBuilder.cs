@@ -96,7 +96,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
-                    body.Kind == OperationKind.ParameterInitializer,
+                    body.Kind == OperationKind.ParameterInitializer ||
+                    // `AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer` is passing an Attribute operation.
+                    // We're consuming the analyzer via NuGet. So we update the assert as a "workaround" until we
+                    // consume a newer version which is updated to skip the new OperationKind.Attribute.
+                    body.Kind == OperationKind.Attribute,
                     $"Unexpected root operation kind: {body.Kind}");
                 Debug.Assert(parent == null);
             }
@@ -7714,5 +7718,8 @@ oneMoreTime:
                 return set.Count == properties.Count();
             }
         }
+
+        public override IOperation VisitAttribute(IAttributeOperation operation, int? captureIdForResult)
+            => VisitNoneOperation(operation, captureIdForResult);
     }
 }
