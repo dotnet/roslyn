@@ -62,20 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 var arrayNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var stringValue = diagnostic.Properties[UseUTF8StringLiteralDiagnosticAnalyzer.StringValuePropertyName]!;
 
-                editor.ReplaceNode(arrayNode, CreateUTF8String(stringValue).WithTriviaFrom(arrayNode));
+                editor.ReplaceNode(arrayNode, CreateUTF8String(arrayNode, stringValue));
             }
 
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode CreateUTF8String(string stringValue)
+        private static SyntaxNode CreateUTF8String(SyntaxNode arrayNode, string stringValue)
         {
             var literal = SyntaxFactory.Token(
-                    leading: SyntaxTriviaList.Empty,
+                    leading: arrayNode.GetLeadingTrivia(),
                     kind: SyntaxKind.UTF8StringLiteralToken,
                     text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
                     valueText: "",
-                    trailing: SyntaxTriviaList.Empty);
+                    trailing: arrayNode.GetTrailingTrivia());
 
             return SyntaxFactory.LiteralExpression(SyntaxKind.UTF8StringLiteralExpression, literal);
         }
