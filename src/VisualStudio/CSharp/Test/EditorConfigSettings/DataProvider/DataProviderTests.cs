@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider
@@ -170,8 +171,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            var optionsCount = FormattingOptions2.Options.Length;
-            Assert.Equal(optionsCount, dataSnapShot.Length);
+
+            var expectedOptions = new IOption[]
+            {
+                FormattingOptions2.IndentationSize,
+                FormattingOptions2.InsertFinalNewLine,
+                FormattingOptions2.NewLine,
+                FormattingOptions2.TabSize,
+                FormattingOptions2.UseTabs,
+                CodeStyleOptions2.OperatorPlacementWhenWrapping
+            };
+
+            AssertEx.SetEqual(
+                expectedOptions.Select(option => option.Name),
+                dataSnapShot.Select(item => item.Key.Option.Name));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]

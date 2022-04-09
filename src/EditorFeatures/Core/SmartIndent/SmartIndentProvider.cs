@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return null;
             }
 
-            return new SmartIndent(textView);
+            return new SmartIndent(textView, _globalOptions);
         }
     }
 }
