@@ -39,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
             Private Function ProcessImports(compilationUnit As CompilationUnitSyntax) As CompilationUnitSyntax
                 Dim oldImports = compilationUnit.Imports.ToList()
-                Dim firstImportGroup = True
-                Dim hasDeletedImports = False
+                Dim onlyDeletedImportsBefore = True
                 Dim passedLeadingTrivia = False
 
                 Dim remainingTrivia As SyntaxTriviaList = Nothing
@@ -49,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                     If oldImport.HasAnnotation(_annotation) Then
                         ' Found a node we marked to delete. Remove it.
                         oldImports(i) = Nothing
-                        hasDeletedImports = True
 
                         Dim leadingTrivia = oldImport.GetLeadingTrivia()
                         If ShouldPreserveTrivia(leadingTrivia) Then
@@ -92,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                             End If
                         End If
                     Else
-                        If firstImportGroup Then
-                            If hasDeletedImports AndAlso Not passedLeadingTrivia Then
+                        If onlyDeletedImportsBefore Then
+                            If i > 0 AndAlso Not passedLeadingTrivia Then
                                 Dim currentImport = oldImports(i)
                                 Dim currentImportLeadingTrivia = currentImport.GetLeadingTrivia()
                                 oldImports(i) = currentImport.WithLeadingTrivia(currentImportLeadingTrivia.WithoutLeadingWhitespaceOrEndOfLine())
                             End If
 
-                            firstImportGroup = False
+                            onlyDeletedImportsBefore = False
                         End If
                     End If
                 Next

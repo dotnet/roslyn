@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 out SyntaxTriviaList finalTrivia)
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
-                var firstUsingGroup = true;
-                var hasDeletedUsings = false;
+                var onlyDeletedUsingsBefore = true;
                 var passedLeadngTrivia = false;
 
                 finalTrivia = default;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     {
                         var currentUsing = currentUsings[i];
                         currentUsings[i] = null;
-                        hasDeletedUsings = true;
 
                         var leadingTrivia = currentUsing.GetLeadingTrivia();
                         // We always preserve trivia on the first using in a file scoped namespace
@@ -97,16 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     }
                     else
                     {
-                        if (firstUsingGroup)
+                        if (onlyDeletedUsingsBefore)
                         {
-                            if (hasDeletedUsings && !passedLeadngTrivia)
+                            if (i > 0 && !passedLeadngTrivia)
                             {
                                 var currentUsing = currentUsings[i];
                                 var currentUsingLeadingTrivia = currentUsing.GetLeadingTrivia();
                                 currentUsings[i] = currentUsing.WithLeadingTrivia(currentUsingLeadingTrivia.WithoutLeadingBlankLines());
                             }
 
-                            firstUsingGroup = false;
+                            onlyDeletedUsingsBefore = false;
                         }
                     }
                 }
