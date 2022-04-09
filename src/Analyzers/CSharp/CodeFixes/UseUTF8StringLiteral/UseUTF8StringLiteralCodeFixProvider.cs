@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUTF8StringLiteral), Shared]
-    internal class UseUTF8StringLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class UseUTF8StringLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const char QuoteCharacter = '"';
         private const string Suffix = "u8";
