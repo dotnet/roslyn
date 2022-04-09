@@ -5,7 +5,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Data;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
