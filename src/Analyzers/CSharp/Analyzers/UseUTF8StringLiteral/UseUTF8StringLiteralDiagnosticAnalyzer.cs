@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             var properties = ImmutableDictionary<string, string?>.Empty.Add(StringValuePropertyName, stringValue);
 
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetLocation(), option.Notification.Severity, additionalLocations: null, properties));
+                DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetFirstToken().GetLocation(), option.Notification.Severity, additionalLocations: null, properties));
         }
 
         private static string? GetStringValue(ImmutableArray<object?> values)
