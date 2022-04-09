@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -48,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 out SyntaxTriviaList finalTrivia)
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
+                var firstUsingGroup = true;
+                var hasDeletedUsings = false;
+                var passedLeadngTrivia = false;
 
                 finalTrivia = default;
                 for (var i = 0; i < usings.Count; i++)
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     {
                         var currentUsing = currentUsings[i];
                         currentUsings[i] = null;
+                        hasDeletedUsings = true;
 
                         var leadingTrivia = currentUsing.GetLeadingTrivia();
                         // We always preserve trivia on the first using in a file scoped namespace
@@ -83,11 +86,27 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                                     // want to preserve.
                                     currentUsings[nextIndex] = nextUsing.WithLeadingTrivia(leadingTrivia);
                                 }
+
+                                passedLeadngTrivia = true;
                             }
                             else
                             {
                                 finalTrivia = leadingTrivia;
                             }
+                        }
+                    }
+                    else
+                    {
+                        if (firstUsingGroup)
+                        {
+                            if (hasDeletedUsings && !passedLeadngTrivia)
+                            {
+                                var currentUsing = currentUsings[i];
+                                var currentUsingLeadingTrivia = currentUsing.GetLeadingTrivia();
+                                currentUsings[i] = currentUsing.WithLeadingTrivia(currentUsingLeadingTrivia.WithoutLeadingBlankLines());
+                            }
+
+                            firstUsingGroup = false;
                         }
                     }
                 }

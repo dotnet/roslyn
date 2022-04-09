@@ -1214,5 +1214,29 @@ Imports System
     Event E()
 End Class|]")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")>
+        Public Async Function TestImportGroup_DeleteLeadingBlankLinesIfFirstGroupWasDeleted() As Task
+            Await TestInRegularAndScript1Async(
+"[|Imports System.Threading.Tasks
+
+Imports System|]
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+",
+"Imports System
+
+Class C
+    Function Test()
+        Console.WriteLine()
+    End Function
+End Class
+")
+        End Function
     End Class
 End Namespace

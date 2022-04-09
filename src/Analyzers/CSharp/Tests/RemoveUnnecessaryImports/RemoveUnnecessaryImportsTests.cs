@@ -1984,5 +1984,39 @@ class Program
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;|}
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
