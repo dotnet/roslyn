@@ -208,6 +208,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var property = member as IPropertySymbol;
                     return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
+                case SymbolKind.Field:
+                    var field = member as IFieldSymbol;
+                    return DoesTypeReferenceTypeParameter(field.Type, typeParameter, checkedTypes);
                 default:
                     Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                     return false;
