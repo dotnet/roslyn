@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral;
@@ -591,6 +592,72 @@ public class C
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
+        [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 }, "7translate")]
+        [InlineData(new byte[] { 0x3f, 0x01 }, "?")]
+        public async Task TestValidUTF8Strings(byte[] bytes, string stringValue)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+$@"
+public class C
+{{
+    private static readonly byte[] _bytes = [|new|] byte[] {{ {string.Join(", ", bytes)} }};
+}}
+",
+                FixedCode =
+$@"
+public class C
+{{
+    private static readonly byte[] _bytes = ""{stringValue}""u8;
+}}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+
+            // Lets make sure there aren't any false positives here, and make sure the byte array actually
+            // correctly round-trips via UTF8
+            var newStringValue = Encoding.UTF8.GetString(bytes);
+            Assert.Equal(stringValue, newStringValue);
+            var newBytes = Encoding.UTF8.GetBytes(stringValue);
+            Assert.Equal(bytes, newBytes);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http2/HuffmanDecodingTests.cs
+        [InlineData(new byte[] { 0xff, 0xcf })]
+        [InlineData(new byte[] { 0b100111_00, 0b101_10100, 0b0_101000_0, 0b0111_1111 })]
+        [InlineData(new byte[] { 0xb6, 0xb9, 0xac, 0x1c, 0x85, 0x58, 0xd5, 0x20, 0xa4, 0xb6, 0xc2, 0xad, 0x61, 0x7b, 0x5a, 0x54, 0x25, 0x1f })]
+        [InlineData(new byte[] { 0xfe, 0x53 })]
+        [InlineData(new byte[] { 0xff, 0xff, 0xf6, 0xff, 0xff, 0xfd, 0x68 })]
+        [InlineData(new byte[] { 0xff, 0xff, 0xf9, 0xff, 0xff, 0xfd, 0x86 })]
+        // _headerNameHuffmanBytes from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
+        [InlineData(new byte[] { 0xa8, 0xbe, 0x16, 0x9c, 0xa3, 0x90, 0xb6, 0x7f })]
+        public async Task TestInvalidUTF8Strings(byte[] bytes)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+$@"
+public class C
+{{
+    private static readonly byte[] _bytes = new byte[] {{ {string.Join(", ", bytes)} }};
+}}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+
+            // Lets make sure there aren't any false negatives here, and see if the byte array would actually
+            // correctly round-trip via UTF8
+            var stringValue = Encoding.UTF8.GetString(bytes);
+            var newBytes = Encoding.UTF8.GetBytes(stringValue);
+            Assert.NotEqual(bytes, newBytes);
         }
     }
 }
