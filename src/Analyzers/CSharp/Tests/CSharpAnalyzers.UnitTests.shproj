@@ -10,4 +10,11 @@
   <PropertyGroup />
   <Import Project="CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\CodeSharing\Microsoft.CodeSharing.CSharp.targets" />
+
+  <PropertyGroup>
+    <!-- We can use this to specify a path to a project that consumes this shared project
+         and our VS Code tasks will use that project when asked to build or run tests for
+         a file in this project. -->
+    <ProxyToConsumingProject>..\..\..\EditorFeatures\CSharpTest\Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.csproj</ProxyToConsumingProject>
+  </PropertyGroup>
 </Project>

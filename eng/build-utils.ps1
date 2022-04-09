@@ -200,11 +200,28 @@ function Get-ProjectFile([object]$fileInfo) {
         return $files[0]
       }
       else {
-        $location = Get-Location
-        Set-Location ..
-        if ((Get-Location).Path -eq $location.Path) {
-          # our location didn't change. We must be at the drive root, so give up
-          return $null
+        # We didn't find a project, but lets see if we're in a shared project
+        $files = Get-ChildItem *.shproj
+        if ($files) {
+          # found a shared project, lets see if someone told us what project to use for building etc.
+          $sharedProj = [xml](Get-Content -raw $files[0])
+          $proxyFile = $sharedProj.Project.PropertyGroup | ? { $_.PSobject.Properties.Name -contains "ProxyToConsumingProject" } | Select -Expand ProxyToConsumingProject
+          if ($proxyFile -ne $null) {
+            return Get-Item($proxyFile)
+          }
+
+          # if we didn't find anything to proxy too, but we found a shared project, there is no point
+          # looking higher up the tree, but we can help them for next time
+          throw "File appears to be part of a shared project, so can not be used directly. You can specify a project to use as a proxy by adding a 'ProxyToConsumingProject' property in the .shproj file."
+        }
+        else
+        {
+          $location = Get-Location
+          Set-Location ..
+          if ((Get-Location).Path -eq $location.Path) {
+            # our location didn't change. We must be at the drive root, so give up
+            return $null
+          }
         }
       }
     }
