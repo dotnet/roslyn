@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     Friend Module VisualBasicSyntaxTreeExtensions
 
         <Extension>
-        Friend Function IsAccessibleEventContext(context As VisualBasicSyntaxContext, startAtEnclosingBaseType As Boolean, cancellationToken As CancellationToken) As Boolean
+        Friend Function IsAccessibleEventContext(context As VisualBasicSyntaxContext, startAtEnclosingBaseType As Boolean) As Boolean
             If context.FollowsEndOfStatement Then
                 Return False
             End If
