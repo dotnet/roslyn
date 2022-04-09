@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
@@ -74,10 +75,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationExpression.Syntax.IsInExpressionTree(semanticModel, expressionType, context.CancellationToken))
                 return;
 
-            var values = arrayCreationExpression.Initializer.ElementValues.SelectAsArray(v => v.ConstantValue.HasValue && v.ConstantValue.Value is not null, v => v.ConstantValue.Value);
+            var elements = arrayCreationExpression.Initializer.ElementValues;
+
+            // If the compiler has constructed this array creation, then we don't want to do anything
+            // if there aren't any elements, as we could just end up inserting ""u8 somewhere.
+            if (arrayCreationExpression.IsImplicit && elements.Length == 0)
+                return;
+
+            var values = elements.SelectAsArray(v => v.ConstantValue.HasValue && v.ConstantValue.Value is not null, v => v.ConstantValue.Value);
 
             // If we couldn't get constant values for all elements then we can't offer
-            if (values.Length != arrayCreationExpression.Initializer.ElementValues.Length)
+            if (values.Length != elements.Length)
                 return;
 
             var stringValue = GetStringValue(values);
@@ -87,8 +95,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
             var properties = ImmutableDictionary<string, string?>.Empty.Add(StringValuePropertyName, stringValue);
 
+            var location = arrayCreationExpression.Syntax.GetFirstToken().GetLocation();
+
+            // Special case - for a param array, the syntax is the entire invocation, because there is no one
+            // syntax node for just the array elements, so we construct our own location. The code fix has
+            // special handling for this too.
+            if (arrayCreationExpression.Syntax is InvocationExpressionSyntax)
+            {
+                // Issue the diagnostic for all of the parameters that make up the array. We could do just
+                // the first element, but that might be odd seeing: M(1, 2, [|3|], 4, 5)
+                var span = TextSpan.FromBounds(elements.First().Syntax.SpanStart, elements.Last().Syntax.Span.End);
+                location = Location.Create(location.SourceTree!, span);
+            }
+
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetFirstToken().GetLocation(), option.Notification.Severity, additionalLocations: null, properties));
+                DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations: null, properties));
         }
 
         private static string? GetStringValue(ImmutableArray<object?> values)

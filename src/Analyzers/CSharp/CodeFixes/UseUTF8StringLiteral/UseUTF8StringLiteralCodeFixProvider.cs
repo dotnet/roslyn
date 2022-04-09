@@ -9,9 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
@@ -53,20 +56,68 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 var arrayNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var stringValue = diagnostic.Properties[UseUTF8StringLiteralDiagnosticAnalyzer.StringValuePropertyName]!;
 
-                editor.ReplaceNode(arrayNode, CreateUTF8String(arrayNode, stringValue));
+                // If we're replacing a byte array that is passed to a parameter array, not and an explicit array creation
+                // then we'll get then arrayNode will be the ArgumentListSyntax so we have to work a bit harder
+                //
+                // eg given a method:
+                //     M(string x, params byte[] b)
+                // our diagnositic would be reported on:
+                //     M("hi", [|1, 2, 3, 4|]);
+                //
+                // but arrayNode will be the whole argument list syntax
+
+                if (arrayNode is ArgumentListSyntax argumentList)
+                {
+                    editor.ReplaceNode(arrayNode, CreateArgumentListWithUTF8String(argumentList, diagnostic.Location, stringValue));
+                }
+                else
+                {
+                    editor.ReplaceNode(arrayNode, CreateUTF8String(arrayNode, stringValue));
+                }
             }
 
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode CreateUTF8String(SyntaxNode arrayNode, string stringValue)
+        private static SyntaxNode CreateArgumentListWithUTF8String(ArgumentListSyntax argumentList, Location location, string stringValue)
+        {
+            // To construct our new argument list we add any existing arguments before the location
+            // and then once we hit the location, we add our string literal
+            var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.Span.Start >= location.SourceSpan.Start)
+                {
+                    // If this is the first argument in the argument list, then trivia will be
+                    // attached to the open parentheses, so we don't need to do anything.
+                    var leadingTrivia = argument == argumentList.Arguments[0]
+                        ? SyntaxTriviaList.Empty
+                        : SyntaxFactory.TriviaList(argument.GetAllPrecedingTriviaToPreviousToken());
+
+                    var stringLiteral = CreateUTF8String(leadingTrivia, stringValue, argumentList.Arguments.Last().GetTrailingTrivia());
+                    arguments.Add(SyntaxFactory.Argument(stringLiteral));
+                    break;
+                }
+
+                arguments.Add(argument);
+            }
+
+            return argumentList.WithArguments(SyntaxFactory.SeparatedList(arguments));
+        }
+
+        private static LiteralExpressionSyntax CreateUTF8String(SyntaxNode nodeToTakeTriviaFrom, string stringValue)
+        {
+            return CreateUTF8String(nodeToTakeTriviaFrom.GetLeadingTrivia(), stringValue, nodeToTakeTriviaFrom.GetTrailingTrivia());
+        }
+
+        private static LiteralExpressionSyntax CreateUTF8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia)
         {
             var literal = SyntaxFactory.Token(
-                    leading: arrayNode.GetLeadingTrivia(),
+                    leading: leadingTrivia,
                     kind: SyntaxKind.UTF8StringLiteralToken,
                     text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
                     valueText: "",
-                    trailing: arrayNode.GetTrailingTrivia());
+                    trailing: trailingTrivia);
 
             return SyntaxFactory.LiteralExpression(SyntaxKind.UTF8StringLiteralExpression, literal);
         }

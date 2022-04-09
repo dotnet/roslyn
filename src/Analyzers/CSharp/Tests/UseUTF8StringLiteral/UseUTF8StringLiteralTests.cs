@@ -763,5 +763,295 @@ public class C
             var newBytes = Encoding.UTF8.GetBytes(stringValue);
             Assert.NotEqual(bytes, newBytes);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M([|new|] byte[] { 65, 66, 67 });
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int i, params byte[] b)
+    {
+        M(1, [|new|] byte[] { 65, 66, 67 });
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int i, params byte[] b)
+    {
+        M(1, ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M([|65|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(""A""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(/* hi */ [|65|] /* there */);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(/* hi */ ""A""u8 /* there */);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray5()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M([|65, 66, 67|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray6()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(/* hi */ [|65, 66, 67|] /* there */);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(params byte[] b)
+    {
+        M(/* hi */ ""ABC""u8 /* there */);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray7()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1);
+    }
+}
+",
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray8()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, [|65, 66, 67|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray9()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, /* hi */ [|65|] /* there */);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, /* hi */ ""A""u8 /* there */);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray10()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, /* hi */ [|65, 66, 67|] /* there */);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int x, params byte[] b)
+    {
+        M(1, /* hi */ ""ABC""u8 /* there */);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }
