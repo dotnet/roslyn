@@ -124,6 +124,7 @@ stages:
                    -sign
                    -publish
                    -binaryLog
+                   -msbuildEngine vs
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
