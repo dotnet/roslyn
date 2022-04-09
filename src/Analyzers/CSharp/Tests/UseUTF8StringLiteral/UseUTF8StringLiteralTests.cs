@@ -672,6 +672,32 @@ class C : IEnumerable<int>
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestUsingWithParamArray()
+        {
+            // From: https://github.com/dotnet/roslyn/blob/0c7c0b33f0871fc4308eb2d75d77b87fc9293290/src/Compilers/CSharp/Test/IOperation/IOperation/IOperationTests_IUsingStatement.cs#L1189-L1194
+            // There is an array creation operation for the param array
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+class C
+{
+    public static void M1()
+    {
+        using(var s = new S())
+        { 
+        }
+    }
+}
+ref struct S
+{
+    public void Dispose(int a = 1, bool b = true, params byte[] others) { }
+}",
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
         [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 }, "7translate")]
