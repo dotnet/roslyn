@@ -58,9 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationExpression.Initializer is null)
                 return;
 
-            var byteType = context.Compilation.GetSpecialType(SpecialType.System_Byte);
-            var elementType = (arrayCreationExpression.Type as IArrayTypeSymbol)?.ElementType;
-            if (!SymbolEqualityComparer.Default.Equals(elementType, byteType))
+            // Must be a byte array
+            if (arrayCreationExpression.Type is not IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
                 return;
 
             // UTF8 strings are not valid to use in attributes
