@@ -594,6 +594,84 @@ public class C
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestCollectionInitializer()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+class C : IEnumerable<int>
+{
+    void M(C c)
+    {
+        // Each literal of the three is a separate IArrayCreationOperation
+        // Lowered code is similar to:
+        /*
+            C c = new C();
+            c.Add(new byte[] { 65 });
+            c.Add(new byte[] { 66 });
+            c.Add(new byte[] { 67 });
+        */
+        c = new() { [|65|], [|66|], [|67|] };
+    }
+
+    public void Add(params byte[] bytes)
+    {
+    }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                FixedCode =
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+class C : IEnumerable<int>
+{
+    void M(C c)
+    {
+        // Each literal of the three is a separate IArrayCreationOperation
+        // Lowered code is similar to:
+        /*
+            C c = new C();
+            c.Add(new byte[] { 65 });
+            c.Add(new byte[] { 66 });
+            c.Add(new byte[] { 67 });
+        */
+        c = new() { ""A""u8, ""B""u8, ""C""u8 };
+    }
+
+    public void Add(params byte[] bytes)
+    {
+    }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
         [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 }, "7translate")]
