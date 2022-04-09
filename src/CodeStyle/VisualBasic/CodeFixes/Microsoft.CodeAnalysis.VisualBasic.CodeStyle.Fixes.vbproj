@@ -63,6 +63,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="build\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.props" />
   </ItemGroup>
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems" Label="Shared" />
