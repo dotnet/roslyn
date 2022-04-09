@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         {
         }
 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
@@ -87,9 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, arrayCreationExpression.Syntax.GetLocation(), option.Notification.Severity, additionalLocations: null, properties));
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private static string? GetStringValue(ImmutableArray<object?> values)
         {
