@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
 
                     codeActionsBuilder.Add(CodeAction.Create(
                         title,
-                        cancellationToken => 
+                        cancellationToken =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
                             var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, options, cancellationToken);

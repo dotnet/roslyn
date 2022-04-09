@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, Diagnostic? diagnostic = null)
             => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey), context.Diagnostics);
 
-        protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, CodeActionPriority priority, Diagnostic ? diagnostic = null)
+        protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, CodeActionPriority priority, Diagnostic? diagnostic = null)
             => context.RegisterCodeFix(new CustomCodeActions.DocumentChangeAction(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
 
         protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)

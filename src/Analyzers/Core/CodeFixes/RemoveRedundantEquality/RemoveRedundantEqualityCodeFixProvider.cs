@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality));
+                RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality), diagnostic);
             }
 
             return Task.CompletedTask;

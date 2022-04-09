@@ -50,8 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         End Function
 
         Protected Overrides Async Function FixAllAsync(
-document As Document,             diagnostics As ImmutableArray(Of Diagnostic),
-editor As SyntaxEditor, options As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
+            document As Document,
+            diagnostics As ImmutableArray(Of Diagnostic),
+            editor As SyntaxEditor,
+            options As CodeActionOptionsProvider,
+            cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a
             ' cast.  For example, if the cast is at the statement level, it may contain an
