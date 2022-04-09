@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
 
             if (ShouldOfferFixForLocalDeclaration(blockFacts, node))
-                context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
+                context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), diagnostic);
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var nodesToRemove = new HashSet<SyntaxNode>();
 

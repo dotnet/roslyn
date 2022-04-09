@@ -34,17 +34,13 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(CodeAction.Create(
-                    AnalyzersResources.Remove_redundant_equality,
-                    c => FixAsync(context.Document, diagnostic, c),
-                    nameof(AnalyzersResources.Remove_redundant_equality)),
-                    diagnostic);
+                RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality));
             }
 
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

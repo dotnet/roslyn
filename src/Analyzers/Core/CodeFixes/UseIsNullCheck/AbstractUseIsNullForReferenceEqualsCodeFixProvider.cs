@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
                 var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
                 context.RegisterCodeFix(
-                    CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), title),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 

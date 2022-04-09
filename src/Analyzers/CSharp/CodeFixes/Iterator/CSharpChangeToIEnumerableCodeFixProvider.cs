@@ -110,10 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return null;
             }
 
-            return new MyCodeAction(
-                string.Format(CSharpCodeFixesResources.Change_return_type_from_0_to_1,
-                    type.ToMinimalDisplayString(model, node.SpanStart),
-                    ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
+            var title = string.Format(CSharpCodeFixesResources.Change_return_type_from_0_to_1,
+                type.ToMinimalDisplayString(model, node.SpanStart),
+                ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart));
+
+            return CodeAction.Create(title, _ => Task.FromResult(newDocument), title);
         }
 
         private static bool TryGetIEnumerableSymbols(SemanticModel model, out INamedTypeSymbol ienumerableSymbol, out INamedTypeSymbol ienumerableGenericSymbol)
@@ -128,14 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             return true;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Document newDocument)
-                : base(title, c => Task.FromResult(newDocument), title)
-            {
-            }
         }
     }
 }

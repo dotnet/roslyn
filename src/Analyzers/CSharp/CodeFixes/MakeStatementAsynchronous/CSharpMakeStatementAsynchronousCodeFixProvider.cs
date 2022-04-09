@@ -46,14 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, diagnostic, c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Add_await, nameof(CSharpCodeFixesResources.Add_await));
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -113,16 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
             }
 
             return null;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Add_await,
-                       createChangedDocument,
-                       CSharpCodeFixesResources.Add_await)
-            {
-            }
         }
     }
 }
