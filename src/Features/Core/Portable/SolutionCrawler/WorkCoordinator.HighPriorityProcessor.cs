@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         if (!_processor._documentTracker.SupportsDocumentTracking
-                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace)
+                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace)
                         {
                             Debug.Fail($"Unexpected use of '{nameof(ExportIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
                         }
