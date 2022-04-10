@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    MethodKind.HasValue ? symbol is IMethodSymbol method && method.MethodKind == MethodKind.Value :
                    throw ExceptionUtilities.Unreachable;
 
-            private bool MatchesTypeSymbolKind(TypeKind kind1, TypeKind kind2)
+            private static bool MatchesTypeSymbolKind(TypeKind kind1, TypeKind kind2)
             {
                 if (kind1 == CodeAnalysis.TypeKind.Module && kind2 == CodeAnalysis.TypeKind.Class)
                 {
