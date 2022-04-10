@@ -3,6 +3,6 @@ steps:
   displayName: Download deployables
   artifact: deployables-Windows
 
-- script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/*.nupkg -s $(ci_feed) -k azdo --skip-duplicate
+- powershell: dotnet nuget push "$(Resolve-Path '$(Pipeline.Workspace)\deployables-Windows\')*.nupkg" -s $(ci_feed) -k azdo --skip-duplicate
   displayName: Push packages to CI feed
   condition: and(succeeded(), ne(variables['ci_feed'], ''), ne(variables['Build.Reason'], 'PullRequest'))
