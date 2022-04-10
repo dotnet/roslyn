@@ -30,15 +30,14 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId);
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(new MyCodeAction(
+                context.RegisterCodeFix(CodeAction.Create(
                     AnalyzersResources.Remove_redundant_equality,
-                    c => FixAsync(context.Document, diagnostic, c)),
+                    c => FixAsync(context.Document, diagnostic, c),
+                    nameof(AnalyzersResources.Remove_redundant_equality)),
                     diagnostic);
             }
 
@@ -82,14 +81,6 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
             {
                 return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

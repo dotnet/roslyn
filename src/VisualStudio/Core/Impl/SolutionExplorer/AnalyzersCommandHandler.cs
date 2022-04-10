@@ -13,11 +13,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -95,10 +95,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// <summary>
         /// Hook up the context menu handlers.
         /// </summary>
-        public void Initialize(IMenuCommandService menuCommandService)
+        public async Task InitializeAsync(IMenuCommandService menuCommandService, CancellationToken cancellationToken)
         {
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // Analyzers folder context menu items
                 _addMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
                 _ = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);

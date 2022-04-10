@@ -133,20 +133,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             Directory.CreateDirectory(solutionPath);
 
             var solution = GetGlobalService<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
-            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+            InvokeOnUIThread(cancellationToken =>
+            {
+                ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+                ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
+            });
 
             _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, solutionFileName);
-        }
-
-        public string[] GetAssemblyReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>()
-                .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
-            return references;
         }
 
         public void RenameFile(string projectName, string oldFileName, string newFileName)
@@ -182,13 +176,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
-        }
-
-        public string[] GetProjectReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
-            return references;
         }
 
         public void CreateSolution(string solutionName, string solutionElementString)
@@ -457,7 +444,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
                 try
                 {
-                    ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    InvokeOnUIThread(cancellationToken =>
+                    {
+                        ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    });
+
                     semaphore.Wait();
                 }
                 finally
@@ -656,7 +647,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             switch (extension)
             {
                 case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
+                    itemTemplate = @"General\C# Class";
                     break;
                 case ".csx":
                     itemTemplate = @"Script\Visual C# Script";

@@ -1066,4 +1066,8 @@ Do you want to proceed?</value>
   <data name="JSON_in_string_literal_Constructor_Name" xml:space="preserve">
     <value>JSON in string literal - Constructor Name</value>
   </data>
+  <data name="_0_Esc_to_cancel" xml:space="preserve">
+    <value>{0} (Esc to cancel)</value>
+    <comment>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</comment>
+  </data>
 </root>

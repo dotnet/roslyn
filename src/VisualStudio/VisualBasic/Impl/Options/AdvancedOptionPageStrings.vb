@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
+Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -225,26 +225,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
 
-        Public ReadOnly Property Option_Fading As String = ServicesVSResources.Fading
-        Public ReadOnly Property Option_Fade_out_unused_imports As String = BasicVSResources.Fade_out_unused_imports
+        Public ReadOnly Property Option_Fading As String =
+            ServicesVSResources.Fading
 
-        Public ReadOnly Property Option_Performance As String
-            Get
-                Return BasicVSResources.Performance
-            End Get
-        End Property
+        Public ReadOnly Property Option_Fade_out_unused_imports As String =
+            BasicVSResources.Fade_out_unused_imports
 
-        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
-            Get
-                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
-            End Get
-        End Property
+        Public ReadOnly Property Option_Performance As String =
+            BasicVSResources.Performance
 
-        Public ReadOnly Property Option_RenameTrackingPreview As String
-            Get
-                Return BasicVSResources.Show_preview_for_rename_tracking
-            End Get
-        End Property
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String =
+            BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
+
+        Public ReadOnly Property Option_RenameTrackingPreview As String =
+            BasicVSResources.Show_preview_for_rename_tracking
 
         Public ReadOnly Property Option_Import_Directives As String =
             BasicVSResources.Import_Directives
@@ -303,11 +297,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
             ServicesVSResources.Visual_Studio_2017
 
-        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As SchemeName =
-            SchemeName.VisualStudio2019
+        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As ColorSchemeName =
+            ColorSchemeName.VisualStudio2019
 
-        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
-            SchemeName.VisualStudio2017
+        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
+            ColorSchemeName.VisualStudio2017
 
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
@@ -327,6 +321,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
             ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
 
-        Public ReadOnly Property Inheritance_Margin As String = ServicesVSResources.Inheritance_Margin
+        Public ReadOnly Property Inheritance_Margin As String =
+            ServicesVSResources.Inheritance_Margin
+
+        Public ReadOnly Property Option_Go_To_Definition As String =
+            ServicesVSResources.Go_To_Definition
+
+        Public ReadOnly Property Option_Navigate_asynchronously_exerimental As String =
+            ServicesVSResources.Navigate_asynchronously_exerimental
     End Module
 End Namespace

@@ -7,6 +7,7 @@
 using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -17,10 +18,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
     [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
     internal class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpDocumentNavigationService()
+        public FSharpDocumentNavigationService(
+            IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -30,7 +35,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.CanNavigateToSpanAsync(workspace, documentId, textSpan, cancellationToken));
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -40,7 +46,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.CanNavigateToLineAndOffsetAsync(workspace, documentId, lineNumber, offset, cancellationToken));
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -50,7 +57,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken));
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -60,7 +68,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.TryNavigateToSpanAsync(
+                    _threadingContext, workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -70,7 +80,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.TryNavigateToPositionAsync(
+                    _threadingContext, workspace, documentId, lineNumber, offset, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
@@ -80,7 +92,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.TryNavigateToPositionAsync(
+                    _threadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
         }
     }
 }

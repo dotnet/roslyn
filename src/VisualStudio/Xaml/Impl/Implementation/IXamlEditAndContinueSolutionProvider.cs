@@ -4,7 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {

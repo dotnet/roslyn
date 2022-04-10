@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 for (var i = 0; i < _state.Parameters.Length; i++)
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
 
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
+                    _state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,

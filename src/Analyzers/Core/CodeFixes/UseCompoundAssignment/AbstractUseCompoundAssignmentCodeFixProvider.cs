@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         // See comments in the analyzer for what these maps are for.
 
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
@@ -43,14 +41,17 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
         protected abstract TExpressionSyntax Increment(TExpressionSyntax left, bool postfix);
         protected abstract TExpressionSyntax Decrement(TExpressionSyntax left, bool postfix);
+        protected abstract SyntaxTriviaList PrepareRightExpressionLeadingTrivia(SyntaxTriviaList initialTrivia);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
 
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Use_compound_assignment,
+                c => FixAsync(document, diagnostic, c),
+                nameof(AnalyzersResources.Use_compound_assignment)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -90,6 +91,9 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
+
+                        rightExpr = rightExpr.WithLeadingTrivia(PrepareRightExpressionLeadingTrivia(rightExpr.GetLeadingTrivia()));
+
                         return Assignment(
                             assignmentOpKind,
                             (TExpressionSyntax)leftOfAssign,
@@ -110,14 +114,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             // In any other circumstance, the value of the assignment might be read, so we need to transform to
             // ++x to ensure that we preserve semantics.
             return false;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_compound_assignment, createChangedDocument, AnalyzersResources.Use_compound_assignment)
-            {
-            }
         }
     }
 }

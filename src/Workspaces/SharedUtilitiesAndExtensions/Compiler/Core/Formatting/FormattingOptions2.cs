@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Indentation;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Formatting options stored in editorconfig.
     /// </summary>
-    internal sealed class FormattingOptions2
+    internal sealed partial class FormattingOptions2
     {
 #if !CODE_STYLE
         [ExportSolutionOptionProvider, Shared]
@@ -75,6 +76,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static Option2<bool> InsertFinalNewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
+
+        public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(

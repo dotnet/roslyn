@@ -14,12 +14,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Recommendations
+namespace Microsoft.CodeAnalysis.Recommendations;
+
+internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 {
-    internal abstract class AbstractRecommendationServiceRunner<TSyntaxContext>
-        where TSyntaxContext : SyntaxContext
+    protected abstract class AbstractRecommendationServiceRunner
     {
         protected readonly TSyntaxContext _context;
         protected readonly bool _filterOutOfScopeLocals;

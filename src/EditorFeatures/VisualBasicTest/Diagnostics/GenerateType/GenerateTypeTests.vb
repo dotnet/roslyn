@@ -155,10 +155,10 @@ End Class",
     Dim f = New Generated((1, 2))
 
     Private Class Generated
-        Private p As (Integer, Integer)
+        Private value As (Integer, Integer)
 
-        Public Sub New(p As (Integer, Integer))
-            Me.p = p
+        Public Sub New(value As (Integer, Integer))
+            Me.value = value
         End Sub
     End Class
 End Class",
@@ -175,10 +175,10 @@ End Class",
     Dim f = New Generated((a:=1, b:=2, 3))
 
     Private Class Generated
-        Private p As (a As Integer, b As Integer, Integer)
+        Private value As (a As Integer, b As Integer, Integer)
 
-        Public Sub New(p As (a As Integer, b As Integer, Integer))
-            Me.p = p
+        Public Sub New(value As (a As Integer, b As Integer, Integer))
+            Me.value = value
         End Sub
     End Class
 End Class",
@@ -1239,7 +1239,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"), FeaturesResources.Generate_new_type})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -1258,8 +1258,8 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
-String.Format(FeaturesResources.Generate_0_1, "class", "Goo", FeaturesResources.Global_Namespace),
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"),
+String.Format(FeaturesResources.Generate_0_1, "class", "Goo"),
 String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo"), FeaturesResources.Generate_new_type})
         End Function
 
@@ -1317,10 +1317,10 @@ Module Program
 End Module
 
 Friend Class C
-    Private p As Func(Of Object)
+    Private value As Func(Of Object)
 
-    Public Sub New(p As Func(Of Object))
-        Me.p = p
+    Public Sub New(value As Func(Of Object))
+        Me.value = value
     End Sub
 End Class
 ",
@@ -1345,12 +1345,12 @@ Module Program
 End Module
 
 Friend Class C
-    Private p1 As Object
-    Private p2 As Object
+    Private value1 As Object
+    Private value2 As Object
 
-    Public Sub New(p1 As Object, p2 As Object)
-        Me.p1 = p1
-        Me.p2 = p2
+    Public Sub New(value1 As Object, value2 As Object)
+        Me.value1 = value1
+        Me.value2 = value2
     End Sub
 End Class
 ",

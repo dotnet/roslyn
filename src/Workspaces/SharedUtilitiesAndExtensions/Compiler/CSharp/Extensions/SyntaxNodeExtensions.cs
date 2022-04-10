@@ -320,7 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.MemberBindingExpression,
-                SyntaxKind.ElementBindingExpression) &&
+                SyntaxKind.ElementBindingExpression,
+                // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
+                SyntaxKind.SuppressNullableWarningExpression) &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
@@ -623,6 +625,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return false;
         }
+
+        public static bool IsReturnableConstructOrTopLevelCompilationUnit(this SyntaxNode node)
+            => node.IsReturnableConstruct() || (node is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement));
 
         public static bool SpansPreprocessorDirective<TSyntaxNode>(this IEnumerable<TSyntaxNode> list) where TSyntaxNode : SyntaxNode
             => CSharpSyntaxFacts.Instance.SpansPreprocessorDirective(list);

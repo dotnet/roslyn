@@ -5,7 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected AbstractJsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.Json,
-                   JsonFeatureOptions.ReportInvalidJsonPatterns,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Invalid_JSON_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(JsonFeatureOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
+            var option = context.Options.GetIdeOptions().ReportInvalidJsonPatterns;
             if (!option)
                 return;
 

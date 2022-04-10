@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 await classificationService.AddSemanticClassificationsAsync(
                     document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.

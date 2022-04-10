@@ -250,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(ownerOfTypeParametersInScope == null);
                             var localFunction = (LocalFunctionStatementSyntax)stmt;
-                            if (localFunction.TypeParameterList != null &&
-                                !LookupPosition.IsBetweenTokens(position, localFunction.Identifier, localFunction.TypeParameterList.LessThanToken)) // Scope does not include method name.
+                            if (LookupPosition.IsInLocalFunctionTypeParameterScope(position, localFunction))
                             {
                                 ownerOfTypeParametersInScope = localFunction;
                             }
@@ -358,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalFunctionSymbol function = GetDeclaredLocalFunction(binder, ownerOfTypeParametersInScope.Identifier);
                 if ((object)function != null)
                 {
-                    binder = function.SignatureBinder;
+                    binder = function.WithTypeParametersBinder;
                 }
             }
 
@@ -467,7 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref discardedUseSiteInfo);
+
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo);
         }
 
         internal override Conversion ClassifyConversionForCast(
@@ -490,7 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref discardedUseSiteInfo, forCast: true);
+
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo, forCast: true);
         }
 
         /// <summary>

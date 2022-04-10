@@ -19,12 +19,6 @@
 "Title"="C#/VB LSP editor (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Roslyn\LSP\Completion]
-"Description"="Enables the LSP-powered C#/VB completion experience to operate with prototype behavior. Note this currently will not affect local C#/VB scenarios except for C# in Razor."
-"Value"=dword:00000000
-"Title"="C#/VB LSP completion experience"
-"PreviewPaneChannels"="IntPreview,int.main"
-
 [$RootKey$\FeatureFlags\Roslyn\LSP\SemanticTokens]
 "Description"="Enables the LSP-powered C#/VB semantic tokens experience in the local editor."
 "Value"=dword:00000000
@@ -35,6 +29,12 @@
 "Description"="Run C#/VB out-of-process code analysis on .Net 6 ServiceHub host."
 "Value"=dword:00000000
 "Title"="Run C#/VB code analysis on .Net 6 (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\UseInlineAdornmentForRename]
+"Description"="Use the new inline rename experience that changes the UI to be closer to the invocation point."
+"Value"=dword:00000000
+"Title"="C#/VB enable new inline rename"
 "PreviewPaneChannels"="IntPreview,int.main"
 
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag

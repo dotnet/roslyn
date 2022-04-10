@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (classNode == null)
                 return;
 
-            var options = ImplementTypeOptions.From(document.Project);
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), options, cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), context.Options.ImplementTypeOptions, cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
             => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
                 : base(title, createChangedDocument, id)

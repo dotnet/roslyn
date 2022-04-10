@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -348,13 +349,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         #region ObjectCreationExpressionModificationHelpers
 
         private static (SyntaxNode newNode, SyntaxNode oldNode) ModifyObjectCreationExpressionNode(
-            ObjectCreationExpressionSyntax objectCreationExpressionNode,
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode,
             bool addOrRemoveInitializer,
             DocumentOptionSet documentOptions)
         {
-            // 1. Add '()' after the type.
-            // e.g. var c = new Bar => var c = new Bar()
-            var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(objectCreationExpressionNode);
+            // 1. Add '()' after the type or new keyword.
+            // e.g.
+            // case 1: 'var c = new Bar' becomes 'var c = new Bar()'
+            // case 2: 'Bar b = new' becomes 'Bar b = new()'
+            var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode);
 
             // 2. Add or remove initializer
             // e.g. var c = new Bar() => var c = new Bar() { }
@@ -362,13 +365,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 ? WithBraces(objectCreationNodeWithArgumentList, documentOptions)
                 : WithoutBraces(objectCreationNodeWithArgumentList);
 
-            // 3. Handler the semicolon.
+            // 3. Handle the semicolon.
             // If the next token is a semicolon, e.g.
             // var l = new Ba$$r() { }  => var l = new Ba$$r() { };
-            var nextToken = objectCreationExpressionNode.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true);
+            var nextToken = baseObjectCreationExpressionNode.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true);
             if (nextToken.IsKind(SyntaxKind.SemicolonToken)
                 && nextToken.Parent != null
-                && nextToken.Parent.Contains(objectCreationExpressionNode))
+                && nextToken.Parent.Contains(baseObjectCreationExpressionNode))
             {
                 var objectCreationNodeContainer = nextToken.Parent;
                 // Replace the old object creation node and add the semicolon token.
@@ -378,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // =>
                 // var l = new Bar() {}; // I am some comments
                 var replacementContainerNode = objectCreationNodeContainer.ReplaceSyntax(
-                    nodes: SpecializedCollections.SingletonCollection(objectCreationExpressionNode),
+                    nodes: SpecializedCollections.SingletonCollection(baseObjectCreationExpressionNode),
                     (_, _) => objectCreationNodeWithCorrectInitializer.WithoutTrailingTrivia(),
                     tokens: SpecializedCollections.SingletonCollection(nextToken),
                     computeReplacementToken: (_, _) =>
@@ -390,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             else
             {
                 // No need to change the semicolon, just return the objectCreationExpression with correct initializer
-                return (objectCreationNodeWithCorrectInitializer, objectCreationExpressionNode);
+                return (objectCreationNodeWithCorrectInitializer, baseObjectCreationExpressionNode);
             }
         }
 
@@ -398,22 +401,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// Add argument list to the objectCreationExpression if needed.
         /// e.g. new Bar; => new Bar();
         /// </summary>
-        private static ObjectCreationExpressionSyntax WithArgumentListIfNeeded(ObjectCreationExpressionSyntax objectCreationExpressionNode)
+        private static BaseObjectCreationExpressionSyntax WithArgumentListIfNeeded(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
         {
-            var argumentList = objectCreationExpressionNode.ArgumentList;
-            var hasArgumentList = argumentList != null && !argumentList.IsMissing;
-            if (!hasArgumentList)
+            var argumentList = baseObjectCreationExpressionNode.ArgumentList;
+            if (argumentList is { IsMissing: false })
             {
-                // Make sure the trailing trivia is passed to the argument list
-                // like var l = new List\r\n =>
-                // var l = new List()\r\r
-                var typeNode = objectCreationExpressionNode.Type;
-                var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(typeNode.GetTrailingTrivia());
-                var newTypeNode = typeNode.WithoutTrivia();
-                return objectCreationExpressionNode.WithType(newTypeNode).WithArgumentList(newArgumentList);
+                return baseObjectCreationExpressionNode;
             }
 
-            return objectCreationExpressionNode;
+            RoslynDebug.Assert(!baseObjectCreationExpressionNode.NewKeyword.IsMissing);
+            if (baseObjectCreationExpressionNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
+            {
+                var typeNode = objectCreationExpressionNode.Type;
+                if (typeNode.IsMissing)
+                {
+                    // There is only 'new' keyword in the object creation expression. Treat it as an ImplicitObjectCreationExpression.
+                    // This could happen because when only type 'new', parser would think it is an ObjectCreationExpression.
+                    var newKeywordToken = baseObjectCreationExpressionNode.NewKeyword;
+                    var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
+                    return SyntaxFactory.ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
+                }
+                else
+                {
+                    // Make sure the trailing trivia is passed to the argument list
+                    // like var l = new List\r\n =>
+                    // var l = new List()\r\r
+                    var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(typeNode.GetTrailingTrivia());
+                    var newTypeNode = typeNode.WithoutTrivia();
+                    return objectCreationExpressionNode.WithType(newTypeNode).WithArgumentList(newArgumentList);
+                }
+            }
+
+            if (baseObjectCreationExpressionNode is ImplicitObjectCreationExpressionSyntax implicitObjectCreationExpressionNode)
+            {
+                var newKeywordToken = implicitObjectCreationExpressionNode.NewKeyword;
+                var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
+                return SyntaxFactory.ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
+            }
+
+            RoslynDebug.Assert(false, $"New derived type of {nameof(BaseObjectCreationExpressionSyntax)} is added");
+            return baseObjectCreationExpressionNode;
         }
 
         #endregion
@@ -443,6 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 LockStatementSyntax lockStatementNode => ShouldAddBraceForLockStatement(lockStatementNode, caretPosition),
                 UsingStatementSyntax usingStatementNode => ShouldAddBraceForUsingStatement(usingStatementNode, caretPosition),
                 WhileStatementSyntax whileStatementNode => ShouldAddBraceForWhileStatement(whileStatementNode, caretPosition),
+                CheckedStatementSyntax checkedStatementNode => ShouldAddBraceForCheckedStatement(checkedStatementNode, caretPosition),
                 _ => false,
             };
 
@@ -615,6 +643,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && finallyClauseNode.Block.OpenBraceToken.IsMissing
                && !finallyClauseNode.Block.Span.Contains(caretPosition);
 
+        private static bool ShouldAddBraceForCheckedStatement(CheckedStatementSyntax checkedStatementNode, int caretPosition)
+            => checkedStatementNode.Block.OpenBraceToken.IsMissing
+               && !checkedStatementNode.Block.Span.Contains(caretPosition);
+
         // For all the embeddedStatementOwners,
         // if the embeddedStatement is not block, insert the the braces if its statement is not block.
         private static bool ShouldAddBraceForDoStatement(DoStatementSyntax doStatementNode, int caretPosition)
@@ -733,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static bool ShouldRemoveBraces(SyntaxNode node, int caretPosition)
             => node switch
             {
-                ObjectCreationExpressionSyntax objectCreationExpressionNode => ShouldRemoveBraceForObjectCreationExpression(objectCreationExpressionNode),
+                BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldRemoveBraceForObjectCreationExpression(baseObjectCreationExpressionNode),
                 AccessorDeclarationSyntax accessorDeclarationNode => ShouldRemoveBraceForAccessorDeclaration(accessorDeclarationNode, caretPosition),
                 PropertyDeclarationSyntax propertyDeclarationNode => ShouldRemoveBraceForPropertyDeclaration(propertyDeclarationNode, caretPosition),
                 EventDeclarationSyntax eventDeclarationNode => ShouldRemoveBraceForEventDeclaration(eventDeclarationNode, caretPosition),
@@ -741,11 +773,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             };
 
         /// <summary>
-        /// Remove the braces if the ObjectCreationExpression has an empty Initializer.
+        /// Remove the braces if the BaseObjectCreationExpression has an empty Initializer.
         /// </summary>
-        private static bool ShouldRemoveBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
+        private static bool ShouldRemoveBraceForObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
         {
-            var initializer = objectCreationExpressionNode.Initializer;
+            var initializer = baseObjectCreationExpressionNode.Initializer;
             return initializer != null && initializer.Expressions.IsEmpty();
         }
 
@@ -831,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             => node switch
             {
                 BaseTypeDeclarationSyntax baseTypeDeclarationNode => WithBracesForBaseTypeDeclaration(baseTypeDeclarationNode, documentOptions),
-                ObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, documentOptions),
+                BaseObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, documentOptions),
                 FieldDeclarationSyntax fieldDeclarationNode when fieldDeclarationNode.Declaration.Variables.IsSingle()
                     => ConvertFieldDeclarationToPropertyDeclaration(fieldDeclarationNode, documentOptions),
                 EventFieldDeclarationSyntax eventFieldDeclarationNode => ConvertEventFieldDeclarationToEventDeclaration(eventFieldDeclarationNode, documentOptions),
@@ -854,8 +886,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// <summary>
         /// Add an empty initializer to <param name="objectCreationExpressionNode"/>.
         /// </summary>
-        private static ObjectCreationExpressionSyntax GetObjectCreationExpressionWithInitializer(
-            ObjectCreationExpressionSyntax objectCreationExpressionNode,
+        private static BaseObjectCreationExpressionSyntax GetObjectCreationExpressionWithInitializer(
+            BaseObjectCreationExpressionSyntax objectCreationExpressionNode,
             DocumentOptionSet documentOptions)
             => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(documentOptions));
 
@@ -963,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static SyntaxNode WithoutBraces(SyntaxNode node)
             => node switch
             {
-                ObjectCreationExpressionSyntax objectCreationExpressionNode => RemoveInitializerForObjectCreationExpression(objectCreationExpressionNode),
+                BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => RemoveInitializerForBaseObjectCreationExpression(baseObjectCreationExpressionNode),
                 PropertyDeclarationSyntax propertyDeclarationNode => ConvertPropertyDeclarationToFieldDeclaration(propertyDeclarationNode),
                 EventDeclarationSyntax eventDeclarationNode => ConvertEventDeclarationToEventFieldDeclaration(eventDeclarationNode),
                 AccessorDeclarationSyntax accessorDeclarationNode => RemoveBodyForAccessorDeclarationNode(accessorDeclarationNode),
@@ -971,12 +1003,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             };
 
         /// <summary>
-        /// Remove the initializer for <param name="objectCreationExpressionNode"/>.
+        /// Remove the initializer for <param name="baseObjectCreationExpressionNode"/>.
         /// </summary>
-        private static ObjectCreationExpressionSyntax RemoveInitializerForObjectCreationExpression(
-            ObjectCreationExpressionSyntax objectCreationExpressionNode)
+        private static BaseObjectCreationExpressionSyntax RemoveInitializerForBaseObjectCreationExpression(
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
         {
-            var objectCreationNodeWithoutInitializer = objectCreationExpressionNode.WithInitializer(null);
+            var objectCreationNodeWithoutInitializer = baseObjectCreationExpressionNode.WithInitializer(null);
             // Filter the non-comments trivia
             // e.g.
             // Bar(new Foo() // I am some comments

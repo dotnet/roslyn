@@ -39,15 +39,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    AnalyzersResources.Object_initialization_can_be_simplified,
+                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(AnalyzersResources.Object_initialization_can_be_simplified)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -121,13 +122,5 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract TStatementSyntax GetNewStatement(
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-            {
-            }
-        }
     }
 }

@@ -2713,6 +2713,333 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+	Console.WriteLine(x);
+}
+/*</bind>*/
+
+struct CustomAsyncEnumerable : IAsyncEnumerable<int>
+{
+	public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+	   [CallerLineNumber] int line = default)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		Console.WriteLine(""GetAsyncEnumerator"");
+		return new();
+	}
+
+	IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)
+	{
+		Console.WriteLine(""IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)"");
+		return GetAsyncEnumerator();
+	}
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<int>
+{
+	private int x;
+	public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+		[CallerLineNumber] int line = default, int r = 12)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.FromResult(x++ < 5);
+	}
+
+	ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync()
+	{
+		Console.WriteLine(""IAsyncEnumerator<int>.MoveNextAsync()"");
+		return MoveNextAsync();
+	}
+	ValueTask IAsyncDisposable.DisposeAsync()
+	{
+		Console.WriteLine(""IAsyncDisposable.DisposeAsync()"");
+		return DisposeAsync();
+	}
+
+	public int Current => x;
+	
+	public ValueTask DisposeAsync([CallerMemberName] string s = default,
+						[CallerLineNumber] int line = default, int xxx=12, string f = """")
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.CompletedTask;
+	}
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(3, op.Info.MoveNextArguments.Length);
+            Assert.Equal(4, op.Info.DisposeArguments.Length);
+            Assert.Equal(@"System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync([System.String s = null], [System.Int32 line = 0], [System.Int32 xxx = 12], [System.String f = """"])",
+                op.Info.PatternDisposeMethod.ToTestDisplayString());
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[2], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: r) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[2], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: xxx) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[3], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: f) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments2()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+    Console.WriteLine(x);
+}
+/*</bind>*/
+
+ref struct CustomAsyncEnumerable
+{
+    public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        Console.WriteLine(""GetAsyncEnumerator"");
+        return new();
+    }
+}
+
+struct AsyncEnumerator
+{
+    private int x;
+    public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.FromResult(x++ < 5);
+    }
+
+    public int Current => x;
+
+    public ValueTask DisposeAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.CompletedTask;
+    }
+}
+";
+
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(2, op.Info.MoveNextArguments.Length);
+            Assert.Equal(2, op.Info.DisposeArguments.Length);
+
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync([System.String s = null], [System.Int32 line = 0])", op.Info.PatternDisposeMethod.ToTestDisplayString());
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void NullPatternDisposeMethod()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+	Console.WriteLine(x);
+}
+/*</bind>*/
+
+struct CustomAsyncEnumerable
+{
+	public CustomAsyncEnumerator GetAsyncEnumerator() => new();
+}
+
+struct CustomAsyncEnumerator
+{
+	public ValueTask<bool> MoveNextAsync() => ValueTask.FromResult(false);
+	public int Current => 0;
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"
+IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Null(op.Info.PatternDisposeMethod);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ForEachFlow_07()
@@ -4781,19 +5108,19 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program()')
-              Value: 
+              Value:
                 IInvocationOperation (System.Collections.Generic.IAsyncEnumerator<System.String> Extensions.GetAsyncEnumerator(this Program p)) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
-                  Instance Receiver: 
+                  Instance Receiver:
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new Program()')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'new Program()')
                           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (Identity)
-                          Operand: 
+                          Operand:
                             IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
                               Arguments(0)
-                              Initializer: 
+                              Initializer:
                                 null
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4806,9 +5133,9 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B7]
                 IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
-                  Expression: 
+                  Expression:
                     IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'new Program()')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
                 Finalizing: {R5}
@@ -4822,16 +5149,16 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (2)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
-                      Left: 
+                      Left:
                         ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                      Right: 
+                      Right:
                         IPropertyReferenceOperation: System.String System.Collections.Generic.IAsyncEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
-                      Expression: 
+                      Expression:
                         IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-                          Instance Receiver: 
+                          Instance Receiver:
                             null
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
@@ -4849,21 +5176,17 @@ Block[B0] - Entry
             Statements (0)
             Jump if True (Regular) to Block[B6]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new Program()')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B4]
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
-                  Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'new Program()')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitReference)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
             Next (Regular) Block[B6]
         Block[B6] - Block
@@ -4917,19 +5240,19 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program()')
-              Value: 
+              Value:
                 IInvocationOperation (System.Collections.Generic.IAsyncEnumerator<System.String> Extensions.GetAsyncEnumerator(this System.Object p)) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
-                  Instance Receiver: 
+                  Instance Receiver:
                     null
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new Program()')
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new Program()')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             (ImplicitReference)
-                          Operand: 
+                          Operand:
                             IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
                               Arguments(0)
-                              Initializer: 
+                              Initializer:
                                 null
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4942,9 +5265,9 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B7]
                 IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
-                  Expression: 
+                  Expression:
                     IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'new Program()')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
                 Finalizing: {R5}
@@ -4958,16 +5281,16 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (2)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
-                      Left: 
+                      Left:
                         ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                      Right: 
+                      Right:
                         IPropertyReferenceOperation: System.String System.Collections.Generic.IAsyncEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
-                      Expression: 
+                      Expression:
                         IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-                          Instance Receiver: 
+                          Instance Receiver:
                             null
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
@@ -4985,21 +5308,17 @@ Block[B0] - Entry
             Statements (0)
             Jump if True (Regular) to Block[B6]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new Program()')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B4]
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
-                  Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'new Program()')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitReference)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
             Next (Regular) Block[B6]
         Block[B6] - Block
@@ -5144,11 +5463,11 @@ Block[B0] - Entry
                 Predecessors: [B0]
                 Statements (1)
                     IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
-                      Value: 
+                      Value:
                         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                 Jump if True (Regular) to Block[B3]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
-                      Operand: 
+                      Operand:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
                     Leaving: {R3}
                 Next (Regular) Block[B2]
@@ -5156,11 +5475,11 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
-                      Value: 
+                      Value:
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'null')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                             (ImplicitReference)
-                          Operand: 
+                          Operand:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
                 Next (Regular) Block[B4]
                     Leaving: {R3}
@@ -5169,26 +5488,26 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program()')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
             Next (Regular) Block[B4]
         Block[B4] - Block
             Predecessors: [B2] [B3]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null ?? new Program()')
-                  Value: 
+                  Value:
                     IInvocationOperation (System.Collections.Generic.IAsyncEnumerator<System.String> Extensions.GetAsyncEnumerator(this Program p)) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
-                      Instance Receiver: 
+                      Instance Receiver:
                         null
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'null ?? new Program()')
                             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program, IsImplicit) (Syntax: 'null ?? new Program()')
                               Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 (Identity)
-                              Operand: 
+                              Operand:
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'null ?? new Program()')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -5203,9 +5522,9 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B10]
                 IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
-                  Expression: 
+                  Expression:
                     IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'null ?? new Program()')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
                       Arguments(0)
                 Finalizing: {R7}
@@ -5219,16 +5538,16 @@ Block[B0] - Entry
                 Predecessors: [B5]
                 Statements (2)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
-                      Left: 
+                      Left:
                         ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                      Right: 
+                      Right:
                         IPropertyReferenceOperation: System.String System.Collections.Generic.IAsyncEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'var')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
-                      Expression: 
+                      Expression:
                         IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-                          Instance Receiver: 
+                          Instance Receiver:
                             null
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
@@ -5246,21 +5565,17 @@ Block[B0] - Entry
             Statements (0)
             Jump if True (Regular) to Block[B9]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'null ?? new Program()')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
             Next (Regular) Block[B8]
         Block[B8] - Block
             Predecessors: [B7]
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'null ?? new Program()')
-                  Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'null ?? new Program()')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitReference)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
                       Arguments(0)
             Next (Regular) Block[B9]
         Block[B9] - Block
@@ -5356,15 +5671,19 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'pets')
-              Value: 
+              Value:
                 IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.String> System.Collections.Generic.IAsyncEnumerable<System.String>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IAsyncEnumerable<System.String>, IsImplicit) (Syntax: 'pets')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (Identity)
-                      Operand: 
+                      Operand:
                         IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}
@@ -5374,9 +5693,9 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B7]
                 IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
-                  Expression: 
+                  Expression:
                     IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.String>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'pets')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                       Arguments(0)
                 Finalizing: {R5}
@@ -5390,16 +5709,16 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (2)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'string')
-                      Left: 
+                      Left:
                         ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'string')
-                      Right: 
+                      Right:
                         IPropertyReferenceOperation: System.String System.Collections.Generic.IAsyncEnumerator<System.String>.Current { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'string')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
-                      Expression: 
+                      Expression:
                         IInvocationOperation (void System.Console.WriteLine(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
-                          Instance Receiver: 
+                          Instance Receiver:
                             null
                           Arguments(1):
                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'value')
@@ -5417,21 +5736,17 @@ Block[B0] - Entry
             Statements (0)
             Jump if True (Regular) to Block[B6]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'pets')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B4]
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'pets')
-                  Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'pets')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (ImplicitReference)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                       Arguments(0)
             Next (Regular) Block[B6]
         Block[B6] - Block
@@ -5733,16 +6048,16 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C()')
-              Value: 
+              Value:
                 IInvocationOperation ( C.AsyncEnumerator C.GetAsyncEnumerator()) (OperationKind.Invocation, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new C()')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (Identity)
-                      Operand: 
+                      Operand:
                         IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
                           Arguments(0)
-                          Initializer: 
+                          Initializer:
                             null
                   Arguments(0)
         Next (Regular) Block[B2]
@@ -5754,9 +6069,9 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B5]
                 IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
-                  Expression: 
+                  Expression:
                     IInvocationOperation ( System.Threading.Tasks.Task<System.Boolean> C.AsyncEnumerator.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.Task<System.Boolean>, IsImplicit) (Syntax: 'new C()')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
                       Arguments(0)
                 Finalizing: {R5}
@@ -5770,11 +6085,11 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (1)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
-                      Left: 
+                      Left:
                         ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
-                      Right: 
+                      Right:
                         IPropertyReferenceOperation: System.Int32 C.AsyncEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
                 Next (Regular) Block[B2]
                     Leaving: {R4}
@@ -5786,14 +6101,10 @@ Block[B0] - Entry
             Predecessors (0)
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new C()')
-                  Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new C()')
-                      Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'new C()')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (Boxing)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new C()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
                       Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -6113,7 +6424,11 @@ Block[B0] - Entry
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                           Arguments(0)
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(C?)null')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: '(C?)null')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}

@@ -1368,9 +1368,9 @@ class C
 {
         int
 #if true
-        y,
+            y,
 #endif
-        z;
+            z;
 
         int a = 1;
 }");
@@ -1395,7 +1395,7 @@ class C
 #if true
 
 #endif
-        z;
+            z;
 
         int a = 1;
 }");
@@ -1418,9 +1418,9 @@ class C
 {
         int y,
 #if true
-        z
+            z
 #endif
-        ;
+            ;
 
         int a = 1;
 }");
@@ -5311,8 +5311,6 @@ using System;
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TopLevelStatement()
         {
-            // Note: we should simplify 'global' as well
-            // https://github.com/dotnet/roslyn/issues/44420
             var code = @"
 int val = 0;
 int [||]val2 = val + 1;
@@ -5321,7 +5319,7 @@ System.Console.WriteLine(val2);
 
             var expected = @"
 int val = 0;
-System.Console.WriteLine((int)(val + 1));
+System.Console.WriteLine(val + 1);
 ";
 
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
@@ -5334,8 +5332,6 @@ System.Console.WriteLine((int)(val + 1));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TopLevelStatement_InScope()
         {
-            // Note: we should simplify 'global' as well
-            // https://github.com/dotnet/roslyn/issues/44420
             await TestAsync(@"
 {
     int val = 0;
@@ -5346,7 +5342,7 @@ System.Console.WriteLine((int)(val + 1));
 @"
 {
     int val = 0;
-    System.Console.WriteLine((int)(val + 1));
+    System.Console.WriteLine(val + 1);
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));

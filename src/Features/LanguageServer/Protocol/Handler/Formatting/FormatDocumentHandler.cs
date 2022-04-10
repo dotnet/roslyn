@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FormatDocumentHandler)), Shared]
     [Method(LSP.Methods.TextDocumentFormattingName)]
-    internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]?>
+    internal sealed class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -17,9 +17,24 @@
         <target state="translated">Добавить вариант по умолчанию</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Добавить заголовок файла</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -30,6 +45,16 @@
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Исправить все случаи в</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="new">Make class 'abstract'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">

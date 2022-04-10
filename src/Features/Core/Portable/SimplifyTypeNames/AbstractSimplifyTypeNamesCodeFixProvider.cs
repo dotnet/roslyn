@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                 IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         private (SyntaxNode, string diagnosticId) GetNodeToSimplify(
             SyntaxNode root, SemanticModel model, TextSpan span,
             OptionSet optionSet, CancellationToken cancellationToken)

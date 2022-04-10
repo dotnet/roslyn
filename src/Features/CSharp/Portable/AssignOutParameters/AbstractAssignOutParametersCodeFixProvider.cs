@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0177);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
