@@ -25,10 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Return VisualBasicCodeFixesResources.Remove_Unnecessary_Imports
         End Function
 
-#If CODE_STYLE Then
-        Protected Overrides Function GetSyntaxFormattingService() As ISyntaxFormattingService
-            Return VisualBasicSyntaxFormattingService.Instance
+        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
+            Return VisualBasicSyntaxFormatting.Instance
         End Function
-#End If
     End Class
 End Namespace

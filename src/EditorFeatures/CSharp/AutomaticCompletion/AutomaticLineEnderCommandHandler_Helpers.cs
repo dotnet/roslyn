@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static BaseObjectCreationExpressionSyntax GetObjectCreationExpressionWithInitializer(
             BaseObjectCreationExpressionSyntax objectCreationExpressionNode,
             SyntaxFormattingOptions formattingOptions)
-            => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(documentOptions));
+            => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(formattingOptions));
 
         /// <summary>
         /// Convert <param name="fieldDeclarationNode"/> to a property declarations.

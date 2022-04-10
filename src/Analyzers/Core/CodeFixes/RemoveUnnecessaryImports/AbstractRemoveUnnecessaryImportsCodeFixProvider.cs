@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
-#if CODE_STYLE
-        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
-#endif
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
 #if CODE_STYLE
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = GetSyntaxFormattingService().GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree));
+            var formattingOptions = GetSyntaxFormatting().GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree));
 #else
             var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
