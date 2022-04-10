@@ -41,18 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Use_range_operator,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(CSharpAnalyzersResources.Use_range_operator)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_range_operator, nameof(CSharpAnalyzersResources.Use_range_operator));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
                                              .OrderByDescending(i => i.SpanStart)

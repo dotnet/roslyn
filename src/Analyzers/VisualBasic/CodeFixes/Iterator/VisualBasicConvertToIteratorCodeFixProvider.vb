@@ -90,17 +90,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
                     Dim methodStatementNode = TryCast(methodNode, MethodStatementSyntax)
                     If methodStatementNode IsNot Nothing AndAlso Not methodStatementNode.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
                         root = AddIteratorKeywordToMethod(root, methodStatementNode)
-                        Return New MyCodeAction(
-                                        String.Format(VisualBasicCodeFixesResources.Convert_0_to_Iterator, methodStatementNode.Identifier),
-                                        document.WithSyntaxRoot(root))
+
+                        Dim title = String.Format(VisualBasicCodeFixesResources.Convert_0_to_Iterator, methodStatementNode.Identifier)
+                        Return CodeAction.Create(title, Function(c) Task.FromResult(document.WithSyntaxRoot(root)), title)
                     End If
                 Case SyntaxKind.MultiLineFunctionLambdaExpression
                     Dim lambdaNode = TryCast(methodNode, LambdaExpressionSyntax)
                     If lambdaNode IsNot Nothing AndAlso Not lambdaNode.SubOrFunctionHeader.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
                         root = AddIteratorKeywordToLambda(root, lambdaNode)
-                        Return New MyCodeAction(
-                                    String.Format(VisualBasicCodeFixesResources.Convert_0_to_Iterator, lambdaNode.SubOrFunctionHeader.GetTypeDisplayName()),
-                                    document.WithSyntaxRoot(root))
+                        Dim title = String.Format(VisualBasicCodeFixesResources.Convert_0_to_Iterator, lambdaNode.SubOrFunctionHeader.GetTypeDisplayName())
+
+                        Return CodeAction.Create(title, Function(c) Task.FromResult(document.WithSyntaxRoot(root)), title)
                     End If
                 Case Else
             End Select
@@ -135,14 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
             Return root.ReplaceNode(lambdaNode.SubOrFunctionHeader, newHeader)
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Public Sub New(title As String, newDocument As Document)
-                MyBase.New(title, Function(c) Task.FromResult(newDocument), title)
-            End Sub
-        End Class
     End Class
 End Namespace
 

@@ -40,11 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
-                            document,
-                            localFunction,
-                            captures,
-                            c)),
+                        CodeAction.Create(
+                            CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments,
+                            c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c),
+                            nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
                         diagnostic);
 
                     return Task.CompletedTask;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.CancellationToken);
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
             => WrapFixAsync(
                 document,
                 diagnostics,
@@ -100,14 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)
-            {
             }
         }
     }

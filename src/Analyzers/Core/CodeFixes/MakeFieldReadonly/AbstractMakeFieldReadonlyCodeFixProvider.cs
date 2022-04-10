@@ -31,11 +31,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Add_readonly_modifier,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(AnalyzersResources.Add_readonly_modifier)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Add_readonly_modifier, nameof(AnalyzersResources.Add_readonly_modifier));
             return Task.CompletedTask;
         }
 
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

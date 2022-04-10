@@ -47,17 +47,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             if (_syntaxFacts.GetModifiers(syntaxNode) != default)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        AnalyzersResources.Order_modifiers,
-                        c => FixAsync(context.Document, context.Diagnostics[0], c),
-                        nameof(AnalyzersResources.Order_modifiers)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, AnalyzersResources.Order_modifiers, nameof(AnalyzersResources.Order_modifiers));
             }
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);

@@ -73,13 +73,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <see cref="PinnedSolutionInfo.SolutionChecksum"/>). However, this is used by
         /// Pythia/Razor/UnitTesting which all assume they can get that solution instance and use as desired by them.
         /// </summary>
+        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
         public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);
             var workspace = GetWorkspace();
             var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
 
-            var (solution, result) = await workspace.RunWithSolutionAsync(
+            var (solution, _) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionInfo.SolutionChecksum,
                 solutionInfo.WorkspaceVersion,
@@ -88,6 +89,27 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
 
             return solution;
+        }
+
+        public async ValueTask<T> RunServiceAsync<T>(
+            ServiceBrokerClient client,
+            PinnedSolutionInfo solutionInfo,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+        {
+            var assetSource = new SolutionAssetSource(client);
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
+
+            var (_, result) = await workspace.RunWithSolutionAsync(
+                assetProvider,
+                solutionInfo.SolutionChecksum,
+                solutionInfo.WorkspaceVersion,
+                solutionInfo.FromPrimaryBranch,
+                implementation,
+                cancellationToken).ConfigureAwait(false);
+
+            return result;
         }
 
         private sealed class SimpleAssemblyLoader : IAssemblyLoader
