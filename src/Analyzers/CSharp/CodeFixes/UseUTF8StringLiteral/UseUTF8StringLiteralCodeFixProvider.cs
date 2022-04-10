@@ -35,18 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Use_UTF8_string_literal,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(CSharpAnalyzersResources.Use_UTF8_string_literal)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_UTF8_string_literal, nameof(CSharpAnalyzersResources.Use_UTF8_string_literal));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -60,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 //
                 // eg given a method:
                 //     M(string x, params byte[] b)
-                // our diagnositic would be reported on:
+                // our diagnostic would be reported on:
                 //     M("hi", [|1, 2, 3, 4|]);
                 //
                 // but arrayNode will be the whole argument list syntax
