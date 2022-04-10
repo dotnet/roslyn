@@ -11,12 +11,21 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
@@ -60,7 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-            var converted = await ConvertAsync(document, namespaceDecl, cancellationToken).ConfigureAwait(false);
+
+#if CODE_STYLE
+            var configOptions = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(namespaceDecl.SyntaxTree, cancellationToken);
+            var options = CSharpSyntaxFormattingOptions.Create(configOptions);
+#else
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+#endif
+            var converted = await ConvertAsync(document, namespaceDecl, options, cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(
                 editor.OriginalRoot,
