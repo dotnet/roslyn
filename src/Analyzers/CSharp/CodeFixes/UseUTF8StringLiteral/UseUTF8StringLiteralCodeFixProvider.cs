@@ -47,26 +47,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var arrayNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var stringValue = diagnostic.Properties[UseUTF8StringLiteralDiagnosticAnalyzer.StringValuePropertyName]!;
 
                 // If we're replacing a byte array that is passed to a parameter array, not and an explicit array creation
-                // then we'll get then arrayNode will be the ArgumentListSyntax so we have to work a bit harder
+                // then we'll get then node will be the ArgumentListSyntax so we have to work a bit harder
                 //
                 // eg given a method:
                 //     M(string x, params byte[] b)
                 // our diagnostic would be reported on:
                 //     M("hi", [|1, 2, 3, 4|]);
                 //
-                // but arrayNode will be the whole argument list syntax
+                // but node will be the whole argument list syntax
 
-                if (arrayNode is BaseArgumentListSyntax argumentList)
+                if (node is BaseArgumentListSyntax argumentList)
                 {
-                    editor.ReplaceNode(arrayNode, CreateArgumentListWithUTF8String(argumentList, diagnostic.Location, stringValue));
+                    editor.ReplaceNode(node, CreateArgumentListWithUTF8String(argumentList, diagnostic.Location, stringValue));
                 }
                 else
                 {
-                    editor.ReplaceNode(arrayNode, CreateUTF8String(arrayNode, stringValue));
+                    editor.ReplaceNode(node, CreateUTF8String(node, stringValue));
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             // and then once we hit the location, we add our string literal
             // We can't just loop through the arguments, as we want to preserve trivia on the
             // comma tokens, if any.
-            var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var arguments);
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var arguments);
             foreach (var argument in argumentList.ChildNodesAndTokens())
             {
                 // Skip the open paren, its a child token but not an argument
