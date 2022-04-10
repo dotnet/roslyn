@@ -508,7 +508,183 @@ class Program
         }
 
         [Fact]
-        public void Assignment_Ref()
+        public void AssignValueTo_InstanceMethod_RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(T tValue, ref T tRef, out T tOut, in T tIn)
+    {
+        tOut = default;
+        F = tValue;
+        F = tRef;
+        F = tOut;
+        F = tIn;
+    }
+    object P
+    {
+        init
+        {
+            F = GetValue();
+            F = GetRef();
+            F = GetRefReadonly();
+        }
+    }
+    static T GetValue() => throw null;
+    static ref T GetRef() => throw null;
+    static ref readonly T GetRefReadonly() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignValueTo_InstanceMethod_RefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref readonly T F;
+    public S(T tValue, ref T tRef, out T tOut, in T tIn)
+    {
+        tOut = default;
+        F = tValue; // 1
+        F = tRef; // 2
+        F = tOut; // 3
+        F = tIn; // 4
+    }
+    object P
+    {
+        init
+        {
+            F = GetValue(); // 5
+            F = GetRef(); // 6
+            F = GetRefReadonly(); // 7
+        }
+    }
+    static T GetValue() => throw null;
+    static ref T GetRef() => throw null;
+    static ref readonly T GetRefReadonly() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
+                // (7,9): error CS0170: Use of possibly unassigned field 'F'
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "F").WithArguments("F").WithLocation(7, 9),
+                // (8,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tRef; // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
+                // (9,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tOut; // 3
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 9),
+                // (10,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tIn; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(10, 9),
+                // (16,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetValue(); // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(16, 13),
+                // (17,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetRef(); // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(17, 13),
+                // (18,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetRefReadonly(); // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 13));
+        }
+
+        [Fact]
+        public void AssignValueTo_InstanceMethod_ReadonlyRefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref T F;
+    public S(T tValue, ref T tRef, out T tOut, in T tIn)
+    {
+        tOut = default;
+        F = tValue;
+        F = tRef;
+        F = tOut;
+        F = tIn;
+    }
+    object P
+    {
+        init
+        {
+            F = GetValue();
+            F = GetRef();
+            F = GetRefReadonly();
+        }
+    }
+    static T GetValue() => throw null;
+    static ref T GetRef() => throw null;
+    static ref readonly T GetRefReadonly() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignValueTo_InstanceMethod_ReadonlyRefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref readonly T F;
+    public S(T tValue, ref T tRef, out T tOut, in T tIn)
+    {
+        tOut = default;
+        F = tValue; // 1
+        F = tRef; // 2
+        F = tOut; // 3
+        F = tIn; // 4
+    }
+    object P
+    {
+        init
+        {
+            F = GetValue(); // 5
+            F = GetRef(); // 6
+            F = GetRefReadonly(); // 7
+        }
+    }
+    static T GetValue() => throw null;
+    static ref T GetRef() => throw null;
+    static ref readonly T GetRefReadonly() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
+                // (7,9): error CS0170: Use of possibly unassigned field 'F'
+                //         F = tValue; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "F").WithArguments("F").WithLocation(7, 9),
+                // (8,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tRef; // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
+                // (9,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tOut; // 3
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 9),
+                // (10,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //         F = tIn; // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(10, 9),
+                // (16,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetValue(); // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(16, 13),
+                // (17,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetRef(); // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(17, 13),
+                // (18,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //             F = GetRefReadonly(); // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 13));
+        }
+
+        [Fact]
+        public void AssignRefTo_InstanceMethod_RefField()
         {
             var source =
 @"ref struct S<T>
@@ -520,62 +696,32 @@ class Program
         F = ref tValue;
         F = ref tRef;
         F = ref tOut;
-        F = ref tIn;
-        F = tValue;
-        F = tRef;
-        F = tOut;
-        F = tIn;
+        F = ref tIn; // 1
     }
     object P
     {
         init
         {
-            F = ref GetValue();
             F = ref GetRef();
-            F = ref GetRefReadonly();
-            F = GetValue();
-            F = GetRef();
-            F = GetRefReadonly();
+            F = ref GetRefReadonly(); // 2
         }
     }
-    static T GetValue() => throw null;
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
-}
-class Program
-{
-    static void Assign<T>(S<T> s, T tValue, ref T tRef, out T tOut, in T tIn)
-    {
-        tOut = default;
-        s.F =  ref tValue;
-        s.F =  ref tRef;
-        s.F =  ref tOut;
-        s.F =  ref tIn;
-        s.F =  tValue;
-        s.F =  tRef;
-        s.F =  tOut;
-        s.F =  tIn;
-    }
 }";
             // PROTOTYPE: Report a ref-safe-to-escape error for: F = ref tValue;
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyEmitDiagnostics(
                 // (10,17): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
-                //         F = ref tIn;
+                //         F = ref tIn; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(10, 17),
-                // (20,21): error CS1510: A ref or out value must be an assignable variable
-                //             F = ref GetValue();
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetValue()").WithLocation(20, 21),
-                // (22,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' because it is a readonly variable
-                //             F = ref GetRefReadonly();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(22, 21),
-                // (40,20): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
-                //         s.F =  ref tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(40, 20));
+                // (17,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' because it is a readonly variable
+                //             F = ref GetRefReadonly(); // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(17, 21));
         }
 
         [Fact]
-        public void Assignment_RefReadonly()
+        public void AssignRefTo_InstanceMethod_RefReadonlyField()
         {
             var source =
 @"ref struct S<T>
@@ -588,85 +734,25 @@ class Program
         F = ref tRef;
         F = ref tOut;
         F = ref tIn;
-        F = tValue;
-        F = tRef;
-        F = tOut;
-        F = tIn;
     }
     object P
     {
         init
         {
-            F = ref GetValue();
             F = ref GetRef();
             F = ref GetRefReadonly();
-            F = GetValue();
-            F = GetRef();
-            F = GetRefReadonly();
         }
     }
-    static T GetValue() => throw null;
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
-}
-class Program
-{
-    static void Assign<T>(S<T> s, T tValue, ref T tRef, out T tOut, in T tIn)
-    {
-        tOut = default;
-        s.F =  ref tValue;
-        s.F =  ref tRef;
-        s.F =  ref tOut;
-        s.F =  ref tIn;
-        s.F =  tValue;
-        s.F =  tRef;
-        s.F =  tOut;
-        s.F =  tIn;
-    }
 }";
             // PROTOTYPE: Report a ref-safe-to-escape error for: F = ref tValue;
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (11,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tValue;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(11, 9),
-                // (12,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tRef;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(12, 9),
-                // (13,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tOut;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(13, 9),
-                // (14,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(14, 9),
-                // (20,21): error CS1510: A ref or out value must be an assignable variable
-                //             F = ref GetValue();
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetValue()").WithLocation(20, 21),
-                // (23,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetValue();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(23, 13),
-                // (24,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetRef();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(24, 13),
-                // (25,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetRefReadonly();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(25, 13),
-                // (41,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tValue;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(41, 9),
-                // (42,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tRef;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(42, 9),
-                // (43,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tOut;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(43, 9),
-                // (44,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
-        public void Assignment_ReadonlyRef()
+        public void AssignRefTo_InstanceMethod_ReadonlyRefField()
         {
             var source =
 @"ref struct S<T>
@@ -678,71 +764,32 @@ class Program
         F = ref tValue;
         F = ref tRef;
         F = ref tOut;
-        F = ref tIn;
-        F = tValue;
-        F = tRef;
-        F = tOut;
-        F = tIn;
+        F = ref tIn; // 1
     }
     object P
     {
         init
         {
-            F = ref GetValue();
             F = ref GetRef();
-            F = ref GetRefReadonly();
-            F = GetValue();
-            F = GetRef();
-            F = GetRefReadonly();
+            F = ref GetRefReadonly(); // 2
         }
     }
-    static T GetValue() => throw null;
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
-}
-class Program
-{
-    static void Assign<T>(S<T> s, T tValue, ref T tRef, out T tOut, in T tIn)
-    {
-        tOut = default;
-        s.F =  ref tValue;
-        s.F =  ref tRef;
-        s.F =  ref tOut;
-        s.F =  ref tIn;
-        s.F =  tValue;
-        s.F =  tRef;
-        s.F =  tOut;
-        s.F =  tIn;
-    }
 }";
             // PROTOTYPE: Report a ref-safe-to-escape error for: F = ref tValue;
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyEmitDiagnostics(
                 // (10,17): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
-                //         F = ref tIn;
+                //         F = ref tIn; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(10, 17),
-                // (20,21): error CS1510: A ref or out value must be an assignable variable
-                //             F = ref GetValue();
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetValue()").WithLocation(20, 21),
-                // (22,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' because it is a readonly variable
-                //             F = ref GetRefReadonly();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(22, 21),
-                // (37,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tValue;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(37, 9),
-                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tRef;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(38, 9),
-                // (39,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tOut;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(39, 9),
-                // (40,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tIn;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(40, 9));
+                // (17,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' because it is a readonly variable
+                //             F = ref GetRefReadonly(); // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(17, 21));
         }
 
         [Fact]
-        public void Assignment_ReadonlyRefReadonly()
+        public void AssignRefTo_InstanceMethod_ReadonlyRefReadonlyField()
         {
             var source =
 @"ref struct S<T>
@@ -755,93 +802,670 @@ class Program
         F = ref tRef;
         F = ref tOut;
         F = ref tIn;
-        F = tValue;
-        F = tRef;
-        F = tOut;
-        F = tIn;
     }
     object P
     {
         init
         {
-            F = ref GetValue();
             F = ref GetRef();
             F = ref GetRefReadonly();
-            F = GetValue();
-            F = GetRef();
-            F = GetRefReadonly();
         }
     }
-    static T GetValue() => throw null;
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
-}
-class Program
-{
-    static void Assign<T>(S<T> s, T tValue, ref T tRef, out T tOut, in T tIn)
-    {
-        tOut = default;
-        s.F =  ref tValue;
-        s.F =  ref tRef;
-        s.F =  ref tOut;
-        s.F =  ref tIn;
-        s.F =  tValue;
-        s.F =  tRef;
-        s.F =  tOut;
-        s.F =  tIn;
-    }
 }";
             // PROTOTYPE: Report a ref-safe-to-escape error for: F = ref tValue;
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignValueTo_RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; }
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; }
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; }
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; }
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; }
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; }
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; }
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; }
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; }
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; }
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignValueTo_RefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref readonly T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
+}";
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (11,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tValue;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(11, 9),
-                // (12,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tRef;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(12, 9),
-                // (13,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tOut;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(13, 9),
-                // (14,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         F = tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(14, 9),
-                // (20,21): error CS1510: A ref or out value must be an assignable variable
-                //             F = ref GetValue();
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetValue()").WithLocation(20, 21),
-                // (23,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetValue();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(23, 13),
-                // (24,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetRef();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(24, 13),
-                // (25,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //             F = GetRefReadonly();
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(25, 13),
-                // (37,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tValue;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(37, 9),
-                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tRef;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(38, 9),
-                // (39,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tOut;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(39, 9),
-                // (40,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         s.F =  ref tIn;
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(40, 9),
-                // (41,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tValue;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(41, 9),
-                // (42,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tRef;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(42, 9),
-                // (43,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tOut;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(43, 9),
-                // (44,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
-                //         s.F =  tIn;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 9));
+                // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 59),
+                // (10,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 59),
+                // (11,75): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 75),
+                // (12,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 59),
+                // (14,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(14, 64),
+                // (15,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(15, 64),
+                // (16,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(16, 80),
+                // (17,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(17, 64),
+                // (19,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(19, 80),
+                // (20,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(20, 80),
+                // (21,96): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(21, 96),
+                // (22,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(22, 80),
+                // (24,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(24, 61),
+                // (25,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(25, 61),
+                // (26,77): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(26, 77),
+                // (27,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(27, 61));
+        }
+
+        [Fact]
+        public void AssignValueTo_ReadonlyRefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; }
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; }
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; }
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; }
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; }
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; }
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; }
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; }
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; }
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; }
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignValueTo_ReadonlyRefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref readonly T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 59),
+                // (10,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 59),
+                // (11,75): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 75),
+                // (12,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 59),
+                // (14,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(14, 64),
+                // (15,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(15, 64),
+                // (16,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(16, 80),
+                // (17,64): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(17, 64),
+                // (19,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(19, 80),
+                // (20,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(20, 80),
+                // (21,96): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(21, 96),
+                // (22,80): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(22, 80),
+                // (24,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(24, 61),
+                // (25,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(25, 61),
+                // (26,77): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(26, 77),
+                // (27,61): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(27, 61));
+        }
+
+        [Fact]
+        public void AssignRefTo_RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; }
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 1
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 2
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; }
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 3
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 4
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 5
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 6
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 7
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,69): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(12, 69),
+                // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (17,77): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 3
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(17, 77),
+                // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 4
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
+                // (22,93): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 5
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(22, 93),
+                // (24,61): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 6
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sIn.F = ref tValue").WithArguments("F", "tValue").WithLocation(24, 61),
+                // (27,73): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 7
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(27, 73));
+        }
+
+        [Fact]
+        public void AssignRefTo_RefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref readonly T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; }
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 1
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; }
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 2
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; }
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 3
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
+                // (24,61): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sIn.F = ref tValue").WithArguments("F", "tValue").WithLocation(24, 61));
+        }
+
+        [Fact]
+        public void AssignRefTo_ReadonlyRefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; } // 10
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 11
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 12
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 13
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 14
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(9, 59),
+                // (10,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(10, 59),
+                // (11,75): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(11, 75),
+                // (12,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(12, 59),
+                // (14,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(14, 64),
+                // (15,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(15, 64),
+                // (16,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(16, 80),
+                // (17,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(17, 64),
+                // (19,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(19, 80),
+                // (20,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; } // 10
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(20, 80),
+                // (21,96): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 11
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(21, 96),
+                // (22,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 12
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(22, 80),
+                // (24,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 13
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(24, 61),
+                // (25,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 14
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(25, 61),
+                // (26,77): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(26, 77),
+                // (27,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(27, 61));
+        }
+
+        [Fact]
+        public void AssignRefTo_ReadonlyRefReadonlyField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref readonly T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
+
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
+
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; } // 10
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 11
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 12
+
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 13
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 14
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(9, 59),
+                // (10,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(10, 59),
+                // (11,75): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(11, 75),
+                // (12,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(12, 59),
+                // (14,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(14, 64),
+                // (15,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(15, 64),
+                // (16,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(16, 80),
+                // (17,64): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sRef.F").WithLocation(17, 64),
+                // (19,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(19, 80),
+                // (20,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; } // 10
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(20, 80),
+                // (21,96): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 11
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(21, 96),
+                // (22,80): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 12
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sOut.F").WithLocation(22, 80),
+                // (24,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 13
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(24, 61),
+                // (25,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 14
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(25, 61),
+                // (26,77): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(26, 77),
+                // (27,61): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "sIn.F").WithLocation(27, 61));
+        }
+
+        [Fact]
+        public void AssignOutFrom_RefField()
+        {
+            var source =
+@"#pragma warning disable 649
+ref struct S<T>
+{
+    public ref T Ref;
+    public ref readonly T RefReadonly;
+    public readonly ref T ReadonlyRef;
+    public readonly ref readonly T ReadonlyRefReadonly;
+}
+
+class Program
+{
+    static void FromValueRef<T>(S<T> s, out T t)                 { t = s.Ref; }
+    static void FromValueRefReadonly<T>(S<T> s, out T t)         { t = s.RefReadonly; }
+    static void FromValueReadonlyRef<T>(S<T> s, out T t)         { t = s.ReadonlyRef; }
+    static void FromValueReadonlyRefReadonly<T>(S<T> s, out T t) { t = s.ReadonlyRefReadonly; }
+
+    static void FromRefRef<T>(ref S<T> s, out T t)                 { t = s.Ref; }
+    static void FromRefRefReadonly<T>(ref S<T> s, out T t)         { t = s.RefReadonly; }
+    static void FromRefReadonlyRef<T>(ref S<T> s, out T t)         { t = s.ReadonlyRef; }
+    static void FromRefReadonlyRefReadonly<T>(ref S<T> s, out T t) { t = s.ReadonlyRefReadonly; }
+
+    static void FromOutRef<T>(out S<T> s, out T t)                 { s = default; t = s.Ref; }
+    static void FromOutRefReadonly<T>(out S<T> s, out T t)         { s = default; t = s.RefReadonly; }
+    static void FromOutReadonlyRef<T>(out S<T> s, out T t)         { s = default; t = s.ReadonlyRef; }
+    static void FromOutReadonlyRefReadonly<T>(out S<T> s, out T t) { s = default; t = s.ReadonlyRefReadonly; }
+
+    static void FromInRef<T>(in S<T> s, out T t)                 { t = s.Ref; }
+    static void FromInRefReadonly<T>(in S<T> s, out T t)         { t = s.RefReadonly; }
+    static void FromInReadonlyRef<T>(in S<T> s, out T t)         { t = s.ReadonlyRef; }
+    static void FromInReadonlyRefReadonly<T>(in S<T> s, out T t) { t = s.ReadonlyRefReadonly; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AssignRefFrom_RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T Ref;
+    public ref readonly T RefReadonly;
+    public readonly ref T ReadonlyRef;
+    public readonly ref readonly T ReadonlyRefReadonly;
+}
+
+class Program
+{
+    static void FromValueRef<T>(S<T> s)                 { ref T t = ref s.Ref; }
+    static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
+    static void FromValueReadonlyRef<T>(S<T> s)         { ref T t = ref s.ReadonlyRef; }
+    static void FromValueReadonlyRefReadonly<T>(S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 2
+
+    static void FromRefRef<T>(ref S<T> s)                 { ref T t = ref s.Ref; }
+    static void FromRefRefReadonly<T>(ref S<T> s)         { ref T t = ref s.RefReadonly; } // 3
+    static void FromRefReadonlyRef<T>(ref S<T> s)         { ref T t = ref s.ReadonlyRef; }
+    static void FromRefReadonlyRefReadonly<T>(ref S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 4
+
+    static void FromOutRef<T>(out S<T> s)                 { s = default; ref T t = ref s.Ref; }
+    static void FromOutRefReadonly<T>(out S<T> s)         { s = default; ref T t = ref s.RefReadonly; } // 5
+    static void FromOutReadonlyRef<T>(out S<T> s)         { s = default; ref T t = ref s.ReadonlyRef; }
+    static void FromOutReadonlyRefReadonly<T>(out S<T> s) { s = default; ref T t = ref s.ReadonlyRefReadonly; } // 6
+
+    static void FromInRef<T>(in S<T> s)                 { ref T t = ref s.Ref; }
+    static void FromInRefReadonly<T>(in S<T> s)         { ref T t = ref s.RefReadonly; } // 7
+    static void FromInReadonlyRef<T>(in S<T> s)         { ref T t = ref s.ReadonlyRef; }
+    static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 8
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(12, 73),
+                // (14,73): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromValueReadonlyRefReadonly<T>(S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 2
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(14, 73),
+                // (17,75): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromRefRefReadonly<T>(ref S<T> s)         { ref T t = ref s.RefReadonly; } // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(17, 75),
+                // (19,75): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromRefReadonlyRefReadonly<T>(ref S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(19, 75),
+                // (22,88): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromOutRefReadonly<T>(out S<T> s)         { s = default; ref T t = ref s.RefReadonly; } // 5
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(22, 88),
+                // (24,88): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromOutReadonlyRefReadonly<T>(out S<T> s) { s = default; ref T t = ref s.ReadonlyRefReadonly; } // 6
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(24, 88),
+                // (27,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromInRefReadonly<T>(in S<T> s)         { ref T t = ref s.RefReadonly; } // 7
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(27, 73),
+                // (29,73): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                //     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 8
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(29, 73));
+        }
+
+        [Fact]
+        public void AssignRefReadonlyFrom_RefField()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T Ref;
+    public ref readonly T RefReadonly;
+    public readonly ref T ReadonlyRef;
+    public readonly ref readonly T ReadonlyRefReadonly;
+}
+
+class Program
+{
+    static void FromValueRef<T>(S<T> s)                 { ref readonly T t = ref s.Ref; }
+    static void FromValueRefReadonly<T>(S<T> s)         { ref readonly T t = ref s.RefReadonly; }
+    static void FromValueReadonlyRef<T>(S<T> s)         { ref readonly T t = ref s.ReadonlyRef; }
+    static void FromValueReadonlyRefReadonly<T>(S<T> s) { ref readonly T t = ref s.ReadonlyRefReadonly; }
+
+    static void FromRefRef<T>(ref S<T> s)                 { ref readonly T t = ref s.Ref; }
+    static void FromRefRefReadonly<T>(ref S<T> s)         { ref readonly T t = ref s.RefReadonly; }
+    static void FromRefReadonlyRef<T>(ref S<T> s)         { ref readonly T t = ref s.ReadonlyRef; }
+    static void FromRefReadonlyRefReadonly<T>(ref S<T> s) { ref readonly T t = ref s.ReadonlyRefReadonly; }
+
+    static void FromOutRef<T>(out S<T> s)                 { s = default; ref readonly T t = ref s.Ref; }
+    static void FromOutRefReadonly<T>(out S<T> s)         { s = default; ref readonly T t = ref s.RefReadonly; }
+    static void FromOutReadonlyRef<T>(out S<T> s)         { s = default; ref readonly T t = ref s.ReadonlyRef; }
+    static void FromOutReadonlyRefReadonly<T>(out S<T> s) { s = default; ref readonly T t = ref s.ReadonlyRefReadonly; }
+
+    static void FromInRef<T>(in S<T> s)                 { ref readonly T t = ref s.Ref; }
+    static void FromInRefReadonly<T>(in S<T> s)         { ref readonly T t = ref s.RefReadonly; }
+    static void FromInReadonlyRef<T>(in S<T> s)         { ref readonly T t = ref s.ReadonlyRef; }
+    static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref readonly T t = ref s.ReadonlyRefReadonly; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1019,7 +1643,7 @@ class Program
         }
 
         [Fact]
-        public void RefParameter_Ref()
+        public void RefParameter_InstanceMethod_Ref()
         {
             var source =
 @"ref struct S<T>
@@ -1053,29 +1677,17 @@ class Program
         M4(F);
         M4(in F);
     }
-    public static void M1(T t) { }
-    public static void M2(ref T t) { }
-    public static void M3(out T t) { t = default; }
-    public static void M4(in T t) { }
-}
-class Program
-{
-    static void M<T>()
-    {
-        var s = new S<T>();
-        S<T>.M1(s.F);
-        S<T>.M2(ref s.F);
-        S<T>.M3(out s.F);
-        S<T>.M4(s.F);
-        S<T>.M4(in s.F);
-    }
+    static void M1(T t) { }
+    static void M2(ref T t) { }
+    static void M3(out T t) { t = default; }
+    static void M4(in T t) { }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
-        public void RefParameter_RefReadonly()
+        public void RefParameter_InstanceMethod_RefReadonly()
         {
             var source =
 @"ref struct S<T>
@@ -1085,8 +1697,8 @@ class Program
     {
         F = ref t;
         M1(F);
-        M2(ref F);
-        M3(out F);
+        M2(ref F); // 1
+        M3(out F); // 2
         M4(F);
         M4(in F);
     }
@@ -1095,8 +1707,8 @@ class Program
         init
         {
             M1(F);
-            M2(ref F);
-            M3(out F);
+            M2(ref F); // 3
+            M3(out F); // 4
             M4(F);
             M4(in F);
         }
@@ -1104,58 +1716,40 @@ class Program
     void M()
     {
         M1(F);
-        M2(ref F);
-        M3(out F);
+        M2(ref F); // 5
+        M3(out F); // 6
         M4(F);
         M4(in F);
     }
-    public static void M1(T t) { }
-    public static void M2(ref T t) { }
-    public static void M3(out T t) { t = default; }
-    public static void M4(in T t) { }
-}
-class Program
-{
-    static void M<T>()
-    {
-        var s = new S<T>();
-        S<T>.M1(s.F);
-        S<T>.M2(ref s.F);
-        S<T>.M3(out s.F);
-        S<T>.M4(s.F);
-        S<T>.M4(in s.F);
-    }
+    static void M1(T t) { }
+    static void M2(ref T t) { }
+    static void M3(out T t) { t = default; }
+    static void M4(in T t) { }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M2(ref F);
+                //         M2(ref F); // 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 16),
                 // (9,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M3(out F);
+                //         M3(out F); // 2
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 16),
                 // (18,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //             M2(ref F);
+                //             M2(ref F); // 3
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 20),
                 // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //             M3(out F);
+                //             M3(out F); // 4
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
                 // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M2(ref F);
+                //         M2(ref F); // 5
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
                 // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16),
-                // (43,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         S<T>.M2(ref s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(43, 21),
-                // (44,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         S<T>.M3(out s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 21));
+                //         M3(out F); // 6
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16));
         }
 
         [Fact]
-        public void RefParameter_ReadonlyRef()
+        public void RefParameter_InstanceMethod_ReadonlyRef()
         {
             var source =
 @"ref struct S<T>
@@ -1189,25 +1783,230 @@ class Program
         M4(F);
         M4(in F);
     }
-    public static void M1(T t) { }
-    public static void M2(ref T t) { }
-    public static void M3(out T t) { t = default; }
-    public static void M4(in T t) { }
+    static void M1(T t) { }
+    static void M2(ref T t) { }
+    static void M3(out T t) { t = default; }
+    static void M4(in T t) { }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefParameter_InstanceMethod_ReadonlyRefReadonly()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref readonly T F;
+    public S(ref T t)
+    {
+        F = ref t;
+        M1(F);
+        M2(ref F); // 1
+        M3(out F); // 2
+        M4(F);
+        M4(in F);
+    }
+    object P
+    {
+        init
+        {
+            M1(F);
+            M2(ref F); // 3
+            M3(out F); // 4
+            M4(F);
+            M4(in F);
+        }
+    }
+    void M()
+    {
+        M1(F);
+        M2(ref F); // 5
+        M3(out F); // 6
+        M4(F);
+        M4(in F);
+    }
+    static void M1(T t) { }
+    static void M2(ref T t) { }
+    static void M3(out T t) { t = default; }
+    static void M4(in T t) { }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //         M2(ref F); // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 16),
+                // (9,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //         M3(out F); // 2
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 16),
+                // (18,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //             M2(ref F); // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 20),
+                // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //             M3(out F); // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
+                // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //         M2(ref F); // 5
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
+                // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //         M3(out F); // 6
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16));
+        }
+
+        [Fact]
+        public void RefParameter_Ref()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref T F;
 }
+
 class Program
 {
-    static void M<T>()
-    {
-        var s = new S<T>();
-        S<T>.M1(s.F);
-        S<T>.M2(ref s.F);
-        S<T>.M3(out s.F);
-        S<T>.M4(s.F);
-        S<T>.M4(in s.F);
-    }
+    static void M1<T>(T t) { }
+    static void M2<T>(ref T t) { }
+    static void M3<T>(out T t) { t = default; }
+    static void M4<T>(in T t) { }
+
+    static void FromValue1<T>(S<T> s)  { M1(s.F); }
+    static void FromValue2<T>(S<T> s)  { M2(ref s.F); }
+    static void FromValue3<T>(S<T> s)  { M3(out s.F); }
+    static void FromValue4A<T>(S<T> s) { M4(in s.F); }
+    static void FromValue4B<T>(S<T> s) { M4(s.F); }
+
+    static void FromRef1<T>(ref S<T> s)  { M1(s.F); }
+    static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); }
+    static void FromRef3<T>(ref S<T> s)  { M3(out s.F); }
+    static void FromRef4A<T>(ref S<T> s) { M4(in s.F); }
+    static void FromRef4B<T>(ref S<T> s) { M4(s.F); }
+
+    static void FromOut1<T>(out S<T> s)  { s = default; M1(s.F); }
+    static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); }
+    static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); }
+    static void FromOut4A<T>(out S<T> s) { s = default; M4(in s.F); }
+    static void FromOut4B<T>(out S<T> s) { s = default; M4(s.F); }
+
+    static void FromIn1<T>(in S<T> s)  { M1(s.F); }
+    static void FromIn2<T>(in S<T> s)  { M2(ref s.F); }
+    static void FromIn3<T>(in S<T> s)  { M3(out s.F); }
+    static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
+    static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            // PROTOTYPE: Execute code and verify IL for each of the cases.
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefParameter_RefReadonly()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public ref readonly T F;
+}
+
+class Program
+{
+    static void M1<T>(T t) { }
+    static void M2<T>(ref T t) { }
+    static void M3<T>(out T t) { t = default; }
+    static void M4<T>(in T t) { }
+
+    static void FromValue1<T>(S<T> s)  { M1(s.F); }
+    static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
+    static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
+    static void FromValue4A<T>(S<T> s) { M4(in s.F); }
+    static void FromValue4B<T>(S<T> s) { M4(s.F); }
+
+    static void FromRef1<T>(ref S<T> s)  { M1(s.F); }
+    static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
+    static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
+    static void FromRef4A<T>(ref S<T> s) { M4(in s.F); }
+    static void FromRef4B<T>(ref S<T> s) { M4(s.F); }
+
+    static void FromOut1<T>(out S<T> s)  { s = default; M1(s.F); }
+    static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
+    static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
+    static void FromOut4A<T>(out S<T> s) { s = default; M4(in s.F); }
+    static void FromOut4B<T>(out S<T> s) { s = default; M4(s.F); }
+
+    static void FromIn1<T>(in S<T> s)  { M1(s.F); }
+    static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
+    static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
+    static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
+    static void FromIn4B<T>(in S<T> s) { M4(s.F); }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(14, 49),
+                // (15,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(15, 49),
+                // (20,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(20, 51),
+                // (21,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(21, 51),
+                // (26,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(26, 64),
+                // (27,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(27, 64),
+                // (32,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(32, 49),
+                // (33,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(33, 49));
+        }
+
+        [Fact]
+        public void RefParameter_ReadonlyRef()
+        {
+            var source =
+@"ref struct S<T>
+{
+    public readonly ref T F;
+}
+
+class Program
+{
+    static void M1<T>(T t) { }
+    static void M2<T>(ref T t) { }
+    static void M3<T>(out T t) { t = default; }
+    static void M4<T>(in T t) { }
+
+    static void FromValue1<T>(S<T> s)  { M1(s.F); }
+    static void FromValue2<T>(S<T> s)  { M2(ref s.F); }
+    static void FromValue3<T>(S<T> s)  { M3(out s.F); }
+    static void FromValue4A<T>(S<T> s) { M4(in s.F); }
+    static void FromValue4B<T>(S<T> s) { M4(s.F); }
+
+    static void FromRef1<T>(ref S<T> s)  { M1(s.F); }
+    static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); }
+    static void FromRef3<T>(ref S<T> s)  { M3(out s.F); }
+    static void FromRef4A<T>(ref S<T> s) { M4(in s.F); }
+    static void FromRef4B<T>(ref S<T> s) { M4(s.F); }
+
+    static void FromOut1<T>(out S<T> s)  { s = default; M1(s.F); }
+    static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); }
+    static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); }
+    static void FromOut4A<T>(out S<T> s) { s = default; M4(in s.F); }
+    static void FromOut4B<T>(out S<T> s) { s = default; M4(s.F); }
+
+    static void FromIn1<T>(in S<T> s)  { M1(s.F); }
+    static void FromIn2<T>(in S<T> s)  { M2(ref s.F); }
+    static void FromIn3<T>(in S<T> s)  { M3(out s.F); }
+    static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
+    static void FromIn4B<T>(in S<T> s) { M4(s.F); }
+}";
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -1218,146 +2017,65 @@ class Program
 @"ref struct S<T>
 {
     public readonly ref readonly T F;
-    public S(ref T t)
-    {
-        F = ref t;
-        M1(F);
-        M2(ref F);
-        M3(out F);
-        M4(F);
-        M4(in F);
-    }
-    object P
-    {
-        init
-        {
-            M1(F);
-            M2(ref F);
-            M3(out F);
-            M4(F);
-            M4(in F);
-        }
-    }
-    void M()
-    {
-        M1(F);
-        M2(ref F);
-        M3(out F);
-        M4(F);
-        M4(in F);
-    }
-    public static void M1(T t) { }
-    public static void M2(ref T t) { }
-    public static void M3(out T t) { t = default; }
-    public static void M4(in T t) { }
 }
-class Program
-{
-    static void M<T>()
-    {
-        var s = new S<T>();
-        S<T>.M1(s.F);
-        S<T>.M2(ref s.F);
-        S<T>.M3(out s.F);
-        S<T>.M4(s.F);
-        S<T>.M4(in s.F);
-    }
-}";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M2(ref F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 16),
-                // (9,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 16),
-                // (18,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //             M2(ref F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 20),
-                // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //             M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
-                // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M2(ref F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
-                // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         M3(out F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16),
-                // (43,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         S<T>.M2(ref s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(43, 21),
-                // (44,21): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
-                //         S<T>.M3(out s.F);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(44, 21));
-        }
 
-        [Fact]
-        public void AssignToReadonlyStruct()
-        {
-            var source =
-@"ref struct S<T>
-{
-    public ref T F1;
-    public ref readonly T F2;
-    public readonly ref T F3;
-    public readonly ref readonly T F4;
-}
 class Program
 {
-    static void M<T>(in S<T> s, T t)
-    {
-        s.F1 = t;
-        s.F2 = t;
-        s.F3 = t;
-        s.F4 = t;
-    }
+    static void M1<T>(T t) { }
+    static void M2<T>(ref T t) { }
+    static void M3<T>(out T t) { t = default; }
+    static void M4<T>(in T t) { }
+
+    static void FromValue1<T>(S<T> s)  { M1(s.F); }
+    static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
+    static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
+    static void FromValue4A<T>(S<T> s) { M4(in s.F); }
+    static void FromValue4B<T>(S<T> s) { M4(s.F); }
+
+    static void FromRef1<T>(ref S<T> s)  { M1(s.F); }
+    static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
+    static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
+    static void FromRef4A<T>(ref S<T> s) { M4(in s.F); }
+    static void FromRef4B<T>(ref S<T> s) { M4(s.F); }
+
+    static void FromOut1<T>(out S<T> s)  { s = default; M1(s.F); }
+    static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
+    static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
+    static void FromOut4A<T>(out S<T> s) { s = default; M4(in s.F); }
+    static void FromOut4B<T>(out S<T> s) { s = default; M4(s.F); }
+
+    static void FromIn1<T>(in S<T> s)  { M1(s.F); }
+    static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
+    static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
+    static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
+    static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8331: Cannot assign to field 'S<T>.F2' because it is a readonly variable
-                //         s.F2 = t;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 9),
-                // (15,9): error CS8331: Cannot assign to field 'S<T>.F4' because it is a readonly variable
-                //         s.F4 = t;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 9));
-        }
-
-        [Fact]
-        public void RefAssignFromReadonlyStruct()
-        {
-            var source =
-@"ref struct S<T>
-{
-    public ref T F1;
-    public ref readonly T F2;
-    public readonly ref T F3;
-    public readonly ref readonly T F4;
-}
-class Program
-{
-    static void M1<T>(in S<T> s1)
-    {
-        ref T t1 = ref s1.F1;
-        ref T t2 = ref s1.F2;
-        ref T t3 = ref s1.F3;
-        ref T t4 = ref s1.F4;
-    }
-    static void M2<T>(in S<T> s2)
-    {
-        ref readonly T t1 = ref s2.F1;
-        ref readonly T t2 = ref s2.F2;
-        ref readonly T t3 = ref s2.F3;
-        ref readonly T t4 = ref s2.F4;
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8329: Cannot use field 'S<T>.F2' as a ref or out value because it is a readonly variable
-                //         ref T t2 = ref s1.F2;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 24),
-                // (15,24): error CS8329: Cannot use field 'S<T>.F4' as a ref or out value because it is a readonly variable
-                //         ref T t4 = ref s1.F4;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 24));
+                // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(14, 49),
+                // (15,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(15, 49),
+                // (20,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(20, 51),
+                // (21,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(21, 51),
+                // (26,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(26, 64),
+                // (27,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(27, 64),
+                // (32,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(32, 49),
+                // (33,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                //     static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(33, 49));
         }
 
         [Fact]
