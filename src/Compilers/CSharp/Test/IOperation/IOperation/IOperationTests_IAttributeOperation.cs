@@ -8,12 +8,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    // PROTOTYPE(TODO):
-    // - VB tests
-    // - params tests
-    // - named arguments tests
-    // multiple attributes on declaration tests
-    // local function tests.
     [CompilerTrait(CompilerFeature.IOperation)]
     public class IOperationTests_IAttributeOperation : SemanticModelTestBase
     {
@@ -278,11 +272,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value""
         [CombinatorialData]
         public void TestAttributeWithOptionalParameterNotPassed(bool withParentheses)
         {
-            string attribute = withParentheses switch
-            {
-                true => "My()",
-                false => "My",
-            };
+            string attribute = withParentheses ? "My()" : "My";
 
             string attributeListSyntax = $"[/*<bind>*/{attribute}/*</bind>*/]";
 
@@ -711,6 +701,183 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant
       null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, DiagnosticDescription.None);
+        }
+
+        [Fact]
+        public void ComplexAttribute()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My(i: 1, b: true, o: 2)/*</bind>*/]
+class MyAttribute : Attribute
+{
+    public MyAttribute(bool b, int i, params object[] o) 
+    {
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: true, o: 2)')
+    IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Boolean b, System.Int32 i, params System.Object[] o)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
+    Arguments(3):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: true')
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
+            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object[], IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
+            Dimension Sizes(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
+            Initializer:
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
+                Element Values(1):
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ComplexAttributeWithNamedArgument()
+        {
+            string source = @"
+using System;
+
+[My(i: 1, b: true, o: 2)]
+[/*<bind>*/My(i: 1, b: true, o: 2, B = 10, D = 5)/*</bind>*/]
+[My(i: 1, b: true, o: 2)]
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class MyAttribute : Attribute
+{
+    public MyAttribute(bool b, int i, params object[] o) 
+    {
+    }
+
+    public int B { get; set; }
+    public int C { get; set; }
+    public int D { get; set; }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+    IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Boolean b, System.Int32 i, params System.Object[] o)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+    Arguments(3):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i: 1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: true')
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object[], IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+            Dimension Sizes(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+            Initializer:
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+                Element Values(1):
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
+        Initializers(2):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'B = 10')
+                Left:
+                IPropertyReferenceOperation: System.Int32 MyAttribute.B { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'B')
+                    Instance Receiver:
+                    null
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'D = 5')
+                Left:
+                IPropertyReferenceOperation: System.Int32 MyAttribute.D { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'D')
+                    Instance Receiver:
+                    null
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnLocalFunction()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i) 
+    {
+        local();
+
+        [/*<bind>*/My(10)/*</bind>*/]
+        void local() { }
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+    IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnBackingField()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i) 
+    {
+    }
+
+    [field: /*<bind>*/My(10)/*</bind>*/]
+    public string S { get; }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+    IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
