@@ -41,18 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Use_simple_using_statement,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(CSharpAnalyzersResources.Use_simple_using_statement)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_simple_using_statement, nameof(CSharpAnalyzersResources.Use_simple_using_statement));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
