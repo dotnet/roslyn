@@ -1082,5 +1082,217 @@ public class C
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray12()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public C(params byte[] b)
+    {
+        new C([|65, 66, 67|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public C(params byte[] b)
+    {
+        new C(""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray13()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public int this[params byte[] bytes]
+    {
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[[|65, 66, 67|]];
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public int this[params byte[] bytes]
+    {
+        get => 0;
+    }
+
+    public void M()
+    {
+        _ = this[""ABC""u8];
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray14()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public record C1(int x) : B([|65, 66, 67|]);
+
+public record C2(params byte[] Bytes) : B(Bytes);
+
+public record B(params byte[] Bytes)
+{
+    public void M()
+    {
+        new C1(1);
+        new C2([|65, 66, 67|]);
+        new B([|65, 66, 67|]);
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}
+",
+                FixedCode =
+@"
+public record C1(int x) : B(""ABC""u8);
+
+public record C2(params byte[] Bytes) : B(Bytes);
+
+public record B(params byte[] Bytes)
+{
+    public void M()
+    {
+        new C1(1);
+        new C2(""ABC""u8);
+        new B(""ABC""u8);
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray15()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C1 : B
+{
+    public C1(int x)
+        : base([|65, 66, 67|])
+    {
+    }
+}
+
+public class C2 : B
+{
+    public C2(params byte[] Bytes)
+        : base(Bytes)
+    {
+    }
+}
+
+public class B
+{
+    public B(string x, params byte[] bytes)
+        : this(bytes)
+    {
+    }
+
+    public B(int x)
+        : this([|65, 66, 67|])
+    {
+    }
+
+    public B(params byte[] bytes)
+    {
+        new C1(1);
+        new C2([|65, 66, 67|]);
+        new B([|65, 66, 67|]);
+        new B(""a"", [|65, 66, 67|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C1 : B
+{
+    public C1(int x)
+        : base(""ABC""u8)
+    {
+    }
+}
+
+public class C2 : B
+{
+    public C2(params byte[] Bytes)
+        : base(Bytes)
+    {
+    }
+}
+
+public class B
+{
+    public B(string x, params byte[] bytes)
+        : this(bytes)
+    {
+    }
+
+    public B(int x)
+        : this(""ABC""u8)
+    {
+    }
+
+    public B(params byte[] bytes)
+    {
+        new C1(1);
+        new C2(""ABC""u8);
+        new B(""ABC""u8);
+        new B(""a"", ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 //
                 // but arrayNode will be the whole argument list syntax
 
-                if (arrayNode is ArgumentListSyntax argumentList)
+                if (arrayNode is BaseArgumentListSyntax argumentList)
                 {
                     editor.ReplaceNode(arrayNode, CreateArgumentListWithUTF8String(argumentList, diagnostic.Location, stringValue));
                 }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             return Task.CompletedTask;
         }
 
-        private static SyntaxNode CreateArgumentListWithUTF8String(ArgumentListSyntax argumentList, Location location, string stringValue)
+        private static SyntaxNode CreateArgumentListWithUTF8String(BaseArgumentListSyntax argumentList, Location location, string stringValue)
         {
             // To construct our new argument list we add any existing tokens before the location
             // and then once we hit the location, we add our string literal
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             foreach (var argument in argumentList.ChildNodesAndTokens())
             {
                 // Skip the open paren, its a child token but not an argument
-                if (argument.IsKind(SyntaxKind.OpenParenToken))
+                if (argument.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken)
                 {
                     continue;
                 }

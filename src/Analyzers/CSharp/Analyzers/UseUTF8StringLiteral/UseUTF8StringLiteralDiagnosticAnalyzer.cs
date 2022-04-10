@@ -97,10 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
             var location = arrayCreationExpression.Syntax.GetFirstToken().GetLocation();
 
-            // Special case - for a param array, the syntax is the entire invocation, because there is no one
+            // If this array creation is an implicit or explicit array creation syntax, then it must be
+            // a parameter array, and the Syntax will be the entire invocation, because there is no one
             // syntax node for just the array elements, so we construct our own location. The code fix has
             // special handling for this too.
-            if (arrayCreationExpression.Syntax is InvocationExpressionSyntax)
+            if (arrayCreationExpression.Syntax is not (ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax))
             {
                 // Issue the diagnostic for all of the parameters that make up the array. We could do just
                 // the first element, but that might be odd seeing: M(1, 2, [|3|], 4, 5)
