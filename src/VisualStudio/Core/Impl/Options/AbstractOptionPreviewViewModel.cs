@@ -135,7 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             project = project.WithMetadataReferences(referenceAssemblies);
 
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
-            var formatted = Formatter.FormatAsync(document, OptionStore.GetOptions()).WaitAndGetResult(CancellationToken.None);
+            var formattingOptions = SyntaxFormattingOptions.Create(OptionStore.GetOptions(), document.Project.Solution.Workspace.Services, document.Project.Language);
+            var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
             var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextSynchronously(CancellationToken.None).ToString(), _contentType);
 
