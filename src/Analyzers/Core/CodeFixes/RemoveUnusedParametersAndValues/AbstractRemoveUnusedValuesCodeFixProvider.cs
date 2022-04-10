@@ -313,8 +313,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var containingMemberDeclaration = diagnosticsToFix.Key;
                 using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
 
-                await FixAllAsync(diagnosticId, diagnosticsToFix.Select(d => d), document, semanticModel, root, containingMemberDeclaration, preference,
-                    removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
+                await FixAllAsync(
+                    diagnosticId, diagnosticsToFix.Select(d => d),
+                    document, semanticModel, root, containingMemberDeclaration, preference,
+                    removeAssignments, nameGenerator, editor, cancellationToken).ConfigureAwait(false);
             }
 
             // Second pass to post process the document.
@@ -339,7 +341,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
             switch (diagnosticId)
@@ -347,8 +348,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     // Make sure the inner diagnostics are placed first
                     FixAllExpressionValueIsUnusedDiagnostics(
-                        diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start), semanticModel, root,
-                        preference, nameGenerator, editor, syntaxFacts);
+                        diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start),
+                        document, semanticModel, root, preference, nameGenerator, editor);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
@@ -357,8 +358,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // int a = 0; int b = 1;
                     // After fix it would be int a; int b;
                     await FixAllValueAssignedIsUnusedDiagnosticsAsync(
-                        diagnostics.OrderBy(d => d.Location.SourceSpan.Start), document, semanticModel, root, containingMemberDeclaration,
-                        preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
+                        diagnostics.OrderBy(d => d.Location.SourceSpan.Start),
+                        document, semanticModel, root, containingMemberDeclaration,
+                        preference, removeAssignments, nameGenerator, editor, cancellationToken).ConfigureAwait(false);
                     break;
 
                 default:
@@ -368,13 +370,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static void FixAllExpressionValueIsUnusedDiagnostics(
             IOrderedEnumerable<Diagnostic> diagnostics,
+            Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
             UnusedValuePreference preference,
             UniqueVariableNameGenerator nameGenerator,
-            SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts)
+            SyntaxEditor editor)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
             // based on the user's preference.
@@ -433,9 +437,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
+
             // This method applies the code fix for diagnostics reported for unused value assignments to local/parameter.
             // The actual code fix depends on whether or not the right hand side of the assignment has side effects.
             // For example, if the right hand side is a constant or a reference to a local/parameter, then it has no side effects.
@@ -670,12 +676,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>(
-                    (n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
-                                        syntaxFacts.IsExecutableBlock(n.Parent) &&
-                                        n is not TCatchStatementSyntax &&
-                                        n is not TCatchBlockSyntax,
-                                        syntaxFacts);
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(
+                    n => n.Parent is TSwitchCaseBlockSyntax ||
+                         blockFacts.IsExecutableBlock(n.Parent) &&
+                         n is not TCatchStatementSyntax &&
+                         n is not TCatchBlockSyntax);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(

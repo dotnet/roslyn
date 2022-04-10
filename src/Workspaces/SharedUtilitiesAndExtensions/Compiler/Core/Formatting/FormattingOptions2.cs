@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Indentation;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -76,9 +77,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
-        public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentStyle.Smart);
+        public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(
@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             TabSize,
             IndentationSize,
             NewLine,
-            InsertFinalNewLine,
-            SmartIndent);
+            InsertFinalNewLine);
 #endif
     }
 
