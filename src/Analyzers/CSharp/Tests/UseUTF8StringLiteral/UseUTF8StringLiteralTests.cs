@@ -1052,5 +1052,35 @@ public class C
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray11()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int x, int y, int z, params byte[] b)
+    {
+        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ [|65, 66, 67|] /* a4 */);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int x, int y, int z, params byte[] b)
+    {
+        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ ""ABC""u8 /* a4 */);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -81,20 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
         private static SyntaxNode CreateArgumentListWithUTF8String(ArgumentListSyntax argumentList, Location location, string stringValue)
         {
-            // To construct our new argument list we add any existing arguments before the location
+            // To construct our new argument list we add any existing tokens before the location
             // and then once we hit the location, we add our string literal
-            var _ = ArrayBuilder<ArgumentSyntax>.GetInstance(out var arguments);
-            foreach (var argument in argumentList.Arguments)
+            // We can't just loop through the arguments, as we want to preserve trivia on the
+            // comma tokens, if any.
+            var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var arguments);
+            foreach (var argument in argumentList.ChildNodesAndTokens())
             {
-                if (argument.Span.Start >= location.SourceSpan.Start)
+                // Skip the open paren, its a child token but not an argument
+                if (argument.IsKind(SyntaxKind.OpenParenToken))
                 {
-                    // If this is the first argument in the argument list, then trivia will be
-                    // attached to the open parentheses, so we don't need to do anything.
-                    var leadingTrivia = argument == argumentList.Arguments[0]
-                        ? SyntaxTriviaList.Empty
-                        : SyntaxFactory.TriviaList(argument.GetAllPrecedingTriviaToPreviousToken());
+                    continue;
+                }
 
-                    var stringLiteral = CreateUTF8String(leadingTrivia, stringValue, argumentList.Arguments.Last().GetTrailingTrivia());
+                // See if we found our first argument
+                if (argument.Span.Start == location.SourceSpan.Start)
+                {
+                    // We don't need to worry about leading trivia here, because anything before the current
+                    // argument will have been trailing trivia on the previous comma.
+                    var stringLiteral = CreateUTF8String(SyntaxTriviaList.Empty, stringValue, argumentList.Arguments.Last().GetTrailingTrivia());
                     arguments.Add(SyntaxFactory.Argument(stringLiteral));
                     break;
                 }
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 arguments.Add(argument);
             }
 
-            return argumentList.WithArguments(SyntaxFactory.SeparatedList(arguments));
+            return argumentList.WithArguments(SyntaxFactory.SeparatedList<ArgumentSyntax>(arguments));
         }
 
         private static LiteralExpressionSyntax CreateUTF8String(SyntaxNode nodeToTakeTriviaFrom, string stringValue)
