@@ -1037,6 +1037,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
                                 operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
                                 operatorToken3.GetTrailingTrivia());
+
+                            operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUnsignedRightShift, forceWarning: true);
                         }
                         else
                         {
@@ -1057,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             int width = nonOverloadableOperator.Width;
                             SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
                             SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo); // PROTOTYPE(UnsignedRightShift): Add a test for this warning
+                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
                         }
                     }
                     else

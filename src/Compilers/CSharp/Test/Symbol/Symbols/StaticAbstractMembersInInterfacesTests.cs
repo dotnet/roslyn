@@ -4591,6 +4591,7 @@ interface I1
         [InlineData("I1", "^", "(I1 x, I1 y)")]
         [InlineData("I1", "<<", "(I1 x, int y)")]
         [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", ">>>", "(I1 x, int y)")]
         [InlineData("I1", "checked -", "(I1 x)")]
         [InlineData("I1", "checked ++", "(I1 x)")]
         [InlineData("I1", "checked --", "(I1 x)")]
@@ -4702,6 +4703,7 @@ interface I1
         [InlineData("I1", "^", "(I1 x, I1 y)")]
         [InlineData("I1", "<<", "(I1 x, int y)")]
         [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", ">>>", "(I1 x, int y)")]
         [InlineData("I1", "checked -", "(I1 x)")]
         [InlineData("I1", "checked ++", "(I1 x)")]
         [InlineData("I1", "checked --", "(I1 x)")]
@@ -5829,6 +5831,7 @@ interface I13
         [Theory]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         public void OperatorSignature_06(string op)
         {
             var source1 =
@@ -7786,7 +7789,7 @@ class C<T>
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -7856,6 +7859,26 @@ public partial interface I1
                     // (26,78): error CS7053: An expression tree may not contain 'I1.operator checked /(I1, int)'
                     //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b / 4).ToString());
                     Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "b / 4").WithArguments("I1.operator checked /(I1, int)").WithLocation(26, 78)
+                    );
+            }
+            else if (op == ">>>")
+            {
+                compilation1.VerifyDiagnostics(
+                    // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = x >>> 1;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x >>> 1").WithLocation(8, 13),
+                    // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = y >>> 2;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y >>> 2").WithLocation(13, 13),
+                    // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = a >>> 3;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a >>> 3").WithLocation(21, 13),
+                    // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b >>> 4).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b >>> 4").WithLocation(26, 78),
+                    // (26,78): error CS7053: An expression tree may not contain '>>>'
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b >>> 4).ToString());
+                    Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "b >>> 4").WithArguments(">>>").WithLocation(26, 78)
                     );
             }
             else
@@ -8108,7 +8131,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
+        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -8194,6 +8217,9 @@ class Test
 
                 case ">>":
                     return "RightShift";
+
+                case ">>>":
+                    return "UnsignedRightShift";
 
                 case "&":
                     return "And";
@@ -8287,7 +8313,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isCheckedOperator, bool isCheckedContext)
+        public void ConsumeAbstractBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext)
         {
             string metadataName = GetBinaryOperatorName(op, isCheckedOperator, out string checkedKeyword);
 
@@ -8302,7 +8328,7 @@ class Test
             }
 
             string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
-            bool isShiftOperator = op is "<<" or ">>";
+            bool isShiftOperator = op is "<<" or ">>" or ">>>";
 
             var source1 =
 @"
@@ -9471,7 +9497,7 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isCheckedOperator, bool isCheckedContext)
+        public void ConsumeAbstractCompoundBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext)
         {
             string metadataName = GetBinaryOperatorName(op, isCheckedOperator, out string checkedKeyword);
 
@@ -9486,7 +9512,7 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
             }
 
             string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
-            bool isShiftOperator = op.Length == 2;
+            bool isShiftOperator = op is "<<" or ">>" or ">>>";
 
             var source1 =
 @"
@@ -10021,7 +10047,7 @@ ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEqual
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -10161,7 +10187,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
+        public void ConsumeAbstractCompoundBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -10264,7 +10290,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -10308,12 +10334,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("checked user-defined operators").WithLocation(6, 13)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
                     // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         _ = x - y;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x >>> y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
+                    // (6,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x >>> y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(6, 13)
                     );
             }
 
@@ -10332,12 +10369,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator - (I1 x, int y);
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static I1 operator >>> (I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 33),
+                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator >>> (I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
                     );
             }
         }
@@ -10432,7 +10480,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
+        public void ConsumeAbstractCompoundBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -10476,12 +10524,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("checked user-defined operators").WithLocation(6, 9)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
                     // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         x <<= y;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x >>>= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                    // (6,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x >>>= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(6, 9)
                     );
             }
 
@@ -10500,12 +10559,23 @@ class Test
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 40)
                     );
             }
-            else
+            else if (op != ">>>")
             {
                 compilation3.VerifyDiagnostics(
                     // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator << (T x, int y);
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator >>> (T x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator >>> (T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
                     );
             }
         }
@@ -14833,7 +14903,8 @@ public class C2 : C11<int>, I1<int>
         }
 
         private static string UnaryOperatorName(string op, bool isChecked = false) => OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked);
-        private static string BinaryOperatorName(string op, bool isChecked = false) => op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked) };
+        private static string BinaryOperatorName(string op, bool isChecked = false) =>
+            op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, ">>>" => WellKnownMemberNames.UnsignedRightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked) };
 
         private static string GetUnaryOperatorName(string op, bool isChecked, out string checkedKeyword)
         {
@@ -15026,7 +15097,7 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -15337,7 +15408,7 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -15419,7 +15490,7 @@ interface I14 : I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            bool isShift = op == "<<" || op == ">>";
+            bool isShift = op == "<<" || op == ">>" || op == ">>>";
             ErrorCode badSignatureError = isShift ? ErrorCode.ERR_BadShiftOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature;
             ErrorCode badAbstractSignatureError = isShift ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadAbstractBinaryOperatorSignature;
 
@@ -15656,7 +15727,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -15700,11 +15771,28 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
-                    );
+                if (op != ">>>")
+                {
+                    compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator +(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                        );
+                }
+                else
+                {
+                    compilation2.VerifyDiagnostics(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
+                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public static Test2 operator >>>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34)
+                        );
+                }
             }
             else
             {
@@ -15727,17 +15815,46 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator +(I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator +(T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
-                    );
+                if (op != ">>>")
+                {
+                    compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator +(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static I1 operator +(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static T operator +(T x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                        );
+                }
+                else
+                {
+                    compilation3.VerifyDiagnostics(
+                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static I1 I1.operator >>>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
+                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public static Test2 operator >>>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34),
+                        // (14,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     abstract static I1 operator >>>(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(14, 33),
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static I1 operator >>>(I1 x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                        // (19,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     abstract static T operator >>>(T x, int y);
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(19, 32),
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                        //     abstract static T operator >>>(T x, int y);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                        );
+                }
             }
             else
             {
@@ -15823,7 +15940,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -15931,7 +16048,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -16152,7 +16269,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
@@ -16414,7 +16531,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic explicit implementation scenario
 
@@ -16658,7 +16775,7 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Explicit implementation from base is treated as an implementation
 
@@ -16868,7 +16985,7 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -17077,7 +17194,7 @@ public class C1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Ignore invalid metadata (non-abstract static virtual method). 
 
@@ -17224,7 +17341,7 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Ignore invalid metadata (default interface implementation for a static method)
 
@@ -17649,7 +17766,7 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -18633,7 +18750,7 @@ class
 
         [Theory]
         [CombinatorialData]
-        public void ExplicitImplementationModifiersBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ExplicitImplementationModifiersBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -18828,7 +18945,7 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ExplicitInterfaceSpecifierErrorsBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ExplicitInterfaceSpecifierErrorsBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -28026,6 +28143,7 @@ public class C2 : I1<C2>
         [InlineData("^", "op_ExclusiveOr")]
         [InlineData("<<", "op_LeftShift")]
         [InlineData(">>", "op_RightShift")]
+        [InlineData(">>>", "op_UnsignedRightShift")]
         [InlineData("==", "op_Equality")]
         [InlineData("!=", "op_Inequality")]
         [InlineData(">", "op_GreaterThan")]

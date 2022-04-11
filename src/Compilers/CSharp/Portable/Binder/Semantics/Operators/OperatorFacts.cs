@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GreaterThanToken: return WellKnownMemberNames.GreaterThanOperatorName;
                 case SyntaxKind.GreaterThanEqualsToken: return WellKnownMemberNames.GreaterThanOrEqualOperatorName;
                 case SyntaxKind.GreaterThanGreaterThanToken: return WellKnownMemberNames.RightShiftOperatorName;
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: return WellKnownMemberNames.UnsignedRightShiftOperatorName;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: return WellKnownMemberNames.UnsignedRightShiftOperatorName;
                 case SyntaxKind.ExclamationEqualsToken: return WellKnownMemberNames.InequalityOperatorName;
                 default:
                     return null;

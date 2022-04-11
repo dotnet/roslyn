@@ -175,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature bestSignature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(bestSignature.Kind, node, diagnostics);
-            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, bestSignature.Method, bestSignature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, bestSignature.Method,
+                isUnsignedRightShift: bestSignature.Kind.Operator() == BinaryOperatorKind.UnsignedRightShift, bestSignature.ConstrainedToTypeOpt, diagnostics);
 
             if (CheckOverflowAtRuntime)
             {
@@ -401,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(left.Type is not TypeParameterSymbol);
-                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, userDefinedOperator, constrainedToTypeOpt: null, diagnostics);
+                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, userDefinedOperator, isUnsignedRightShift: false, constrainedToTypeOpt: null, diagnostics);
                 }
             }
 
@@ -618,8 +619,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
-            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            if (foundOperator)
+            {
+                CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
+                CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method,
+                    isUnsignedRightShift: resultOperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift, signature.ConstrainedToTypeOpt, diagnostics);
+            }
 
             TypeSymbol resultType = signature.ReturnType;
             BoundExpression resultLeft = left;
@@ -948,8 +953,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(trueOperator != null && falseOperator != null);
 
-                        _ = CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics) &&
-                            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator, signature.ConstrainedToTypeOpt, diagnostics);
+                        _ = CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics) &&
+                            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator,
+                                isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
                         return new BoundUserDefinedConditionalLogicalOperator(
                             node,
@@ -2264,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var signature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
-            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
             var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType).MakeCompilerGenerated();
 
@@ -2311,7 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns false if reported an error, true otherwise.
         /// </summary>
-        private bool CheckConstraintLanguageVersionAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
+        private bool CheckConstraintLanguageVersionAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, bool isUnsignedRightShift, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
         {
             bool result = true;
 
@@ -2342,10 +2348,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (methodOpt is not null && SyntaxFacts.IsCheckedOperator(methodOpt.Name) &&
-                Compilation.SourceModule != methodOpt.ContainingModule)
+            if (methodOpt is null)
             {
-                result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
+                if (isUnsignedRightShift)
+                {
+                    result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureUnsignedRightShift, diagnostics);
+                }
+            }
+            else
+            {
+                Debug.Assert((methodOpt.Name == WellKnownMemberNames.UnsignedRightShiftOperatorName) == isUnsignedRightShift);
+
+                if (Compilation.SourceModule != methodOpt.ContainingModule)
+                {
+                    if (SyntaxFacts.IsCheckedOperator(methodOpt.Name))
+                    {
+                        result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
+                    }
+                    else if (isUnsignedRightShift)
+                    {
+                        result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureUnsignedRightShift, diagnostics);
+                    }
+                }
             }
 
             return result;
@@ -2686,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType, diagnostics);
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
-            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
             return new BoundUnaryOperator(
                 node,

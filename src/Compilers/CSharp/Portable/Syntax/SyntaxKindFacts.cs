@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                // PROTOTYPE(UnsignedRightShift): case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.PlusEqualsToken:
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case WellKnownMemberNames.OnesComplementOperatorName: return SyntaxKind.TildeToken;
                 case WellKnownMemberNames.RightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanToken;
-                // PROTOTYPE(UnsignedRightShift): case WellKnownMemberNames.UnsignedRightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
+                case WellKnownMemberNames.UnsignedRightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
 
                 case WellKnownMemberNames.CheckedSubtractionOperatorName:
                 case WellKnownMemberNames.SubtractionOperatorName:

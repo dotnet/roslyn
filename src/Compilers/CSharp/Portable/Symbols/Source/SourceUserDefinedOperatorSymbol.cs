@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_OperatorCantBeChecked, syntax.CheckedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(name)));
             }
 
+            if (name == WellKnownMemberNames.UnsignedRightShiftOperatorName)
+            {
+                MessageID.IDS_FeatureUnsignedRightShift.CheckFeatureAvailability(diagnostics, syntax, syntax.OperatorToken.GetLocation());
+            }
+
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;
