@@ -28,6 +28,17 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
 
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
+        public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+             SemanticModel semanticModel,
+             int position,
+             Workspace workspace,
+             OptionSet? options = null,
+             CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
+        }
+
         public static async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Document document,
             int position,
@@ -39,17 +50,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
             options ??= solution.Options;
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
             return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
-        }
-
-        [Obsolete("Use GetRecommendedSymbolsAtPosition")]
-        public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
-             SemanticModel semanticModel,
-             int position,
-             Workspace workspace,
-             OptionSet? options = null,
-             CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
         }
     }
 }
