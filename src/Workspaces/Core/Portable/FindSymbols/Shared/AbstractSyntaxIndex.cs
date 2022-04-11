@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!document.SupportsSyntaxTree)
                 return null;
 
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+            var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Check if we have an index for a previous version of this document.  If our
             // checksums match, we can just use that.
             if (s_documentIdToIndex.TryGetValue(document.Id, out var index) &&
-                index?.Checksum == checksum)
+                (index?.Checksum == textChecksum || index?.Checksum == textAndDirectivesChecksum))
             {
                 // The previous index we stored with this documentId is still valid.  Just
                 // return that.
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
-            index = await LoadAsync(document, checksum, read, cancellationToken).ConfigureAwait(false);
+            index = await LoadAsync(document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
             if (index != null || loadOnly)
                 return index;
 
             // alright, we don't have cached information, re-calculate them here.
-            index = await CreateIndexAsync(document, checksum, create, cancellationToken).ConfigureAwait(false);
+            index = await CreateIndexAsync(document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
 
             // okay, persist this info
             await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
@@ -103,11 +103,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<TIndex> CreateIndexAsync(
-            Document document, Checksum checksum, IndexCreator create, CancellationToken cancellationToken)
+            Document document,
+            Checksum textChecksum,
+            Checksum textAndDirectivesChecksum,
+            IndexCreator create,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // if the tree contains directives, then include the directives-checksum info in the checksum we produce. We
+            // don't want to consider the data reusable if the user changes pp directives.  Note: currently, this
+            // unfortunately means we cannot reuse indices created for documents that use `#nullable` or `#region`.
+            // Ideally, this would only impact documents containing `#if` directives.
+            //
+            // It's trivial for us to determine the checksum to use at the index-creation/writing point because we have
+            // to have computed the syntax tree anyways to produce the index.  The tradeoff of this design though is
+            // that at the reading point we may have to issue two reads to determine which case we're in.  However, this
+            // still let's us avoid parsing the doc at the point we're reading in the indices (which would defeat a
+            // major reason for having the index in the first place).
+            var checksum = root.ContainsDirectives ? textAndDirectivesChecksum : textChecksum;
+
             return create(document, root, checksum, cancellationToken);
         }
     }

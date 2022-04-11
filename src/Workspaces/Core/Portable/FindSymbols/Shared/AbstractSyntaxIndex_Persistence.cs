@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -18,18 +19,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("29");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("30");
+
+        private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
 
         public readonly Checksum? Checksum;
 
-        protected static Task<TIndex?> LoadAsync(
+        protected static async Task<TIndex?> LoadAsync(
             Document document,
-            Checksum checksum,
+            Checksum textChecksum,
+            Checksum textAndDirectivesChecksum,
             IndexReader read,
             CancellationToken cancellationToken)
         {
             var storageService = document.Project.Solution.Workspace.Services.GetPersistentStorageService();
-            return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, SyntaxTreeIndex.GetStringTable(document.Project), read, cancellationToken);
+            var documentKey = DocumentKey.ToDocumentKey(document);
+            var stringTable = SyntaxTreeIndex.GetStringTable(document.Project);
+
+            // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
+            // then we may match it using textChecksum.  If there were pp directives, then we may match is using
+            // textAndDirectivesChecksum.  if we match neither that means that either the data is not in the persistence
+            // service, or ti was written against genuinely different doc/pp-directive contents than before and we have
+            // to recompute and store again.
+            //
+            // This does mean we have to potentially do two reads here.  However, that is cheap, and still nicer than
+            // trying to produce the index again in the common case where we don't have to.
+            return await LoadAsync(storageService, documentKey, textChecksum, stringTable, read, cancellationToken).ConfigureAwait(false) ??
+                   await LoadAsync(storageService, documentKey, textAndDirectivesChecksum, stringTable, read, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async Task<TIndex?> LoadAsync(
@@ -59,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        public static async Task<Checksum> GetChecksumAsync(
+        public static async ValueTask<(Checksum textOnlyChecksum, Checksum textAndDirectivesChecksum)> GetChecksumsAsync(
             Document document, CancellationToken cancellationToken)
         {
             // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change
@@ -70,12 +86,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // We also want the checksum to change any time our serialization format changes.  If
             // the format has changed, all previous versions should be invalidated.
             var project = document.Project;
-            var parseOptionsChecksum = project.State.GetParseOptionsChecksum();
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = documentChecksumState.Text;
 
-            return Checksum.Create(textChecksum, parseOptionsChecksum, s_serializationFormatChecksum);
+            var textChecksum = Checksum.Create(documentChecksumState.Text, s_serializationFormatChecksum);
+            var textAndDirectivesChecksum = s_ppDirectivesToChecksum.GetValue(
+                project.ParseOptions!,
+                static parseOptions => Checksum.Create(
+                    Checksum.Create(parseOptions.PreprocessorSymbolNames),
+                    s_serializationFormatChecksum));
+
+            return (textChecksum, textAndDirectivesChecksum);
         }
 
         private async Task<bool> SaveAsync(
@@ -115,10 +136,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 Debug.Assert(document.IsFromPrimaryBranch());
 
-                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+                var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
 
                 // Check if we've already created and persisted the index for this document.
-                if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
+                if (await PrecalculatedAsync(document, textChecksum, textAndDirectivesChecksum, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -126,14 +147,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate_Create, cancellationToken))
                 {
                     // If not, create and save the index.
-                    var data = await CreateIndexAsync(document, checksum, create, cancellationToken).ConfigureAwait(false);
+                    var data = await CreateIndexAsync(document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
                     await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
         private static async Task<bool> PrecalculatedAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
+            Document document, Checksum textChecksum, Checksum textAndDirectivesChecksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
@@ -143,11 +164,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
-                // Check if we've already stored a checksum and it matches the checksum we 
-                // expect.  If so, we're already precalculated and don't have to recompute
-                // this index.  Otherwise if we don't have a checksum, or the checksums don't
-                // match, go ahead and recompute it.
-                return await storage.ChecksumMatchesAsync(document, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
+
+                // Check if we've already stored a checksum and it matches the checksum we expect.  If so, we're already
+                // precalculated and don't have to recompute this index.  Otherwise if we don't have a checksum, or the
+                // checksums don't match, go ahead and recompute it.
+                //
+                // Check with both checksums as we don't know at this reading point if the document has pp-directives in
+                // it or not, and we don't want parse the document to find out.
+                return await storage.ChecksumMatchesAsync(document, s_persistenceName, textChecksum, cancellationToken).ConfigureAwait(false) ||
+                       await storage.ChecksumMatchesAsync(document, s_persistenceName, textAndDirectivesChecksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
