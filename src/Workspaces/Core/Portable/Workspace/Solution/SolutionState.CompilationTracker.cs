@@ -840,7 +840,28 @@ namespace Microsoft.CodeAnalysis
 #endif
                             }
 
-                            generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationWithoutGenerators, cancellationToken));
+                            // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
+                            // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
+                            // Razor design time files are also fed in, since those files tend to be quite large. The Razor design time files
+                            // aren't produced via a generator, but rather via our legacy IDynamicFileInfo mechanism, so it's also a bit strange
+                            // we'd even give them to other generators since that doesn't match the real compiler anyways. This simply removes
+                            // all of those trees in an effort to speed things up, and also ensure the design time compilations are a bit more accurate.
+                            using var _ = ArrayBuilder<SyntaxTree>.GetInstance(out var treesToRemove);
+
+                            foreach (var documentState in ProjectState.DocumentStates.States)
+                            {
+                                // This matches the logic in CompileTimeSolutionProvider for which documents are removed when we're
+                                // activating the generator.
+                                if (documentState.Value.Attributes.DesignTimeOnly)
+                                {
+                                    treesToRemove.Add(await documentState.Value.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                                }
+                            }
+
+                            var compilationToRunGeneratorsOn = compilationWithoutGenerators.RemoveSyntaxTrees(treesToRemove);
+                            // END HACK HACK HACK HACK.
+
+                            generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
                             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
