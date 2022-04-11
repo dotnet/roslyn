@@ -87,11 +87,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 context,
                 cancellationToken).ConfigureAwait(false);
 
+            var newTypeFormattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
+
             var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
             {
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
-                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
+                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, newTypeFormattingOptions, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
             var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified, newTypeFormattingOptions, cancellationToken).ConfigureAwait(false);
 
             return (formattedDocument, typeAnnotation);
         }
