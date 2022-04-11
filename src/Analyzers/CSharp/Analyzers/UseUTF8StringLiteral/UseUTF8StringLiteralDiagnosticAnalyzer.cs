@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
-            var arrayCreationExpression = (IArrayCreationOperation)context.Operation;
+            var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
             // Don't offer if the user doesn't want it
             var option = context.GetOption(CSharpCodeStyleOptions.PreferUTF8StringLiteral);
@@ -58,28 +58,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 return;
 
             // Only replace arrays with initializers
-            if (arrayCreationExpression.Initializer is null)
+            if (arrayCreationOperation.Initializer is null)
                 return;
 
             // Must be a byte array
-            if (arrayCreationExpression.Type is not IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
+            if (arrayCreationOperation.Type is not IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
                 return;
 
             // UTF8 strings are not valid to use in attributes
-            if (arrayCreationExpression.Syntax.Ancestors().OfType<AttributeSyntax>().Any())
+            if (arrayCreationOperation.Syntax.Ancestors().OfType<AttributeSyntax>().Any())
                 return;
 
             // Can't use a UTF8 string inside an expression tree.
             var semanticModel = context.Operation.SemanticModel;
             Contract.ThrowIfNull(semanticModel);
-            if (arrayCreationExpression.Syntax.IsInExpressionTree(semanticModel, expressionType, context.CancellationToken))
+            if (arrayCreationOperation.Syntax.IsInExpressionTree(semanticModel, expressionType, context.CancellationToken))
                 return;
 
-            var elements = arrayCreationExpression.Initializer.ElementValues;
+            var elements = arrayCreationOperation.Initializer.ElementValues;
 
             // If the compiler has constructed this array creation, then we don't want to do anything
             // if there aren't any elements, as we could just end up inserting ""u8 somewhere.
-            if (arrayCreationExpression.IsImplicit && elements.Length == 0)
+            if (arrayCreationOperation.IsImplicit && elements.Length == 0)
                 return;
 
             // We need to ensure that each element is a byte, and that they are representable as a string
@@ -95,15 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 return;
 
             // Only raise the diagnostic on the first token (usually "new")
-            var location = arrayCreationExpression.Syntax.GetFirstToken().GetLocation();
+            var location = arrayCreationOperation.Syntax.GetFirstToken().GetLocation();
 
             // Store the original syntax location so the code fix can find the operation again
-            var additionalLocations = ImmutableArray.Create(arrayCreationExpression.Syntax.GetLocation());
+            var additionalLocations = ImmutableArray.Create(arrayCreationOperation.Syntax.GetLocation());
 
             // If this array creation is not an array creation expression, then it must be from
             // a parameter array, and the Syntax will be the entire invocation. To issue better
             // diagnostics construct a different location for this case.
-            if (arrayCreationExpression.Syntax is not (ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax))
+            if (arrayCreationOperation.Syntax is not (ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax))
             {
                 // Issue the diagnostic for all of the parameters that make up the array. We could do just
                 // the first element, but that might be odd seeing: M(1, 2, [|3|], 4, 5)
