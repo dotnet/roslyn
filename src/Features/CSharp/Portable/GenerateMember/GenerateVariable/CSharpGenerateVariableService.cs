@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
@@ -30,10 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         }
 
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-            => node is PropertyDeclarationSyntax;
+            => node.IsKind(SyntaxKind.PropertyDeclaration);
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
+            => node.IsParentKind(SyntaxKind.ReturnStatement) ?
+                node.IsKind(SyntaxKind.IdentifierName) :
+                node is IdentifierNameSyntax identifierName && !identifierName.Identifier.CouldBeKeyword();
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
@@ -69,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         {
             identifierToken = identifierName.Identifier;
             if (identifierToken.ValueText != string.Empty &&
-                !identifierName.IsVar &&
                 !IsProbablyGeneric(identifierName, cancellationToken))
             {
                 var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;

@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
-        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
         private OptionsCollection ImplicitTypingEverywhere()
-            => new OptionsCollection(GetLanguage())
+            => new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
@@ -9617,6 +9617,73 @@ class Class
         }
     }
 }", index: Parameter);
+        }
+
+        [WorkItem(27646, "https://github.com/dotnet/roslyn/issues/27646")]
+        [Theory]
+        [InlineData("yield")]
+        [InlineData("partial")]
+        [InlineData("from")]
+        [InlineData("group")]
+        [InlineData("join")]
+        [InlineData("into")]
+        [InlineData("let")]
+        [InlineData("by")]
+        [InlineData("where")]
+        [InlineData("select")]
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("add")]
+        [InlineData("remove")]
+        [InlineData("orderby")]
+        [InlineData("alias")]
+        [InlineData("on")]
+        [InlineData("equals")]
+        [InlineData("ascending")]
+        [InlineData("descending")]
+        [InlineData("assembly")]
+        [InlineData("module")]
+        [InlineData("type")]
+        [InlineData("global")]
+        [InlineData("field")]
+        [InlineData("method")]
+        [InlineData("param")]
+        [InlineData("property")]
+        [InlineData("typevar")]
+        [InlineData("nameof")]
+        [InlineData("async")]
+        [InlineData("await")]
+        [InlineData("when")]
+        [InlineData("_")]
+        [InlineData("var")]
+        [InlineData("or")]
+        [InlineData("and")]
+        [InlineData("not")]
+        [InlineData("with")]
+        [InlineData("init")]
+        [InlineData("record")]
+        [InlineData("managed")]
+        [InlineData("unmanaged")]
+        [InlineData("dynamic")]
+        public async Task TestContextualKeywordsInReturnStatement(string keyword)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    int M()
+    {{
+        [|return {keyword}|];
+    }}
+}}",
+$@"class C
+{{
+    private int {keyword};
+
+    int M()
+    {{
+        return {keyword};
+    }}
+}}");
         }
     }
 }
