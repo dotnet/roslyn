@@ -2619,6 +2619,7 @@ struct Type<T>
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<ClassificationTypeMap>(),
                 globalOptions,
+                visibilityTracker: null,
                 listenerProvider);
 
             using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);

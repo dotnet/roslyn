@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -56,12 +56,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
 
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                options,
+                formattingOptions,
                 GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 

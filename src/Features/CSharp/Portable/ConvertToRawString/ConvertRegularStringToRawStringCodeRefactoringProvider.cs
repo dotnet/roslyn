@@ -71,12 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var canBeSingleLine = CanBeSingleLine(characters);
 
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             if (canBeSingleLine)
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, c),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, formattingOptions, c),
                         nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine,
                         priority),
                     token.Span);
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, c),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, formattingOptions, c),
                         nameof(CSharpFeaturesResources.Convert_to_raw_string),
                         priority),
                     token.Span);
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     context.RegisterRefactoring(
                         new MyCodeAction(
                             CSharpFeaturesResources.Convert_to_raw_string_no_indent,
-                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLine, c),
+                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLine, formattingOptions, c),
                             nameof(CSharpFeaturesResources.Convert_to_raw_string_no_indent),
                             priority),
                         token.Span);
@@ -108,17 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         }
 
         private static async Task<Document> UpdateDocumentAsync(
-            Document document, TextSpan span, ConvertToRawKind kind, CancellationToken cancellationToken)
+            Document document, TextSpan span, ConvertToRawKind kind, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var newLine = options.GetOption(FormattingOptions.NewLine);
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
 
-            var replacement = GetReplacementToken(document, token, kind, newLine, cancellationToken);
+            var replacement = GetReplacementToken(document, token, kind, options, cancellationToken);
             return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
         }
 
@@ -126,19 +125,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             Document document,
             SyntaxToken token,
             ConvertToRawKind kind,
-            string newLine,
+            SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
         {
             return kind switch
             {
                 ConvertToRawKind.SingleLine => ConvertToSingleLineRawString(token),
-                ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, newLine),
-                ConvertToRawKind.MultiLineIndented => ConvertToMultiLineRawIndentedString(document, token, newLine, cancellationToken),
+                ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, options.NewLine),
+                ConvertToRawKind.MultiLineIndented => ConvertToMultiLineRawIndentedString(document, token, options, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
 
-        private static SyntaxToken ConvertToMultiLineRawIndentedString(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
+        private static SyntaxToken ConvertToMultiLineRawIndentedString(Document document, SyntaxToken token, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
@@ -146,12 +145,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
             var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-            var indentation = token.GetPreferredIndentation(document, cancellationToken);
+
+            // Auto-formatting options are not relevant since they only control behavior on typing.
+            var indentationOptions = new IndentationOptions(formattingOptions, AutoFormattingOptions.Default);
+            var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             builder.Append('"', quoteDelimeterCount);
-            builder.Append(newLine);
+            builder.Append(formattingOptions.NewLine);
 
             var atStartOfLine = true;
             for (int i = 0, n = characters.Length; i < n; i++)
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 ch.AppendTo(builder);
             }
 
-            builder.Append(newLine);
+            builder.Append(formattingOptions.NewLine);
             builder.Append(indentation);
             builder.Append('"', quoteDelimeterCount);
 

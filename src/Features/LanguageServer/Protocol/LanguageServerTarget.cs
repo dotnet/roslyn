@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly RequestExecutionQueue _queue;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ILspLogger _logger;
-        private readonly string? _clientName;
 
         // Set on first LSP initialize request.
         private ClientCapabilities? _clientCapabilities;
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
-            string? clientName,
             WellKnownLspServerKinds serverKind)
         {
             _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
@@ -62,7 +60,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            _clientName = clientName;
 
             _queue = new RequestExecutionQueue(
                 logger,
@@ -78,10 +75,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
             {
-                // Instead of concretely defining methods for each LSP method, we instead dynamically construct
-                // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
-                // but different type parameters.  This is a key functionality to support TS external access as we do not want to couple
-                // our LSP protocol version dll to theirs.
+                // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
+                // generic method info from the exported handler types.  This allows us to define multiple handlers for
+                // the same method but different type parameters.  This is a key functionality to support TS external
+                // access as we do not want to couple our LSP protocol version dll to theirs.
                 //
                 // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
                 // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
@@ -115,7 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     _method,
                     requestType,
                     _target._clientCapabilities,
-                    _target._clientName,
                     _target._queue,
                     cancellationToken).ConfigureAwait(false);
                 return result;
@@ -224,7 +220,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 requestMethod,
                 request,
                 _clientCapabilities,
-                _clientName,
                 _queue,
                 cancellationToken).ConfigureAwait(false);
             return result;

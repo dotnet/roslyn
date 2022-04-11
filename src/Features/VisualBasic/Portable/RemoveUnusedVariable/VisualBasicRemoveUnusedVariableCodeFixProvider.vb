@@ -38,15 +38,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
             Return If(node.Kind() = SyntaxKind.SimpleAssignmentStatement, node, Nothing)
         End Function
 
-        Protected Overrides Sub RemoveOrReplaceNode(editor As SyntaxEditor, node As SyntaxNode, syntaxFacts As ISyntaxFactsService)
-            RemoveNode(editor, node, syntaxFacts)
+        Protected Overrides Sub RemoveOrReplaceNode(editor As SyntaxEditor, node As SyntaxNode, blockFacts As IBlockFactsService)
+            RemoveNode(editor, node, blockFacts)
         End Sub
 
         Protected Overrides Function GetVariables(localDeclarationStatement As LocalDeclarationStatementSyntax) As SeparatedSyntaxList(Of SyntaxNode)
             Return localDeclarationStatement.Declarators
         End Function
 
-        Protected Overrides Function ShouldOfferFixForLocalDeclaration(syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
+        Protected Overrides Function ShouldOfferFixForLocalDeclaration(blockFacts As IBlockFactsService, node As SyntaxNode) As Boolean
             Return True
         End Function
     End Class

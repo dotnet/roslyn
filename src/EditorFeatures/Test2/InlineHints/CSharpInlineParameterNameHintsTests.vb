@@ -704,6 +704,31 @@ class A
             Await VerifyParamHints(input, input)
         End Function
 
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/60145")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestNotOnEnableDisableBoolean3() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        EnableLogging(true);
+
+        void EnableLogging(bool value)
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
         Public Async Function TestOnEnableDisableNonBoolean1() As Task

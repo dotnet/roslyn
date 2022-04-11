@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, [NotNullWhen(true)] out string? name)
         {
             var isAttributeNameContext = context.IsAttributeNameContext;
-            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = context.GetRequiredLanguageService<ISyntaxFactsService>();
 
             if (!isAttributeNameContext)
             {

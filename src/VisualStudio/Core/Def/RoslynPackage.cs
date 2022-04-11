@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -316,6 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
+            InheritanceMarginLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

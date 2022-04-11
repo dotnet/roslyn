@@ -36,8 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(
             BC30433, BC30434, BC30503, BC30593)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.Compile
-
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 Dim tokenToRemove = diagnostic.Location.FindToken(context.CancellationToken)
@@ -50,15 +48,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                     Continue For
                 End If
 
-                context.RegisterCodeFix(
-                    New MyCodeAction(Function(ct) FixAsync(context.Document, diagnostic, context.CancellationToken)),
-                    diagnostic)
+                context.RegisterCodeFix(New MyCodeAction(GetDocumentUpdater(context, diagnostic)), diagnostic)
             Next
 
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, options As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
             For Each diagnostic In diagnostics
                 Dim node = diagnostic.Location.FindNode(cancellationToken)
                 Dim newNode = GetReplacement(document, node)
