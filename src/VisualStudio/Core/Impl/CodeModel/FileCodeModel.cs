@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
+            // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create);
             return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
@@ -340,8 +343,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
-                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+                    var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(result, CancellationToken.None).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
                     return formatted;
                 });

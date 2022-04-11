@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
         private readonly string _aliasName;
         private readonly bool _isExtern;
-        private readonly Symbol? _containingSymbol;
+        private readonly Symbol _containingSymbol;
 
-        protected AliasSymbol(string aliasName, Symbol? containingSymbol, ImmutableArray<Location> locations, bool isExtern)
+        protected AliasSymbol(string aliasName, Symbol containingSymbol, ImmutableArray<Location> locations, bool isExtern)
         {
             Debug.Assert(locations.Length == 1 || (locations.IsEmpty && aliasName == "global")); // It looks like equality implementation depends on this condition.
+            Debug.Assert(containingSymbol is not null);
 
             _locations = locations;
             _aliasName = aliasName;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AliasSymbolFromResolvedTarget(globalNamespace, "global", globalNamespace, ImmutableArray<Location>.Empty, isExtern: false);
         }
 
-        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, Symbol? containingSymbol, bool isExtern)
+        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, Symbol containingSymbol, bool isExtern)
         {
             return new AliasSymbolFromResolvedTarget(targetSymbol, aliasToken.ValueText, containingSymbol, ImmutableArray.Create(aliasToken.GetLocation()), isExtern);
         }
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// return that as the "containing" symbol, even though the alias isn't a member of the
         /// namespace as such.
         /// </summary>
-        public sealed override Symbol? ContainingSymbol
+        public sealed override Symbol ContainingSymbol
         {
             get
             {
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object?)other != null &&
                 Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
-                this.ContainingAssembly.Equals(other.ContainingAssembly, compareKind);
+                Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbol ResolveExternAliasTarget(BindingDiagnosticBag diagnostics)
         {
             NamespaceSymbol? target;
-            if (!ContainingSymbol!.DeclaringCompilation.GetExternAliasTarget(Name, out target))
+            if (!ContainingSymbol.DeclaringCompilation.GetExternAliasTarget(Name, out target))
             {
                 diagnostics.Add(ErrorCode.ERR_BadExternAlias, Locations[0], Name);
             }
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = ContainingSymbol!.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            var declarationBinder = ContainingSymbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NamespaceOrTypeSymbol _aliasTarget;
 
-        internal AliasSymbolFromResolvedTarget(NamespaceOrTypeSymbol target, string aliasName, Symbol? containingSymbol, ImmutableArray<Location> locations, bool isExtern)
+        internal AliasSymbolFromResolvedTarget(NamespaceOrTypeSymbol target, string aliasName, Symbol containingSymbol, ImmutableArray<Location> locations, bool isExtern)
             : base(aliasName, containingSymbol, locations, isExtern)
         {
             _aliasTarget = target;

@@ -491,6 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringToken = 8515,
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
+        SingleLineRawStringLiteralToken = 8518,
+        MultiLineRawStringLiteralToken = 8519,
+
+        UTF8StringLiteralToken = 8520,
+        UTF8SingleLineRawStringLiteralToken = 8521,
+        UTF8MultiLineRawStringLiteralToken = 8522,
+
         // trivia
         EndOfLineTrivia = 8539,
         WhitespaceTrivia = 8540,
@@ -657,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
+        UTF8StringLiteralExpression = 8756,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -871,11 +879,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         LineDirectivePosition = 9070,
         LineSpanDirectiveTrivia = 9071,
 
-        SingleLineRawStringLiteralToken = 9072,
-        MultiLineRawStringLiteralToken = 9073,
-
-        InterpolatedSingleLineRawStringStartToken = 9080,   // $"""
-        InterpolatedMultiLineRawStringStartToken = 9081,    // $""" (whitespace and newline are included in the Text for this token)
-        InterpolatedRawStringEndToken = 9082,               // """ (preceding whitespace and newline are included in the Text for this token)
+        InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
+        InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
+        InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
     }
 }

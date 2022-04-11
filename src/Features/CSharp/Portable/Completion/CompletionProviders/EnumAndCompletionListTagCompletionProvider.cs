@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -13,11 +12,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -72,9 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (tree.IsInNonUserCode(position, cancellationToken))
                     return;
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                .GetPreviousTokenIfTouchingWord(position);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
+                if (syntaxContext.IsInTaskLikeTypeContext)
+                    return;
+
+                var token = syntaxContext.TargetToken;
                 if (token.IsMandatoryNamedParameterPosition())
                     return;
 
@@ -88,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
 
                 if (types.Length == 0)

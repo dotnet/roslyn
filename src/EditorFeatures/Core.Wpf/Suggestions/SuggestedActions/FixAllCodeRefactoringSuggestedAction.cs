@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We get the telemetry id for the original code action we are fixing,
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
-            telemetryId = OriginalCodeAction.GetType().GetTelemetryId(FixAllState.FixAllScope.GetScopeIdForTelemetry());
+            telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.FixAllScope);
             return true;
         }
 

@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static async Task<CodeAction?> GetFixAsync(
             string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
-            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
-
             var solution = fixAllContext.Scope switch
             {
-                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
+                    => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
@@ -36,19 +35,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (solution == null)
                 return null;
 
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
             return CodeAction.Create(
                 title, c => Task.FromResult(solution));
-
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
         private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
             => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
 
         private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocumentAndProject(document: null, fixAllContext.Project)));
 
         private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
@@ -72,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return fixAllContextsAsync(
                 fixAllContext,
-                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
+                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithDocumentAndProject(document: null, p)));
         }
     }
 }

@@ -11,5 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.Intents
     {
         public const string GenerateConstructor = nameof(GenerateConstructor);
         public const string AddConstructorParameter = nameof(AddConstructorParameter);
+        public const string Rename = nameof(Rename);
     }
 }

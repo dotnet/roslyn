@@ -58,14 +58,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
 
             for (int i = position, n = currentSnapshot.Length; i < n; i++)
             {
-                if (currentSnapshot[i] == '"')
-                    quotesAfter++;
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesAfter++;
             }
 
             for (var i = position - 1; i >= 0; i--)
             {
-                if (currentSnapshot[i] == '"')
-                    quotesBefore++;
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesBefore++;
             }
 
             if (quotesAfter != quotesBefore)
@@ -93,9 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
                 return false;
             }
 
-            var indentation = token.GetPreferredIndentation(document, cancellationToken);
+            var indentationOptions = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
-            var newLine = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+            var newLine = indentationOptions.FormattingOptions.NewLine;
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);

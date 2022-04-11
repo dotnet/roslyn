@@ -71,6 +71,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #endregion
 
+        #region xml tokens
+
+        int XmlTextLiteralToken { get; }
+
+        #endregion
+
         #region names
 
         int GenericName { get; }
@@ -100,10 +106,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region expressions
 
         int AnonymousObjectCreationExpression { get; }
+        int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitArrayCreationExpression { get; }
         int? ImplicitObjectCreationExpression { get; }
         int? IndexExpression { get; }
         int InterpolatedStringExpression { get; }

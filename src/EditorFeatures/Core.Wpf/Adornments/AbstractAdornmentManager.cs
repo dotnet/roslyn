@@ -277,14 +277,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan)
         {
-            var point = mappingTagSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+            var point = mappingTagSpan.Span.End.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
             if (point == null)
             {
                 return null;
             }
 
             var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
-                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
+                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.TextSnapshot);
             if (mappedPoint == null)
             {
                 return null;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,10 +28,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal partial struct VirtualCharSequence
     {
-        public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
+        public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
 
-        public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new(new ImmutableArrayChunk(virtualChars));
+        public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
+            => new(new ImmutableSegmentedListChunk(virtualChars));
 
         public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));

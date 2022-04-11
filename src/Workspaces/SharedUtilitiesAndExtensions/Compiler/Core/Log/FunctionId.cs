@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinatorRegistrationService_Unregister = 224,
         WorkCoordinatorRegistrationService_Reanalyze = 225,
 
-        WorkCoordinator_SolutionCrawlerOption = 226,
+        // obsolete: WorkCoordinator_SolutionCrawlerOption = 226,
         WorkCoordinator_PersistentStorageAdded = 227,
         WorkCoordinator_PersistentStorageRemoved = 228,
         WorkCoordinator_Shutdown = 229,
@@ -540,9 +540,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         StackTraceToolWindow_ShowOnActivated = 540,
 
-        Refactoring_FixAllOccurrencesSession = 550,
-        Refactoring_FixAllOccurrencesContext = 551,
-        Refactoring_FixAllOccurrencesComputation = 552,
-        Refactoring_FixAllOccurrencesPreviewChanges = 553,
+        CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
     }
 }

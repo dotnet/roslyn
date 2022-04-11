@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol.Name.StartsWith("_") &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
         /// <summary>
         /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol.GetAttributes().Any(x => x.AttributeClass is
             {
                 MetadataName: nameof(ObsoleteAttribute),
-                ContainingNamespace: { Name: nameof(System) },
+                ContainingNamespace.Name: nameof(System),
             });
     }
 }

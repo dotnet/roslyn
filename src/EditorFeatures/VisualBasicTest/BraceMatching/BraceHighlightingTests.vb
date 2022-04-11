@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+Imports Microsoft.CodeAnalysis.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IGlobalOptionService),
+                visibilityTracker:=Nothing,
                 AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()

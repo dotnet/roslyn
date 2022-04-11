@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
@@ -708,6 +709,104 @@ class C { } ",
 namespace $$N;
 
 class C { } ",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedWithNoNewlineAtEnd()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+    }
+}",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedWithNoMembersAndNoNewlineAtEnd()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+}",
+                FixedCode = @"
+namespace $$N;",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedPreserveNewlineAtEnd()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(59728, "https://github.com/dotnet/roslyn/issues/59728")]
+        public async Task TestConvertToFileScopedWithNoMembersPreserveNewlineAtEnd()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+}
+",
+                FixedCode = @"
+namespace $$N;
+",
                 LanguageVersion = LanguageVersion.CSharp10,
                 Options =
                 {
