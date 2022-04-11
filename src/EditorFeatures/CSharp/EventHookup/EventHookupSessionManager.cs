@@ -16,12 +16,15 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     [Export]
-    internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
+    internal sealed partial class EventHookupSessionManager
     {
+        public readonly IThreadingContext ThreadingContext;
+
         private readonly IToolTipService _toolTipService;
         private IToolTipPresenter _toolTipPresenter;
 
@@ -33,14 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
-            : base(threadingContext)
         {
+            ThreadingContext = threadingContext;
             _toolTipService = toolTipService;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         internal void CancelAndDismissExistingSessions()
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession != null)
             {
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             foreach (var change in e.Changes)
             {
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         /// </summary>
         private void Caret_PositionChanged(object sender, EventArgs e)
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
             if (CurrentSession == null)
             {

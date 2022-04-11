@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -101,10 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public async Task NavigateToSourceGeneratedFileAsync(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        public Func<CancellationToken, Task<bool>> GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
@@ -130,25 +130,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 File.WriteAllText(temporaryFilePath, "");
             }
 
-            var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_threadingContext.JoinableTaskFactory);
-            var hr = openDocumentService.OpenDocumentViaProject(
-                temporaryFilePath,
-                VSConstants.LOGVIEWID.TextView_guid,
-                out _,
-                out _,
-                out _,
-                out var windowFrame);
-
-            if (ErrorHandler.Succeeded(hr) && windowFrame != null)
+            return async cancellationToken =>
             {
-                windowFrame.Show();
-            }
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_threadingContext.JoinableTaskFactory);
+                var hr = openDocumentService.OpenDocumentViaProject(
+                    temporaryFilePath,
+                    VSConstants.LOGVIEWID.TextView_guid,
+                    out _,
+                    out _,
+                    out _,
+                    out var windowFrame);
 
-            // We should have the file now, so navigate to the right span
-            if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
-            {
-                openFile.NavigateToSpan(sourceSpan, cancellationToken);
-            }
+                if (ErrorHandler.Succeeded(hr) && windowFrame != null)
+                {
+                    windowFrame.Show();
+                }
+
+                // We should have the file now, so navigate to the right span
+                return _openFiles.TryGetValue(temporaryFilePath, out var openFile) &&
+                    await openFile.NavigateToSpanAsync(sourceSpan, cancellationToken).ConfigureAwait(false);
+            };
         }
 
         public bool TryGetGeneratedFileInformation(
@@ -220,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly ITextBuffer _textBuffer;
             private readonly Workspace _workspace;
             private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-            private readonly ISyntaxTreeConfigurationService? _syntaxTreeConfigurationService;
+            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
             /// <summary>
             /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -259,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _textBuffer = textBuffer;
                 _workspace = workspace;
                 _documentIdentity = documentIdentity;
-                _syntaxTreeConfigurationService = _workspace.Services.GetService<ISyntaxTreeConfigurationService>();
+                _workspaceConfigurationService = _workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
                 // while we're doing edits.
@@ -393,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false;
+                        var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
@@ -497,10 +499,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
+            public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
+                return _fileManager._visualStudioDocumentNavigationService.NavigateToTextBufferAsync(
+                    _textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }

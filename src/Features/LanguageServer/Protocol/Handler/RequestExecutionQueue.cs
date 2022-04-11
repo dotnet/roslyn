@@ -178,6 +178,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _requestTelemetryLogger,
                 combinedCancellationToken);
 
+            // Run a continuation to ensure the cts is disposed of.
+            // We pass CancellationToken.None as we always want to dispose of the source
+            // even when the request is cancelled or the queue is shutting down.
+            _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
             var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
 
             // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.

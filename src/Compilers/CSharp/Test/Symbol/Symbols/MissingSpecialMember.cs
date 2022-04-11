@@ -611,6 +611,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
                     case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
+                    case WellKnownType.System_MemoryExtensions:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -918,10 +919,12 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
-                    case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__ctor_Pointer:
+                    case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
-                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
@@ -966,6 +969,9 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
+                    case WellKnownMember.System_MemoryExtensions__AsSpan_String:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

@@ -4,16 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.Features.RQName.Nodes;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -26,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// </summary>
     internal sealed class RegexLanguageDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
+
         private const string _patternName = "pattern";
 
         /// <summary>
@@ -38,13 +38,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         private readonly INamedTypeSymbol? _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
-        private static readonly LanguageCommentDetector<RegexOptions> s_languageCommentDetector = new("regex", "regexp");
-
         public RegexLanguageDetector(
             EmbeddedLanguageInfo info,
             INamedTypeSymbol? regexType,
             HashSet<string> methodNamesOfInterest)
-            : base("Regex", info, s_languageCommentDetector)
+            : base(info, LanguageIdentifiers)
         {
             _regexType = regexType;
             _methodNamesOfInterest = methodNamesOfInterest;
@@ -219,12 +217,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
             options = default;
             return false;
-        }
-
-        internal static class TestAccessor
-        {
-            public static bool TryMatch(string text, out RegexOptions options)
-                => s_languageCommentDetector.TryMatch(text, out options);
         }
     }
 }

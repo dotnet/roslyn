@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => _codeStyleOptionImpl = codeStyleOptionImpl;
 
         public CodeStyleOption(T value, NotificationOption notification)
-            : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
+            : this(new CodeStyleOption2<T>(value, new NotificationOption2(notification.Severity)))
         {
         }
 

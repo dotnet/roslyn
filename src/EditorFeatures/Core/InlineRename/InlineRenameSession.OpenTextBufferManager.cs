@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Manages state for open text buffers.
         /// </summary>
-        internal class OpenTextBufferManager : ForegroundThreadAffinitizedObject
+        internal class OpenTextBufferManager
         {
             private readonly DynamicReadOnlyRegionQuery _isBufferReadOnly;
             private readonly InlineRenameSession _session;
@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ITextBuffer subjectBuffer,
                 Workspace workspace,
                 ITextBufferFactoryService textBufferFactoryService)
-                : base(session.ThreadingContext)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private void UpdateReadOnlyRegions(bool removeOnly = false)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
                 if (!removeOnly && _session.ReplacementText == string.Empty)
                 {
                     return;
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 if (spans.SetEquals(_referenceSpanToLinkedRenameSpanMap.Keys))
                 {
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private void OnTextBufferChanged(object sender, TextContentChangedEventArgs args)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 // This might be an event fired due to our own edit
                 if (args.EditTag == s_propagateSpansEditTag || _session._isApplyingEdit)
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             internal void ApplyReplacementText(bool updateSelection = true)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 if (!AreAllReferenceSpansMappable())
                 {
@@ -294,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             internal void Disconnect(bool documentIsClosed, bool rollbackTemporaryEdits)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 // Detach from the buffer; it is important that this is done before we start
                 // undoing transactions, since the undo actions will cause buffer changes.
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 if (!AreAllReferenceSpansMappable())
                 {
@@ -587,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Document postMergeDocument,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _session._threadingContext.ThrowIfNotOnUIThread();
 
                 var textDiffService = preMergeDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
                 var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();

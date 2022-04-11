@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(
             Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         {
@@ -68,19 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var diagnostic = context.Diagnostics.First();
             var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
 
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
-                    c => FixAsync(context.Document, diagnostic, c),
-                    isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey),
-                context.Diagnostics);
+            RegisterCodeFix(
+                context,
+                isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
+                isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey,
+                CodeActionPriority.Low);
 
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
@@ -139,18 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             }
 
             return expr.Parenthesize();
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-#endif
         }
     }
 }

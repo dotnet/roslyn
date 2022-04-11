@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal interface INewDocumentFormattingProvider
     {
-        /// <inheritdoc cref="INewDocumentFormattingService.FormatNewDocumentAsync(Document, Document, CancellationToken)"/>
-        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken);
+        /// <inheritdoc cref="INewDocumentFormattingService.FormatNewDocumentAsync(Document, Document, SyntaxFormattingOptions, CancellationToken)"/>
+        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

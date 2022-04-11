@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -43,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Classification
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider,
             ClassificationType type)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _globalOptions = globalOptions;
@@ -54,9 +56,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
@@ -73,9 +76,10 @@ namespace Microsoft.CodeAnalysis.Classification
                 TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptionsStorage.ClassifyReassignedVariables));
         }
 
-        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
+            Contract.ThrowIfNull(textView);
 
             // Find the visible span some 100 lines +/- what's actually in view.  This way
             // if the user scrolls up/down, we'll already have the results.

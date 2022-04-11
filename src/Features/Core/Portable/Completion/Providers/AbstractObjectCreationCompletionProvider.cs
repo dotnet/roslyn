@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (newExpression == null)
                 return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
-            var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
+            var typeInferenceService = context.GetRequiredLanguageService<ITypeInferenceService>();
             var type = typeInferenceService.InferType(
                 context.SemanticModel, position, objectAsDefault: false, cancellationToken: cancellationToken);
 
