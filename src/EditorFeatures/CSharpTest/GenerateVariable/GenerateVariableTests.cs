@@ -4079,18 +4079,6 @@ index: LocalIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestLocalMissingForVar()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class Program
-{
-    void Main()
-    {
-        var x = [|var|];
-    }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOutLocal1()
         {
             await TestInRegularAndScriptAsync(
@@ -9623,7 +9611,6 @@ class Class
         [Theory]
         [InlineData("yield")]
         [InlineData("partial")]
-        [InlineData("from")]
         [InlineData("group")]
         [InlineData("join")]
         [InlineData("into")]
@@ -9650,9 +9637,6 @@ class Class
         [InlineData("param")]
         [InlineData("property")]
         [InlineData("typevar")]
-        [InlineData("nameof")]
-        [InlineData("async")]
-        [InlineData("await")]
         [InlineData("when")]
         [InlineData("_")]
         [InlineData("var")]
@@ -9665,7 +9649,7 @@ class Class
         [InlineData("managed")]
         [InlineData("unmanaged")]
         [InlineData("dynamic")]
-        public async Task TestContextualKeywordsInReturnStatement(string keyword)
+        public async Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs(string keyword)
         {
             await TestInRegularAndScriptAsync(
 $@"class C
@@ -9688,71 +9672,18 @@ $@"class C
 
         [WorkItem(27646, "https://github.com/dotnet/roslyn/issues/27646")]
         [Theory]
-        [InlineData("yield")]
-        [InlineData("partial")]
         [InlineData("from")]
-        [InlineData("group")]
-        [InlineData("join")]
-        [InlineData("into")]
-        [InlineData("let")]
-        [InlineData("by")]
-        [InlineData("where")]
-        [InlineData("select")]
-        [InlineData("get")]
-        [InlineData("set")]
-        [InlineData("add")]
-        [InlineData("remove")]
-        [InlineData("orderby")]
-        [InlineData("alias")]
-        [InlineData("on")]
-        [InlineData("equals")]
-        [InlineData("ascending")]
-        [InlineData("descending")]
-        [InlineData("assembly")]
-        [InlineData("module")]
-        [InlineData("type")]
-        [InlineData("global")]
-        [InlineData("field")]
-        [InlineData("method")]
-        [InlineData("param")]
-        [InlineData("property")]
-        [InlineData("typevar")]
         [InlineData("nameof")]
         [InlineData("async")]
         [InlineData("await")]
-        [InlineData("when")]
-        [InlineData("_")]
-        [InlineData("var")]
-        [InlineData("or")]
-        [InlineData("and")]
-        [InlineData("not")]
-        [InlineData("with")]
-        [InlineData("init")]
-        [InlineData("record")]
-        [InlineData("managed")]
-        [InlineData("unmanaged")]
-        [InlineData("dynamic")]
-        public async Task TestContextualKeywordsInYieldReturnStatement(string keyword)
+        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs(string keyword)
         {
-            await TestInRegularAndScriptAsync(
-$@"using System.Collections.Generic;
-
-class C
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
 {{
-    IEnumerable<int> M()
+    int M()
     {{
-        [|yield return {keyword}|];
-    }}
-}}",
-$@"using System.Collections.Generic;
-
-class C
-{{
-    private int {keyword};
-
-    IEnumerable<int> M()
-    {{
-        yield return {keyword};
+        [|return {keyword}|];
     }}
 }}");
         }

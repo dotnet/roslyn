@@ -32,9 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement)
-                ? node.IsKind(SyntaxKind.IdentifierName)
-                : node is IdentifierNameSyntax identifierName && !identifierName.Identifier.CouldBeKeyword();
+            => node is IdentifierNameSyntax identifierName && !IsProbablySyntacticConstruct(identifierName.Identifier);
+
+        private static bool IsProbablySyntacticConstruct(SyntaxToken token)
+        {
+            var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+
+            return contextualKind is SyntaxKind.FromKeyword or
+                                  SyntaxKind.NameOfKeyword or
+                                  SyntaxKind.AsyncKeyword or
+                                  SyntaxKind.AwaitKeyword;
+        }
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
