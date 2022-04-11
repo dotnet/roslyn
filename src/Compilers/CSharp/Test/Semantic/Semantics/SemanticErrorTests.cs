@@ -6982,9 +6982,9 @@ namespace MyNamespace
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular10).
                 VerifyDiagnostics(
-                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //                 Goo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("this", "preview").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("preview").WithLocation(17, 17),
                 // (8,24): warning CS0649: Field 'MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
@@ -7032,9 +7032,9 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         var b1 = F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("this", "preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("preview").WithLocation(10, 18));
 
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -7066,9 +7066,9 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         var b1 = this.F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 18));
 
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -7099,9 +7099,9 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         /*this.*/ Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("this", "preview").WithLocation(10, 19));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("preview").WithLocation(10, 19));
 
             var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics();
@@ -7170,9 +7170,9 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         this.Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 9));
 
             var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics();

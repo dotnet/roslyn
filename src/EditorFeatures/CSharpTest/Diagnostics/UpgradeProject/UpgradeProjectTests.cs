@@ -1103,5 +1103,49 @@ class Test
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_1()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_2()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_3()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X { get; set; }
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        // warning CS8880: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+        // warning CS8881: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+        // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+
     }
 }

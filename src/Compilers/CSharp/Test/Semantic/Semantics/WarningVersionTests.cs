@@ -629,9 +629,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(6, 22));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+

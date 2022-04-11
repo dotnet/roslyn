@@ -2696,6 +2696,523 @@ public struct S
 ");
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.Latest)]
+        public void ImplicitlyInitializedFields_EmptyStruct(LanguageVersion languageVersion)
+        {
+            var source = @"
+public struct S
+{
+    public S()
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_Nested_FullyInitialized_01()
+        {
+            var source = @"
+public struct S1
+{
+    public int X, Y;
+}
+
+public struct S2
+{
+    public S1 S1;
+
+    public S2()
+    {
+        S1.X = 42;
+        S1.Y = 43;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""S1 S2.S1""
+  IL_0007:  ldc.i4.s   42
+  IL_0009:  stfld      ""int S1.X""
+  IL_000e:  ldarg.0
+  IL_000f:  ldflda     ""S1 S2.S1""
+  IL_0014:  ldc.i4.s   43
+  IL_0016:  stfld      ""int S1.Y""
+  IL_001b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_Nested_FullyInitialized_02()
+        {
+            var source = @"
+public struct S1
+{
+    public int X, Y;
+}
+
+public struct S2
+{
+    public S1 S1;
+
+    public S2()
+    {
+        this = default;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  initobj    ""S2""
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(59890, "https://github.com/dotnet/roslyn/issues/59890")]
+        public void ImplicitlyInitializedFields_Nested_PartiallyInitialized()
+        {
+            var source = @"
+public struct S1
+{
+    public int X, Y;
+}
+
+public struct S2
+{
+    public S1 S1;
+
+    public S2()
+    {
+        S1.X = 42;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (11,12): warning CS9022: Control is returned to caller before field 'S2.S1' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S2()
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S2").WithArguments("S2.S1").WithLocation(11, 12));
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S1 S2.S1""
+  IL_0006:  initobj    ""S1""
+  IL_000c:  nop
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""S1 S2.S1""
+  IL_0013:  ldc.i4.s   42
+  IL_0015:  stfld      ""int S1.X""
+  IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(59890, "https://github.com/dotnet/roslyn/issues/59890")]
+        public void ImplicitlyInitializedFields_Conditional_01()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+
+    public S(bool b)
+    {
+        if (b)
+        {
+            X = 42;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(bool b)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.X""
+  IL_0007:  nop
+  IL_0008:  ldarg.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_0017
+  IL_000d:  nop
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  stfld      ""int S.X""
+  IL_0016:  nop
+  IL_0017:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_Conditional_02()
+        {
+            var source = @"
+public struct S1
+{
+    public int X, Y;
+}
+
+public struct S2
+{
+    public S1 S1;
+
+    public S2(bool b)
+    {
+        if (b)
+        {
+            this = default;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (11,12): warning CS9022: Control is returned to caller before field 'S2.S1' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S2(bool b)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S2").WithArguments("S2.S1").WithLocation(11, 12));
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S1 S2.S1""
+  IL_0006:  initobj    ""S1""
+  IL_000c:  nop
+  IL_000d:  ldarg.1
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_001b
+  IL_0012:  nop
+  IL_0013:  ldarg.0
+  IL_0014:  initobj    ""S2""
+  IL_001a:  nop
+  IL_001b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_SequencePoints()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+
+    public S()
+    {
+        X.ToString();
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(string s!!)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12),
+                // (8,9): warning CS9019: Field 'X' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         X.ToString();
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "X").WithArguments("X").WithLocation(8, 9));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+ -IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.X""
+ -IL_0007:  nop
+ -IL_0008:  ldarg.0
+  IL_0009:  ldflda     ""int S.X""
+  IL_000e:  call       ""string int.ToString()""
+  IL_0013:  pop
+ -IL_0014:  ret
+}
+", sequencePoints: "S..ctor");
+
+            verifier.VerifyPdb("S..ctor", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""S"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x14"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_NullCheckedParameter()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+
+    public S(string s!!)
+    {
+        X.ToString();
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(string s!!)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12),
+                // (8,9): warning CS9019: Field 'X' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         X.ToString();
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "X").WithArguments("X").WithLocation(8, 9));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+ ~IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  nop
+ -IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  stfld      ""int S.X""
+ -IL_0013:  nop
+ -IL_0014:  ldarg.0
+  IL_0015:  ldflda     ""int S.X""
+  IL_001a:  call       ""string int.ToString()""
+  IL_001f:  pop
+ -IL_0020:  ret
+}
+", sequencePoints: "S..ctor");
+
+            verifier.VerifyPdb("S..ctor", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""S"" name="".ctor"" parameterNames=""s"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x13"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x14"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_PragmaRestore()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+#pragma warning restore CS9022
+    public S()
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            comp.VerifyDiagnostics(
+                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_AssignDefault()
+        {
+            var source = @"
+#nullable enable
+
+public struct SParameterless
+{
+    public string Field;
+    public SParameterless() { Field = ""a""; }
+}
+
+public struct SEmpty
+{
+}
+
+public struct S<T>
+{
+    public string AutoProp { get; set; }
+    public T TField;
+    public SParameterless Parameterless;
+    public SEmpty Empty;
+
+    public S()
+    {
+        AutoProp = default;
+        TField = default;
+        Parameterless = default;
+        Empty = default;
+    }
+
+    public S(bool unused)
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
+                // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         AutoProp = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(23, 20),
+                // (24,18): warning CS8601: Possible null reference assignment.
+                //         TField = default;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12),
+                // (29,12): warning CS9022: Control is returned to caller before field 'S<T>.TField' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S<T>.TField").WithLocation(29, 12),
+                // (29,12): warning CS9022: Control is returned to caller before field 'S<T>.Parameterless' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S<T>.Parameterless").WithLocation(29, 12),
+                // (29,12): warning CS9021: Control is returned to caller before auto-implemented property 'S<T>.AutoProp' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S").WithArguments("S<T>.AutoProp").WithLocation(29, 12));
+            verifyIL();
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyDiagnostics(
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
+                // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         AutoProp = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(23, 20),
+                // (24,18): warning CS8601: Possible null reference assignment.
+                //         TField = default;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12));
+            verifyIL();
+
+            void verifyIL()
+            {
+                verifier.VerifyIL("S<T>..ctor()", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldnull
+  IL_0003:  call       ""void S<T>.AutoProp.set""
+  IL_0008:  nop
+  IL_0009:  ldarg.0
+  IL_000a:  ldflda     ""T S<T>.TField""
+  IL_000f:  initobj    ""T""
+  IL_0015:  ldarg.0
+  IL_0016:  ldflda     ""SParameterless S<T>.Parameterless""
+  IL_001b:  initobj    ""SParameterless""
+  IL_0021:  ldarg.0
+  IL_0022:  ldflda     ""SEmpty S<T>.Empty""
+  IL_0027:  initobj    ""SEmpty""
+  IL_002d:  ret
+}
+");
+
+                verifier.VerifyIL("S<T>..ctor(bool)", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S<T>.<AutoProp>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldflda     ""T S<T>.TField""
+  IL_000d:  initobj    ""T""
+  IL_0013:  ldarg.0
+  IL_0014:  ldflda     ""SParameterless S<T>.Parameterless""
+  IL_0019:  initobj    ""SParameterless""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+            }
+        }
+
         [Fact]
         public void NonNullableReferenceTypeField()
         {
