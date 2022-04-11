@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return contextualKind is SyntaxKind.FromKeyword or
                                   SyntaxKind.NameOfKeyword or
                                   SyntaxKind.AsyncKeyword or
-                                  SyntaxKind.AwaitKeyword;
+                                  SyntaxKind.AwaitKeyword or
+                                  SyntaxKind.VarKeyword;
         }
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)

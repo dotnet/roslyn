@@ -9639,7 +9639,6 @@ class Class
         [InlineData("typevar")]
         [InlineData("when")]
         [InlineData("_")]
-        [InlineData("var")]
         [InlineData("or")]
         [InlineData("and")]
         [InlineData("not")]
@@ -9676,6 +9675,7 @@ $@"class C
         [InlineData("nameof")]
         [InlineData("async")]
         [InlineData("await")]
+        [InlineData("var")]
         public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs(string keyword)
         {
             await TestMissingInRegularAndScriptAsync(
