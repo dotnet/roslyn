@@ -9648,7 +9648,7 @@ class Class
         [InlineData("managed")]
         [InlineData("unmanaged")]
         [InlineData("dynamic")]
-        public async Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs(string keyword)
+        public async Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         {
             await TestInRegularAndScriptAsync(
 $@"class C
@@ -9676,7 +9676,7 @@ $@"class C
         [InlineData("async")]
         [InlineData("await")]
         [InlineData("var")]
-        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs(string keyword)
+        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         {
             await TestMissingInRegularAndScriptAsync(
 $@"class C
@@ -9684,6 +9684,25 @@ $@"class C
     int M()
     {{
         [|return {keyword}|];
+    }}
+}}");
+        }
+
+        [WorkItem(27646, "https://github.com/dotnet/roslyn/issues/27646")]
+        [Theory]
+        [InlineData("from")]
+        [InlineData("nameof")]
+        [InlineData("async")]
+        [InlineData("await")]
+        [InlineData("var")]
+        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_OnTheirOwn(string keyword)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    int M()
+    {{
+        [|{keyword}|]
     }}
 }}");
         }
