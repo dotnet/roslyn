@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,25 +42,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeRefactoringGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetRequiredService<IFixAllCodeRefactoringGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
-            if (progressTracker != null)
-                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             return service.GetFixAllOperationsAsync(fixAllContext);
         }
 
-        internal sealed override Task<Solution> GetChangedSolutionAsync(
+        internal sealed override Task<Solution?> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeRefactoringGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetRequiredService<IFixAllCodeRefactoringGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
-            if (progressTracker != null)
-                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             return service.GetFixAllChangedSolutionAsync(fixAllContext);
         }

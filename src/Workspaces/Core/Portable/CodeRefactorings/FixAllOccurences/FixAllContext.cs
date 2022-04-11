@@ -2,16 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -22,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         internal FixAllState State { get; }
 
-        internal FixAllProvider? FixAllProvider => State.FixAllProvider;
+        internal FixAllProvider FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Document within which fix all occurrences was triggered.

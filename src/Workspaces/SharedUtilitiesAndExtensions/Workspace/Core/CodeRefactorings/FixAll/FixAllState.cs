@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         internal readonly int CorrelationId = LogAggregator.GetNextId();
 
-        public FixAllProvider? FixAllProvider { get; }
+        public FixAllProvider FixAllProvider { get; }
         public CodeAction CodeAction { get; }
         public CodeRefactoringProvider CodeRefactoringProvider { get; }
         public Document? Document { get; }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public Solution Solution => this.Project.Solution;
 
         internal FixAllState(
-            FixAllProvider? fixAllProvider,
+            FixAllProvider fixAllProvider,
             Document document,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         internal FixAllState(
-            FixAllProvider? fixAllProvider,
+            FixAllProvider fixAllProvider,
             Project project,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         private FixAllState(
-            FixAllProvider? fixAllProvider,
+            FixAllProvider fixAllProvider,
             Document? document,
             Project project,
             CodeRefactoringProvider codeRefactoringProvider,

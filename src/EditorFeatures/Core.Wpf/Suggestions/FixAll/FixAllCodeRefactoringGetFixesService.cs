@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
-        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
+        public async Task<Solution?> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
         {
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 codeAction, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
+        private static async Task<CodeAction?> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation,
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }),
                 fixAllContext.CancellationToken))
             {
-                CodeAction action = null;
+                CodeAction? action = null;
                 try
                 {
                     action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
@@ -111,6 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             cancellationToken.ThrowIfCancellationRequested();
             var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (newSolution == null)
+            {
+                return ImmutableArray<CodeActionOperation>.Empty;
+            }
 
             newSolution = PreviewChanges(
                 fixAllState.Project.Solution,
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return GetNewFixAllOperations(operations, newSolution, cancellationToken);
         }
 
-        internal static Solution PreviewChanges(
+        internal static Solution? PreviewChanges(
             Solution currentSolution,
             Solution newSolution,
             string fixAllPreviewChangesTitle,

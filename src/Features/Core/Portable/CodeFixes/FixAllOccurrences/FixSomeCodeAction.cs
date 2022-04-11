@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,26 +36,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeFixGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetRequiredService<IFixAllCodeFixGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
-            if (progressTracker != null)
-                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        internal sealed override Task<Solution> GetChangedSolutionAsync(
+        internal sealed override Task<Solution?> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeFixGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetRequiredService<IFixAllCodeFixGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
-            if (progressTracker != null)
-                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             return service.GetFixAllChangedSolutionAsync(fixAllContext);
         }
@@ -68,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (exportAttributes?.Any() == true)
             {
                 var exportAttribute = (ExportCodeFixProviderAttribute)exportAttributes.First();
-                return s_predefinedCodeFixProviderNames.Contains(exportAttribute.Name);
+                return !string.IsNullOrEmpty(exportAttribute.Name)
+                    && s_predefinedCodeFixProviderNames.Contains(exportAttribute.Name);
             }
 
             return false;
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 if (field.IsStatic)
                 {
-                    names.Add((string)field.GetValue(null));
+                    names.Add((string)field.GetValue(null)!);
                 }
             }
 
