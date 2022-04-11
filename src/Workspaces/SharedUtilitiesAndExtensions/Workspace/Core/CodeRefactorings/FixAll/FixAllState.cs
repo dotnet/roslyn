@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             FixAllScope fixAllScope,
             TextSpan? fixAllSpan,
             CodeAction codeAction)
-            : this(fixAllProvider, document, document.Project,  codeRefactoringProvider, fixAllScope, fixAllSpan, codeAction)
+            : this(fixAllProvider, document, document.Project, codeRefactoringProvider, fixAllScope, fixAllSpan, codeAction)
         {
             if (document == null)
             {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             Contract.ThrowIfNull(project);
             Contract.ThrowIfFalse(!fixAllSpan.HasValue || fixAllScope is FixAllScope.Document or
-                FixAllScope.Selection or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             this.FixAllProvider = fixAllProvider;
             this.Document = document;

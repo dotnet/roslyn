@@ -197,9 +197,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
                 foreach (var scope in fixAllProviderInfo.SupportedScopes)
                 {
-                    if (scope == FixAllScope.Selection && selection.IsEmpty)
-                        continue;
-
                     var fixAllSpan = await GetFixAllSpanForScopeAsync(scope).ConfigureAwait(false);
                     var fixAllState = new FixAllState(fixAllProviderInfo.FixAllProvider, document, provider, scope, fixAllSpan, action);
                     var fixAllSuggestedAction = new UnifiedFixAllCodeRefactoringSuggestedAction(
@@ -220,7 +217,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 {
                     return fixAllScope switch
                     {
-                        FixAllScope.Selection => selection,
                         FixAllScope.ContainingMember or FixAllScope.ContainingType
                             => await GetSpanForContainingMemberOrTypeAsync(fixAllScope).ConfigureAwait(false),
                         _ => null,

@@ -16,22 +16,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly bool _supportsFixAll;
-        private readonly bool _supportsFixAllForSelection;
         private readonly bool _supportsFixAllForContainingMember;
         private readonly bool _supportsFixAllForContainingType;
 
         protected SyntaxEditorBasedCodeRefactoringProvider(
             bool supportsFixAll = true,
-            bool supportsFixAllForSelection = true,
             bool supportsFixAllForContainingMember = true,
             bool supportsFixAllForContainingType = true)
         {
             _supportsFixAll = supportsFixAll;
-            _supportsFixAllForSelection = supportsFixAllForSelection;
             _supportsFixAllForContainingMember = supportsFixAllForContainingMember;
             _supportsFixAllForContainingType = supportsFixAllForContainingType;
         }
-
 
         public sealed override FixAllProvider? GetFixAllProvider()
         {
@@ -43,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 {
                     return await this.FixAllAsync(fixAllContext.Document, fixAllContext.FixAllSpan, fixAllContext.CodeAction, fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
-                _supportsFixAllForSelection,
                 _supportsFixAllForContainingMember,
                 _supportsFixAllForContainingType);
         }

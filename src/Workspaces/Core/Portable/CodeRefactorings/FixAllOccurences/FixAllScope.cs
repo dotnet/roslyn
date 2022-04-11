@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         Document,
         Project,
         Solution,
-        Selection,
         ContainingMember,
         ContainingType,
 

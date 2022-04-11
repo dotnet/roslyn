@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext);
 
         /// <summary>
-        /// Returns a bool indicating if the provider supports FixAll in selected span,
-        /// i.e. <see cref="FixAllScope.Selection"/>
-        /// </summary>
-        protected abstract bool SupportsFixAllForSelection { get; }
-
-        /// <summary>
         /// Returns a bool indicating if the provider supports FixAll in containing member,
         /// i.e. <see cref="FixAllScope.ContainingMember"/>
         /// </summary>
@@ -78,9 +72,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             foreach (var defaultScope in base.GetSupportedFixAllScopes())
                 yield return defaultScope;
 
-            if (SupportsFixAllForSelection)
-                yield return FixAllScope.Selection;
-
             if (SupportsFixAllForContainingMember)
                 yield return FixAllScope.ContainingMember;
 
@@ -96,12 +87,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is
                 FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution or
-                FixAllScope.Selection or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             var solution = fixAllContext.Scope switch
             {
-                FixAllScope.Document or FixAllScope.Selection or
-                FixAllScope.ContainingMember or FixAllScope.ContainingType
+                FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
                     => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Project
                     => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
@@ -167,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             foreach (var fixAllContext in fixAllContexts)
             {
                 Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or
-                    FixAllScope.Selection or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                    FixAllScope.ContainingMember or FixAllScope.ContainingType);
                 currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
             }
 
@@ -195,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
-                or FixAllScope.Selection or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             var cancellationToken = fixAllContext.CancellationToken;
 

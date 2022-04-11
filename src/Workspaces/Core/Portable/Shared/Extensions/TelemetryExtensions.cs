@@ -56,9 +56,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 CodeRefactorings.FixAllScope.Document => 1,
                 CodeRefactorings.FixAllScope.Project => 2,
                 CodeRefactorings.FixAllScope.Solution => 3,
-                CodeRefactorings.FixAllScope.Selection => 4,
-                CodeRefactorings.FixAllScope.ContainingMember => 5,
-                CodeRefactorings.FixAllScope.ContainingType => 6,
+                CodeRefactorings.FixAllScope.ContainingMember => 4,
+                CodeRefactorings.FixAllScope.ContainingType => 5,
                 _ => short.MaxValue,
             };
 

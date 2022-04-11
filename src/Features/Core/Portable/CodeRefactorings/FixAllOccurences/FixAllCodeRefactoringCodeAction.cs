@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 FixAllScope.Document => FeaturesResources.Document,
                 FixAllScope.Project => FeaturesResources.Project,
                 FixAllScope.Solution => FeaturesResources.Solution,
-                FixAllScope.Selection => FeaturesResources.Selection,
                 FixAllScope.ContainingMember => FeaturesResources.Containing_Member,
                 FixAllScope.ContainingType => FeaturesResources.Containing_Type,
                 _ => throw new NotSupportedException(),

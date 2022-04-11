@@ -43,12 +43,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
         /// </param>
-        /// <param name="supportsFixAllForSelection">Indicates if <see cref="FixAllScope.Selection"/> is supported or not.</param>
         /// <param name="supportsFixAllForContainingMember">Indicates if <see cref="FixAllScope.ContainingMember"/> is supported or not.</param>
         /// <param name="supportsFixAllForContainingType">Indicates if <see cref="FixAllScope.ContainingType"/> is supported or not.</param>
         public static FixAllProvider Create(
             Func<FixAllContext, Task<Document?>> fixAllAsync,
-            bool supportsFixAllForSelection,
             bool supportsFixAllForContainingMember,
             bool supportsFixAllForContainingType)
         {
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 throw new ArgumentNullException(nameof(fixAllAsync));
 
             return new CallbackDocumentBasedFixAllProvider(fixAllAsync,
-                supportsFixAllForSelection, supportsFixAllForContainingMember, supportsFixAllForContainingType);
+                supportsFixAllForContainingMember, supportsFixAllForContainingType);
         }
 
         private sealed class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
@@ -65,17 +63,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             public CallbackDocumentBasedFixAllProvider(
                 Func<FixAllContext, Task<Document?>> fixAllAsync,
-                bool supportsFixAllForSelection,
                 bool supportsFixAllForContainingMember,
                 bool supportsFixAllForContainingType)
             {
                 _fixAllAsync = fixAllAsync;
-                SupportsFixAllForSelection = supportsFixAllForSelection;
                 SupportsFixAllForContainingMember = supportsFixAllForContainingMember;
                 SupportsFixAllForContainingType = supportsFixAllForContainingType;
             }
-
-            protected override bool SupportsFixAllForSelection { get; }
 
             protected override bool SupportsFixAllForContainingMember { get; }
 

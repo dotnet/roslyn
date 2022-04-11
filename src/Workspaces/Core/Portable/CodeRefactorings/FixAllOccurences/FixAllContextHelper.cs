@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 FixAllScope.Document => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerDocument!.Name),
                 FixAllScope.Project => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, title, triggerProject.Name),
                 FixAllScope.Solution => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, title),
-                FixAllScope.Selection => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_selection_for_1, title, triggerDocument!.Name),
                 FixAllScope.ContainingMember => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_containing_member_for_1, title, triggerDocument!.Name),
                 FixAllScope.ContainingType => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_containing_type_for_1, title, triggerDocument!.Name),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),

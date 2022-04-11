@@ -43,9 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Optional span within the <see cref="Document"/> to fix all occurrences.
         /// This span can be non-null only when <see cref="Scope"/> is any of the following document based scopes:
         ///  1. <see cref="FixAllScope.Document"/>
-        ///  2. <see cref="FixAllScope.Selection"/>
-        ///  3. <see cref="FixAllScope.ContainingMember"/>
-        ///  4. <see cref="FixAllScope.ContainingType"/>
+        ///  2. <see cref="FixAllScope.ContainingMember"/>
+        ///  3. <see cref="FixAllScope.ContainingType"/>
         /// </summary>
         public TextSpan? FixAllSpan => State.FixAllSpan;
 
