@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -123,7 +124,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                     return false;
 
                 i += bytesConsumed;
-                builder?.Append(GetStringLiteralRepresentation(rune));
+
+                if (builder is not null)
+                {
+                    if (rune.TryGetEscapeCharacter(out var escapeChar))
+                    {
+                        builder.Append('\\');
+                        builder.Append(escapeChar);
+                    }
+                    else
+                    {
+                        builder.Append(rune.ToString());
+                    }
+                }
             }
 
             return true;
@@ -140,21 +153,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 return new ReadOnlySpan<byte>(array);
             }
         }
-
-        private static string GetStringLiteralRepresentation(Rune rune)
-            => rune.Value switch
-            {
-                '"' => "\\\"",
-                '\\' => "\\\\",
-                '\0' => "\\0",
-                '\a' => "\\a",
-                '\b' => "\\b",
-                '\f' => "\\f",
-                '\n' => "\\n",
-                '\r' => "\\r",
-                '\t' => "\\t",
-                '\v' => "\\v",
-                _ => rune.ToString()
-            };
     }
 }

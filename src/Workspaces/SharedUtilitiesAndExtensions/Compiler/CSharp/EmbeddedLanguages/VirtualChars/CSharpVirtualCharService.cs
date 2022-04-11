@@ -238,33 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
-        {
-            // Keep in sync with TryAddSingleCharacterEscape
-            switch (ch.Value)
-            {
-                // Note: we don't care about single quote as that doesn't need to be escaped when
-                // producing a normal C# string literal.
-
-                // case '\'':
-
-                // escaped characters that translate to themselves.  
-                case '"': escapedChar = '"'; return true;
-                case '\\': escapedChar = '\\'; return true;
-
-                // translate escapes as per C# spec 2.4.4.4
-                case '\0': escapedChar = '0'; return true;
-                case '\a': escapedChar = 'a'; return true;
-                case '\b': escapedChar = 'b'; return true;
-                case '\f': escapedChar = 'f'; return true;
-                case '\n': escapedChar = 'n'; return true;
-                case '\r': escapedChar = 'r'; return true;
-                case '\t': escapedChar = 't'; return true;
-                case '\v': escapedChar = 'v'; return true;
-            }
-
-            escapedChar = default;
-            return false;
-        }
+            => ch.TryGetEscapeCharacter(out escapedChar);
 
         private static bool TryAddSingleCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
