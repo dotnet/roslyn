@@ -9706,5 +9706,23 @@ $@"class C
     }}
 }}");
         }
+
+        [WorkItem(27646, "https://github.com/dotnet/roslyn/issues/27646")]
+        [Theory]
+        [InlineData("from")]
+        [InlineData("nameof")]
+        [InlineData("async")]
+        [InlineData("await")]
+        [InlineData("var")]
+        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_Local(string keyword)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class Program
+{{
+    void Main()
+    {{
+        var x = [|{keyword}|];
+    }}");
+        }
     }
 }
