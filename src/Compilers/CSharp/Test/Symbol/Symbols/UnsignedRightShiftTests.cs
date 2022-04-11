@@ -2199,6 +2199,73 @@ public class C2
         }
 
         [Fact]
+        public void UserDefined_05()
+        {
+            var source0 = @"
+public struct C1
+{
+    public static C1 operator >>>(C1? x, int? y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x.Value;
+    }
+
+    public static C1 operator >>(C1? x, int? y)
+    {
+        System.Console.WriteLine("">>"");
+        return x.Value;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static void Main()
+    {
+        Test1(new C1(), 1);
+    }
+
+    static C1 Test1(C1? x, int? y) => x >>> y; 
+    static C1 Test2(C1? x, int? y) => x >> y; 
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            var verifier = CompileAndVerify(compilation1, expectedOutput: @">>>").VerifyDiagnostics();
+
+            string actualIL = verifier.VisualizeIL("C.Test2");
+            verifier.VerifyIL("C.Test1", actualIL.Replace("op_RightShift", "op_UnsignedRightShift"));
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var unsignedShift = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(e => e.Kind() == SyntaxKind.UnsignedRightShiftExpression).First();
+
+            Assert.Equal("x >>> y", unsignedShift.ToString());
+            Assert.Equal("C1 C1.op_UnsignedRightShift(C1? x, System.Int32? y)", model.GetSymbolInfo(unsignedShift).Symbol.ToTestDisplayString());
+
+            Assert.Equal(MethodKind.UserDefinedOperator, compilation1.GetMember<MethodSymbol>("C1.op_UnsignedRightShift").MethodKind);
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe, references: new[] { compilation0.ToMetadataReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation2, expectedOutput: @">>>").VerifyDiagnostics();
+            Assert.Equal(MethodKind.UserDefinedOperator, compilation2.GetMember<MethodSymbol>("C1.op_UnsignedRightShift").MethodKind);
+
+
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugExe, references: new[] { compilation0.EmitToImageReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation3, expectedOutput: @">>>").VerifyDiagnostics();
+            Assert.Equal(MethodKind.UserDefinedOperator, compilation3.GetMember<MethodSymbol>("C1.op_UnsignedRightShift").MethodKind);
+        }
+
+        [Fact]
         public void UserDefined_ExpressionTree_01()
         {
             var source1 =

@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
-            // SPEC: A binary << or >> operator must take two parameters, the first
+            // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
             // SPEC: of which must have type T or T? and the second of which must
             // SPEC: have type int or int?, and can return any type.
 
