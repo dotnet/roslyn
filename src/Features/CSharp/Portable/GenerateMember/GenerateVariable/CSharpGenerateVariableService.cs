@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             => node.IsKind(SyntaxKind.PropertyDeclaration);
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node.IsParentKind(SyntaxKind.ReturnStatement) ?
-                node.IsKind(SyntaxKind.IdentifierName) :
-                node is IdentifierNameSyntax identifierName && !identifierName.Identifier.CouldBeKeyword();
+            => node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement)
+                ? node.IsKind(SyntaxKind.IdentifierName)
+                : node is IdentifierNameSyntax identifierName && !identifierName.Identifier.CouldBeKeyword();
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
