@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (context.Compilation.LanguageVersion() < LanguageVersion.Preview)
+                if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                     return;
 
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
