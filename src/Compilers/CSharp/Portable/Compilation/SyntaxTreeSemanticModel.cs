@@ -1294,6 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSyntax parameterSyntax => ((Symbols.PublicModel.ParameterSymbol)GetDeclaredSymbol(parameterSyntax)).UnderlyingSymbol,
                     TypeParameterSyntax typeParameterSyntax => ((Symbols.PublicModel.TypeParameterSymbol)GetDeclaredSymbol(typeParameterSyntax)).UnderlyingSymbol,
                     IndexerDeclarationSyntax indexerSyntax => ((Symbols.PublicModel.PropertySymbol)GetDeclaredSymbol(indexerSyntax)).UnderlyingSymbol,
+                    AccessorDeclarationSyntax accessorSyntax => ((Symbols.PublicModel.MethodSymbol)GetDeclaredSymbol(accessorSyntax)).UnderlyingSymbol,
                     AnonymousFunctionExpressionSyntax anonymousFunction => ((Symbols.PublicModel.Symbol)GetSymbolInfo(anonymousFunction).Symbol).UnderlyingSymbol,
                     DelegateDeclarationSyntax delegateSyntax => ((Symbols.PublicModel.NamedTypeSymbol)GetDeclaredSymbol(delegateSyntax)).UnderlyingSymbol,
                     _ => null

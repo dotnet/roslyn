@@ -8698,7 +8698,7 @@ public class MyAttribute : System.Attribute
         /// </summary>
         private void VerifyParameter(CSharpCompilation comp, int index, string expectedMethod)
         {
-            var tree = comp.SyntaxTrees.Single();
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var parameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
                 .Where(i => i.Identifier.ValueText == "parameter")
@@ -8972,7 +8972,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInIndexerGetterAttributeNameOf()
+        public void ParameterScope_InIndexerGetterAttributeNameOf()
         {
             var source = @"
 class C
@@ -8999,17 +8999,13 @@ public class MyAttribute : System.Attribute
             VerifyParameter(comp, 0, null);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0103: The name 'parameter' does not exist in the current context
-                //         [My(nameof(parameter))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 20)
-                );
+            comp.VerifyDiagnostics();
 
-            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter].get");
         }
 
         [Fact]
-        public void ParameterScope_NotInIndexerSetterAttributeNameOf()
+        public void ParameterScope_InIndexerSetterAttributeNameOf()
         {
             var source = @"
 class C
@@ -9035,7 +9031,31 @@ public class MyAttribute : System.Attribute
 
             VerifyParameter(comp, 0, null);
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            VerifyParameter(comp, 0, "void C.this[System.Int32 parameter].set");
+        }
+
+        [Fact]
+        public void ParameterScope_InIndexerInitSetterAttributeNameOf()
+        {
+            var source = @"
+class C
+{
+    int this[int parameter]
+    {
+        [My(nameof(parameter))]
+        init => throw null;
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (6,20): error CS0103: The name 'parameter' does not exist in the current context
                 //         [My(nameof(parameter))]
@@ -9043,6 +9063,11 @@ public class MyAttribute : System.Attribute
                 );
 
             VerifyParameter(comp, 0, null);
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            VerifyParameter(comp, 0, "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.this[System.Int32 parameter].init");
         }
 
         [Fact]
@@ -9484,13 +9509,19 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInMethodAttributeNameOf_SetOnlyProperty()
+        public void ParameterScope_ValueLocalNotInPropertyOrAccessorAttributeNameOf()
         {
             var source = @"
 class C
 {
     [My(nameof(value))]
     int Property { set => throw null; }
+
+    int Property2 { [My(nameof(value))] get => throw null; }
+
+    int Property3 { [My(nameof(value))] set => throw null; }
+
+    int Property4 { [My(nameof(value))] init => throw null; }
 }
 
 public class MyAttribute : System.Attribute
@@ -9498,11 +9529,20 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyDiagnostics(
                 // (4,16): error CS0103: The name 'value' does not exist in the current context
                 //     [My(nameof(value))]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value").WithLocation(4, 16)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value").WithLocation(4, 16),
+                // (7,32): error CS0103: The name 'value' does not exist in the current context
+                //     int Property2 { [My(nameof(value))] get => throw null; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value").WithLocation(7, 32),
+                // (9,32): error CS0103: The name 'value' does not exist in the current context
+                //     int Property3 { [My(nameof(value))] set => throw null; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value").WithLocation(9, 32),
+                // (11,32): error CS0103: The name 'value' does not exist in the current context
+                //     int Property4 { [My(nameof(value))] init => throw null; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value").WithLocation(11, 32)
                 );
         }
 

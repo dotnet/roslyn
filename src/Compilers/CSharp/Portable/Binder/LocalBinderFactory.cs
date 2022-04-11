@@ -252,7 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parameters = target switch
                 {
-                    MethodSymbol { MethodKind: not (MethodKind.PropertyGet or MethodKind.PropertySet) } methodSymbol => methodSymbol.Parameters,
+                    SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
+                    MethodSymbol methodSymbol => methodSymbol.Parameters,
                     ParameterSymbol parameter => getAllParameters(parameter),
                     TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter).Parameters,
                     PropertySymbol property => property.Parameters,
@@ -285,6 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod,
                     _ => null
                 };
+            }
+
+            static ImmutableArray<ParameterSymbol> getSetterParameters(SourcePropertyAccessorSymbol setter)
+            {
+                var parameters = setter.Parameters;
+                Debug.Assert(parameters[^1] is SynthesizedAccessorValueParameterSymbol);
+                return parameters.RemoveAt(parameters.Length - 1);
             }
         }
 
