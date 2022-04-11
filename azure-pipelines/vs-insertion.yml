@@ -33,7 +33,7 @@ jobs:
   - download: CI
     artifact: VSInsertion-Windows
     displayName: Download VSInsertion-Windows artifact
-  - script: dotnet nuget push $(Pipeline.Workspace)/CI/VSInsertion-windows/*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
+  - script: dotnet nuget push $(Pipeline.Workspace)\CI\VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
     displayName: Push CoreXT packages to VS feed
   - task: MicroBuildInsertVsPayload@4
     displayName: Insert VS Payload
