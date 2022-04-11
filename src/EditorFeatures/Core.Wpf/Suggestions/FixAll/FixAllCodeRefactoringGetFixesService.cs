@@ -5,15 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -49,8 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return ImmutableArray<CodeActionOperation>.Empty;
             }
 
-            return await GetFixAllOperationsAsync(
-                codeAction, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+            return await FixAllGetFixesServiceHelper.GetFixAllOperationsAsync(
+                codeAction, fixAllContext.State.Project, fixAllContext.State.CorrelationId,
+                FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
+                showPreviewChangesDialog: true, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CodeAction?> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
@@ -87,135 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return action;
             }
-        }
-
-        private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            CodeAction codeAction,
-            FixAllState fixAllState,
-            CancellationToken cancellationToken)
-        {
-            // We have computed the fix all occurrences code fix.
-            // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
-
-            var workspace = fixAllState.Project.Solution.Workspace;
-
-            cancellationToken.ThrowIfCancellationRequested();
-            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-            if (operations == null)
-            {
-                return ImmutableArray<CodeActionOperation>.Empty;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-            var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (newSolution == null)
-            {
-                return ImmutableArray<CodeActionOperation>.Empty;
-            }
-
-            newSolution = PreviewChanges(
-                fixAllState.Project.Solution,
-                newSolution,
-                FeaturesResources.Fix_all_occurrences,
-                codeAction.Title,
-                fixAllState.Project.Language,
-                workspace,
-                fixAllState.CorrelationId,
-                cancellationToken);
-            if (newSolution == null)
-            {
-                return ImmutableArray<CodeActionOperation>.Empty;
-            }
-
-            // Get a code action, with apply changes operation replaced with the newSolution.
-            return GetNewFixAllOperations(operations, newSolution, cancellationToken);
-        }
-
-        internal static Solution? PreviewChanges(
-            Solution currentSolution,
-            Solution newSolution,
-            string fixAllPreviewChangesTitle,
-            string fixAllTopLevelHeader,
-            string languageOpt,
-            Workspace workspace,
-            int? correlationId = null,
-            CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            using (Logger.LogBlock(
-                FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
-                KeyValueLogMessage.Create(LogType.UserAction, m =>
-                {
-                    // only set when correlation id is given
-                    // we might not have this info for suppression
-                    if (correlationId.HasValue)
-                    {
-                        m[FixAllLogger.CorrelationId] = correlationId;
-                    }
-                }),
-                cancellationToken))
-            {
-                var glyph = languageOpt == null
-                    ? Glyph.Assembly
-                    : languageOpt == LanguageNames.CSharp
-                        ? Glyph.CSharpProject
-                        : Glyph.BasicProject;
-#if COCOA
-
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
-
-                // Until IPreviewDialogService is implemented, just execute all changes without user ability to pick and choose
-                if (previewService == null)
-                    return newSolution;
-#else
-
-                var previewService = workspace.Services.GetRequiredService<IPreviewDialogService>();
-
-#endif
-
-                var changedSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
-                    "vs.coderefactoring.fixall",
-                    fixAllTopLevelHeader,
-                    fixAllPreviewChangesTitle,
-                    glyph,
-                    newSolution,
-                    currentSolution);
-
-                if (changedSolution == null)
-                {
-                    // User clicked cancel.
-                    FixAllLogger.LogPreviewChangesResult(correlationId, applied: false);
-                    return null;
-                }
-
-                FixAllLogger.LogPreviewChangesResult(correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
-                return changedSolution;
-            }
-        }
-
-        private static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
-        {
-            var result = ArrayBuilder<CodeActionOperation>.GetInstance();
-            var foundApplyChanges = false;
-            foreach (var operation in operations)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!foundApplyChanges)
-                {
-                    if (operation is ApplyChangesOperation)
-                    {
-                        foundApplyChanges = true;
-                        result.Add(new ApplyChangesOperation(newSolution));
-                        continue;
-                    }
-                }
-
-                result.Add(operation);
-            }
-
-            return result.ToImmutableAndFree();
         }
     }
 }
