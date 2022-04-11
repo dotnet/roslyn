@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameters = target switch
                 {
                     MethodSymbol methodSymbol => methodSymbol.Parameters,
-                    ParameterSymbol parameter => getMethodFromParameter(parameter).Parameters,
+                    ParameterSymbol parameter => getAllParameters(parameter),
                     TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter).Parameters,
                     PropertySymbol property => property.Parameters,
                     NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod.Parameters,
@@ -265,14 +265,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : new WithParametersBinder(parameters, enclosing);
             }
 
-            static MethodSymbol getMethodFromParameter(ParameterSymbol parameter)
+            static ImmutableArray<ParameterSymbol> getAllParameters(ParameterSymbol parameter)
             {
                 var containingSymbol = parameter.ContainingSymbol;
                 return containingSymbol switch
                 {
-                    MethodSymbol method => method,
-                    PropertySymbol property => property.GetMethod,
-                    _ => null
+                    MethodSymbol method => method.Parameters,
+                    PropertySymbol property => property.Parameters,
+                    _ => default
                 };
             }
 
