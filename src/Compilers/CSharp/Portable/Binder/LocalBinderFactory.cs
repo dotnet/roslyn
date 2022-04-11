@@ -206,14 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldEnclosing = _enclosing;
 
                 WithTypeParametersBinder withTypeParametersBinder;
-                InMethodBinder withParametersBinder;
+                WithParametersBinder withParametersBinder;
                 // The LangVer check will be removed before shipping .NET 7.
                 // Tracked by https://github.com/dotnet/roslyn/issues/60640
                 if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
                 {
                     var attributeTarget = getAttributeTarget(_enclosing);
                     withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
-                    withParametersBinder = getExtraInMethodBinder(_enclosing, attributeTarget);
+                    withParametersBinder = getExtraWithParametersBinder(_enclosing, attributeTarget);
                 }
                 else
                 {
@@ -248,21 +248,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
             // This also applies to local functions, lambdas, indexers and delegates.
-            static InMethodBinder getExtraInMethodBinder(Binder enclosing, Symbol target)
+            static WithParametersBinder getExtraWithParametersBinder(Binder enclosing, Symbol target)
             {
-                var method = target switch
+                var parameters = target switch
                 {
-                    MethodSymbol methodSymbol => methodSymbol,
-                    ParameterSymbol parameter => getMethodFromParameter(parameter),
-                    TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter),
-                    PropertySymbol property => property.GetMethod,
-                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod,
-                    _ => null
+                    MethodSymbol methodSymbol => methodSymbol.Parameters,
+                    ParameterSymbol parameter => getMethodFromParameter(parameter).Parameters,
+                    TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter).Parameters,
+                    PropertySymbol property => property.Parameters,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod.Parameters,
+                    _ => default
                 };
 
-                return method is null
+                return parameters.IsDefaultOrEmpty
                     ? null
-                    : new InMethodBinder(method, enclosing);
+                    : new WithParametersBinder(parameters, enclosing);
             }
 
             static MethodSymbol getMethodFromParameter(ParameterSymbol parameter)

@@ -8938,7 +8938,37 @@ public class MyAttribute : System.Attribute
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics();
 
-            VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter].get");
+            VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { get; }");
+        }
+
+        [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_Indexer_SetterOnly()
+        {
+            var source = @"
+class C
+{
+    [My(nameof(parameter))]
+    int this[int parameter] { set => throw null; } 
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(nameof(parameter))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(4, 16)
+                );
+
+            VerifyParameter(comp, 0, null);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            VerifyParameter(comp, 0, "System.Int32 C.this[System.Int32 parameter] { set; }");
         }
 
         [Fact]
