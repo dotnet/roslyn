@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -41,8 +42,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                     Next
                 End If
 
+                Dim formattingOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+
                 document = document.WithSyntaxRoot(root)
-                document = Await Formatter.FormatAsync(document)
+                document = Await Formatter.FormatAsync(document, FormattingOptions, CancellationToken.None)
 
                 Dim actualText = (Await document.GetTextAsync()).ToString()
 
