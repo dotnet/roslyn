@@ -3493,6 +3493,7 @@ public class Goo<T>
         b = true && false || true;
         i << 5;
         i >> 5;
+        i >>> 5;
         b = i == i && i != i && i <= i && i >= i;
         i += 5.0;
         i -= i;
@@ -3504,6 +3505,7 @@ public class Goo<T>
         i ^= i;
         i <<= i;
         i >>= i;
+        i >>>= i;
         i ??= i;
         object s = x => x + 1;
         Point point;
@@ -3681,6 +3683,10 @@ public class Goo<T>
                 Operators.GreaterThanGreaterThan,
                 Number("5"),
                 Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Number("5"),
+                Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Identifier("i"),
@@ -3737,6 +3743,10 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.GreaterThanGreaterThanEquals,
+                Identifier("i"),
+                Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
@@ -6344,6 +6354,59 @@ static explicit I1.operator checked T(T a)
                 Punctuation.OpenParen,
                 Identifier("T"),
                 Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_01(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator >>>(T a, int b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_02(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked >>>(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);

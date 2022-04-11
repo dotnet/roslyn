@@ -3155,6 +3155,47 @@ namespace NS
                 options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void UnsignedRightShift()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator >>>(Class x, Class y)
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void UnsignedRightShiftBody()
+        {
+            var code = @"using System;
+
+namespace NS
+{
+    class Class
+    {
+        public static Class operator >>>(Class x, Class y)
+        {
+
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
         private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,

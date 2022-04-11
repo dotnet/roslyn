@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             yield return new[] { "%" };
             yield return new[] { "*" };
             yield return new[] { ">>" };
+            yield return new[] { ">>>" };
             yield return new[] { "<<" };
             yield return new[] { "-" };
         }
@@ -214,6 +215,7 @@ public class C
     public static C operator ^(C a, C b) => null;
     public static C operator <<(C a, int b) => null;
     public static C operator >>(C a, int b) => null;
+    public static C operator >>>(C a, int b) => null;
     public static C operator ~(C a) => null;
 }
 
@@ -249,6 +251,7 @@ public class Program
                 i => Assert.Equal("^", i.DisplayText),
                 i => Assert.Equal("<<", i.DisplayText),
                 i => Assert.Equal(">>", i.DisplayText),
+                i => Assert.Equal(">>>", i.DisplayText),
                 i => Assert.Equal("~", i.DisplayText)
             );
         }

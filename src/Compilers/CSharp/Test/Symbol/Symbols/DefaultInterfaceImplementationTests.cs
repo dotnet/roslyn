@@ -41273,6 +41273,12 @@ public interface I1
         System.Console.WriteLine(""<="");
         return x;
     }
+
+    public static I1 operator >>>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
 }
 ";
 
@@ -41306,6 +41312,8 @@ class Test2 : I1
         x = x < y;
         x = x >= y;
         x = x <= y;
+
+        x = x >>> 3;
     }
 }
 ";
@@ -41334,11 +41342,12 @@ true
 <
 >=
 <=
+>>>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
@@ -41348,13 +41357,13 @@ true
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
@@ -41429,12 +41438,18 @@ true
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">=").WithArguments("default interface implementation", "8.0").WithLocation(124, 31),
                 // (130,31): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31),
+                // (136,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(136, 31),
+                // (136,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">>>").WithArguments("default interface implementation", "8.0").WithLocation(136, 31)
                 );
 
             var compilation61 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation61.VerifyDiagnostics(
                 // (4,31): error CS8701: Target runtime doesn't support default interface implementation.
@@ -41502,7 +41517,10 @@ true
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">=").WithLocation(124, 31),
                 // (130,31): error CS8701: Target runtime doesn't support default interface implementation.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<=").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<=").WithLocation(130, 31),
+                // (136,31): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">>>").WithLocation(136, 31)
                 );
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
@@ -41573,7 +41591,13 @@ true
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >= y").WithArguments("default interface implementation", "8.0").WithLocation(28, 13),
                 // (29,13): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x <= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13),
+                // (31,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         x = x >>> 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >>> 3").WithArguments("default interface implementation", "8.0").WithLocation(31, 13),
+                // (31,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x = x >>> 3;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> 3").WithArguments("unsigned right shift").WithLocation(31, 13)
             };
             compilation7.VerifyDiagnostics(expected7);
 
@@ -43847,11 +43871,12 @@ public interface I1
     public static I1 operator <(int x, int y) => throw null;
     public static I1 operator >=(int x, int y) => throw null;
     public static I1 operator <=(int x, int y) => throw null;
+    public static I1 operator >>>(int x, int y) => throw null;
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0562: The parameter of a unary operator must be the containing type
@@ -43919,7 +43944,10 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, ">=").WithLocation(24, 31),
                 // (25,31): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static I1 operator <=(int x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<=").WithLocation(25, 31)
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<=").WithLocation(25, 31),
+                // (26,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator >>>(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(26, 31)
                 );
         }
 
@@ -43932,8 +43960,8 @@ public interface I1
 {
     public static I1 operator <<(I1 x, I1 y) => throw null;
     public static I1 operator >>(I1 x, I1 y) => throw null;
+    public static I1 operator >>>(I1 x, I1 y) => throw null;
 }
-
 public interface I2
 {
     public static bool operator true(I2 x) => throw null;
@@ -43952,7 +43980,7 @@ public interface I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
@@ -43961,6 +43989,9 @@ public interface I4
                 // (5,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     public static I1 operator >>(I1 x, I1 y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(5, 31),
+                // (6,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator >>>(I1 x, I1 y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(6, 31),
                 // (10,33): error CS0216: The operator 'I2.operator true(I2)' requires a matching operator 'false' to also be defined
                 //     public static bool operator true(I2 x) => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("I2.operator true(I2)", "false").WithLocation(10, 33),
@@ -44191,6 +44222,12 @@ public interface I1
         System.Console.WriteLine(""<="");
         return x;
     }
+
+    static I1 operator >>>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
 }
 ";
 
@@ -44224,6 +44261,8 @@ class Test2 : I1
         x = x < y;
         x = x >= y;
         x = x <= y;
+
+        x = x >>> 3;
     }
 }
 ";
@@ -44252,11 +44291,12 @@ true
 <
 >=
 <=
+>>>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
 
@@ -44272,12 +44312,12 @@ true
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }

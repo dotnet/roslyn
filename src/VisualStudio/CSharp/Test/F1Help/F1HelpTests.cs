@@ -328,6 +328,7 @@ class Program<T> wh[||]ere T : class
         [InlineData("<=")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("*")]
         [InlineData("%")]
         [InlineData("&&")]
@@ -359,6 +360,7 @@ $@"namespace N
         [InlineData("^=")]
         [InlineData("<<=")]
         [InlineData(">>=")]
+        [InlineData(">>>=")]
         public async Task TestCompoundOperator(string operatorText)
         {
             await TestAsync(

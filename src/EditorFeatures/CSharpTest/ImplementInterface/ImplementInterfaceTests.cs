@@ -10083,6 +10083,41 @@ class C : ITest
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceUnsigneRightShiftOperator_OnlyExplicitlyImplementable()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+interface ITest
+{
+    static abstract int operator >>>(ITest x, int y);
+}
+class C : {|CS0535:ITest|}
+{
+}
+",
+                FixedCode = @"
+interface ITest
+{
+    static abstract int operator >>>(ITest x, int y);
+}
+class C : ITest
+{
+    static int ITest.operator >>>(ITest x, int y)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_all_members_explicitly, codeAction.Title),
+                CodeActionEquivalenceKey = "True;False;False:global::ITest;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+                CodeActionIndex = 0,
+            }.RunAsync();
+        }
+
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceOperator_ImplementImplicitly()
@@ -10115,6 +10150,41 @@ class C : ITest<C>
     }
 
     public static int operator -(C x, int y)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_interface, codeAction.Title),
+                CodeActionEquivalenceKey = "False;False;True:global::ITest<global::C>;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+                CodeActionIndex = 0,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceUnsignedRightShiftOperator_ImplementImplicitly()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator >>>(T x, int y);
+}
+class C : {|CS0535:ITest<C>|}
+{
+}
+",
+                FixedCode = @"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator >>>(T x, int y);
+}
+class C : ITest<C>
+{
+    public static int operator >>>(C x, int y)
     {
         throw new System.NotImplementedException();
     }

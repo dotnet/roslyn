@@ -1102,12 +1102,34 @@ x = checked ($$-x);",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestOperatorCustomTypeBuiltIn()
+        public async Task TestOperatorBuiltIn12()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = x >>>$$ x;",
+                MainDescription("int int.operator >>>(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeBuiltIn_01()
         {
             var markup =
 @"class C
 {
     static void M() { C c; c = c +$$ c; }
+}";
+
+            await TestAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeBuiltIn_02()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = c >>>$$ c; }
 }";
 
             await TestAsync(markup);
@@ -1227,6 +1249,20 @@ x = checked ($$-x);",
 
             await TestAsync(markup,
                 MainDescription("C C.operator checked -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_09()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = c >>>$$ c; }
+    static C operator>>>(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator >>>(C a, C b)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

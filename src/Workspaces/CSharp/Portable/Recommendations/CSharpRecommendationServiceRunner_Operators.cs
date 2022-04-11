@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     case WellKnownMemberNames.ExclusiveOrOperatorName:
                     case WellKnownMemberNames.LeftShiftOperatorName:
                     case WellKnownMemberNames.RightShiftOperatorName:
+                    case WellKnownMemberNames.UnsignedRightShiftOperatorName:
                         return symbol.Parameters.Length == 2 && symbol.ReturnType.IsValueType;
 
                     // Equality + Relational 
