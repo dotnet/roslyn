@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parameters = target switch
                 {
-                    MethodSymbol methodSymbol => methodSymbol.Parameters,
+                    MethodSymbol { MethodKind: not (MethodKind.PropertyGet or MethodKind.PropertySet) } methodSymbol => methodSymbol.Parameters,
                     ParameterSymbol parameter => getAllParameters(parameter),
                     TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter).Parameters,
                     PropertySymbol property => property.Parameters,
