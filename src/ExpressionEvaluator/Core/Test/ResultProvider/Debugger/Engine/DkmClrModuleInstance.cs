@@ -70,12 +70,12 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             get { return _resolveTypeNameFailures; }
         }
 
-        public object GetMetaDataImport() => new MetaDataImportMock(Assembly);
+        public object GetMetaDataImport() => new MetadataImportMock(Assembly);
 
-        private class MetaDataImportMock : IMetadataImport
+        private class MetadataImportMock : IMetadataImport
         {
             private readonly Assembly _assembly;
-            public MetaDataImportMock(Assembly assembly)
+            public MetadataImportMock(Assembly assembly)
             {
                 _assembly = assembly;
             }
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 return 1;
             }
 
-            #region IMetaDataImport - throws NotImplementedException
+            #region IMetadataImport - throws NotImplementedException
             void IMetadataImport.CloseEnum(IntPtr hEnum)
             {
                 throw new NotImplementedException();
