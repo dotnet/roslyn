@@ -1112,6 +1112,16 @@ x = x >>>$$ x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn13()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x >>>=$$ x;",
+                MainDescription("int int.operator >>>(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorCustomTypeBuiltIn_01()
         {
             var markup =
@@ -1258,6 +1268,20 @@ x = x >>>$$ x;",
 @"class C
 {
     static void M() { C c; c = c >>>$$ c; }
+    static C operator>>>(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator >>>(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_10()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c >>>=$$ c; }
     static C operator>>>(C a, C b) { return a; }
 }";
 

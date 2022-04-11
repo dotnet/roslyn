@@ -2529,7 +2529,7 @@ interface I1<T> where T : I1<T>
             var code = @"$$
 class C
 {
-    public static C operator >>> ( C x, C y){
+    public static C operator>>> ( C x, C y){
     }
 }";
 
