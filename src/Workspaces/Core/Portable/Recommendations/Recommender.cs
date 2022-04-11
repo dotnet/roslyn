@@ -28,6 +28,19 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
 
+        public static async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+            Document document,
+            int position,
+            OptionSet? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var solution = document.Project.Solution;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            options ??= solution.Options;
+            var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
+            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+        }
+
         [Obsolete("Use GetRecommendedSymbolsAtPosition")]
         public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
              SemanticModel semanticModel,
