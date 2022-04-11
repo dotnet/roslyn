@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,
