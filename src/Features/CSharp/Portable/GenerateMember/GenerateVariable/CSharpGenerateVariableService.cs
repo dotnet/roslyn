@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         }
 
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-            => node.IsKind(SyntaxKind.PropertyDeclaration);
+            => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
             => node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement)
