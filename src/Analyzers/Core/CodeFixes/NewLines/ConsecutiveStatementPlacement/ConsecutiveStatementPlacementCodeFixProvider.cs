@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new MyCodeAction(
-                c => UpdateDocumentAsync(document, diagnostic, c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CodeFixesResources.Add_blank_line_after_block,
+                c => UpdateDocumentAsync(document, diagnostic, c),
+                nameof(CodeFixesResources.Add_blank_line_after_block)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -67,13 +69,5 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_blank_line_after_block, createChangedDocument, CodeFixesResources.Add_blank_line_after_block)
-            {
-            }
-        }
     }
 }

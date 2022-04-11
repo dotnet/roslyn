@@ -42,5 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
             => ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
+
+        public override string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier)
+            => ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier);
     }
 }

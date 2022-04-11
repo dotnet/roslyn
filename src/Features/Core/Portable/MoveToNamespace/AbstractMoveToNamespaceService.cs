@@ -278,7 +278,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, CancellationToken cancellationToken)
         {
             // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
-            var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
             var formattedText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var solution = formattedDocument.Project.Solution;
 

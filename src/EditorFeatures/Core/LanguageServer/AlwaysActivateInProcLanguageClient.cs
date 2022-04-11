@@ -52,23 +52,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSInternalServerCapabilities();
-
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
-            if (isLspEditorEnabled)
-            {
-                serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
-            }
-            else
-            {
-                // Even if the flag is off, we want to include text sync capabilities.
-                serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+
+            var serverCapabilities = isLspEditorEnabled
+                ? (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities)
+                : new VSInternalServerCapabilities()
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    // Even if the flag is off, we want to include text sync capabilities.
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        Change = TextDocumentSyncKind.Incremental,
+                        OpenClose = true,
+                    },
                 };
-            }
 
             serverCapabilities.ProjectContextProvider = true;
             serverCapabilities.BreakableRangeProvider = true;

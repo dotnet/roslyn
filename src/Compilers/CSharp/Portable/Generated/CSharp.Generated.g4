@@ -178,7 +178,7 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' 'checked'? type parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 explicit_interface_specifier
@@ -230,7 +230,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type explicit_interface_specifier? 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_namespace_declaration
@@ -925,6 +925,9 @@ literal_expression
   | numeric_literal_token
   | single_line_raw_string_literal_token
   | string_literal_token
+  | utf_8_multi_line_raw_string_literal_token
+  | utf_8_single_line_raw_string_literal_token
+  | utf_8_string_literal_token
   ;
 
 make_ref_expression
@@ -1129,8 +1132,8 @@ member_cref
   ;
 
 conversion_operator_member_cref
-  : 'explicit' 'operator' type cref_parameter_list?
-  | 'implicit' 'operator' type cref_parameter_list?
+  : 'explicit' 'operator' 'checked'? type cref_parameter_list?
+  | 'implicit' 'operator' 'checked'? type cref_parameter_list?
   ;
 
 cref_parameter_list
@@ -1156,7 +1159,7 @@ name_member_cref
   ;
 
 operator_member_cref
-  : 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
+  : 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
   ;
 
 qualified_cref
@@ -1385,6 +1388,18 @@ string_literal_token
   ;
 
 syntax_token
+  : /* see lexical specification */
+  ;
+
+utf_8_multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
+utf_8_single_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
+utf_8_string_literal_token
   : /* see lexical specification */
   ;
 

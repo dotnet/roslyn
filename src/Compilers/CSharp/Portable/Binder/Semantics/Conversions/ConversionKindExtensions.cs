@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Boxing:
                 case ImplicitDynamic:
                 case ImplicitConstant:
+                case ImplicitUtf8StringLiteral:
                 case ImplicitUserDefined:
                 case AnonymousFunction:
                 case ConversionKind.MethodGroup:

@@ -2953,26 +2953,13 @@ struct S
 ";
 
         var comp = CreateCompilationWithRequiredMembers(code);
-        // PROTOTYPE(req): These errors should change with Rikki's DA changes.
         comp.VerifyDiagnostics(
             // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public S() {}
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P2").WithLocation(11, 12),
             // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public S() {}
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F2").WithLocation(11, 12),
-            // (11,12): error CS0171: Field 'S.F1' must be fully assigned before control is returned to the caller
-            //     public S() {}
-            Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F1").WithLocation(11, 12),
-            // (11,12): error CS0843: Auto-implemented property 'S.P2' must be fully assigned before control is returned to the caller.
-            //     public S() {}
-            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P2").WithLocation(11, 12),
-            // (11,12): error CS0171: Field 'S.F2' must be fully assigned before control is returned to the caller
-            //     public S() {}
-            Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F2").WithLocation(11, 12),
-            // (11,12): error CS0843: Auto-implemented property 'S.P1' must be fully assigned before control is returned to the caller.
-            //     public S() {}
-            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(11, 12)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F2").WithLocation(11, 12)
         );
     }
 
@@ -3070,11 +3057,7 @@ public struct C
 ";
 
         var comp = CreateCompilationWithRequiredMembers(code);
-        // PROTOTYPE(req): These errors should change with Rikki's DA changes.
         comp.VerifyDiagnostics(
-            // (7,12): error CS0843: Auto-implemented property 'C.Prop' must be fully assigned before control is returned to the caller.
-            //     public C(bool unused) { }
-            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C").WithArguments("C.Prop").WithLocation(7, 12),
             // (11,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop.ToString();
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(11, 9)

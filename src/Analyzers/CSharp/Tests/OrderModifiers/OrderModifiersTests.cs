@@ -392,5 +392,44 @@ internal static class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingMember_NotApplicable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"{|FixAllInContainingMember:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingType()
+        {
+            await TestInRegularAndScript1Async(
+@"{|FixAllInContainingType:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}",
+@"internal static class C
+{
+    internal static class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
     }
 }

@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
+        internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
+        internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
 
         internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
         internal const string SynthesizedThrowFunctionName = "Throw";

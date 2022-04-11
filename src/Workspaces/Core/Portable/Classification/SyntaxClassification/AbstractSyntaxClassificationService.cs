@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public abstract ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
         public abstract ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
+        public abstract string? GetSyntacticClassificationForIdentifier(SyntaxToken identifier);
 
         public async Task AddSemanticClassificationsAsync(
             Document document,
