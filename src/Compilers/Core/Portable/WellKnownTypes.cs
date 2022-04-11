@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.ArgumentNullException",
 
-            "System.Runtime.CompilerServices.RequiredMemberAttribute"
+            "System.Runtime.CompilerServices.RequiredMemberAttribute",
             "System.MemoryExtensions",
         };
 
