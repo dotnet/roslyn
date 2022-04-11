@@ -2266,6 +2266,45 @@ class C
         }
 
         [Fact]
+        public void UserDefined_06()
+        {
+            var source0 = @"
+public class C1
+{
+    public static C1 op_UnsignedRightShift(C1 x, int y)
+    {
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1 Test1(C1 x, int y) => x >>> y; 
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { compilation0.ToMetadataReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation2.VerifyDiagnostics(
+                // (4,37): error CS0019: Operator '>>>' cannot be applied to operands of type 'C1' and 'int'
+                //     static C1 Test1(C1 x, int y) => x >>> y; 
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "C1", "int").WithLocation(4, 37)
+                );
+
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { compilation0.EmitToImageReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation3.VerifyDiagnostics(
+                // (4,37): error CS0019: Operator '>>>' cannot be applied to operands of type 'C1' and 'int'
+                //     static C1 Test1(C1 x, int y) => x >>> y; 
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "C1", "int").WithLocation(4, 37)
+                );
+        }
+
+        [Fact]
         public void UserDefined_ExpressionTree_01()
         {
             var source1 =
