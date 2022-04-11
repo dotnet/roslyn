@@ -3,18 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 {
@@ -39,26 +45,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var stringValue = diagnostic.Properties[UseUTF8StringLiteralDiagnosticAnalyzer.StringValuePropertyName]!;
+                var stringValue = GetUTF8StringValueForDiagnostic(semanticModel, diagnostic, cancellationToken);
 
                 // If we're replacing a byte array that is passed to a parameter array, not and an explicit array creation
-                // then we'll get then node will be the ArgumentListSyntax so we have to work a bit harder
+                // then node will be the ArgumentListSyntax that the implicit array creation is just a part of, so we have
+                // to handle that separately, as we can't just replace node with a string literal
                 //
                 // eg given a method:
                 //     M(string x, params byte[] b)
                 // our diagnostic would be reported on:
                 //     M("hi", [|1, 2, 3, 4|]);
-                //
-                // but node will be the whole argument list syntax
+                // but node will point to:
+                //     M([|"hi", 1, 2, 3, 4|]);
 
                 if (node is BaseArgumentListSyntax argumentList)
                 {
@@ -69,8 +78,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                     editor.ReplaceNode(node, CreateUTF8String(node, stringValue));
                 }
             }
+        }
 
-            return Task.CompletedTask;
+        private static string GetUTF8StringValueForDiagnostic(SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            // For computing the UTF8 string we need the original location of the array creation
+            // operation, which is stored in additional locations.
+            var location = diagnostic.AdditionalLocations[0];
+            var node = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+            var operation = semanticModel.GetRequiredOperation(node, cancellationToken);
+
+            // Because we get the location from an IOperation.Syntax, sometimes we have to look a
+            // little harder to get back from syntax to the operation that triggered the diagnostic
+            if (operation is not IArrayCreationOperation arrayOp)
+            {
+                if (node is LiteralExpressionSyntax)
+                {
+                    // For single literals, that likely means a collection initializer, and the array creation
+                    // will be a parent of the operation
+                    arrayOp = FindArrayCreationOperationAncestor(operation);
+                }
+                else
+                {
+                    // Otherwise, we must have an implicit array creation for a parameter array, so the location
+                    // will be the invocation, or similar, that has the argument, and we need to descend child
+                    // nodes to find the one we are interested in. To make sure we're finding the right one,
+                    // we can use the diagnostic location for that, since the analyzer raises it on the first element.
+                    arrayOp = operation.DescendantsAndSelf()
+                        .OfType<IArrayCreationOperation>()
+                        .Where(a => a.Initializer?.ElementValues.FirstOrDefault()?.Syntax.SpanStart == diagnostic.Location.SourceSpan.Start)
+                        .First();
+                }
+            }
+
+            Contract.ThrowIfNull(arrayOp.Initializer);
+
+            // Get our list of bytes from the array elements
+            var values = new SegmentedList<byte>(arrayOp.Initializer.ElementValues.Select(v => (byte)v.ConstantValue.Value!));
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            if (!UseUTF8StringLiteralDiagnosticAnalyzer.TryConvertToUTF8String(builder, values))
+            {
+                // We shouldn't get here, because the code fix shouldn't ask for a string value
+                // if the analyzer couldn't convert it
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            return builder.ToString();
+
+            static IArrayCreationOperation FindArrayCreationOperationAncestor(IOperation operation)
+            {
+                while (operation is not null)
+                {
+                    if (operation is IArrayCreationOperation arrayOperation)
+                        return arrayOperation;
+
+                    operation = operation.Parent!;
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static SyntaxNode CreateArgumentListWithUTF8String(BaseArgumentListSyntax argumentList, Location location, string stringValue)

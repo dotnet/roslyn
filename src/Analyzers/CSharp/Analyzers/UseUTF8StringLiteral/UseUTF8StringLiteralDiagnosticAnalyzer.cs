@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public const string StringValuePropertyName = "StringValue";
-
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
@@ -82,25 +80,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationExpression.IsImplicit && elements.Length == 0)
                 return;
 
-            var values = elements.SelectAsArray(v => v.ConstantValue.HasValue && v.ConstantValue.Value is not null, v => v.ConstantValue.Value);
+            // We need to ensure that each element is a byte, and that they are representable as a string
+            // but to avoid LOH allocations from large user data, we use a SegmentedList here, and
+            // only create a small array when necessary later.
+            var values = new SegmentedList<byte>(elements.Where(v => v.ConstantValue.Value is byte).Select(v => (byte)v.ConstantValue.Value!));
 
             // If we couldn't get constant values for all elements then we can't offer
-            if (values.Length != elements.Length)
+            if (values.Count != elements.Length)
                 return;
 
-            var stringValue = GetStringValue(values);
-
-            if (stringValue is null)
+            if (!TryConvertToUTF8String(builder: null, values))
                 return;
 
-            var properties = ImmutableDictionary<string, string?>.Empty.Add(StringValuePropertyName, stringValue);
-
+            // Only raise the diagnostic on the first token (usually "new")
             var location = arrayCreationExpression.Syntax.GetFirstToken().GetLocation();
 
-            // If this array creation is an implicit or explicit array creation syntax, then it must be
-            // a parameter array, and the Syntax will be the entire invocation, because there is no one
-            // syntax node for just the array elements, so we construct our own location. The code fix has
-            // special handling for this too.
+            // Store the original syntax location so the code fix can find the operation again
+            var additionalLocations = ImmutableArray.Create(arrayCreationExpression.Syntax.GetLocation());
+
+            // If this array creation is not an array creation expression, then it must be from
+            // a parameter array, and the Syntax will be the entire invocation. To issue better
+            // diagnostics construct a different location for this case.
             if (arrayCreationExpression.Syntax is not (ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax))
             {
                 // Issue the diagnostic for all of the parameters that make up the array. We could do just
@@ -110,45 +110,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             }
 
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations: null, properties));
+                DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations, properties: null));
         }
 
-        private static string? GetStringValue(ImmutableArray<object?> values)
+        internal static bool TryConvertToUTF8String(StringBuilder? builder, SegmentedList<byte> values)
         {
-            try
+            for (var i = 0; i < values.Count;)
             {
-                var byteValues = new byte[values.Length];
-                for (var i = 0; i < values.Length; i++)
-                {
-                    // We shouldn't get nulls, but Convert.ToByte will return (byte)0 if there are any
-                    // so better to crash if the analyzer has a bug, that output a buggy string in users code.
-                    if (values[i] is null)
-                        throw ExceptionUtilities.Unreachable;
+                var ros = GetBytesForNextRune(values, i);
+                // If we can't decode a rune from the array then it can't be represented as a string
+                if (Rune.DecodeFromUtf8(ros, out var rune, out var bytesConsumed) != System.Buffers.OperationStatus.Done)
+                    return false;
 
-                    byteValues[i] = Convert.ToByte(values[i]);
-                }
-
-                var pooledBuilder = PooledStringBuilder.GetInstance();
-                var builder = pooledBuilder.Builder;
-                var ros = new ReadOnlySpan<byte>(byteValues);
-                for (var i = 0; i < ros.Length;)
-                {
-                    // If we can't decode a rune from the array then it can't be represented as a string
-                    if (Rune.DecodeFromUtf8(ros.Slice(i), out var rune, out var bytesConsumed) != OperationStatus.Done)
-                        return null;
-
-                    i += bytesConsumed;
-                    builder.Append(GetStringLiteralRepresentation(rune));
-                }
-
-                return pooledBuilder.ToStringAndFree();
-            }
-            catch
-            {
-                // Ignore any conversion failures and just don't report the diagnostic
+                i += bytesConsumed;
+                builder?.Append(GetStringLiteralRepresentation(rune));
             }
 
-            return null;
+            return true;
+
+            static ReadOnlySpan<byte> GetBytesForNextRune(SegmentedList<byte> values, int index)
+            {
+                // We only need max 4 elements for a single Rune
+                var count = Math.Min(values.Count - index, 4);
+
+                // Need to copy to a regular array to get a ROS for Rune to process
+                var array = ArrayPool<byte>.GetArray(count);
+                values.CopyTo(index, array, 0, count);
+
+                return new ReadOnlySpan<byte>(array);
+            }
         }
 
         private static string GetStringLiteralRepresentation(Rune rune)

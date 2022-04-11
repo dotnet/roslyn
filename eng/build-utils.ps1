@@ -203,6 +203,8 @@ function Get-ProjectFile([object]$fileInfo) {
         $location = Get-Location
         Set-Location ..
         if ((Get-Location).Path -eq $location.Path) {
+
+          return Get-Item("C:\Code\roslyn\src\EditorFeatures\CSharpTest\Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.csproj")
           # our location didn't change. We must be at the drive root, so give up
           return $null
         }

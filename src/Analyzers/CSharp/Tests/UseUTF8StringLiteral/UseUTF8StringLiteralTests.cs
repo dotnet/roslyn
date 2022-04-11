@@ -1294,5 +1294,95 @@ public class B
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray16()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int[] i, byte[] b)
+    {
+        M(new int[] { 1 }, [|new|] byte[] { 65, 66, 67 });
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int[] i, byte[] b)
+    {
+        M(new int[] { 1 }, ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray17()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(int[] i, params byte[] b)
+    {
+        M(new int[] { 1 }, [|65, 66, 67|]);
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(int[] i, params byte[] b)
+    {
+        M(new int[] { 1 }, ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestParamArray18()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M(byte[][] i, byte[] b)
+    {
+        M(new byte[][] { [|new|] byte[] { 65, 66, 67 }, [|new|] byte[] { 65, 66, 67 } }, [|new|] byte[] { 65, 66, 67 });
+    }
+}
+",
+                FixedCode =
+@"
+public class C
+{
+    public void M(byte[][] i, byte[] b)
+    {
+        M(new byte[][] { ""ABC""u8, ""ABC""u8 }, ""ABC""u8);
+    }
+}
+",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
     }
 }
