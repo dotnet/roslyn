@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.OrderModifiers;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
                 var options = _document.Project.AnalyzerOptions.GetAnalyzerOptionSet(_node.SyntaxTree, cancellationToken);
