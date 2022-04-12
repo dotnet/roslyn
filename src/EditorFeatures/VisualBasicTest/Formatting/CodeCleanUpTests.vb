@@ -365,7 +365,7 @@ End Class
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    options,
+                    Function(language) options,
                     formattingOptions,
                     CancellationToken.None)
 
