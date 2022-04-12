@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             get { return ImmutableArray.Create(CS1624); }
         }
 
-        protected override async Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
+        protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = model.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
             // IMethod symbol can either be a regular method or an accessor
             if (methodSymbol?.ReturnType == null || methodSymbol.ReturnsVoid)
@@ -65,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                     var typeArg = type.GetTypeArguments().First();
                     ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
                 }
-                else if (arity == 0 && type is IArrayTypeSymbol)
+                else if (arity == 0 && type is IArrayTypeSymbol arrayType)
                 {
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(arrayType.ElementType);
                 }
                 else
                 {
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             var newReturnType = ienumerableGenericSymbol.GenerateTypeSyntax();
-            Document newDocument = null;
+            Document? newDocument = null;
             var newMethodDeclarationSyntax = (node as MethodDeclarationSyntax)?.WithReturnType(newReturnType);
             if (newMethodDeclarationSyntax != null)
             {
@@ -93,13 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
             }
 
-            var oldAccessor = (node?.Parent?.Parent as PropertyDeclarationSyntax);
+            var oldAccessor = node.Parent?.Parent as PropertyDeclarationSyntax;
             if (oldAccessor != null)
             {
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
             }
 
-            var oldIndexer = (node?.Parent?.Parent as IndexerDeclarationSyntax);
+            var oldIndexer = node.Parent?.Parent as IndexerDeclarationSyntax;
             if (oldIndexer != null)
             {
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));
@@ -117,7 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return CodeAction.Create(title, _ => Task.FromResult(newDocument), title);
         }
 
-        private static bool TryGetIEnumerableSymbols(SemanticModel model, out INamedTypeSymbol ienumerableSymbol, out INamedTypeSymbol ienumerableGenericSymbol)
+        private static bool TryGetIEnumerableSymbols(
+            SemanticModel model,
+            [NotNullWhen(true)] out INamedTypeSymbol? ienumerableSymbol,
+            [NotNullWhen(true)] out INamedTypeSymbol? ienumerableGenericSymbol)
         {
             ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
