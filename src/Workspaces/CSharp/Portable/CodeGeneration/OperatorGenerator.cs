@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(method, destination),
+                modifiers: GenerateModifiers(method, destination, hasNoBody),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
@@ -98,12 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return operatorDecl;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination, bool hasNoBody)
         {
             using var tokens = TemporaryArray<SyntaxToken>.Empty;
 
             if (method.ExplicitInterfaceImplementations.Length == 0 &&
-                destination is not CodeGenerationDestination.InterfaceType)
+                !(destination is CodeGenerationDestination.InterfaceType && hasNoBody))
             {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
             }
