@@ -19,7 +19,7 @@ steps:
     BuildDropPath: $(System.DefaultWorkingDirectory)/bin/Library/$(BuildConfiguration)
     BuildComponentPath: $(System.DefaultWorkingDirectory)/obj/src/Library
 
-- powershell: Copy-Item -Recurse "$(System.DefaultWorkingDirectory)/bin/Library/$(BuildConfiguration)/_manifest" "$(System.DefaultWorkingDirectory)/bin/Packages/$(BuildConfiguration)/NuGet"
+- powershell: Copy-Item -Recurse -Verbose "$(System.DefaultWorkingDirectory)/bin/Library/$(BuildConfiguration)/_manifest" "$(System.DefaultWorkingDirectory)/bin/Packages/$(BuildConfiguration)/NuGet"
   displayName: Publish Software Bill of Materials
 
 - task: Ref12Analyze@0
