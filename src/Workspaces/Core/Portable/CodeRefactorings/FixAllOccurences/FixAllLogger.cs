@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private const string AllChangesApplied = nameof(AllChangesApplied);
         private const string SubsetOfChangesApplied = nameof(SubsetOfChangesApplied);
 
-        public static void LogState(FixAllState fixAllState, bool isInternalCodeFixProvider)
+        public static void LogState(FixAllState fixAllState, bool isInternalCodeRefactoringProvider)
         {
-            Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesContext, KeyValueLogMessage.Create(m =>
+            Logger.Log(FunctionId.Refactoring_FixAllOccurrencesContext, KeyValueLogMessage.Create(m =>
             {
                 m[CorrelationId] = fixAllState.CorrelationId;
 
-                if (isInternalCodeFixProvider)
+                if (isInternalCodeRefactoringProvider)
                 {
                     m[CodeRefactoringProvider] = fixAllState.CodeRefactoringProvider.GetType().FullName!;
                     m[CodeActionEquivalenceKey] = fixAllState.CodeAction.EquivalenceKey;
