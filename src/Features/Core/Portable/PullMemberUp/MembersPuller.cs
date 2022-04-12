@@ -147,6 +147,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static ISymbol GetSymbolsToPullUp(MemberAnalysisResult analysisResult)
         {
             var member = analysisResult.Member;
+            // We don't support generating static interface members, so we need to update to non-static before generating.
+            var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
             if (member is IPropertySymbol propertySymbol)
             {
                 // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
@@ -154,43 +156,34 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 if (analysisResult.ChangeOriginalToPublic)
                 {
                     // We are pulling a non-public property, change its getter/setter to public and itself to be public.
-                    member = CodeGenerationSymbolFactory.CreatePropertySymbol(
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
                         accessibility: Accessibility.Public,
+                        modifiers: modifier,
                         getMethod: MakePublicAccessor(propertySymbol.GetMethod),
                         setMethod: MakePublicAccessor(propertySymbol.SetMethod));
                 }
                 else
                 {
                     // We are pulling a public property, filter the non-public getter/setter.
-                    member = CodeGenerationSymbolFactory.CreatePropertySymbol(
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
+                        modifiers: modifier,
                         getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
                         setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
                 }
             }
-
-            // We don't support generating static interface members, so if we're coming from a static
-            // member, generating into an interface, then we need to update to non-static before generating.
-            if (member.IsStatic)
+            else if (member is IMethodSymbol methodSymbol)
             {
-                var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
-                if (member is IMethodSymbol methodSymbol)
-                {
-                    return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
-                }
-                else if (member is IPropertySymbol propSymbol)
-                {
-                    return CodeGenerationSymbolFactory.CreatePropertySymbol(propSymbol, modifiers: modifier, getMethod: propSymbol.GetMethod, setMethod: propSymbol.SetMethod);
-                }
-                else if (member is IEventSymbol eventSymbol)
-                {
-                    return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
-                }
-                else if (member is IFieldSymbol fieldSymbol)
-                {
-                    return CodeGenerationSymbolFactory.CreateFieldSymbol(fieldSymbol, modifiers: modifier);
-                }
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
+            }
+            else if (member is IEventSymbol eventSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
+            }
+            else if (member is IFieldSymbol fieldSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateFieldSymbol(fieldSymbol, modifiers: modifier);
             }
 
             // ICodeGenerationService will give the right result if it is method or event

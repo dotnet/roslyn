@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // UseInstanceMember will be false for interface members, but extracting a non-static
                 // member to a static member has a very different meaning for interfaces so we need
                 // an extra check here.
-                if (!LocalFunction && CSharpSelectionResult.IsInInterfaceMember() && !CSharpSelectionResult.IsInStaticMember())
+                if (!LocalFunction && IsNonStaticInterfaceMember())
                 {
                     isStatic = false;
                 }
@@ -250,6 +250,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     isAsync: isAsync,
                     isStatic: isStatic,
                     isReadOnly: isReadOnly);
+            }
+
+            private bool IsNonStaticInterfaceMember()
+            {
+                var typeDecl = SelectionResult.GetContainingScopeOf<BaseTypeDeclarationSyntax>();
+                if (typeDecl is null)
+                    return false;
+
+                if (!typeDecl.IsKind(SyntaxKind.InterfaceDeclaration))
+                    return false;
+
+                var memberDecl = SelectionResult.GetContainingScopeOf<MemberDeclarationSyntax>();
+                if (memberDecl is null)
+                    return false;
+
+                return !memberDecl.Modifiers.Any(SyntaxKind.StaticKeyword);
             }
 
             private static SyntaxKind GetParameterRefSyntaxKind(ParameterBehavior parameterBehavior)

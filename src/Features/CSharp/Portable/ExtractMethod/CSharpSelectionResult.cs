@@ -208,23 +208,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             return contextNode.Kind();
         }
-
-        public bool IsInInterfaceMember()
-        {
-            var decl = GetContainingScopeOf<BaseTypeDeclarationSyntax>();
-            if (decl is null)
-                return false;
-
-            return decl.IsKind(SyntaxKind.InterfaceDeclaration);
-        }
-
-        public bool IsInStaticMember()
-        {
-            var decl = GetContainingScopeOf<MemberDeclarationSyntax>();
-            if (decl is null)
-                return false;
-
-            return decl.Modifiers.Any(SyntaxKind.StaticKeyword);
-        }
     }
 }
