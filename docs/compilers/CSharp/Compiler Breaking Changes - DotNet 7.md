@@ -3,8 +3,8 @@
 ## Unsigned right shift operator
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
-Language added support for an "Unsigned Right Shift" operator (`>>>`).
-This disables an ability to consume methods implementing user-defined "Unsigned Right Shift" operators
+The language added support for an "Unsigned Right Shift" operator (`>>>`).
+This disables the ability to consume methods implementing user-defined "Unsigned Right Shift" operators
 as regular methods.
  
 For example, there is an existing library developed in some language (other than VB or C#)
