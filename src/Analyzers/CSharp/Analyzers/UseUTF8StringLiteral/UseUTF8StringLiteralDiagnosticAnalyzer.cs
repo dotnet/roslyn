@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
+        // we can just cache one array and reuse it
+        private static readonly byte[] s_charArray = new byte[4];
+
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
@@ -114,12 +119,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations, properties: null));
         }
-
         internal static bool TryConvertToUTF8String(StringBuilder? builder, SegmentedList<byte> values)
         {
             for (var i = 0; i < values.Count;)
             {
-                var ros = GetBytesForNextRune(values, i);
+                // We only need max 4 elements for a single Rune
+                var count = Math.Min(values.Count - i, 4);
+
+                // Need to copy to a regular array to get a ROS for Rune to process
+                values.CopyTo(i, s_charArray, 0, count);
+                var ros = new ReadOnlySpan<byte>(s_charArray, 0, count);
+
                 // If we can't decode a rune from the array then it can't be represented as a string
                 if (Rune.DecodeFromUtf8(ros, out var rune, out var bytesConsumed) != System.Buffers.OperationStatus.Done)
                     return false;
@@ -141,18 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             }
 
             return true;
-
-            static ReadOnlySpan<byte> GetBytesForNextRune(SegmentedList<byte> values, int index)
-            {
-                // We only need max 4 elements for a single Rune
-                var count = Math.Min(values.Count - index, 4);
-
-                // Need to copy to a regular array to get a ROS for Rune to process
-                var array = ArrayPool<byte>.GetArray(count);
-                values.CopyTo(index, array, 0, count);
-
-                return new ReadOnlySpan<byte>(array);
-            }
         }
     }
 }
