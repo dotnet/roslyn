@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -25,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal sealed class FixAllCodeRefactoringSuggestedAction : SuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
         /// <summary>
-        /// The original code-action that we are a fix-all for.  i.e. _originalCodeAction
-        /// would be something like "use 'var' instead of 'int'", this suggestion action
+        /// The original code-action that we are a fix-all for.  This suggestion action
         /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
         /// will perform the fix in the appropriate document/project/solution scope.
         /// </summary>
@@ -51,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public override bool TryGetTelemetryId(out Guid telemetryId)
         {
             // We get the telemetry id for the original code action we are fixing,
-            // not the special 'FixAllCodeAction'.  that is the .CodeAction this
-            // SuggestedAction is pointing at.
+            // not the special 'FixAllCodeAction'.
             telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.FixAllScope);
             return true;
         }

@@ -11,23 +11,39 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.FixAll
 {
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
         protected abstract Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
-            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
+            Document document, TextSpan span, CancellationToken cancellationToken);
 
-        public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+        public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+            Document document, TextSpan diagnosticSpan, CodeFixes.FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
+            Contract.ThrowIfFalse(fixAllScope is CodeFixes.FixAllScope.ContainingMember or CodeFixes.FixAllScope.ContainingType);
 
-            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, diagnosticSpan, cancellationToken).ConfigureAwait(false);
+            var fixAllInContainingMember = fixAllScope == CodeFixes.FixAllScope.ContainingMember;
+            return GetFixAllSpansAsync(document, diagnosticSpan, fixAllInContainingMember, cancellationToken);
+        }
+
+        public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+            Document document, TextSpan diagnosticSpan, CodeRefactorings.FixAllScope fixAllScope, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(fixAllScope is CodeRefactorings.FixAllScope.ContainingMember or CodeRefactorings.FixAllScope.ContainingType);
+
+            var fixAllInContainingMember = fixAllScope == CodeRefactorings.FixAllScope.ContainingMember;
+            return GetFixAllSpansAsync(document, diagnosticSpan, fixAllInContainingMember, cancellationToken);
+        }
+
+        private async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+            Document document, TextSpan span, bool fixAllInContainingMember, CancellationToken cancellationToken)
+        {
+            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllInContainingMember, span, cancellationToken).ConfigureAwait(false);
             if (decl == null)
-                return await GetFixAllSpansIfWithinGlobalStatementAsync(document, diagnosticSpan, fixAllScope, cancellationToken).ConfigureAwait(false);
+                return await GetFixAllSpansIfWithinGlobalStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
 
-            if (fixAllScope == FixAllScope.ContainingMember)
+            if (fixAllInContainingMember)
             {
                 return ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(
                     KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))));
@@ -61,29 +77,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static async Task<SyntaxNode?> GetContainingMemberOrTypeDeclarationAsync(
             Document document,
-            FixAllScope fixAllScope,
+            bool fixAllInContainingMember,
             TextSpan span,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var startContainer = fixAllScope == FixAllScope.ContainingMember
+            var startContainer = fixAllInContainingMember
                 ? syntaxFacts.GetContainingMemberDeclaration(root, span.Start)
                 : syntaxFacts.GetContainingTypeDeclaration(root, span.Start);
 
             if (startContainer == null)
                 return null;
 
-            if (fixAllScope == FixAllScope.ContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
+            if (fixAllInContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
                 return null;
 
             if (span.IsEmpty)
                 return startContainer;
 
-            var endContainer = fixAllScope == FixAllScope.ContainingMember
+            var endContainer = fixAllInContainingMember
                 ? syntaxFacts.GetContainingMemberDeclaration(root, span.End)
                 : syntaxFacts.GetContainingTypeDeclaration(root, span.End);
 

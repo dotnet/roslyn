@@ -5,11 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.FixAll
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes
+Namespace Microsoft.CodeAnalysis.VisualBasic.FixAll
     <ExportLanguageService(GetType(IFixAllSpanMappingService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFixAllSpanMappingService
         Inherits AbstractFixAllSpanMappingService
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetFixAllSpansIfWithinGlobalStatementAsync(document As Document, diagnosticSpan As TextSpan, fixAllScope As FixAllScope, cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of Document, ImmutableArray(Of TextSpan)))
+        Protected Overrides Function GetFixAllSpansIfWithinGlobalStatementAsync(document As Document, diagnosticSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of Document, ImmutableArray(Of TextSpan)))
             ' VB does not support global statements
             Return Task.FromResult(ImmutableDictionary(Of Document, ImmutableArray(Of TextSpan)).Empty)
         End Function

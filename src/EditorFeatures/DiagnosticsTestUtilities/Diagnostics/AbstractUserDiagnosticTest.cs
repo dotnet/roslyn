@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.FixAll;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {

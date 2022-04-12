@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             CancellationToken cancellationToken)
             => new(document, span, diagnostics, registerCodeFix, options.GetCodeActionOptions(), cancellationToken);
 
-        public static CodeRefactoringContext CreateCodeRefactoringContext(
+        public static CodeAnalysis.CodeRefactorings.CodeRefactoringContext CreateCodeRefactoringContext(
             Document document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,

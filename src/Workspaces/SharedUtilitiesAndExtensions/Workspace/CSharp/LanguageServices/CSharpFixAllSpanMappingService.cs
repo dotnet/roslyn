@@ -8,14 +8,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.FixAll;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
+namespace Microsoft.CodeAnalysis.CSharp.FixAll
 {
     [ExportLanguageService(typeof(IFixAllSpanMappingService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpFixAllSpanMappingService : AbstractFixAllSpanMappingService
@@ -27,12 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
         }
 
         protected override async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
-            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+            Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(diagnosticSpan);
+            var node = root.FindNode(span);
             if (node.GetAncestorOrThis<GlobalStatementSyntax>() is null)
                 return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 

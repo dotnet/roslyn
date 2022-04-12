@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.FixAll;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -197,6 +198,22 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
                 foreach (var scope in fixAllProviderInfo.SupportedScopes)
                 {
+                    if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
+                    {
+                        // Skip showing ContainingMember and ContainingType FixAll scopes if the language
+                        // does not implement 'IFixAllSpanMappingService' langauge service or
+                        // we have no mapped FixAll spans to fix.
+
+                        var spanMappingService = document.GetLanguageService<IFixAllSpanMappingService>();
+                        if (spanMappingService is null)
+                            continue;
+
+                        var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(
+                            document, selection, scope, cancellationToken).ConfigureAwait(false);
+                        if (documentsAndSpans.IsEmpty)
+                            continue;
+                    }
+
                     var fixAllSpan = await GetFixAllSpanForScopeAsync(scope).ConfigureAwait(false);
                     var fixAllState = new FixAllState(fixAllProviderInfo.FixAllProvider, document, provider, scope, fixAllSpan, action);
                     var fixAllSuggestedAction = new UnifiedFixAllCodeRefactoringSuggestedAction(
