@@ -59,6 +59,7 @@ namespace A
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
             => TestMoveToNamespaceAsync(
 @"using System;
@@ -211,6 +212,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
         => TestMoveToNamespaceAsync(
 @"namespace A;  [||]
@@ -404,6 +406,7 @@ expectedSymbolChanges: new Dictionary<string, string>()
 });
 
         [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
         [MemberData(nameof(SupportedKeywords))]
         public Task MoveToNamespace_MoveType_Single_FileScopedNamespace(string typeKeyword)
         => TestMoveToNamespaceAsync(
