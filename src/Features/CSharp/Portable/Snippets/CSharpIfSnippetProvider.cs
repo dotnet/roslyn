@@ -33,5 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         public CSharpIfSnippetProvider()
         {
         }
+
+        protected override void GetPartsOfIfStatement(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode condition, out SyntaxNode statement)
+        {
+            var ifStatement = (IfStatementSyntax)node;
+            openParen = ifStatement.OpenParenToken;
+            condition = ifStatement.Condition;
+            statement = ifStatement.Statement;
+        }
     }
 }

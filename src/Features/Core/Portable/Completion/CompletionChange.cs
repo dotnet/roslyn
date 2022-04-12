@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
+        internal string? LSPSnippet { get; }
+
         private CompletionChange(
             TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
         {
@@ -49,6 +51,18 @@ namespace Microsoft.CodeAnalysis.Completion
             TextChanges = textChanges.NullToEmpty();
             if (TextChanges.IsEmpty)
                 TextChanges = ImmutableArray.Create(textChange);
+        }
+
+        private CompletionChange(
+            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, string? lspSnippet)
+        {
+            TextChange = textChange;
+            NewPosition = newPosition;
+            IncludesCommitCharacter = includesCommitCharacter;
+            TextChanges = textChanges.NullToEmpty();
+            if (TextChanges.IsEmpty)
+                TextChanges = ImmutableArray.Create(textChange);
+            LSPSnippet = lspSnippet;
         }
 
         /// <summary>
@@ -95,6 +109,16 @@ namespace Microsoft.CodeAnalysis.Completion
             bool includesCommitCharacter = false)
         {
             return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter);
+        }
+
+        internal static CompletionChange CreateSpecialLSPSnippetChange(
+            TextChange textChange,
+            ImmutableArray<TextChange> textChanges,
+            int? newPosition = null,
+            bool includesCommitCharacter = false,
+            string? lspSnippet = null)
+        {
+            return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter, lspSnippet);
         }
 
         /// <summary>

@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, [Import("LanguageServerSnippetExpander")] object languageServerSnippetExpander)
+        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions,
+            [Import("Microsoft.VisualStudio.LanguageServer.Client.Snippets.LanguageServerSnippetExpander")] object languageServerSnippetExpander)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;

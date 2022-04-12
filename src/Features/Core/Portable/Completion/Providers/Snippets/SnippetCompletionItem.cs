@@ -42,5 +42,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             Contract.ThrowIfFalse(int.TryParse(text, out var num));
             return num;
         }
+
+        public static bool IsSnippet(CompletionItem item)
+        {
+            return item.Properties.TryGetValue("SnippetIdentifier", out var _);
+        }
     }
 }

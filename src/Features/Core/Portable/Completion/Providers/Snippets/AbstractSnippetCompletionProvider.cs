@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -35,40 +37,35 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
+            var lspSnippet = GenerateLSPSnippet(snippet.MainTextChange, snippet.Placeholders);
+            return CompletionChange.CreateSpecialLSPSnippetChange(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true, lspSnippet);
         }
 
-        private static string? GenerateLSPSnippet(SnippetChange snippetChange)
+        private static string? GenerateLSPSnippet(TextChange? textChange, List<(string, List<TextSpan>)>? placeholders)
         {
-            var mainChangeText = snippetChange.MainTextChange!.Value.NewText!;
-            var renameLocationsMap = snippetChange.RenameLocationsMap;
-            if (renameLocationsMap is null)
+            var textChangeText = textChange!.Value.NewText!;
+            if (placeholders is null)
             {
-                return mainChangeText;
+                return textChangeText;
             }
 
-            var count = 1;
-            var modifier = 0;
-            foreach (var (priority, identifier) in renameLocationsMap.Keys)
+            for (var i = 0; i < placeholders.Count; i++)
             {
+                var (identifier, placeholderList) = placeholders[i];
                 if (identifier.Length != 0)
                 {
-                    var locationCount = renameLocationsMap[(priority, identifier)].Count;
-                    var newStr = $"${{{{{count}:{identifier}}}}}";
-                    mainChangeText = mainChangeText.Replace(identifier, newStr);
-                    modifier += ((newStr.Length - identifier.Length) * locationCount + 1);
+                    var newStr = $"${{{i}:{identifier}}}";
+                    textChangeText = textChangeText.Replace(identifier, newStr);
                 }
                 else
                 {
-                    var location = renameLocationsMap[(priority, identifier)][0];
-                    mainChangeText = mainChangeText.Insert(location.Start + modifier, $"$0");
+                    var location = placeholderList[0];
+                    textChangeText = textChangeText.Insert(location.Start, $"$0");
                 }
-
-                count++;
             }
 
-            return mainChangeText;
-        } //foreach (${{1:var}} ${{2:item}} in ${{3:collection}}) { $0}
+            return textChangeText;
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

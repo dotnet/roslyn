@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractIfSnippetProvider : AbstractSnippetProvider
     {
+        protected abstract void GetPartsOfIfStatement(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode condition, out SyntaxNode statement);
         public override string SnippetIdentifier => "if";
 
         public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            syntaxFacts.GetPartsOfIfStatement(caretTarget, out var openParen, out _, out _, out _);
+            GetPartsOfIfStatement(caretTarget, out var openParen, out _, out _);
             return openParen.Span.End;
         }
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override async Task<Dictionary<(int, string), List<TextSpan>>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<List<(string, List<TextSpan>)>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -77,21 +78,22 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            var renameLocationsMap = new Dictionary<(int, string), List<TextSpan>>();
-            syntaxFacts.GetPartsOfIfStatement(snippetExpressionNode, out _, out var condition, out _, out var statement);
+            var renameLocationsMap = new List<(string, List<TextSpan>)>();
+            GetPartsOfIfStatement(snippetExpressionNode, out _, out var condition, out var statement);
+
+            var list2 = new List<TextSpan>
+            {
+                new TextSpan(statement.SpanStart - snippetExpressionNode.SpanStart + 1, statement.Span.Length)
+            };
+
+            renameLocationsMap.Add(("", list2));
+
             var list1 = new List<TextSpan>
             {
                 new TextSpan(condition.SpanStart - snippetExpressionNode.SpanStart, condition.Span.Length)
             };
 
-            renameLocationsMap.Add((1, condition.ToFullString()), list1);
-
-            var list2 = new List<TextSpan>
-            {
-                new TextSpan(statement.SpanStart - snippetExpressionNode.SpanStart, statement.Span.Length)
-            };
-
-            renameLocationsMap.Add((0, ""), list2);
+            renameLocationsMap.Add((condition.ToFullString(), list1));
 
             return renameLocationsMap;
         }

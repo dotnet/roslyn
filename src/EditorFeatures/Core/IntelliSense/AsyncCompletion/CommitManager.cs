@@ -25,7 +25,9 @@ using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
-using System.ComponentModel.Composition;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -234,84 +236,108 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            var textChange = change.TextChange;
-            var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
-            var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-            using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+            var snippetServiceSucceeded = false;
+            if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
-                edit.Replace(mappedSpan.Span, change.TextChange.NewText);
-
-                // edit.Apply() may trigger changes made by extensions.
-                // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
-                var updatedCurrentSnapshot = edit.Apply();
-
-                if (change.NewPosition.HasValue)
+                var type = _languageServerSnippetExpander.GetType();
+                var expandMethod = type.GetMethod("TryExpand");
+                var lspSnippetText = change.LSPSnippet;
+                var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var textEdit = new LSP.TextEdit()
                 {
-                    // Roslyn knows how to position the caret in the snapshot we just created.
-                    // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+                    Range = ProtocolConversions.TextSpanToRange(change.TextChange.Span, sourceText),
+                    NewText = lspSnippetText!
+                };
+
+                if (expandMethod is not null)
+                {
+                    var expandMethodResult = expandMethod.Invoke(_languageServerSnippetExpander, new object[] { textEdit, view, triggerSnapshot });
+                    snippetServiceSucceeded = expandMethodResult is not null && (bool)expandMethodResult;
                 }
-                else
-                {
-                    // Or, If we're doing a minimal change, then the edit that we make to the 
-                    // buffer may not make the total text change that places the caret where we 
-                    // would expect it to go based on the requested change. In this case, 
-                    // determine where the item should go and set the care manually.
+            }
 
-                    // Note: we only want to move the caret if the caret would have been moved 
-                    // by the edit.  i.e. if the caret was actually in the mapped span that 
-                    // we're replacing.
-                    var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
-                    if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
+            if (!snippetServiceSucceeded)
+            {
+
+                var textChange = change.TextChange;
+                var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
+                var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+                {
+                    edit.Replace(mappedSpan.Span, change.TextChange.NewText);
+
+                    // edit.Apply() may trigger changes made by extensions.
+                    // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
+                    var updatedCurrentSnapshot = edit.Apply();
+
+                    if (change.NewPosition.HasValue)
                     {
-                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
+                        // Roslyn knows how to position the caret in the snapshot we just created.
+                        // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
+                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
                     }
                     else
                     {
-                        view.Caret.EnsureVisible();
+                        // Or, If we're doing a minimal change, then the edit that we make to the 
+                        // buffer may not make the total text change that places the caret where we 
+                        // would expect it to go based on the requested change. In this case, 
+                        // determine where the item should go and set the care manually.
+
+                        // Note: we only want to move the caret if the caret would have been moved 
+                        // by the edit.  i.e. if the caret was actually in the mapped span that 
+                        // we're replacing.
+                        var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
+                        if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
+                        {
+                            view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
+                        }
+                        else
+                        {
+                            view.Caret.EnsureVisible();
+                        }
                     }
-                }
 
-                includesCommitCharacter = change.IncludesCommitCharacter;
+                    includesCommitCharacter = change.IncludesCommitCharacter;
 
-                if (roslynItem.Rules.FormatOnCommit)
-                {
-                    // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
-                    var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
-
-                    if (currentDocument != null && formattingService != null)
+                    if (roslynItem.Rules.FormatOnCommit)
                     {
-                        var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                        var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
+                        // The edit updates the snapshot however other extensions may make changes there.
+                        // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
+                        var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
+
+                        if (currentDocument != null && formattingService != null)
+                        {
+                            var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                            var changes = formattingService.GetFormattingChangesAsync(
+                                currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                            currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
+                        }
                     }
                 }
-            }
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+                _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
 
-            if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
-            {
-                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
                 {
+                    _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                    {
                     // Make sure the notification isn't sent on UI thread.
-                    await TaskScheduler.Default;
-                    _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
-                });
-            }
+                        await TaskScheduler.Default;
+                        _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
+                    });
+                }
 
-            if (includesCommitCharacter)
-            {
-                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
-            }
+                if (includesCommitCharacter)
+                {
+                    return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                }
 
-            if (commitCharacter == '\n' && SendEnterThroughToEditor(rules, roslynItem, filterText))
-            {
-                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
+                if (commitCharacter == '\n' && SendEnterThroughToEditor(rules, roslynItem, filterText))
+                {
+                    return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
+                }
             }
 
             return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
