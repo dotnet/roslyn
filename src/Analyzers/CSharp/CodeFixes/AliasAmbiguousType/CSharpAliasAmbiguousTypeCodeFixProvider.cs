@@ -30,6 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
             => ImmutableArray.Create(CS0104);
 
         protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol)
-            => $"using { alias } = { typeSymbol.ToNameDisplayString() };";
+            => $"using {alias} = {typeSymbol.ToNameDisplayString()};";
     }
 }
