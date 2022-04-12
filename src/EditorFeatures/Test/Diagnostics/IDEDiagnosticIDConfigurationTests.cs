@@ -1058,8 +1058,8 @@ csharp_style_prefer_top_level_statements = true
 # IDE0220, ForEachExplicitCastInSource
 dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
-# IDE0230, PreferUTF8StringLiteral
-csharp_style_prefer_utf8_string_literal = true
+# IDE0230, PreferUTF8StringLiterals
+csharp_style_prefer_utf8_string_literals = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

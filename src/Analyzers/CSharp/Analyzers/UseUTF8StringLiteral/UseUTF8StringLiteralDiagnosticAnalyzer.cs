@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
-                CSharpCodeStyleOptions.PreferUTF8StringLiteral,
+                CSharpCodeStyleOptions.PreferUTF8StringLiterals,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
             // Don't offer if the user doesn't want it
-            var option = context.GetOption(CSharpCodeStyleOptions.PreferUTF8StringLiteral);
+            var option = context.GetOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals);
             if (!option.Value)
                 return;
 

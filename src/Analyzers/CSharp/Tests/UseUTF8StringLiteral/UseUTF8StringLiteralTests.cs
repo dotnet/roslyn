@@ -139,7 +139,7 @@ public class C
 }",
                 EditorConfig = @"
 [*.cs]
-csharp_style_prefer_utf8_string_literal = false
+csharp_style_prefer_utf8_string_literals = false
 ",
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();

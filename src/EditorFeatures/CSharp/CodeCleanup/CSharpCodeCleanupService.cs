@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Apply_throw_expression_preferences,
                     IDEDiagnosticIds.UseThrowExpressionDiagnosticId),
 
-                //   csharp_style_prefer_utf8_string_literal
+                //   csharp_style_prefer_utf8_string_literals
                 new DiagnosticSet(CSharpFeaturesResources.Apply_utf8_string_literal_preferences,
                     IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId),
 
