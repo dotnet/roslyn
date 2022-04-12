@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly string s_persistenceName = typeof(TIndex).Name;
         private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("29");
 
+        /// <summary>
+        /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
+        /// within.  Useful so we don't have to continually reenumerate and regenerate the checksum given how rarely
+        /// these ever change.
+        /// </summary>
         private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
 
         public readonly Checksum? Checksum;
@@ -92,12 +97,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            var textChecksum = Checksum.Create(documentChecksumState.Text, s_serializationFormatChecksum);
-            var textAndDirectivesChecksum = s_ppDirectivesToChecksum.GetValue(
+            var directivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
-                static parseOptions => Checksum.Create(
-                    Checksum.Create(parseOptions.PreprocessorSymbolNames),
-                    s_serializationFormatChecksum));
+                static parseOptions => Checksum.Create(parseOptions.PreprocessorSymbolNames));
+
+            var textChecksum = Checksum.Create(documentChecksumState.Text, s_serializationFormatChecksum);
+            var textAndDirectivesChecksum = Checksum.Create(textChecksum, directivesChecksum);
 
             return (textChecksum, textAndDirectivesChecksum);
         }
