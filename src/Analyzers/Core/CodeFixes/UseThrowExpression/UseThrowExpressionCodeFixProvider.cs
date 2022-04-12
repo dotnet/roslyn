@@ -36,17 +36,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                diagnostic);
-
+            RegisterCodeFix(context, AnalyzersResources.Use_throw_expression, nameof(AnalyzersResources.Use_throw_expression));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
@@ -67,15 +63,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_throw_expression, createChangedDocument, nameof(AnalyzersResources.Use_throw_expression))
-            {
-            }
         }
     }
 }

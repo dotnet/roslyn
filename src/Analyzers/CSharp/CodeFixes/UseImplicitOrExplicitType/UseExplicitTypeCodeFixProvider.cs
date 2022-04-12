@@ -36,16 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_explicit_type_instead_of_var, nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 
@@ -213,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
-
+        
         private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
         {
             // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
@@ -225,16 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
             return newTypeSyntax;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.Use_explicit_type_instead_of_var)
-            {
-            }
         }
     }
 }

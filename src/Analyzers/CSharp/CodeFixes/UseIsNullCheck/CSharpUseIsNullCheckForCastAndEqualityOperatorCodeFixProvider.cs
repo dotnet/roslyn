@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -108,14 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 castExpr.Expression.WithTriviaFrom(binary.Left),
                 Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
                 ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

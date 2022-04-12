@@ -662,5 +662,627 @@ class C
 
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
+
+        [Fact]
+        public void TestRawStringLiteral4()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""abc"""""""";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abcd"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abcd"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abc""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abcd""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""abc""""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abcd""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""
+abc
+""""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abcd
+""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_07()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
     }
 }

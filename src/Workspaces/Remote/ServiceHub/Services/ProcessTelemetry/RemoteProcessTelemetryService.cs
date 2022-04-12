@@ -9,9 +9,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -113,12 +115,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace, CancellationToken cancellationToken)
+        public ValueTask InitializeWorkspaceConfigurationOptionsAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                var service = (RemoteSyntaxTreeConfigurationService)GetWorkspaceServices().GetRequiredService<ISyntaxTreeConfigurationService>();
-                service.SetOptions(disableRecoverableTrees, disableProjectCacheService, enableOpeningSourceGeneratedFilesInWorkspace);
+                var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
+                service.InitializeOptions(options);
 
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);

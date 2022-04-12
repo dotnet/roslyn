@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
 
+        public static readonly Option2<bool> NavigateAsynchronously = new(
+            FeatureName, "NavigateAsynchronously", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
+
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
             FeatureName, "AddImportsOnPaste", defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));

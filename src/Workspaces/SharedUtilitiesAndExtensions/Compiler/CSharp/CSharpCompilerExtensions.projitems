@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ConversionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\CSharpSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\CSharpSemanticFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpAccessibilityFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpFileBannerFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpHeaderFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />

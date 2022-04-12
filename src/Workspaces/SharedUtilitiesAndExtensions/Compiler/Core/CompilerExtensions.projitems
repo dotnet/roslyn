@@ -186,6 +186,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ForEachExplicitCastInSourcePreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NamespaceDeclarationPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
@@ -237,6 +238,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\IHeaderFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />

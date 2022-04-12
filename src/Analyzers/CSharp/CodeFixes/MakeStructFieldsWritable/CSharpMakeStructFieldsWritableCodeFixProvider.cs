@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Make_readonly_fields_writable, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable));
             return Task.CompletedTask;
         }
 
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -72,14 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_readonly_fields_writable, createChangedDocument, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable))
-            {
-            }
         }
     }
 }

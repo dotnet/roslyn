@@ -342,13 +342,21 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
         {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
+            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution
+#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+                , CodeActionPriority priority
+#endif
+                )
                 : base(title, createChangedSolution, title)
             {
+#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
                 Priority = priority;
+#endif
             }
 
+#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
             internal override CodeActionPriority Priority { get; }
+#endif
         }
     }
 }

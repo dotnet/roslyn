@@ -36,14 +36,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 // Register code fix with a defensive check
                 if (root.FindNode(diagnostic.Location.SourceSpan) != null)
                 {
-                    context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                        diagnostic);
+                    RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -52,14 +50,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryAttributeSuppressionsCodeFixProvider))
-            {
-            }
         }
     }
 }

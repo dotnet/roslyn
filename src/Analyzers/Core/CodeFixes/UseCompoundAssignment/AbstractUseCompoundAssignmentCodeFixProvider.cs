@@ -45,19 +45,13 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Use_compound_assignment, nameof(AnalyzersResources.Use_compound_assignment));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxKinds = syntaxFacts.SyntaxKinds;
@@ -112,14 +106,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             // In any other circumstance, the value of the assignment might be read, so we need to transform to
             // ++x to ensure that we preserve semantics.
             return false;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_compound_assignment, createChangedDocument, AnalyzersResources.Use_compound_assignment)
-            {
-            }
         }
     }
 }
