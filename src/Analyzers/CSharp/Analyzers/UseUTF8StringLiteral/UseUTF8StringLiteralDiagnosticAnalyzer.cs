@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations, properties: null));
         }
+
         internal static bool TryConvertToUTF8String(StringBuilder? builder, SegmentedList<byte> values)
         {
             // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
