@@ -86,13 +86,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async ValueTask<(Checksum textOnlyChecksum, Checksum textAndDirectivesChecksum)> GetChecksumsAsync(
             Document document, CancellationToken cancellationToken)
         {
-            // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change
-            // any time the SyntaxTree could have changed.  Right now, that can only happen if the
-            // text of the document changes, or the ParseOptions change.  So we get the checksums
-            // for both of those, and merge them together to make the final checksum.
+            // Since we build the SyntaxTreeIndex from a SyntaxTree, we need our checksum to change any time the
+            // SyntaxTree could have changed.  Right now, that can only happen if the text of the document changes, or
+            // the preprocessor directives change.  So we get the checksums for both of those, and merge them together
+            // to make the final checksum.
             //
-            // We also want the checksum to change any time our serialization format changes.  If
-            // the format has changed, all previous versions should be invalidated.
+            // Note: this intentionally ignores *other* ParseOption changes.  This may look like it could cause us to
+            // get innacurate results, but here's why it's ok.  The other ParseOption changes include:
+            //
+            //  1. LanguageVersion changes.  It's ok to ignore that as for practically all language versions we don't
+            //     produce different trees.  And, while there are some lang versions that produce different trees (for
+            //     example around how records are parsed), it's not realistic that the user would somehow have a
+            //     document that did *not* include pp directives, which somehow had one of those constructs *and*
+            //     somehow had the code produce different trees across different language versions.  e.g. no code out
+            //     there is realistically depending on `record` parsing as a method in C# X and as an actual record in
+            //     C# X+1.  If code is using constructs that are actually parsing differently downlevel, they will have
+            //     pp directives to avoid even using that construct downlevel.
+            //
+            //  2. DocComment parsing mode changes. However, in the IDE we always at least parse doc comments (though we
+            //     have options to control if we report errors in it or not).  Since we're always parsing, we're always
+            //     at least getting the same syntax tree shape at the end of the day.
+            //
+            // We also want the checksum to change any time our serialization format changes.  If the format has
+            // changed, all previous versions should be invalidated.
             var project = document.Project;
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
