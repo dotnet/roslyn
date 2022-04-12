@@ -752,5 +752,176 @@ class C4_2 : I4<C4_2>
 </Workspace>
             Await TestStreamingFeature(input, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedAdditionOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator +(C x, C y) => throw new System.Exception();
+    public static C operator checked {|Definition:$$+|}(C x, C y) => throw new System.Exception();
+
+    void M()
+    {
+        var a = checked(new C() [|+|] new C());
+        var b = unchecked(new C() + new C());
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedDecrementOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator --(C x) => throw new System.Exception();
+    public static C operator checked {|Definition:$$--|}(C x) => throw new System.Exception();
+
+    void M()
+    {
+        var c = new C();
+        var a = checked(c[|--|]);
+        var b = unchecked(c--);
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedDivisionOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator /(C x, C y) => throw new System.Exception();
+    public static C operator checked {|Definition:$$/|}(C x, C y) => throw new System.Exception();
+
+    void M()
+    {
+        var a = checked(new C() [|/|] new C());
+        var b = unchecked(new C() / new C());
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedIncrementOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator ++(C x) => throw new System.Exception();
+    public static C operator checked {|Definition:$$++|}(C x) => throw new System.Exception();
+
+    void M()
+    {
+        var c = new C();
+        var a = checked(c[|++|]);
+        var b = unchecked(c++);
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedMultiplyOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator *(C x, C y) => throw new System.Exception();
+    public static C operator checked {|Definition:$$*|}(C x, C y) => throw new System.Exception();
+
+    void M()
+    {
+        var a = checked(new C() [|*|] new C());
+        var b = unchecked(new C() * new C());
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedSubtractionOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator -(C x, C y) => throw new System.Exception();
+    public static C operator checked {|Definition:$$-|}(C x, C y) => throw new System.Exception();
+
+    void M()
+    {
+        var a = checked(new C() [|-|] new C());
+        var b = unchecked(new C() - new C());
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(60216, "https://github.com/dotnet/roslyn/issues/60216")>
+        Public Async Function TestCSharpFindReferencesOnCheckedUnaryNegationOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public static C operator -(C x) => throw new System.Exception();
+    public static C operator checked {|Definition:$$-|}(C x) => throw new System.Exception();
+
+    void M()
+    {
+        var c = new C();
+        var a = checked([|-|]c);
+        var b = unchecked(-c);
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
