@@ -5303,10 +5303,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.
                 builder.Add(new SimpleImportScope(
-                    imports.UsingAliases.SelectAsArray(static kvp => (kvp.Value.Alias.GetPublicSymbol(), kvp.Value.UsingDirectiveReference)),
-                    imports.ExternAliases.SelectAsArray(static e => (e.Alias.GetPublicSymbol(), e.ExternAliasDirectiveReference)),
-                    imports.Usings.SelectAsArray(static n => (n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
-                    XmlNamespaces: ImmutableArray<(string, SyntaxReference)>.Empty));
+                    imports.UsingAliases.SelectAsArray(static kvp => kvp.Value.Alias.GetPublicSymbol()),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => new ImportedNamespaceOrType(n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    XmlNamespaces: ImmutableArray<ImportedXmlNamespace>.Empty));
             }
 
             return builder.ToImmutableAndFree();

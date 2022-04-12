@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            TypeOf containingBinder.ContainingBinder.ContainingBinder Is SourceModuleBinder)))
         End Sub
 
-        Public Function GetImportChainData() As ImmutableArray(Of (IAliasSymbol, SyntaxReference))
-            Return _importedAliases.SelectAsArray(Function(kvp) (DirectCast(kvp.Value.Alias, IAliasSymbol), kvp.Value.SyntaxReference))
+        Public Function GetImportChainData() As ImmutableArray(Of IAliasSymbol)
+            Return ImmutableArray(Of IAliasSymbol).CastUp(_importedAliases.SelectAsArray(Function(kvp) kvp.Value.Alias))
         End Function
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,

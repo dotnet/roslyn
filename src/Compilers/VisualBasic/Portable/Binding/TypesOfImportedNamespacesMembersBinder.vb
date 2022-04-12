@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Public Function GetImportChainData() As ImmutableArray(Of (INamespaceOrTypeSymbol, SyntaxReference))
-            Return _importedSymbols.SelectAsArray(Function(n) (DirectCast(n.NamespaceOrType, INamespaceOrTypeSymbol), n.SyntaxReference))
+        Public Function GetImportChainData() As ImmutableArray(Of ImportedNamespaceOrType)
+            Return _importedSymbols.SelectAsArray(Function(n) New ImportedNamespaceOrType(n.NamespaceOrType, n.SyntaxReference))
         End Function
 
         ''' <summary>

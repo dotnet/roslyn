@@ -3477,10 +3477,10 @@ _Default:
             End If
 
             scopes.Add(New SimpleImportScope(
-                If(importAliases?.GetImportChainData(), ImmutableArray(Of (IAliasSymbol, SyntaxReference)).Empty),
-                ExternAliases:=ImmutableArray(Of (IAliasSymbol, SyntaxReference)).Empty,
-                If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of (INamespaceOrTypeSymbol, SyntaxReference)).Empty),
-                If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of (String, SyntaxReference)).Empty)))
+                If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty),
+                ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty,
+                If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of ImportedNamespaceOrType).Empty),
+                If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of ImportedXmlNamespace).Empty)))
         End Sub
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
