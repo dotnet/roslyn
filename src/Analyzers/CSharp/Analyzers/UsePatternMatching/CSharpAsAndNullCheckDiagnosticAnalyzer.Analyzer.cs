@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 SyntaxNode enclosingBlock,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(semanticModel != null);
-                Debug.Assert(localSymbol != null);
-                Debug.Assert(comparison != null);
-                Debug.Assert(operand != null);
+                Contract.ThrowIfNull(semanticModel);
+                Contract.ThrowIfNull(localSymbol);
+                Contract.ThrowIfNull(comparison);
+                Contract.ThrowIfNull(operand);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
                 Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                 if (dataFlow.DataFlowsIn.Contains(_localSymbol))
                                 {
                                     // Access before assignment is not safe in the opposite branch
-                                    // as the variable is not definitely assgined at this point.
+                                    // as the variable is not definitely assigned at this point.
                                     // For example:
                                     //
                                     //    if (o is string x) { }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             private bool CheckStatement(StatementSyntax statement)
             {
-                Debug.Assert(statement != null);
+                Contract.ThrowIfNull(statement);
 
                 // This is either an embedded statement or parented by a block.
                 // If we're parented by a block, then that block will be the scope
@@ -306,14 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             private bool IsAccessedOutOfScope(SyntaxNode scope)
             {
-                Debug.Assert(scope != null);
+                Contract.ThrowIfNull(scope);
 
                 var localStatementStart = _localStatement.SpanStart;
                 var comparisonSpanStart = _comparison.SpanStart;
                 var variableName = _localSymbol.Name;
                 var scopeSpan = scope.Span;
 
-                // Iterate over all descendent nodes to find possible out-of-scope references.
+                // Iterate over all descendant nodes to find possible out-of-scope references.
                 foreach (var descendentNode in _enclosingBlock.DescendantNodes())
                 {
                     var descendentNodeSpanStart = descendentNode.SpanStart;
