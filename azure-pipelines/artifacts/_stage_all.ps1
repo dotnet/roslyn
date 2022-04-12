@@ -1,7 +1,7 @@
 # This script links all the artifacts described by _all.ps1
 # into a staging directory, reading for uploading to a cloud build artifact store.
 # It returns a sequence of objects with Name and Path properties.
-
+[CmdletBinding()]
 param (
     [string]$ArtifactNameSuffix
 )
@@ -21,7 +21,6 @@ function Create-SymbolicLink {
     if (Test-Path $Link) { Remove-Item $Link }
     $LinkContainer = Split-Path $Link -Parent
     if (!(Test-Path $LinkContainer)) { mkdir $LinkContainer }
-    Write-Verbose "Linking $Link to $Target"
     if ($IsMacOS -or $IsLinux) {
         ln $Target $Link | Out-Null
     } else {
