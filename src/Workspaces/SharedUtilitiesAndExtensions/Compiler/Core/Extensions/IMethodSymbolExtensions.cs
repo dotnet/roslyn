@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static PredefinedOperator GetPredefinedOperator(this IMethodSymbol symbol)
             => symbol.Name switch
             {
-                WellKnownMemberNames.AdditionOperatorName or WellKnownMemberNames.CheckedAdditionOperatorName or WellKnownMemberNames.UnaryPlusOperatorName  => PredefinedOperator.Addition,
+                WellKnownMemberNames.AdditionOperatorName or WellKnownMemberNames.CheckedAdditionOperatorName or WellKnownMemberNames.UnaryPlusOperatorName => PredefinedOperator.Addition,
                 WellKnownMemberNames.BitwiseAndOperatorName => PredefinedOperator.BitwiseAnd,
                 WellKnownMemberNames.BitwiseOrOperatorName => PredefinedOperator.BitwiseOr,
                 WellKnownMemberNames.ConcatenateOperatorName => PredefinedOperator.Concatenate,
