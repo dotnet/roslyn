@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var textAndDirectivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
                 static parseOptions => Checksum.Create(
-                    Checksum.Create(parseOptions.PreprocessorSymbolNames.Concat("Release")),
-                    // Checksum.Create(parseOptions.PreprocessorSymbolNames),
+                    Checksum.Create(parseOptions.PreprocessorSymbolNames),
                     s_serializationFormatChecksum));
 
             return (textChecksum, textAndDirectivesChecksum);
