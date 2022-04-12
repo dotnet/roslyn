@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
             // if the tree contains directives, then include the directives-checksum info in the checksum we produce. We
             // don't want to consider the data reusable if the user changes pp directives.  Note: currently, this
@@ -124,26 +126,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // that at the reading point we may have to issue two reads to determine which case we're in.  However, this
             // still let's us avoid parsing the doc at the point we're reading in the indices (which would defeat a
             // major reason for having the index in the first place).
-            var checksum = ContainsIfDirective(root) ? textAndDirectivesChecksum : textChecksum;
+            var ifDirectiveKind = syntaxKinds.IfDirectiveTrivia;
+
+            var checksum = root.ContainsDirectives && ContainsIfDirective(root, ifDirectiveKind) ? textAndDirectivesChecksum : textChecksum;
 
             return create(document, root, checksum, cancellationToken);
         }
 
-        private static bool ContainsIfDirective(SyntaxNode node)
+        private static bool ContainsIfDirective(SyntaxNode node, int ifDirectiveKind)
         {
-            if (!node.ContainsDirectives)
-                return false;
-
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!child.ContainsDirectives)
+                    continue;
+
                 if (child.IsNode)
                 {
-                    if (ContainsIfDirective(child.AsNode()!))
+                    if (ContainsIfDirective(child.AsNode()!, ifDirectiveKind))
                         return true;
                 }
                 else
                 {
-                    if (ContainsIfDirective(child.AsToken()))
+                    if (ContainsIfDirective(child.AsToken(), ifDirectiveKind))
                         return true;
                 }
             }
@@ -151,14 +155,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static bool ContainsIfDirective(SyntaxToken token)
+        private static bool ContainsIfDirective(SyntaxToken token, int ifDirectiveKind)
         {
-            if (!token.ContainsDirectives)
-                return false;
-
             foreach (var trivia in token.LeadingTrivia)
             {
-                if (trivia.RawKind is 8548 or 737)
+                if (trivia.RawKind == ifDirectiveKind)
                     return true;
             }
 
