@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -94,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
             // to be done without implicitly marshalling to the UI thread.
-            _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
+            _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>(_threadingContext.JoinableTaskFactory);
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
                 threadingContext,
                 editorAdaptersFactoryService,
@@ -132,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return async cancellationToken =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_threadingContext.JoinableTaskFactory);
                 var hr = openDocumentService.OpenDocumentViaProject(
                     temporaryFilePath,
                     VSConstants.LOGVIEWID.TextView_guid,
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly ITextBuffer _textBuffer;
             private readonly Workspace _workspace;
             private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-            private readonly ISyntaxTreeConfigurationService? _syntaxTreeConfigurationService;
+            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
             /// <summary>
             /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -260,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _textBuffer = textBuffer;
                 _workspace = workspace;
                 _documentIdentity = documentIdentity;
-                _syntaxTreeConfigurationService = _workspace.Services.GetService<ISyntaxTreeConfigurationService>();
+                _workspaceConfigurationService = _workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
                 // while we're doing edits.
@@ -394,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false;
+                        var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {

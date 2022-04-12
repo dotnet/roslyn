@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected Workspace Workspace { get; }
+        internal ITableManager TableManager { get; }
+        internal abstract ImmutableArray<string> Columns { get; }
 
         protected abstract void AddTableSourceIfNecessary(Solution solution);
         protected abstract void RemoveTableSourceIfNecessary(Solution solution);
@@ -88,9 +90,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected void AddTableSource(ITableDataSource source)
             => this.TableManager.AddSource(source, Columns);
-
-        internal ITableManager TableManager { get; }
-
-        internal abstract ImmutableArray<string> Columns { get; }
     }
 }

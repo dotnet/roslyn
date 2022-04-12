@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
             protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
-                => GetIndentationAfter(nodeOrToken, FormattingOptions.IndentStyle.Smart);
+                => GetIndentationAfter(nodeOrToken, FormattingOptions2.IndentStyle.Smart);
 
-            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
+            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
                 var newLine = Options.FormattingOptions.NewLine;
                 var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
                 var indentationOptions = new IndentationOptions(
                     Options.FormattingOptions,
-                    new AutoFormattingOptions(
-                        IndentStyle: indentStyle));
+                    AutoFormattingOptions.Default,
+                    IndentStyle: indentStyle);
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             {
                 var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
                 var formattedDocument = await Formatter.FormatAsync(
-                    newDocument, spanToFormat, cancellationToken: CancellationToken).ConfigureAwait(false);
+                    newDocument, spanToFormat, Options.FormattingOptions, CancellationToken).ConfigureAwait(false);
                 return formattedDocument;
             }
 
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     // Make our code action low priority.  This option will be offered *a lot*, and 
                     // much of  the time will not be something the user particularly wants to do.  
                     // It should be offered after all other normal refactorings.
-                    result.Add(new CodeActionWithNestedActions(
+                    result.Add(CodeActionWithNestedActions.Create(
                         wrappingActions[0].ParentTitle, sorted,
                         group.IsInlinable, CodeActionPriority.Low));
                 }

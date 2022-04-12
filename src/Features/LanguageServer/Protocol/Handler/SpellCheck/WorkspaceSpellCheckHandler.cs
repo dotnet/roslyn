@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -80,6 +81,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     if (context.IsTracking(document.GetURI()))
                     {
                         context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    // Do not attempt to get spell check results for Razor files, Razor will directly ask us for document based results
+                    // for any razor file they are interested in.
+                    if (document.IsRazorDocument())
+                    {
                         continue;
                     }
 

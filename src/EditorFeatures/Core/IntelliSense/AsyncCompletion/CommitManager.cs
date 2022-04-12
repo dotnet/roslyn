@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,19 +26,18 @@ using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
-using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
+    internal sealed class CommitManager : IAsyncCompletionCommitManager
     {
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
-        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -58,15 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal CommitManager(
             ITextView textView,
             RecentItemsManager recentItemsManager,
-            IThreadingContext threadingContext,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext)
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
-            _indentationManager = indentationManager;
         }
 
         /// <summary>
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -192,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             string filterText,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             bool includesCommitCharacter;
             if (!subjectBuffer.CheckEditAccess())
@@ -289,10 +287,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     if (currentDocument != null && formattingService != null)
                     {
-                        var formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: true, cancellationToken).WaitAndGetResult(cancellationToken);
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                         var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                            currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
                         currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }
@@ -302,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {
-                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     // Make sure the notification isn't sent on UI thread.
                     await TaskScheduler.Default;

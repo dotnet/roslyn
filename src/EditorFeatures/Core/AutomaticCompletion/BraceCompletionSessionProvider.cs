@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -31,8 +32,9 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     [BracePair(DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter)]
     [BracePair(Parenthesis.OpenCharacter, Parenthesis.CloseCharacter)]
     [BracePair(LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter)]
-    internal partial class BraceCompletionSessionProvider : ForegroundThreadAffinitizedObject, IBraceCompletionSessionProvider
+    internal partial class BraceCompletionSessionProvider : IBraceCompletionSessionProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
@@ -44,8 +46,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             ITextBufferUndoManagerProvider undoManager,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
         {
-            this.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             var textSnapshot = openingPoint.Snapshot;
             var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
                             undoHistory, _editorOperationsFactoryService,
-                            editorSession, _globalOptions, ThreadingContext);
+                            editorSession, _globalOptions, _threadingContext);
                         return true;
                     }
                 }

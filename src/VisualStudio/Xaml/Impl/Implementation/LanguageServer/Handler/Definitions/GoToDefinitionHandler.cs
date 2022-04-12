@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -31,12 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
         }
 
         public override bool MutatesSolutionState => false;
@@ -93,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
             else if (definition is XamlSymbolDefinition symbolDefinition)
             {
-                locations.AddRange(await GetSymbolDefinitionLocationsAsync(symbolDefinition, context, _metadataAsSourceFileService, cancellationToken).ConfigureAwait(false));
+                locations.AddRange(await GetSymbolDefinitionLocationsAsync(symbolDefinition, context, _metadataAsSourceFileService, _globalOptions, cancellationToken).ConfigureAwait(false));
             }
             else
             {
@@ -145,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
         }
 
-        private static async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(XamlSymbolDefinition symbolDefinition, RequestContext context, IMetadataAsSourceFileService metadataAsSourceFileService, CancellationToken cancellationToken)
+        private static async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(XamlSymbolDefinition symbolDefinition, RequestContext context, IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbolDefinition.Symbol);
 
@@ -170,7 +173,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                     var project = context.Document?.GetCodeProject();
                     if (project != null)
                     {
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions();
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

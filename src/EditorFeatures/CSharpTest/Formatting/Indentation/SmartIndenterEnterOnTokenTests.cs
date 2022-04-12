@@ -20,7 +20,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
-using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -1511,7 +1511,7 @@ class C
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
                 AutoFormattingOptions.Default);
 
             Assert.True(
@@ -1542,7 +1542,6 @@ class C
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;
@@ -1554,8 +1553,9 @@ class C
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
-                new AutoFormattingOptions(IndentStyle: indentStyle));
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
+                AutoFormattingOptions.Default,
+                IndentStyle: indentStyle);
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(

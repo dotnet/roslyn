@@ -14,13 +14,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             => UnderlyingObject = underlyingObject;
 
         public RazorAutoFormattingOptions(
-            FormattingOptions.IndentStyle indentStyle,
             bool formatOnReturn,
             bool formatOnTyping,
             bool formatOnSemicolon,
             bool formatOnCloseBrace)
             : this(new AutoFormattingOptions(
-                indentStyle,
                 FormatOnReturn: formatOnReturn,
                 FormatOnTyping: formatOnTyping,
                 FormatOnSemicolon: formatOnSemicolon,

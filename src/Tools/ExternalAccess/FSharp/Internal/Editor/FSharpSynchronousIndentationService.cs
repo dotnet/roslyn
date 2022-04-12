@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
                 var fsharpOptions = new FSharpIndentationOptions(
                     TabSize: options.FormattingOptions.TabSize,
-                    IndentStyle: options.AutoFormattingOptions.IndentStyle);
+                    IndentStyle: (FormattingOptions.IndentStyle)options.IndentStyle);
 
                 result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, fsharpOptions);
             }

@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS9010, CS9011);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.Compile;
-
         private static bool TryGetConstraint(
             Diagnostic diagnostic,
             CancellationToken cancellationToken,
@@ -71,15 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var diagnostic = context.Diagnostics.First();
             if (TryGetConstraint(diagnostic, cancellationToken, out _, out _))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => this.FixAsync(document, diagnostic, c)),
-                    diagnostic);
+                RegisterCodeFix(context, CSharpCodeFixesResources.Fix_constraint, nameof(CSharpFixIncorrectConstraintCodeFixProvider));
             }
 
             return Task.CompletedTask;
@@ -87,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -119,15 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixIncorrectConstraint
                         });
                     }
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Fix_constraint, createChangedDocument, nameof(CSharpFixIncorrectConstraintCodeFixProvider))
-            {
             }
         }
     }

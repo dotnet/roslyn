@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                TryClassifyNameOfIdentifier(name, symbolInfo, result);
+                TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
+                TryClassifyAsyncIdentifier(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -334,12 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            var identifierName = name as IdentifierNameSyntax;
-            if (symbolInfo.Symbol.IsImplicitValueParameter())
+            if (name is IdentifierNameSyntax identifierName &&
+                symbolInfo.Symbol.IsImplicitValueParameter())
             {
-#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
-#nullable enable
                 return true;
             }
 
@@ -351,8 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
-                symbolInfo.Symbol == null &&
-                !symbolInfo.CandidateSymbols.Any())
+                symbolInfo.GetAnySymbol() is null)
             {
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
                 return true;
@@ -361,7 +359,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
+        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
+        {
+            var symbol = symbolInfo.GetAnySymbol();
+
+            // Simple approach, if the user ever types 'async' and it doesn't actually bind to anything, presume that
+            // they intend to use it as a keyword and are about to create an async symbol.  This works for all error
+            // cases, while not conflicting with the extremely rare case where 'async' might actually be used to
+            // reference an actual symbol with that name.
+            if (symbol is null &&
+                name is IdentifierNameSyntax { Identifier.Text: "async" })
+            {
+                result.Add(new(name.Span, ClassificationTypeNames.Keyword));
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsSymbolWithName([NotNullWhen(true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

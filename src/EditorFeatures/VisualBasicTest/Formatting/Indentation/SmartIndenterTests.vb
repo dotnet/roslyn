@@ -2553,7 +2553,7 @@ End Namespace
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4,
-                indentStyle:=FormattingOptions.IndentStyle.Block)
+                indentStyle:=FormattingOptions2.IndentStyle.Block)
         End Sub
 
         <WpfFact>
@@ -2568,7 +2568,7 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8,
-                indentStyle:=FormattingOptions.IndentStyle.Block)
+                indentStyle:=FormattingOptions2.IndentStyle.Block)
         End Sub
 
         <WpfFact>
@@ -2583,7 +2583,7 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0,
-                indentStyle:=FormattingOptions.IndentStyle.None)
+                indentStyle:=FormattingOptions2.IndentStyle.None)
         End Sub
 
         <WpfFact>
@@ -2988,7 +2988,7 @@ end class"
                 indentationLine:=4,
                 expectedIndentation:=12,
                 useTabs:=True,
-                indentStyle:=FormattingOptions.IndentStyle.Smart)
+                indentStyle:=FormattingOptions2.IndentStyle.Smart)
         End Sub
 
         Private Shared Sub AssertSmartIndentIndentationInProjection(
@@ -3015,7 +3015,7 @@ end class"
         Private Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
-                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+                Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart)
             AssertSmartIndent(code, indentationLine, expectedIndentation, useTabs:=False, indentStyle)
             AssertSmartIndent(code.Replace("    ", vbTab), indentationLine, expectedIndentation, useTabs:=True, indentStyle)
         End Sub
@@ -3025,7 +3025,7 @@ end class"
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
                 useTabs As Boolean,
-                indentStyle As FormattingOptions.IndentStyle)
+                indentStyle As FormattingOptions2.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs)
             End Using

@@ -16,6 +16,10 @@ internal static class IndentationOptionsStorage
     {
         var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
         var autoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language);
-        return new(formattingOptions, autoFormattingOptions);
+        var indentStyle = globalOptions.GetOption(SmartIndent, document.Project.Language);
+
+        return new(formattingOptions, autoFormattingOptions, indentStyle);
     }
+
+    public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent => FormattingOptions2.SmartIndent;
 }

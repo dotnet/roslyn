@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
         protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -48,9 +46,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return;
             }
 
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(document, diagnostic, c)),
-                context.Diagnostics);
+            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
         }
 
         private async Task<TAnonymousObjectMemberDeclaratorSyntax?> GetMemberDeclaratorAsync(
@@ -85,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // If we're only introducing one name, then add the rename annotation to
             // it so the user can pick a better name if they want.

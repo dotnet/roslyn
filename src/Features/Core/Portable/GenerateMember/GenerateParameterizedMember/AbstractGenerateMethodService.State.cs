@@ -128,6 +128,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
+                var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.IsLeftSideOfAnyAssignment(simpleNameOrMemberAccessExpression))
+                    return false;
+
                 IdentifierToken = identifierToken;
                 SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
                 InvocationExpressionOpt = invocationExpressionOpt;

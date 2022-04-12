@@ -3588,7 +3588,7 @@ class Program{
             Assert.Equal(tokenKind, endToken.Kind());
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
                 AutoFormattingOptions.Default);
 
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
@@ -3606,7 +3606,7 @@ class Program{
                 return;
             }
 
-            var changes = formatter.FormatRange(workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
             var actual = GetFormattedText(buffer, changes);
             Assert.Equal(expected, actual);
         }

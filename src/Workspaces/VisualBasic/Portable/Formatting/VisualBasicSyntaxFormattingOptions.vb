@@ -12,41 +12,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
 
-        Public Sub New(useTabs As Boolean,
-                       tabSize As Integer,
-                       indentationSize As Integer,
-                       newLine As String,
+        Public Sub New(lineFormatting As LineFormattingOptions,
                        separateImportDirectiveGroups As Boolean)
 
-            MyBase.New(useTabs,
-                       tabSize,
-                       indentationSize,
-                       newLine,
-                       separateImportDirectiveGroups)
+            MyBase.New(lineFormatting, separateImportDirectiveGroups)
         End Sub
 
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions(
-            useTabs:=FormattingOptions2.UseTabs.DefaultValue,
-            tabSize:=FormattingOptions2.TabSize.DefaultValue,
-            indentationSize:=FormattingOptions2.IndentationSize.DefaultValue,
-            newLine:=FormattingOptions2.NewLine.DefaultValue,
+            lineFormatting:=LineFormattingOptions.Default,
             separateImportDirectiveGroups:=GenerationOptions.SeparateImportDirectiveGroups.DefaultValue)
 
         Public Shared Shadows Function Create(options As AnalyzerConfigOptions) As VisualBasicSyntaxFormattingOptions
             Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=options.GetOption(FormattingOptions2.TabSize),
-                indentationSize:=options.GetOption(FormattingOptions2.IndentationSize),
-                newLine:=options.GetOption(FormattingOptions2.NewLine),
+                lineFormatting:=LineFormattingOptions.Create(options),
                 separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
         End Function
 
-        Public Overrides Function [With](useTabs As Boolean, tabSize As Integer, indentationSize As Integer) As SyntaxFormattingOptions
+        Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
             Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=useTabs,
-                tabSize:=tabSize,
-                indentationSize:=indentationSize,
-                newLine:=NewLine,
+                lineFormatting:=lineFormatting,
                 separateImportDirectiveGroups:=SeparateImportDirectiveGroups)
         End Function
     End Class

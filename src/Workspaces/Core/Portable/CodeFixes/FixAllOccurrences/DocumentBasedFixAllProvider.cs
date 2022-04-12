@@ -30,8 +30,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </remarks>
     public abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
+        private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+
         protected DocumentBasedFixAllProvider()
+            : this(DefaultSupportedFixAllScopes)
         {
+        }
+
+        protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            _supportedFixAllScopes = supportedFixAllScopes;
         }
 
         /// <summary>
@@ -58,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => base.GetSupportedFixAllScopes();
+            => _supportedFixAllScopes;
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
@@ -78,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var currentSolution = solution;
             foreach (var fixAllContext in fixAllContexts)
             {
-                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
+                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
+                    or FixAllScope.ContainingMember or FixAllScope.ContainingType);
                 currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
             }
 
@@ -102,13 +111,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
             using var _ = progressTracker.ItemCompletedScope();
-
-            return fixAllContext.Document != null
-                ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
-                : await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
+            return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -118,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgressTracker progressTracker, ImmutableArray<Diagnostic> diagnostics)
+            FixAllContext fixAllContext, IProgressTracker progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -128,14 +134,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
             if (!diagnostics.IsEmpty)
             {
-                // Then, once we've got the diagnostics, bucket them by document and the process all documents in
-                // parallel to get the change for each doc.
-                foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
+                // Then, process all documents in parallel to get the change for each doc.
+                foreach (var (document, documentDiagnostics) in diagnostics)
                 {
-                    var tree = group.Key;
-                    Contract.ThrowIfNull(tree);
-                    var document = fixAllContext.Solution.GetRequiredDocument(tree);
-                    var documentDiagnostics = group.ToImmutableArray();
                     if (documentDiagnostics.IsDefaultOrEmpty)
                         continue;
 

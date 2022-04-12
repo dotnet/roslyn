@@ -153,11 +153,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool IsHostOrRemoteWorkspace(Project project)
-        {
-            return project.Solution.Workspace.Kind is WorkspaceKind.Host or
-                   WorkspaceKind.RemoteWorkspace or
-                   WorkspaceKind.RemoteTemporaryWorkspace;
-        }
+            => project.Solution.Workspace.Kind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
