@@ -46,7 +46,7 @@ stages:
     BuildConfiguration: Release
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
     SignTypeSelection: ${{ parameters.SignTypeSelection }}
-    Packaging.EnableSBOMSigning: true
+    Packaging.EnableSBOMSigning: false
 
   jobs:
   - template: build.yml
