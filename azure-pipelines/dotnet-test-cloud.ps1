@@ -26,16 +26,20 @@ Get-ChildItem -Recurse -Path $RepoRoot\test\*.trx |% {
 
   if ($PublishResults) {
     $x = [xml](Get-Content -Path $_)
-    $storage = $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')[0].storage -replace '\\','/'
-    if ($storage -match '/(?<tfm>net[^/]+)/(?:(?<rid>[^/]+)/)?(?<lib>[^/]+)\.dll$') {
+    $runTitle = $null
+    if ($x.TestRun.TestDefinitions -and $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')) {
+      $storage = $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')[0].storage -replace '\\','/'
+      if ($storage -match '/(?<tfm>net[^/]+)/(?:(?<rid>[^/]+)/)?(?<lib>[^/]+)\.dll$') {
         if ($matches.rid) {
           $runTitle = "$($matches.lib) ($($matches.tfm), $($matches.rid), $Agent)"
         } else {
           $runTitle = "$($matches.lib) ($($matches.tfm), $Agent)"
         }
-    } else {
-        $unknownCounter += 1;
-        $runTitle = "unknown$unknownCounter ($Agent)";
+      }
+    }
+    if (!$runTitle) {
+      $unknownCounter += 1;
+      $runTitle = "unknown$unknownCounter ($Agent)";
     }
 
     Write-Host "##vso[results.publish type=VSTest;runTitle=$runTitle;publishRunAttachments=true;resultFiles=$_;failTaskOnFailedTests=true;testRunSystem=VSTS - PTR;]"
