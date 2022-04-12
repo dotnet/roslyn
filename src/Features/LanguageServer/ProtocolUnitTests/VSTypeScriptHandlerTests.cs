@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,9 +49,11 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Equal(TypeScriptHandler.Response, response);
     }
 
-    [Fact]
-    public async Task TestRoslynTypeScriptHandlerInvoked()
+    [Theory]
+    [CombinatorialData]
+    public async Task TestRoslynTypeScriptHandlerInvoked([CombinatorialRange(0, 100)] int iteration)
     {
+        _ = iteration;
         var workspaceXml =
 @$"<Workspace>
     <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
@@ -70,13 +73,16 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Empty(response);
     }
 
-    private Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml)
+    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml)
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
         var testWorkspace = TestWorkspace.Create(workspaceXml, composition: Composition);
+
+        // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
+        await WaitForWorkspaceOperationsAsync(testWorkspace);
         var languageServerTarget = CreateLanguageServer(serverStream, serverStream, testWorkspace);
 
-        return TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
+        return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
     private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
