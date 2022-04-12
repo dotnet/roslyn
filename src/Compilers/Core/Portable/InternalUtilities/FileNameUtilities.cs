@@ -170,10 +170,13 @@ namespace Roslyn.Utilities
                 return -1;
             }
 
+            // We don't want a "path" like `//langversion:?` to find `?` as the file name
+            bool ignoreVolumeSeparator = path.Length > 0 && path[0] is DirectorySeparatorChar or AltDirectorySeparatorChar;
+
             for (int i = path.Length - 1; i >= 0; i--)
             {
                 char ch = path[i];
-                if (ch == DirectorySeparatorChar || ch == AltDirectorySeparatorChar || ch == VolumeSeparatorChar)
+                if (ch == DirectorySeparatorChar || ch == AltDirectorySeparatorChar || (ch == VolumeSeparatorChar && !ignoreVolumeSeparator))
                 {
                     return i + 1;
                 }

@@ -1410,9 +1410,7 @@ class C
             Assert.Equal("blah", args.Win32Manifest);
         }
 
-        // The following test is failing in the Linux Debug test leg of CI.
-        // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
-        [ConditionalFact(typeof(WindowsOrMacOSOnly))]
+        [Fact]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;
