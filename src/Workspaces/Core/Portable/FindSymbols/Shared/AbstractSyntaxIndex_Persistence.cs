@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
             // then we may match it using textChecksum.  If there were pp directives, then we may match is using
             // textAndDirectivesChecksum.  if we match neither that means that either the data is not in the persistence
-            // service, or ti was written against genuinely different doc/pp-directive contents than before and we have
+            // service, or it was written against genuinely different doc/pp-directive contents than before and we have
             // to recompute and store again.
             //
             // This does mean we have to potentially do two reads here.  However, that is cheap, and still nicer than
