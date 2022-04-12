@@ -1704,7 +1704,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>One of the parameters of a binary operator must be the containing type</value>
   </data>
   <data name="ERR_BadShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
     <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
@@ -6926,7 +6926,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>
   </data>
   <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</value>
   </data>
   <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
     <value>A static abstract interface member can be accessed only on a type parameter.</value>
@@ -7090,5 +7090,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
+  </data>
+  <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
+    <value>relaxed shift operator</value>
   </data>
 </root>

@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">오버로드된 Shift 연산자의 첫 번째 피연산자는 포함하는 형식 또는 제한된 형식 매개 변수와 동일한 형식이어야 하며 두 번째 피연산자의 형식은 int여야 합니다.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">오버로드된 Shift 연산자의 첫 번째 피연산자는 포함하는 형식 또는 제한된 형식 매개 변수와 동일한 형식이어야 하며 두 번째 피연산자의 형식은 int여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -1546,6 +1546,11 @@
         <source>record structs</source>
         <target state="translated">레코드 구조체</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
@@ -5855,8 +5860,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">오버로드된 시프트 연산자의 첫 번째 피연산자는 포함하는 형식과 동일한 형식이어야 하며 두 번째 피연산자는 정수 형식이어야 합니다.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">오버로드된 시프트 연산자의 첫 번째 피연산자는 포함하는 형식과 동일한 형식이어야 하며 두 번째 피연산자는 정수 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

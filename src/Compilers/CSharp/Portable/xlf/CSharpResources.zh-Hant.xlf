@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">多載移位運算子的第一個運算元的類型必須和包含的類型相同，或是其型別參數受限於該運算子，而第二個運算元的類型必須是 INT</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">多載移位運算子的第一個運算元的類型必須和包含的類型相同，或是其型別參數受限於該運算子，而第二個運算元的類型必須是 INT</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -1546,6 +1546,11 @@
         <source>record structs</source>
         <target state="translated">記錄結構</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
@@ -5856,8 +5861,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">多載移位 (Shift) 運算子的第一個運算元的類型必須和包含類型相同，而第二個運算元的類型必須是 int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">多載移位 (Shift) 運算子的第一個運算元的類型必須和包含類型相同，而第二個運算元的類型必須是 int</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

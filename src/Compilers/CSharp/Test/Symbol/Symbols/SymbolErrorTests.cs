@@ -10552,16 +10552,45 @@ class C
     {
     }
 }
-";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static int operator <<(C c1, C c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<"),
 
-                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+class C1
+{
+    public static int operator <<(C1 c1, int c2)
+    {
+        return 0;
+    }
+}
+
+class C2
+{
+    public static int operator <<(C2 c1, int? c2)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>")
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS8652: The feature 'relaxed shift operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int operator <<(C c1, C c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("relaxed shift operator").WithLocation(4, 32),
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32)
                 );
         }
 
