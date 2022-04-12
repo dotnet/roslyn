@@ -79,7 +79,7 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2022
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
   - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.2') }}:
