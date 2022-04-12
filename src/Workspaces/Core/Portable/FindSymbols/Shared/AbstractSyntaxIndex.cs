@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool ContainsIfDirective(SyntaxToken token, int ifDirectiveKind)
         {
+            // Only need to check leading trivia as directives can never appear in trailing trivia.
             foreach (var trivia in token.LeadingTrivia)
             {
                 if (trivia.RawKind == ifDirectiveKind)
