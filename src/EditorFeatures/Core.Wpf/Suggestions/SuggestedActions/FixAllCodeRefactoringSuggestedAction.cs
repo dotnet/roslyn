@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Refactoring_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
                 await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
