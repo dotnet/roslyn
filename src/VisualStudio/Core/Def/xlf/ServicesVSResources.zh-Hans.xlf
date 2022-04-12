@@ -1027,6 +1027,11 @@
         <target state="translated">在 "GetHashCode" 中首选 "System.HashCode"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF8 string literals</source>
+        <target state="new">Prefer UTF8 string literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">首选复合赋值</target>

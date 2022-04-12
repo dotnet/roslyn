@@ -381,6 +381,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
         }
 
+        public string Style_PreferUTF8StringLiteral
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiteral); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiteral, value); }
+        }
+
         public string Style_PreferredUsingDirectivePlacement
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement); }

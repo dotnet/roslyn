@@ -1940,4 +1940,7 @@ Additional information: {1}</value>
   <data name="Prefer_top_level_statements" xml:space="preserve">
     <value>Prefer top level statements</value>
   </data>
+  <data name="Prefer_UTF8_string_literals" xml:space="preserve">
+    <value>Prefer UTF8 string literals</value>
+  </data>
 </root>

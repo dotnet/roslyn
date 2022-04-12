@@ -1140,10 +1140,7 @@ using System;
 
 class Customer
 {{
-    void M1(string[] args)
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
+    // {ServicesVSResources.Prefer_colon}
         (args[1], args[0]) = (args[0], args[1]);
 //]
     }}
@@ -1157,6 +1154,21 @@ class Customer
 //]
     }}
 }}
+";
+
+        private static readonly string s_preferUTF8StringLiteral = $@"
+using System;
+
+//[
+class WebResponse
+{{
+    // {ServicesVSResources.Prefer_colon}
+    private readonly byte[] header = ""Hello""u8;
+
+    // {ServicesVSResources.Over_colon}
+    private readonly byte[] header = new byte[] {{ 72, 101, 108, 108, 111 }};
+}}
+//]
 ";
 
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
@@ -2177,6 +2189,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferUTF8StringLiteral, ServicesVSResources.Prefer_UTF8_string_literals, s_preferUTF8StringLiteral, s_preferUTF8StringLiteral, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);

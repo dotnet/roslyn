@@ -1027,6 +1027,11 @@
         <target state="translated">"System.HashCode" in "GetHashCode" bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF8 string literals</source>
+        <target state="new">Prefer UTF8 string literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Zusammengesetzte Zuweisungen bevorzugen</target>
