@@ -146,14 +146,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static ISymbol GetSymbolsToPullUp(MemberAnalysisResult analysisResult)
         {
-            if (analysisResult.Member is IPropertySymbol propertySymbol)
+            var member = analysisResult.Member;
+            if (member is IPropertySymbol propertySymbol)
             {
                 // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
                 // otherwise ICodeGenerationService won't give the expected declaration.
                 if (analysisResult.ChangeOriginalToPublic)
                 {
                     // We are pulling a non-public property, change its getter/setter to public and itself to be public.
-                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                    member = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
                         accessibility: Accessibility.Public,
                         getMethod: MakePublicAccessor(propertySymbol.GetMethod),
@@ -162,17 +163,38 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 else
                 {
                     // We are pulling a public property, filter the non-public getter/setter.
-                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                    member = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
                         getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
                         setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
                 }
             }
-            else
+
+            // We don't support generating static interface members, so if we're coming from a static
+            // member, generating into an interface, then we need to update to non-static before generating.
+            if (member.IsStatic)
             {
-                // ICodeGenerationService will give the right result if it is method or event
-                return analysisResult.Member;
+                var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
+                if (member is IMethodSymbol methodSymbol)
+                {
+                    return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
+                }
+                else if (member is IPropertySymbol propSymbol)
+                {
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(propSymbol, modifiers: modifier, getMethod: propSymbol.GetMethod, setMethod: propSymbol.SetMethod);
+                }
+                else if (member is IEventSymbol eventSymbol)
+                {
+                    return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
+                }
+                else if (member is IFieldSymbol fieldSymbol)
+                {
+                    return CodeGenerationSymbolFactory.CreateFieldSymbol(fieldSymbol, modifiers: modifier);
+                }
             }
+
+            // ICodeGenerationService will give the right result if it is method or event
+            return member;
         }
 
         private static void ChangeMemberToPublicAndNonStatic(
