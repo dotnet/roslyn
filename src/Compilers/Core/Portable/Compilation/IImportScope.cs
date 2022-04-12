@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -60,6 +59,11 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ImportedXmlNamespace> XmlNamespaces { get; }
     }
 
+    /// <summary>
+    /// Represents an <see cref="INamespaceOrTypeSymbol"/> that has been imported, and the location the import was
+    /// declared at.  This corresponds to <c>using Namespace;</c> or <c>using static Type;</c> in C#, or <c>Imports
+    /// TypeOrNamespace</c> in Visual Basic.
+    /// </summary>
     public readonly struct ImportedNamespaceOrType
     {
         public INamespaceOrTypeSymbol NamespaceOrType { get; }
@@ -72,6 +76,10 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    /// <summary>
+    /// Represents an imported xml namespace name. This corresponds to <c>Imports &lt;xmlns:prefix = "name"&gt;</c> in
+    /// Visual Basic.  It does not exist for C#.
+    /// </summary>
     public readonly struct ImportedXmlNamespace
     {
         public string XmlNamespace { get; }
