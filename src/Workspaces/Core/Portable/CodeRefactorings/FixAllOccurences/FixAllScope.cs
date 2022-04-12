@@ -7,7 +7,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Indicates scope for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public enum FixAllScope
+    /// /// <remarks>
+    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
+    /// </remarks>
+    internal enum FixAllScope
     {
         Document,
         Project,

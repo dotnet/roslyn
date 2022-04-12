@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public sealed class FixAllContext
+    /// <remarks>
+    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
+    /// </remarks>
+    internal sealed class FixAllContext
     {
         internal FixAllState State { get; }
 

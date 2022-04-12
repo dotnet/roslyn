@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// registered by this code refactoring provider across the supported <see cref="FixAllScope"/>s.
         /// Return null if the provider doesn't support fix all operation.
         /// </summary>
-        public virtual FixAllProvider? GetFixAllProvider()
+        /// <remarks>
+        /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
+        /// </remarks>
+        internal virtual FixAllProvider? GetFixAllProvider()
             => null;
 
         /// <summary>

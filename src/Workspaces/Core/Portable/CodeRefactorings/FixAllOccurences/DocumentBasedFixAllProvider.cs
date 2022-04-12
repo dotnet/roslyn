@@ -27,8 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
     /// processed, with all the documents in the project being processed in parallel. 
     /// <see cref="FixAllAsync(FixAllContext, Document, ImmutableArray{TextSpan})"/> is invoked for each document for implementors to process.
+    ///
+    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
     /// </remarks>
-    public abstract class DocumentBasedFixAllProvider : FixAllProvider
+    internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
         private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
 
