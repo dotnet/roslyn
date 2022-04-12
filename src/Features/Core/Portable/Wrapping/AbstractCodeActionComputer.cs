@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             {
                 var newDocument = OriginalDocument.WithSyntaxRoot(rewrittenRoot);
                 var formattedDocument = await Formatter.FormatAsync(
-                    newDocument, spanToFormat, cancellationToken: CancellationToken).ConfigureAwait(false);
+                    newDocument, spanToFormat, Options.FormattingOptions, CancellationToken).ConfigureAwait(false);
                 return formattedDocument;
             }
 

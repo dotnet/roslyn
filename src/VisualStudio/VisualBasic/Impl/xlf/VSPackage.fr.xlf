@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Souligner les variables réaffectées;Afficher les indicateurs inline;Insertion automatique des constructions de fin;Changer les paramètres de listing en mode Pretty;Changer le mode Plan;Insertion automatique des membres Interface et MustOverride;Afficher ou masquer les séparateurs de ligne de procédure;Activer ou désactiver les suggestions de correction d'erreurs;Activer ou désactiver la mise en surbrillance des références et des mots clés;Regex;Mettre en couleurs les expressions régulières;Mettre en surbrillance les composants connexes sous le curseur;Signaler les expressions régulières non valides;regex;expression régulière;Utiliser des couleurs améliorées;Modèle de couleurs de l'éditeur;Directives d’importation;</target>
+        <target state="translated">Souligner les variables réaffectées; afficher les indications en ligne; insérer automatiquement les constructions de fin; modifier les paramètres du listing en mode pretty; modifier le mode de contournement; insérer automatiquement les membres Interface et MustOverride; afficher ou masquer les séparateurs de ligne de procédure; activer ou désactiver les suggestions de correction des erreurs; activer ou désactiver la mise en évidence des références et des mots-clés; 
+Regex;
+ expressions régulières; 
+composants associés sous le curseur; 
+Signaler les expressions régulières invalides; 
+regex;
+ expression régulière; 
+JSON;
+ Coloriser les chaînes JSON; 
+Signaler les chaînes JSON invalides;
+ Détecter et proposer des fonctionnalités d'éditeur pour les chaînes JSON;
+ Utiliser des couleurs améliorées; Schéma de couleurs de l'éditeur; Marge d'héritage; Directives d'importation;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

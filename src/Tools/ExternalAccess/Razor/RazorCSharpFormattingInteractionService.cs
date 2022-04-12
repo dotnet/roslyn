@@ -105,9 +105,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         }
 
         private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)
-            => CSharpSyntaxFormattingOptions.Default.With(
-                useTabs: indentationOptions.UseTabs,
-                tabSize: indentationOptions.TabSize,
-                indentationSize: indentationOptions.IndentationSize);
+            => CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(
+                UseTabs: indentationOptions.UseTabs,
+                TabSize: indentationOptions.TabSize,
+                IndentationSize: indentationOptions.IndentationSize,
+                NewLine: CSharpSyntaxFormattingOptions.Default.NewLine));
     }
 }

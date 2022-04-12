@@ -91,7 +91,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Podkreślaj ponownie przypisane zmienne;
+        <target state="translated">Podkreślaj ponownie przypisane zmienne;
 Wyświetlaj wskazówki w tekście;
 Pokaż dane diagnostyczne dla zamkniętych plików;
 Koloruj wyrażenia regularne; 
@@ -100,23 +100,24 @@ Raportuj nieprawidłowe wyrażenia regularne;
 Włącz pełną analizę rozwiązania;
 Wykonaj analizę funkcji edytora w procesie zewnętrznym;
 Włącz nawigowanie do dekompilowanych źródeł;
-Dyrektywy using;
-Umieść najpierw dyrektywy system podczas sortowania deklaracji using;
-Oddziel grupy dyrektywy using;
-Sugeruj dyrektywy using dla typów w zestawach odwołania;
-Sugeruj dyrektywy using dla typów w pakietach NuGet;
+Zawsze używaj domyślnych serwerów symboli na potrzeby nawigowania
+Używaj dyrektyw;
+Najpierw umieść dyrektywy systemu podczas sortowania użycia;
+Oddziel grupy dyrektywy użycia;
+Sugeruj użycia dla typów w zestawach odwołań;
+Sugeruj użycia dla typów w pakietach NuGet;
 Wyróżnianie;
-Wyróżnij odwołania do symbolu wskazanego przez kursor;
-Wyróżnij pokrewne słowa kluczowe wskazane przez kursor;
+Wyróżnij odwołania do symbolu pod kursorem;
+Wyróżnij pokrewne słowa kluczowe pod kursorem;
 Konspekt;
-Przejdź do trybu konspektu przy otwieraniu plików;
-Pokaż separatory wierszy procedury;
+Przejdź do trybu konspektu przy otwieraniu pliku;
+Pokaż separatory wierszy procedur;
 Pokaż konspekt dla konstrukcji na poziomie deklaracji;
 Pokaż konspekt dla konstrukcji na poziomie kodu;
 Pokaż konspekt dla regionów komentarzy i preprocesora;
 Zwiń regiony podczas zwijania do definicji;
 Zanikanie;
-Zanikanie nieużywanych dyrektyw using;
+Zanikanie nieużywanych użyć;
 Zanikanie nieosiągalnego kodu;
 Prowadnice struktury blokowej;
 Pokaż prowadnice dla konstrukcji na poziomie deklaracji;
@@ -130,17 +131,24 @@ Zgłaszaj nieprawidłowe symbole zastępcze w ciągu.Formatuj komórki;
 Metoda wyodrębniania;
 Nie umieszczaj parametrów ref i out w strukturze niestandardowej;
 Implementuj interfejs lub klasę abstrakcyjną;
-W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je;
-razem z innymi składowymi tego samego rodzaju;
+W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je razem;
+z innymi składowymi tego samego rodzaju;
 na końcu;
 Podczas generowania właściwości;
 preferuj zgłaszanie właściwości;
 preferuj właściwości automatyczne;
+wyrażenie regex;
 wyrażenie regularne;
-wyrażenie regularne;
-Użyj ulepszonych kolorów;
+Koloruj wyrażenia regularne;
+Wyróżniaj powiązane składniki pod kursorem;
+Zgłaszaj nieprawidłowe wyrażenia regularne;
+JSON,
+Koloruj ciągi JSON;
+Zgłaszaj nieprawidłowe ciągi JSON;
+Wykrywaj i oferuj funkcje edytowania dla ciągów JSON;
+Używaj rozszerzonych kolorów;
 Schemat kolorów edytora;
-Margines dziedziczenia</target>
+Margines dziedziczenia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

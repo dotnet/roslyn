@@ -91,16 +91,16 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Subrayar variables reasignadas;
+        <target state="translated">Subrayar variables reasignadas;
 Mostrar sugerencias insertadas;
 Mostrar diagnóstico para archivos cerrados;
-Colorear expresión regular;
- 
+Colorear expresión regular; 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
 Habilitar la navegación a orígenes descompilados;
+Usar siempre servidores de símbolo predeterminados para la navegación;
 Directivas using;
 Poner directivas del sistema primero cuando se organicen instrucciones using;
 Separar grupos de directivas using;
@@ -124,12 +124,12 @@ Mostrar guías para construcciones a nivel de declaración;
 Mostrar guías para construcciones a nivel de código;
 Ayuda del editor;
 Generar comentarios de documentación XML para ///;
-Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */;
+Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */ 
 Mostrar vista previa para seguimiento de cambio de nombre;
 Dividir literales de cadena al presionar Entrar;
 Informar sobre marcadores de posición no válidos en llamadas a string.Format;
 Extraer método;
-No colocar "out" o "ref" en estructura personalizada;
+No colocar \"out\" o \"ref\" en estructura personalizada;
 Implementar interfaz o clase abstracta;
 Al insertar propiedades, eventos y métodos, colóquelos;
 con otros miembros de la misma clase;
@@ -139,8 +139,15 @@ preferir propiedades de lanzamiento;
 preferir propiedades automáticas;
 regex;
 expresión regular;
-Usar colores mejorados;
-Combinación de colores del editor;
+Colorear las expresiones regulares;
+Resaltar los componentes relacionados bajo el cursor;
+Informar de las expresiones regulares no válidas;
+JSON;
+Colorear las cadenas JSON;
+Informar de las cadenas JSON no válidas;
+Detectar y ofrecer funciones del editor para las cadenas JSON;
+Utilizar colores mejorados;
+Esquema de colores del editor;
 Margen de herencia;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>

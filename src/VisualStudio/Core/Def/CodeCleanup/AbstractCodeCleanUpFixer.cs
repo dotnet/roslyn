@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -289,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
-            var options = _globalOptions.GetCodeActionOptions(project.Language);
+            var ideOptions = _globalOptions.GetCodeActionOptions(project.Language);
 
             foreach (var documentId in project.DocumentIds)
             {
@@ -302,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 // to the current document.
                 var documentProgressTracker = new ProgressTracker();
 
-                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, options, cancellationToken).ConfigureAwait(false);
+                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, ideOptions, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
                 progressTracker.ItemCompleted();
             }
@@ -317,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             Document document,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
-            CodeActionOptions options,
+            CodeActionOptions ideOptions,
             CancellationToken cancellationToken)
         {
             if (document.IsGeneratedCode(cancellationToken))
@@ -351,8 +352,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 enabedDiagnosticSets.ToImmutableArray(),
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, options, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

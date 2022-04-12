@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
@@ -1786,7 +1788,7 @@ public class [|C|]
             using var context = TestContext.Create(LanguageNames.CSharp);
             var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
             var document = context.GetDocument(file);
-            await Formatter.FormatAsync(document);
+            await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
