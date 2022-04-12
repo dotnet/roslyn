@@ -16,6 +16,8 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using StreamJsonRpc;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -89,24 +91,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public RequestExecutionQueue(
             ILspLogger logger,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
+            WellKnownLspServerKinds serverKind,
+            RequestTelemetryLogger requestTelemetryLogger,
+            LspWorkspaceManager lspWorkspaceManager)
         {
             _logger = logger;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverKind = serverKind;
-
-            // Pass the language client instance type name to the telemetry logger to ensure we can
-            // differentiate between the different C# LSP servers that have the same client name.
-            // We also don't use the language client's name property as it is a localized user facing string
-            // which is difficult to write telemetry queries for.
-            _requestTelemetryLogger = new RequestTelemetryLogger(_serverKind.ToTelemetryString());
-
-            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
+            _requestTelemetryLogger = requestTelemetryLogger;
+            _lspWorkspaceManager = lspWorkspaceManager;
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -125,9 +121,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
             // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
             _queue.Complete();
-
-            _requestTelemetryLogger.Dispose();
-            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>

@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 {
+    public EventHandler<WorkspaceChangeEventArgs>? LspWorkspaceChanged;
+
     /// <summary>
     /// Lock to gate access to the <see cref="_workspaceToLspSolution"/> and <see cref="_trackedDocuments"/>
     /// Access from the LSP server is serial as the LSP queue is processed serially until
@@ -152,6 +154,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, trackedDocuments))
             {
                 // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
+                LspWorkspaceChanged?.Invoke(sender, e);
                 return;
             }
         }
@@ -162,6 +165,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             // mean we need to re-fork from the workspace to ensure that the lsp solution contains these updates.
             _workspaceToLspSolution[workspace] = null;
         }
+
+        LspWorkspaceChanged?.Invoke(sender, e);
 
         bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, ImmutableDictionary<Uri, SourceText> trackedDocuments)
         {
