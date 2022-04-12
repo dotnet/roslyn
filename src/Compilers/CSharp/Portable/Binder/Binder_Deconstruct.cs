@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(single is object);
                     Debug.Assert(single.Type is not null);
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, ref useSiteInfo);
+                    nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                     diagnostics.Add(single.Syntax, useSiteInfo);
 
                     if (!nestedConversion.IsImplicit)

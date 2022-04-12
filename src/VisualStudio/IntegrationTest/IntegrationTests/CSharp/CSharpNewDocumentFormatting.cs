@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -53,6 +54,86 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             VisualStudio.ErrorList.ShowErrorList();
             VisualStudio.ErrorList.Verify.NoErrors();
+        }
+
+        [WpfFact]
+        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        public void CreateSDKProjectWithBlockScopedNamespacesFromEditorConfig()
+        {
+            var project = new ProjectUtils.Project("TestProj");
+
+            VisualStudio.Workspace.SetFileScopedNamespaces(true);
+
+            var editorConfigFilePath = Path.Combine(VisualStudio.SolutionExplorer.DirectoryName, ".editorconfig");
+            File.WriteAllText(editorConfigFilePath,
+@"
+root = true
+
+[*.cs]
+csharp_style_namespace_declarations = block_scoped
+");
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp);
+
+            VisualStudio.ErrorList.ShowErrorList();
+            VisualStudio.ErrorList.Verify.NoErrors();
+
+            VisualStudio.Editor.Verify.TextContains("namespace TestProj\r\n{");
+        }
+
+        [WpfFact]
+        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        public void CreateSDKProjectWithBlockScopedNamespacesFromIrrelevantEditorConfigH()
+        {
+            var project = new ProjectUtils.Project("TestProj");
+
+            VisualStudio.Workspace.SetFileScopedNamespaces(true);
+
+            var editorConfigFilePath = Path.Combine(VisualStudio.SolutionExplorer.DirectoryName, ".editorconfig");
+            File.WriteAllText(editorConfigFilePath,
+@"
+root = true
+");
+
+            // This editor config file should be ignored
+            editorConfigFilePath = Path.Combine(VisualStudio.SolutionExplorer.DirectoryName, "..", ".editorconfig");
+            File.WriteAllText(editorConfigFilePath,
+@"
+[*.cs]
+csharp_style_namespace_declarations = block_scoped
+");
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp);
+
+            VisualStudio.ErrorList.ShowErrorList();
+            VisualStudio.ErrorList.Verify.NoErrors();
+
+            VisualStudio.Editor.Verify.TextContains("namespace TestProj;");
+        }
+
+        [WpfFact]
+        [WorkItem(60449, "https://github.com/dotnet/roslyn/issues/60449")]
+        public void CreateSDKProjectWithFileScopedNamespacesFromEditorConfig()
+        {
+            var project = new ProjectUtils.Project("TestProj");
+
+            VisualStudio.Workspace.SetFileScopedNamespaces(false);
+
+            var editorConfigFilePath = Path.Combine(VisualStudio.SolutionExplorer.DirectoryName, ".editorconfig");
+            File.WriteAllText(editorConfigFilePath,
+@"
+root = true
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped
+");
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetCoreClassLibrary, LanguageNames.CSharp);
+
+            VisualStudio.ErrorList.ShowErrorList();
+            VisualStudio.ErrorList.Verify.NoErrors();
+
+            VisualStudio.Editor.Verify.TextContains("namespace TestProj;");
         }
     }
 }

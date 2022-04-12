@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// context is unchecked unless external factors (such as compiler switches and execution 
         /// environment configuration) call for checked evaluation.
         /// </remarks>
-        protected bool CheckOverflowAtRuntime
+        internal bool CheckOverflowAtRuntime
         {
             get
             {

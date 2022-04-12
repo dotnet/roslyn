@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
 {
@@ -76,10 +77,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             bool newLineForMembersInAnonymousTypes,
             bool newLineForClausesInQuery)
             => new(new CSharpSyntaxFormattingOptions(
-                useTabs: useTabs,
-                tabSize: tabSize,
-                indentationSize: indentationSize,
-                newLine: newLine,
+                new LineFormattingOptions(
+                    UseTabs: useTabs,
+                    TabSize: tabSize,
+                    IndentationSize: indentationSize,
+                    NewLine: newLine),
                 separateImportDirectiveGroups: separateImportDirectiveGroups,
                 spacing:
                     (spacingAfterMethodDeclarationName ? SpacePlacement.AfterMethodDeclarationName : 0) |

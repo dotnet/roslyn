@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Insert an implicit return statement if necessary.
                 if (body.Kind != BoundKind.ReturnStatement)
                 {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null));
+                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false));
                 }
 
                 var localsSet = PooledHashSet<LocalSymbol>.GetInstance();

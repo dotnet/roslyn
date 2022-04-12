@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -71,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var formattingRuleService = solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var services = solution.Workspace.Services;
+            var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
             {
                 return;
@@ -85,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(
-                document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
             {
                 return;

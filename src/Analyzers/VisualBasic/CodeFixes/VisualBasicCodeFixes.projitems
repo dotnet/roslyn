@@ -15,9 +15,17 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\ArgumentFixer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\VisualBasicAddExplicitCastCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\VisualBasicAddObsoleteAttributeCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\VisualBasicAliasAmbiguousTypeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\VisualBasicMakeTypeAbstractCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\VisualBasicPopulateSwitchStatementCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
@@ -30,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\VisualBasicSimplifyLinqExpressionCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyObjectCreation\VisualBasicSimplifyObjectCreationCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\VisualBasicUnsealClassCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\VisualBasicUseCompoundAssignmentCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.vb" />

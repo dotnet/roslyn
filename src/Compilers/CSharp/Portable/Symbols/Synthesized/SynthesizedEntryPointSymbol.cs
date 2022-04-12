@@ -392,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: null
+                                expressionOpt: null,
+                                @checked: false
                             )
                             { WasCompilerGenerated = true }
                         )
@@ -409,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new BoundReturnStatement(
                                 syntax: syntax,
                                 refKind: RefKind.None,
-                                expressionOpt: _getAwaiterGetResultCall
+                                expressionOpt: _getAwaiterGetResultCall,
+                                @checked: false
                             )
                         )
                     )
@@ -501,7 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         new BoundReturnStatement(
                             syntax,
                             RefKind.None,
-                            null)
+                            null,
+                            @checked: false)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
             }
@@ -590,7 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,
-                    initializeResult)
+                    initializeResult,
+                    @checked: false)
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,

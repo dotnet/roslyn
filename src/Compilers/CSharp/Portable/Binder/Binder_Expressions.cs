@@ -673,6 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullLiteralExpression:
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.UTF8StringLiteralExpression:
+                    return BindUTF8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.DefaultLiteralExpression:
                     return new BoundDefaultLiteral(node);
 
@@ -1162,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, ref useSiteInfo);
+            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             if (!conversion.IsImplicit || !conversion.IsValid)
             {
@@ -1211,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
             TypeSymbol typeType = this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, ref useSiteInfo);
+            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(argument, typedReferenceType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             if (!conversion.IsImplicit || !conversion.IsValid)
             {
@@ -2368,7 +2371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteInfo, forCast: true);
+            Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
             diagnostics.Add(node, useSiteInfo);
 
             var conversionGroup = new ConversionGroup(conversion, targetTypeWithAnnotations);
@@ -2521,7 +2524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = tupleArguments[i];
                 var targetElementType = targetElementTypesWithAnnotations[i].Type;
 
-                var elementConversion = Conversions.ClassifyConversionFromExpression(argument, targetElementType, ref discardedUseSiteInfo);
+                var elementConversion = Conversions.ClassifyConversionFromExpression(argument, targetElementType, isChecked: CheckOverflowAtRuntime, ref discardedUseSiteInfo);
                 if (!elementConversion.IsValid)
                 {
                     GenerateExplicitConversionErrors(diagnostics, argument.Syntax, elementConversion, argument, targetElementType);
@@ -2547,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // built in conversion.
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             TypeWithAnnotations underlyingTargetTypeWithAnnotations = targetTypeWithAnnotations.Type.GetNullableUnderlyingTypeWithAnnotations();
-            var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetTypeWithAnnotations.Type, ref discardedUseSiteInfo);
+            var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetTypeWithAnnotations.Type, isChecked: CheckOverflowAtRuntime, ref discardedUseSiteInfo);
             if (!underlyingConversion.Exists)
             {
                 return BindCastCore(node, operand, targetTypeWithAnnotations, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
@@ -3388,7 +3391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int?[] knownSizes,
             int dimension,
             ImmutableArray<BoundExpression> boundInitExpr,
-            ref int boundInitExprIndex)
+            ref int boundInitExprIndex,
+            bool isInferred)
         {
             Debug.Assert(!boundInitExpr.IsDefault);
 
@@ -3418,7 +3422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expr.Kind() == SyntaxKind.ArrayInitializerExpression)
                     {
                         init = ConvertAndBindArrayInitialization(diagnostics, (InitializerExpressionSyntax)expr,
-                             type, knownSizes, dimension + 1, boundInitExpr, ref boundInitExprIndex);
+                             type, knownSizes, dimension + 1, boundInitExpr, ref boundInitExprIndex, isInferred);
                     }
                     else
                     {
@@ -3457,7 +3461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayInitialization(node, initializers.ToImmutableAndFree(), hasErrors: hasErrors);
+            return new BoundArrayInitialization(node, isInferred, initializers.ToImmutableAndFree(), hasErrors: hasErrors);
         }
 
         private BoundArrayInitialization BindArrayInitializerList(
@@ -3466,6 +3470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
            ArrayTypeSymbol type,
            int?[] knownSizes,
            int dimension,
+           bool isInferred,
            ImmutableArray<BoundExpression> boundInitExprOpt = default(ImmutableArray<BoundExpression>))
         {
             // Bind the array initializer expressions, if not already bound.
@@ -3479,7 +3484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Convert the bound array initializer expressions to array's element type and
             // generate BoundArrayInitialization with the converted initializers.
             int boundInitExprIndex = 0;
-            return ConvertAndBindArrayInitialization(diagnostics, node, type, knownSizes, dimension, boundInitExprOpt, ref boundInitExprIndex);
+            return ConvertAndBindArrayInitialization(diagnostics, node, type, knownSizes, dimension, boundInitExprOpt, ref boundInitExprIndex, isInferred);
         }
 
         private BoundArrayInitialization BindUnexpectedArrayInitializer(
@@ -3493,11 +3498,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 this.Compilation.CreateArrayTypeSymbol(GetSpecialType(SpecialType.System_Object, diagnostics, node)),
                 new int?[1],
-                dimension: 1);
+                dimension: 1,
+                isInferred: false);
 
             if (!result.HasAnyErrors)
             {
-                result = new BoundArrayInitialization(node, result.Initializers, hasErrors: true);
+                result = new BoundArrayInitialization(node, isInferred: false, result.Initializers, hasErrors: true);
             }
 
             Error(diagnostics, errorCode, errorNode ?? node);
@@ -3571,7 +3577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // KnownSizes is further mutated by BindArrayInitializerList as it works out more
             // information about the sizes.
-            BoundArrayInitialization initializer = BindArrayInitializerList(diagnostics, initSyntax, type, knownSizes, 1, boundInitExprOpt);
+            var isInferred = creationSyntax.IsKind(SyntaxKind.ImplicitArrayCreationExpression);
+            BoundArrayInitialization initializer = BindArrayInitializerList(diagnostics, initSyntax, type, knownSizes, 1, isInferred, boundInitExprOpt);
 
             hasErrors = hasErrors || initializer.HasAnyErrors;
 
@@ -3816,7 +3823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
             }
 
-            return new BoundStackAllocArrayCreation(node, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, boundInitExprOpt), type, hasErrors);
+            bool isInferred = node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
+            return new BoundStackAllocArrayCreation(node, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, isInferred, boundInitExprOpt), type, hasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)
@@ -4320,7 +4328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We should try to bind it anyway in order for intellisense to work.
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = this.Conversions.ClassifyConversionFromExpression(unboundLambda, type, ref useSiteInfo);
+                var conversion = this.Conversions.ClassifyConversionFromExpression(unboundLambda, type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
                 // Attempting to make the conversion caches the diagnostics and the bound state inside
                 // the unbound lambda. Fetch the result from the cache.
@@ -5657,7 +5665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     interfaceType,
                     wasTargetTyped);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion conversion = this.Conversions.ClassifyConversionFromExpression(classCreation, interfaceType, ref useSiteInfo, forCast: true);
+                Conversion conversion = this.Conversions.ClassifyConversionFromExpression(classCreation, interfaceType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo, forCast: true);
                 diagnostics.Add(node, useSiteInfo);
                 if (!conversion.IsValid)
                 {
@@ -6019,9 +6027,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (node.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            {
                 MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node, node.Location);
+            }
 
             return new BoundLiteral(node, cv, type);
+        }
+
+        private BoundUTF8String BindUTF8StringLiteral(LiteralExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.Kind() == SyntaxKind.UTF8StringLiteralExpression);
+            Debug.Assert(node.Token.Kind() is SyntaxKind.UTF8StringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken);
+
+            if (node.Token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRawStringLiterals, diagnostics);
+            }
+
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+
+            var value = (string)node.Token.Value;
+            var type = ArrayTypeSymbol.CreateSZArray(Compilation.Assembly, TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Byte, diagnostics, node)));
+
+            return new BoundUTF8String(node, value, type);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -7771,7 +7799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Give the error that would be given upon conversion to int32.
                 NamedTypeSymbol int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion failedConversion = this.Conversions.ClassifyConversionFromExpression(index, int32, ref useSiteInfo);
+                Conversion failedConversion = this.Conversions.ClassifyConversionFromExpression(index, int32, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 

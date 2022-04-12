@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 id,
                 fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                 solutionState.WorkspaceVersion,
-                solutionChecksum,
-                projectId);
+                solutionChecksum);
 
             Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
 

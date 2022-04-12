@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            MyBase.New(Info)
         End Sub
     End Class
 End Namespace
