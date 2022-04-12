@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var semanticModel = syntaxContext.SemanticModel;
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var localSymbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
             var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;
 
             if (isType.IsNullable())
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public static bool TryGetPatternPieces(
             BinaryExpressionSyntax isExpression,
-            out IfStatementSyntax ifStatement,
-            out LocalDeclarationStatementSyntax localDeclarationStatement,
-            out VariableDeclaratorSyntax declarator,
-            out CastExpressionSyntax castExpression)
+            [NotNullWhen(true)] out IfStatementSyntax? ifStatement,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclarationStatement,
+            [NotNullWhen(true)] out VariableDeclaratorSyntax? declarator,
+            [NotNullWhen(true)] out CastExpressionSyntax? castExpression)
         {
             localDeclarationStatement = null;
             declarator = null;
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax ifBlock))
+            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? ifBlock))
             {
                 return false;
             }
