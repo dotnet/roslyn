@@ -38,17 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Remove_Unnecessary_Cast,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(AnalyzersResources.Remove_Unnecessary_Cast)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, nameof(AnalyzersResources.Remove_Unnecessary_Cast));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var castNodes = diagnostics.SelectAsArray(
                 d => (ExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));

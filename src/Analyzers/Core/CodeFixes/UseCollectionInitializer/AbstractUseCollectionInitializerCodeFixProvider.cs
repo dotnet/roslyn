@@ -46,18 +46,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    AnalyzersResources.Collection_initialization_can_be_simplified,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                    nameof(AnalyzersResources.Collection_initialization_can_be_simplified)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Collection_initialization_can_be_simplified, nameof(AnalyzersResources.Collection_initialization_can_be_simplified));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make

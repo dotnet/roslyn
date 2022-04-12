@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return this.SyntaxFormatting.GetFormattingOptions(analyzerConfigOptions);
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
-            var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-            var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, options, cancellationToken);
+            var formattingOptions = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            var updatedRoot = Formatter.Format(editor.OriginalRoot, SyntaxFormatting, formattingOptions, cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
         }
     }
