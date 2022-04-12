@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
             SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
+            Console.WriteLine("DBPath: " + databaseFilePath);
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform

@@ -19,11 +19,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("30");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("29");
 
         private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
 
         public readonly Checksum? Checksum;
+
+        public static int PrecalculatedCount;
+        public static int ComputedCount;
 
         protected static async Task<TIndex?> LoadAsync(
             Document document,
@@ -93,7 +96,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var textAndDirectivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
                 static parseOptions => Checksum.Create(
-                    Checksum.Create(parseOptions.PreprocessorSymbolNames),
+                    Checksum.Create(parseOptions.PreprocessorSymbolNames.Concat("Release")),
+                    // Checksum.Create(parseOptions.PreprocessorSymbolNames),
                     s_serializationFormatChecksum));
 
             return (textChecksum, textAndDirectivesChecksum);
@@ -141,6 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Check if we've already created and persisted the index for this document.
                 if (await PrecalculatedAsync(document, textChecksum, textAndDirectivesChecksum, cancellationToken).ConfigureAwait(false))
                 {
+                    PrecalculatedCount++;
                     return;
                 }
 
@@ -149,6 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // If not, create and save the index.
                     var data = await CreateIndexAsync(document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
                     await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+                    ComputedCount++;
                 }
             }
         }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,9 +124,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // that at the reading point we may have to issue two reads to determine which case we're in.  However, this
             // still let's us avoid parsing the doc at the point we're reading in the indices (which would defeat a
             // major reason for having the index in the first place).
-            var checksum = root.ContainsDirectives ? textAndDirectivesChecksum : textChecksum;
+            var checksum = ContainsIfDirective(root) ? textAndDirectivesChecksum : textChecksum;
 
             return create(document, root, checksum, cancellationToken);
+        }
+
+        private static bool ContainsIfDirective(SyntaxNode node)
+        {
+            if (!node.ContainsDirectives)
+                return false;
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    if (ContainsIfDirective(child.AsNode()!))
+                        return true;
+                }
+                else
+                {
+                    if (ContainsIfDirective(child.AsToken()))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ContainsIfDirective(SyntaxToken token)
+        {
+            if (!token.ContainsDirectives)
+                return false;
+
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                if (trivia.RawKind is 8548 or 737)
+                    return true;
+            }
+
+            return false;
         }
     }
 }
