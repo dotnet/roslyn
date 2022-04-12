@@ -117,13 +117,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
             // if the tree contains `#if`-directives, then include the directives-checksum info in the checksum we
-            // produce. We don't want to consider the data reusable if the user changes pp directives.
+            // produce. We don't want to consider the data reusable if the user changes their parse-option pp-directives
+            // as this could change the root generated for this file.
             //
             // It's trivial for us to determine the checksum to use at the index-creation/writing point because we have
             // to have computed the syntax tree anyways to produce the index.  The tradeoff of this design though is
             // that at the reading point we may have to issue two reads to determine which case we're in.  However, this
             // still let's us avoid parsing the doc at the point we're reading in the indices (which would defeat a
-            // major reason for having the index in the first place).
+            // major reason for having the index in the first place).  Actual measurements show that double reads do not
+            // impose any noticeable perf overhead for the features.
             var ifDirectiveKind = syntaxKinds.IfDirectiveTrivia;
 
             var checksum = root.ContainsDirectives && ContainsIfDirective(root, ifDirectiveKind) ? textAndDirectivesChecksum : textChecksum;
