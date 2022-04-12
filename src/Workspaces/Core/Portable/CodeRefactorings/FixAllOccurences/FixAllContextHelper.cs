@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal static class FixAllContextHelper
     {
         public static string GetDefaultFixAllTitle(FixAllContext fixAllContext)
-            => GetDefaultFixAllTitle(fixAllContext.Scope, fixAllContext.CodeAction, fixAllContext.Document, fixAllContext.Project);
+            => GetDefaultFixAllTitle(fixAllContext.Scope, fixAllContext.State.CodeAction, fixAllContext.Document, fixAllContext.Project);
 
         public static string GetDefaultFixAllTitle(
             FixAllScope fixAllScope,

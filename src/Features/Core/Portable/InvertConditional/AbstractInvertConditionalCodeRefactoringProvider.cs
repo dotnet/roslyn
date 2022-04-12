@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
         where TConditionalExpressionSyntax : SyntaxNode
     {
         protected abstract bool ShouldOffer(TConditionalExpressionSyntax conditional);
+
+        protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -39,12 +42,13 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-        protected override async Task FixAllAsync(Document document, TextSpan fixAllSpan, CodeAction? originalCodeAction, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var originalRoot = editor.OriginalRoot;
 
-            // Get all conditional nodes in the given fixAllSpan.
-            var conditionals = originalRoot.DescendantNodes(node => fixAllSpan.IntersectsWith(node.Span)).OfType<TConditionalExpressionSyntax>();
+            // Get all conditional nodes in the given fixAllSpans.
+            var conditionals = originalRoot.DescendantNodes().OfType<TConditionalExpressionSyntax>()
+                .Where(node => fixAllSpans.Any(fixAllSpan => fixAllSpan.IntersectsWith(node.Span)));
 
             // We're going to be continually editing this tree. Track all the nodes we
             // care about so we can find them across each edit.
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             foreach (var originalConditional in conditionals.Reverse())
             {
                 // Only process conditionals fully within fixAllSpan
-                if (!fixAllSpan.Contains(originalConditional.Span))
+                if (!fixAllSpans.Any(fixAllSpan => fixAllSpan.Contains(originalConditional.Span)))
                     continue;
 
                 var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

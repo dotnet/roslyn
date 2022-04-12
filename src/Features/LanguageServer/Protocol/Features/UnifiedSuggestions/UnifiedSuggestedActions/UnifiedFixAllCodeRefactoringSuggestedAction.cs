@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// </summary>
     internal class UnifiedFixAllCodeRefactoringSuggestedAction : UnifiedSuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
-        public FixAllState? FixAllState { get; }
+        public FixAllState FixAllState { get; }
 
         public UnifiedFixAllCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            FixAllState? fixAllState)
+            FixAllState fixAllState)
             : base(workspace, codeAction, codeActionPriority)
         {
             FixAllState = fixAllState;

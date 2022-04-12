@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// </summary>
     public abstract class FixAllProvider
     {
+        private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
+            = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
+
         /// <summary>
         /// Gets the supported scopes for applying multiple occurrences of a code refactoring.
         /// By default, it returns the following scopes:
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// (c) <see cref="FixAllScope.Solution"/>
         /// </summary>
         public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
+            => DefaultSupportedFixAllScopes;
 
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
@@ -43,40 +46,52 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
         /// </param>
-        /// <param name="supportsFixAllForContainingMember">Indicates if <see cref="FixAllScope.ContainingMember"/> is supported or not.</param>
-        /// <param name="supportsFixAllForContainingType">Indicates if <see cref="FixAllScope.ContainingType"/> is supported or not.</param>
-        public static FixAllProvider Create(
-            Func<FixAllContext, Task<Document?>> fixAllAsync,
-            bool supportsFixAllForContainingMember,
-            bool supportsFixAllForContainingType)
-        {
-            if (fixAllAsync == null)
-                throw new ArgumentNullException(nameof(fixAllAsync));
+        public static FixAllProvider Create(Func<FixAllContext, Document, ImmutableArray<TextSpan>, Task<Document?>> fixAllAsync)
+            => Create(fixAllAsync, DefaultSupportedFixAllScopes);
 
-            return new CallbackDocumentBasedFixAllProvider(fixAllAsync,
-                supportsFixAllForContainingMember, supportsFixAllForContainingType);
+        /// <summary>
+        /// Create a <see cref="FixAllProvider"/> that fixes documents independently.
+        /// This can be used in the case where refactoring(s) registered by this provider
+        /// only affect a single <see cref="Document"/>.
+        /// </summary>
+        /// <param name="fixAllAsync">
+        /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
+        /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
+        /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
+        /// will be considered.
+        /// </param>
+        /// <param name="supportedFixAllScopes">
+        /// Supported <see cref="FixAllScope"/>s for the fix all provider.
+        /// Note that <see cref="FixAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
+        /// and should not be part of the supported scopes.
+        /// </param>
+        public static FixAllProvider Create(
+            Func<FixAllContext, Document, ImmutableArray<TextSpan>, Task<Document?>> fixAllAsync!!,
+            ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            if (supportedFixAllScopes.IsDefault)
+                throw new ArgumentNullException(nameof(supportedFixAllScopes));
+
+            if (supportedFixAllScopes.Contains(FixAllScope.Custom))
+                throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
+
+            return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
         }
 
         private sealed class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
         {
-            private readonly Func<FixAllContext, Task<Document?>> _fixAllAsync;
+            private readonly Func<FixAllContext, Document, ImmutableArray<TextSpan>, Task<Document?>> _fixAllAsync;
 
             public CallbackDocumentBasedFixAllProvider(
-                Func<FixAllContext, Task<Document?>> fixAllAsync,
-                bool supportsFixAllForContainingMember,
-                bool supportsFixAllForContainingType)
+                Func<FixAllContext, Document, ImmutableArray<TextSpan>, Task<Document?>> fixAllAsync,
+                ImmutableArray<FixAllScope> supportedFixAllScopes)
+                : base(supportedFixAllScopes)
             {
                 _fixAllAsync = fixAllAsync;
-                SupportsFixAllForContainingMember = supportsFixAllForContainingMember;
-                SupportsFixAllForContainingType = supportsFixAllForContainingType;
             }
 
-            protected override bool SupportsFixAllForContainingMember { get; }
-
-            protected override bool SupportsFixAllForContainingType { get; }
-
-            protected override Task<Document?> FixAllAsync(FixAllContext context)
-                => _fixAllAsync(context);
+            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<TextSpan> fixAllSpans)
+                => _fixAllAsync(context, document, fixAllSpans);
         }
     }
 }

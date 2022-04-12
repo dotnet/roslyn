@@ -2,10 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.FixAll;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -24,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public Document Document => State.Document!;
 
         /// <summary>
+        /// Original selection span with which fix all occurences was triggered.
+        /// </summary>
+        public TextSpan SelectionSpan => State.SelectionSpan;
+
+        /// <summary>
         /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
         /// </summary>
         public CodeRefactoringProvider CodeRefactoringProvider => State.CodeRefactoringProvider;
@@ -34,18 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public FixAllScope Scope => State.FixAllScope;
 
         /// <summary>
-        /// Optional span within the <see cref="Document"/> to fix all occurrences.
-        /// This span can be non-null only when <see cref="Scope"/> is any of the following document based scopes:
-        ///  1. <see cref="FixAllScope.Document"/>
-        ///  2. <see cref="FixAllScope.ContainingMember"/>
-        ///  3. <see cref="FixAllScope.ContainingType"/>
+        /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public TextSpan? FixAllSpan => State.FixAllSpan;
-
-        /// <summary>
-        /// The underlying <see cref="CodeAction"/> for the code refactoring for which fix all occurences was triggered.
-        /// </summary>
-        public CodeAction CodeAction => State.CodeAction;
+        public string? CodeActionEquivalenceKey => State.CodeAction.EquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -84,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
+
+        /// <summary>
+        /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurences fix.
+        /// </summary>
+        public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+            => State.GetFixAllSpansAsync(cancellationToken);
 
         internal FixAllContext WithDocument(Document? document)
             => this.WithState(State.WithDocument(document));

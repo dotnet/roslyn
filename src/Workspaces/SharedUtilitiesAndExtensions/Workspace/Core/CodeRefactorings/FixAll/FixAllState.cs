@@ -3,8 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.FixAll;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,57 +29,53 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public Document? Document { get; }
         public Project Project { get; }
         public FixAllScope FixAllScope { get; }
-        public TextSpan? FixAllSpan { get; }
         public Solution Solution => this.Project.Solution;
+
+        /// <summary>
+        /// Original selection span from which FixAll was invoked
+        /// </summary>
+        public TextSpan SelectionSpan { get; }
 
         internal FixAllState(
             FixAllProvider fixAllProvider,
-            Document document,
+            Document document!!,
+            TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
-            TextSpan? fixAllSpan,
             CodeAction codeAction)
-            : this(fixAllProvider, document, document.Project, codeRefactoringProvider, fixAllScope, fixAllSpan, codeAction)
+            : this(fixAllProvider, document, document.Project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
         }
 
         internal FixAllState(
             FixAllProvider fixAllProvider,
-            Project project,
+            Project project!!,
+            TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
-            : this(fixAllProvider, document: null, project, codeRefactoringProvider, fixAllScope, fixAllSpan: null, codeAction)
+            : this(fixAllProvider, document: null, project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
         }
 
         private FixAllState(
             FixAllProvider fixAllProvider,
             Document? document,
             Project project,
+            TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
-            TextSpan? fixAllSpan,
             CodeAction codeAction)
         {
             Contract.ThrowIfNull(project);
-            Contract.ThrowIfFalse(!fixAllSpan.HasValue || fixAllScope is FixAllScope.Document or
-                FixAllScope.ContainingMember or FixAllScope.ContainingType);
+            Contract.ThrowIfNull(codeRefactoringProvider);
 
             this.FixAllProvider = fixAllProvider;
             this.Document = document;
             this.Project = project;
-            this.CodeRefactoringProvider = codeRefactoringProvider ?? throw new ArgumentNullException(nameof(codeRefactoringProvider));
+            this.SelectionSpan = selectionSpan;
+            this.CodeRefactoringProvider = codeRefactoringProvider;
             this.FixAllScope = fixAllScope;
-            this.FixAllSpan = fixAllSpan;
             this.CodeAction = codeAction;
         }
 
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => this.With(document: document);
 
         public FixAllState WithProject(Project project)
-            => this.With(project: project, fixAllSpan: null);
+            => this.With(project: project);
 
         public FixAllState WithScope(FixAllScope scope)
             => this.With(scope: scope);
@@ -86,18 +91,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public FixAllState With(
             Optional<Document?> document = default,
             Optional<Project> project = default,
-            Optional<FixAllScope> scope = default,
-            Optional<TextSpan?> fixAllSpan = default)
+            Optional<FixAllScope> scope = default)
         {
             var newDocument = document.HasValue ? document.Value : this.Document;
             var newProject = project.HasValue ? project.Value : this.Project;
             var newFixAllScope = scope.HasValue ? scope.Value : this.FixAllScope;
-            var newFixAllSpan = fixAllSpan.HasValue ? fixAllSpan.Value : this.FixAllSpan;
 
             if (newDocument == this.Document &&
                 newProject == this.Project &&
-                newFixAllScope == this.FixAllScope &&
-                newFixAllSpan == this.FixAllSpan)
+                newFixAllScope == this.FixAllScope)
             {
                 return this;
             }
@@ -106,10 +108,64 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 this.FixAllProvider,
                 newDocument,
                 newProject,
+                this.SelectionSpan,
                 this.CodeRefactoringProvider,
                 newFixAllScope,
-                newFixAllSpan,
                 this.CodeAction);
+        }
+
+        /// <summary>
+        /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurences fix.
+        /// </summary>
+        internal async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+        {
+            IEnumerable<Document>? documentsToFix = null;
+            switch (FixAllScope)
+            {
+                case FixAllScope.ContainingType or FixAllScope.ContainingMember:
+                    Contract.ThrowIfNull(Document);
+                    var spanMappingService = Document.GetLanguageService<IFixAllSpanMappingService>();
+                    if (spanMappingService is null)
+                        return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+
+                    return await spanMappingService.GetFixAllSpansAsync(
+                        Document, SelectionSpan, FixAllScope, cancellationToken).ConfigureAwait(false);
+
+                case FixAllScope.Document:
+                    Contract.ThrowIfNull(Document);
+                    documentsToFix = SpecializedCollections.SingletonEnumerable(Document);
+                    break;
+
+                case FixAllScope.Project:
+                    documentsToFix = Project.Documents;
+                    break;
+
+                case FixAllScope.Solution:
+                    documentsToFix = Project.Solution.Projects.SelectMany(p => p.Documents);
+                    break;
+
+                default:
+                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+            }
+
+            using var _ = PooledDictionary<Document, ImmutableArray<TextSpan>>.GetInstance(out var builder);
+            foreach (var document in documentsToFix)
+            {
+                TextSpan span;
+                if (document.SupportsSyntaxTree)
+                {
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    span = root.FullSpan;
+                }
+                else
+                {
+                    span = default;
+                }
+
+                builder.Add(document, ImmutableArray.Create(span));
+            }
+
+            return builder.ToImmutableDictionary();
         }
     }
 }

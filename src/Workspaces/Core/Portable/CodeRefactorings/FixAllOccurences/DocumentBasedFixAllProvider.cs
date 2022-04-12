@@ -26,12 +26,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <remarks>
     /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
     /// processed, with all the documents in the project being processed in parallel. 
-    /// <see cref="FixAllAsync(FixAllContext)"/> is invoked for each document for implementors to process.
+    /// <see cref="FixAllAsync(FixAllContext, Document, ImmutableArray{TextSpan})"/> is invoked for each document for implementors to process.
     /// </remarks>
     public abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
+        private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+
         protected DocumentBasedFixAllProvider()
+            : this(DefaultSupportedFixAllScopes)
         {
+        }
+
+        protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            _supportedFixAllScopes = supportedFixAllScopes;
         }
 
         /// <summary>
@@ -42,42 +50,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
         /// <summary>
-        /// Apply fix all operation for the <see cref="FixAllContext.CodeAction"/> in the <see cref="FixAllContext.Document"/>
+        /// Apply fix all operation for the code refactoring in the <see cref="FixAllContext.Document"/>
         /// for the given <paramref name="fixAllContext"/>.  The document returned will only be examined for its content
         /// (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects of document (like it's properties),
         /// or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at will be considered.
         /// </summary>
         /// <param name="fixAllContext">The context for the Fix All operation.</param>
+        /// <param name="document">The document to fix.</param>
+        /// <param name="fixAllSpans">The spans to fix in the document.</param>
         /// <returns>
         /// <para>The new <see cref="Document"/> representing the content fixed document.</para>
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext);
-
-        /// <summary>
-        /// Returns a bool indicating if the provider supports FixAll in containing member,
-        /// i.e. <see cref="FixAllScope.ContainingMember"/>
-        /// </summary>
-        protected abstract bool SupportsFixAllForContainingMember { get; }
-
-        /// <summary>
-        /// Returns a bool indicating if the provider supports FixAll in containing type declaration,
-        /// i.e. <see cref="FixAllScope.ContainingType"/>
-        /// </summary>
-        protected abstract bool SupportsFixAllForContainingType { get; }
+        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<TextSpan> fixAllSpans);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        {
-            foreach (var defaultScope in base.GetSupportedFixAllScopes())
-                yield return defaultScope;
-
-            if (SupportsFixAllForContainingMember)
-                yield return FixAllScope.ContainingMember;
-
-            if (SupportsFixAllForContainingType)
-                yield return FixAllScope.ContainingType;
-        }
+            => _supportedFixAllScopes;
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => GetFixAsync(FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
@@ -103,12 +92,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (solution == null)
                 return null;
 
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
             return CodeAction.Create(
                 title, c => Task.FromResult(solution));
-
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
         private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
@@ -195,16 +180,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
             // Process all documents in parallel to get the change for each doc.
-            var documentsToFix = fixAllContext.Scope == FixAllScope.Project
-                ? fixAllContext.Project.Documents
-                : SpecializedCollections.SingletonEnumerable(fixAllContext.Document);
+            var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var document in documentsToFix)
+            foreach (var (document, spans) in documentsAndSpansToFix)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var newFixAllContext = fixAllContext.WithDocument(document);
-                    var newDocument = await this.FixAllAsync(fixAllContext).ConfigureAwait(false);
+                    var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
                     if (newDocument == null || newDocument == document)
                         return default;
 

@@ -15,47 +15,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly bool _supportsFixAll;
-        private readonly bool _supportsFixAllForContainingMember;
-        private readonly bool _supportsFixAllForContainingType;
+        protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = ImmutableArray.Create(FixAllScope.Document,
+            FixAllScope.Project, FixAllScope.Solution);
+        protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = ImmutableArray.Create(FixAllScope.Document,
+            FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember);
 
-        protected SyntaxEditorBasedCodeRefactoringProvider(
-            bool supportsFixAll = true,
-            bool supportsFixAllForContainingMember = true,
-            bool supportsFixAllForContainingType = true)
-        {
-            _supportsFixAll = supportsFixAll;
-            _supportsFixAllForContainingMember = supportsFixAllForContainingMember;
-            _supportsFixAllForContainingType = supportsFixAllForContainingType;
-        }
+        protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
 
         public sealed override FixAllProvider? GetFixAllProvider()
         {
-            if (!_supportsFixAll)
+            if (SupportedFixAllScopes.IsEmpty)
                 return null;
 
             return FixAllProvider.Create(
-                async fixAllContext =>
+                async (fixAllContext, document, fixAllSpans) =>
                 {
-                    return await this.FixAllAsync(fixAllContext.Document, fixAllContext.FixAllSpan, fixAllContext.CodeAction, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await this.FixAllAsync(document, fixAllSpans, fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
-                _supportsFixAllForContainingMember,
-                _supportsFixAllForContainingType);
+                SupportedFixAllScopes);
         }
 
         protected Task<Document> FixAsync(
             Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, fixAllSpan, originalCodeAction: null, editor, cancellationToken),
+                editor => FixAllAsync(document, ImmutableArray.Create(fixAllSpan), editor, cancellationToken),
                 cancellationToken);
         }
 
         protected Task<Document> FixAllAsync(
-            Document document, TextSpan? fixAllSpan, CodeAction originalCodeAction, CancellationToken cancellationToken)
+            Document document, ImmutableArray<TextSpan> fixAllSpans, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, fixAllSpan ?? editor.OriginalRoot.FullSpan, originalCodeAction, editor, cancellationToken),
+                editor => FixAllAsync(document, fixAllSpans, editor, cancellationToken),
                 cancellationToken);
         }
 
@@ -74,6 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         protected abstract Task FixAllAsync(
-            Document document, TextSpan fixAllSpan, CodeAction? originalCodeAction, SyntaxEditor editor, CancellationToken cancellationToken);
+            Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, CancellationToken cancellationToken);
     }
 }

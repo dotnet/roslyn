@@ -1,21 +1,22 @@
+abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext, Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> fixAllSpans) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? diagnosticSpan, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
-abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForContainingMember.get -> bool
 abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForContainingType.get -> bool
-abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForSelection.get -> bool
 abstract Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider
 Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
+Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope> supportedFixAllScopes) -> void
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CancellationToken.get -> System.Threading.CancellationToken
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeAction.get -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeActionEquivalenceKey.get -> string
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeRefactoringProvider.get -> Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Document.get -> Microsoft.CodeAnalysis.Document
-Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.FixAllSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.GetFixAllSpansAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>>
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Scope.get -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.SelectionSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.WithCancellationToken(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
 Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.FixAllProvider() -> void
@@ -32,7 +33,8 @@ Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.
 static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 override sealed Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 override sealed Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope>
-static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, bool supportsFixAllForContainingMember, bool supportsFixAllForContainingType) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
+static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
+static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void

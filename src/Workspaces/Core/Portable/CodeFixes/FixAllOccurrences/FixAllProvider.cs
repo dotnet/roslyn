@@ -74,12 +74,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// and should not be part of the supported scopes.
         /// </param>
         public static FixAllProvider Create(
-            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync!!,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
-            if (fixAllAsync == null)
-                throw new ArgumentNullException(nameof(fixAllAsync));
-
             if (supportedFixAllScopes.IsDefault)
                 throw new ArgumentNullException(nameof(supportedFixAllScopes));
 

@@ -198,24 +198,18 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
                 foreach (var scope in fixAllProviderInfo.SupportedScopes)
                 {
+                    var fixAllState = new FixAllState(fixAllProviderInfo.FixAllProvider, document, selection, provider, scope, action);
+
                     if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                     {
                         // Skip showing ContainingMember and ContainingType FixAll scopes if the language
                         // does not implement 'IFixAllSpanMappingService' langauge service or
                         // we have no mapped FixAll spans to fix.
-
-                        var spanMappingService = document.GetLanguageService<IFixAllSpanMappingService>();
-                        if (spanMappingService is null)
-                            continue;
-
-                        var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(
-                            document, selection, scope, cancellationToken).ConfigureAwait(false);
+                        var documentsAndSpans = await fixAllState.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
                         if (documentsAndSpans.IsEmpty)
                             continue;
                     }
 
-                    var fixAllSpan = await GetFixAllSpanForScopeAsync(scope).ConfigureAwait(false);
-                    var fixAllState = new FixAllState(fixAllProviderInfo.FixAllProvider, document, provider, scope, fixAllSpan, action);
                     var fixAllSuggestedAction = new UnifiedFixAllCodeRefactoringSuggestedAction(
                         workspace, action, action.Priority, fixAllState);
 
@@ -228,39 +222,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     title: CodeFixesResources.Fix_all_occurrences_in,
                     priority: UnifiedSuggestedActionSetPriority.Lowest,
                     applicableToSpan: null);
-
-                // Local functions
-                async Task<TextSpan?> GetFixAllSpanForScopeAsync(FixAllScope fixAllScope)
-                {
-                    return fixAllScope switch
-                    {
-                        FixAllScope.ContainingMember or FixAllScope.ContainingType
-                            => await GetSpanForContainingMemberOrTypeAsync(fixAllScope).ConfigureAwait(false),
-                        _ => null,
-                    };
-                }
-
-                async Task<TextSpan?> GetSpanForContainingMemberOrTypeAsync(FixAllScope fixAllScope)
-                {
-                    Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                    var startContainer = fixAllScope == FixAllScope.ContainingMember
-                        ? syntaxFacts.GetContainingMemberDeclaration(root, selection.Start)
-                        : syntaxFacts.GetContainingTypeDeclaration(root, selection.Start);
-                    if (selection.IsEmpty || startContainer == null)
-                        return startContainer?.FullSpan;
-
-                    var endContainer = fixAllScope == FixAllScope.ContainingMember
-                        ? syntaxFacts.GetContainingMemberDeclaration(root, selection.End)
-                        : syntaxFacts.GetContainingTypeDeclaration(root, selection.End);
-                    if (startContainer == endContainer)
-                        return startContainer.FullSpan;
-
-                    return null;
-                }
             }
         }
     }
