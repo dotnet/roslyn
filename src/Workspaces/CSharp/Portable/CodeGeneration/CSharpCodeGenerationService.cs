@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override CodeGenerationPreferences GetPreferences(ParseOptions parseOptions, OptionSet documentOptions)
-            => new CSharpCodeGenerationPreferences((CSharpParseOptions)parseOptions, documentOptions);
+            => CSharpCodeGenerationPreferences.Create((CSharpParseOptions)parseOptions, documentOptions);
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
             => CSharpCodeGenerationHelpers.GetDestination(node);

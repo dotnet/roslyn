@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Sottolinea variabili riassegnate;Visualizza suggerimenti inline;Inserimento automatico di costrutti End;Modifica impostazioni di riformattazione;Modifica modalità struttura;Inserimento automatico di membri Interface e MustOverride;Mostra o nascondi separatori di riga routine;Attiva o disattiva i suggerimenti per la correzione degli errori;Attiva o disattiva l'evidenziazione di riferimenti e parole chiave;Regex;Colora espressioni regolari;Evidenzia i componenti correlati sotto il cursore;Segnala espressioni regolari non valide;regex;espressione regolare;Usa colori migliorati;Combinazione colori editor;Margine di ereditarietà;Direttive import;</target>
+        <target state="translated">Sottolinea le variabili riassegnate;Visualizza hint inline; Inserimento automatico di costrutti finali; Modifica riformattazione dell'elenco; Modifica la modalità di struttura; Inserimento automatico dei membri Interface e MustOverride; Mostra o nasconde i separatori di riga della procedura; Attiva o disattiva i suggerimenti per la correzione degli errori; Attiva o disattiva l'evidenziazione di riferimenti e parole chiave; 
+regex;
+espressioni regolari;
+componenti correlati sotto il cursore;
+Segnala espressioni regolari non valide;
+regex;
+espressione regolare;
+JSON;
+Colora le stringhe JSON;
+Segnala stringhe JSON non valide;
+Rileva e offri funzionalità dell'editor per le stringhe JSON;
+Usa colori migliorati;Combinazione colori editor;Margine di ereditarietà;Direttive Import;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

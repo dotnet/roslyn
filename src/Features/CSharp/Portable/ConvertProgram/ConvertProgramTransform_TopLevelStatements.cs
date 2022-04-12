@@ -74,13 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
+            var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             var documentWithImportsAdded = document.WithSyntaxRoot(addImportsService.AddImports(
                 compilation: null!, root, contextLocation: null, directives, generator,
-                await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false),
+                addImportOptions,
                 cancellationToken));
 
             return await removeImportsService.RemoveUnnecessaryImportsAsync(
-                documentWithImportsAdded, n => n.HasAnnotation(annotation), cancellationToken).ConfigureAwait(false);
+                documentWithImportsAdded, n => n.HasAnnotation(annotation), formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)

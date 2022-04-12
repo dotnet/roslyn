@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;Regulärer Ausdruck;Reguläre Ausdrücke farbisieren;Verwandte Komponenten unter dem Cursor hervorheben;Ungültige reguläre Ausdrücke melden;regex;regulärer Ausdruck;Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Importdirektiven;</target>
+        <target state="translated">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen; Automatisches Einfügen von Endkonstrukten;Pretty Listing-Einstellungen ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;
+Regex;
+reguläre Ausdrücke;
+zugehörige Komponenten unter dem Cursor;
+Ungültige reguläre Ausdrücke melden;
+RegEx;
+regulärer Ausdruck;
+JSON;
+JSON-Zeichenfolgen farbig hervorheben;
+Ungültige JSON-Zeichenfolgen melden;
+Editorfeatures für JSON-Zeichenfolgen erkennen und anbieten;
+erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Einfuhrrichtlinien;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

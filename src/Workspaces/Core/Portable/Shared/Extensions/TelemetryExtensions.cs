@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 FixAllScope.Document => 1,
                 FixAllScope.Project => 2,
                 FixAllScope.Solution => 3,
-                _ => 4,
+                FixAllScope.Custom => 4,
+                FixAllScope.ContainingMember => 5,
+                FixAllScope.ContainingType => 6,
+                _ => 7,
             };
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
