@@ -116,10 +116,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
-            // if the tree contains directives, then include the directives-checksum info in the checksum we produce. We
-            // don't want to consider the data reusable if the user changes pp directives.  Note: currently, this
-            // unfortunately means we cannot reuse indices created for documents that use `#nullable` or `#region`.
-            // Ideally, this would only impact documents containing `#if` directives.
+            // if the tree contains `#if`-directives, then include the directives-checksum info in the checksum we
+            // produce. We don't want to consider the data reusable if the user changes pp directives.
             //
             // It's trivial for us to determine the checksum to use at the index-creation/writing point because we have
             // to have computed the syntax tree anyways to produce the index.  The tradeoff of this design though is
