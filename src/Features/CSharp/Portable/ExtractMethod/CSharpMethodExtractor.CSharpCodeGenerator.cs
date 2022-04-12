@@ -237,6 +237,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     isStatic = false;
                 }
 
+                // UseInstanceMember will be false for interface members, but extracting a non-static
+                // member to a static member has a very different meaning for interfaces so we need
+                // an extra check here.
+                if (!LocalFunction && CSharpSelectionResult.IsInInterfaceMember() && !CSharpSelectionResult.IsInStaticMember())
+                {
+                    isStatic = false;
+                }
+
                 return new DeclarationModifiers(
                     isUnsafe: isUnsafe,
                     isAsync: isAsync,
