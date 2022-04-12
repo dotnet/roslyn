@@ -49,11 +49,9 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Equal(TypeScriptHandler.Response, response);
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task TestRoslynTypeScriptHandlerInvoked([CombinatorialRange(0, 100)] int iteration)
+    [Fact]
+    public async Task TestRoslynTypeScriptHandlerInvoked()
     {
-        _ = iteration;
         var workspaceXml =
 @$"<Workspace>
     <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
