@@ -25,10 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
-        // we can just cache one array and reuse it
-        private static readonly byte[] s_charArray = new byte[4];
-
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
@@ -121,14 +117,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         }
         internal static bool TryConvertToUTF8String(StringBuilder? builder, SegmentedList<byte> values)
         {
+            // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
+            // we can just use one array and reuse it. Using an array pool would do the same
+            // thing but with more locks.
+            var array = new byte[4];
             for (var i = 0; i < values.Count;)
             {
                 // We only need max 4 elements for a single Rune
                 var count = Math.Min(values.Count - i, 4);
 
                 // Need to copy to a regular array to get a ROS for Rune to process
-                values.CopyTo(i, s_charArray, 0, count);
-                var ros = new ReadOnlySpan<byte>(s_charArray, 0, count);
+                values.CopyTo(i, array, 0, count);
+                var ros = new ReadOnlySpan<byte>(array, 0, count);
 
                 // If we can't decode a rune from the array then it can't be represented as a string
                 if (Rune.DecodeFromUtf8(ros, out var rune, out var bytesConsumed) != System.Buffers.OperationStatus.Done)
