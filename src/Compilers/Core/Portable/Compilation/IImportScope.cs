@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis
     /// will be a scope for the containing compilation unit if it includes any import directives.  There can also be a
     /// scope representing any imports specified at the project level.
     /// </item>
+    /// <item>
+    /// Elements of any property have no defined order.  Even if they represent items from a single document, they are
+    /// not guaranteed to be returned in any specific file-oriented order.
+    /// </item>
     /// </list>
     /// </remarks>
     public interface IImportScope
