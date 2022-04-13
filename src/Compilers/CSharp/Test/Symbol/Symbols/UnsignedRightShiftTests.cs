@@ -2063,8 +2063,7 @@ class C
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe,
                                                        parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE(UnsignedRightShift): This code was previously allowed. Confirm that we are Ok with this 
-            //                                breaking change and document it.  
+            // This code was previously allowed. We are accepting this source breaking change. 
             compilation1.VerifyDiagnostics(
                 // (9,40): error CS0571: 'C1.operator >>>(C1, int)': cannot explicitly call operator or accessor
                 //     static C1 Test1(C1 x, int y) => C1.op_UnsignedRightShift(x, y); 
@@ -3581,6 +3580,40 @@ class C
                                                  parseOptions: TestOptions.RegularNext);
                 compilation2.VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        public void CanBeValidAttributeArgument()
+        {
+            string source = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+public class Parent
+{
+    public void TestRightShift([Optional][DefaultParameterValue(300 >> 1)] int i)
+    {
+        Console.Write(i);
+    }
+
+    public void TestUnsignedRightShift([Optional][DefaultParameterValue(300 >>> 1)] int i)
+    {
+        Console.Write(i);
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var p = new Parent();
+        p.TestRightShift();
+        p.TestUnsignedRightShift();
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"150150", parseOptions: TestOptions.RegularNext);
         }
     }
 }
