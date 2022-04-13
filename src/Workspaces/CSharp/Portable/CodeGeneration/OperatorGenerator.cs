@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);
+            var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+                ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword)
+                : default;
 
             var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
@@ -87,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+                checkedKeyword: checkedToken,
                 operatorToken: operatorToken,
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options: options),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
