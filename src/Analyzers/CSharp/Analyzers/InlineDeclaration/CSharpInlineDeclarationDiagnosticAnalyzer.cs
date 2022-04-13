@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
-                var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
+                var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
                 compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
+                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
             });
         }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionTypeOpt)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var argumentNode = (ArgumentSyntax)context.Node;
             var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (argumentExpression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+            if (argumentExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
                 // fix if we're inside one.
