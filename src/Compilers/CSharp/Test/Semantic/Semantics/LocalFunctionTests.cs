@@ -8725,6 +8725,62 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_ConflictingNames()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        [My(nameof(parameter))]
+        void local<@parameter>(int parameter) => throw null;
+    }
+
+    [My(nameof(parameter))]
+    void M2<@parameter>(int parameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0103: The name 'parameter' does not exist in the current context
+                //         [My(nameof(parameter))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 20),
+                // (9,36): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void local<@parameter>(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(9, 36),
+                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(nameof(parameter))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16),
+                // (13,29): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //     void M2<@parameter>(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(13, 29)
+                );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void local<@parameter>(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(9, 36),
+                // (13,29): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //     void M2<@parameter>(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(13, 29)
+                );
+
+            VerifyParameter(comp, 0, "void local<parameter>(System.Int32 parameter)");
+            VerifyParameter(comp, 1, "void C.M2<parameter>(System.Int32 parameter)");
+        }
+
+        [Fact]
         public void ParameterScope_InMethodAttributeNameOf_CompatBreak()
         {
             var source = @"
@@ -9166,6 +9222,40 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_Delegate_ConflictingName()
+        {
+            var source = @"
+[My(nameof(TParameter))] delegate int MyDelegate<TParameter>(int TParameter);
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "MyDelegate<TParameter>");
+
+            source = @"
+[My(nameof(parameter))] delegate int MyDelegate<parameter>(int parameter);
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (2,49): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // [My(nameof(parameter))] delegate int MyDelegate<parameter>(int parameter);
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(2, 49)
+                );
+
+            VerifyParameter(comp, 0, "System.Int32 MyDelegate<parameter>.Invoke(System.Int32 parameter)");
+        }
+
+        [Fact]
         public void ParameterScope_InMethodAttributeNameOf_Constructor()
         {
             var source = @"
@@ -9375,6 +9465,78 @@ public class MyAttribute : System.Attribute
 
             VerifyParameter(comp, 0, "void local(System.Int32 parameter)");
             VerifyParameter(comp, 1, "void C.M2(System.Int32 parameter)");
+        }
+
+        [Fact]
+        public void ParameterScope_InParameterAttributeNameOf_ConflictingNames()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+    }
+
+    void M2<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (8,61): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(8, 61),
+                // (11,54): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //     void M2<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(11, 54)
+                );
+
+            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 TParameter)");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 TParameter)");
+
+            source = @"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
+    }
+
+    void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(8, 20),
+                // (8,59): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(8, 59),
+                // (11,13): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(11, 13),
+                // (11,52): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //     void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(11, 52)
+                );
+
+            VerifyParameter(comp, 0, "void local<parameter>(System.Int32 parameter)");
+            VerifyParameter(comp, 1, "void C.M2<parameter>(System.Int32 parameter)");
         }
 
         [Fact]

@@ -199,14 +199,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody);
         }
 
+#nullable enable
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             if (node.MayBeNameofOperator())
             {
                 var oldEnclosing = _enclosing;
 
-                WithTypeParametersBinder withTypeParametersBinder;
-                WithParametersBinder withParametersBinder;
+                WithTypeParametersBinder? withTypeParametersBinder;
+                WithParametersBinder? withParametersBinder;
                 // The LangVer check will be removed before shipping .NET 7.
                 // Tracked by https://github.com/dotnet/roslyn/issues/60640
                 if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
@@ -243,21 +244,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return contextualAttributeBinder.AttributeTarget;
             }
 
-            static WithTypeParametersBinder getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
+            static WithTypeParametersBinder? getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
                 => target.Kind == SymbolKind.Method ? new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing) : null;
 
             // We're bringing parameters in scope inside `nameof` in attributes on methods, their type parameters and parameters.
             // This also applies to local functions, lambdas, indexers and delegates.
-            static WithParametersBinder getExtraWithParametersBinder(Binder enclosing, Symbol target)
+            static WithParametersBinder? getExtraWithParametersBinder(Binder enclosing, Symbol target)
             {
                 var parameters = target switch
                 {
                     SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet } setter => getSetterParameters(setter),
                     MethodSymbol methodSymbol => methodSymbol.Parameters,
                     ParameterSymbol parameter => getAllParameters(parameter),
-                    TypeParameterSymbol typeParameter => getMethodFromTypeParameter(typeParameter).Parameters,
+                    TypeParameterSymbol typeParameter => getMethodParametersFromTypeParameter(typeParameter),
                     PropertySymbol property => property.Parameters,
-                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod.Parameters,
+                    NamedTypeSymbol namedType when namedType.IsDelegateType() => getDelegateParameters(namedType),
                     _ => default
                 };
 
@@ -268,24 +269,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static ImmutableArray<ParameterSymbol> getAllParameters(ParameterSymbol parameter)
             {
-                var containingSymbol = parameter.ContainingSymbol;
-                return containingSymbol switch
+                switch (parameter.ContainingSymbol)
                 {
-                    MethodSymbol method => method.Parameters,
-                    PropertySymbol property => property.Parameters,
-                    _ => default
-                };
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case PropertySymbol property:
+                        return property.Parameters;
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
             }
 
-            static MethodSymbol getMethodFromTypeParameter(TypeParameterSymbol typeParameter)
+            static ImmutableArray<ParameterSymbol> getMethodParametersFromTypeParameter(TypeParameterSymbol typeParameter)
             {
-                var containingSymbol = typeParameter.ContainingSymbol;
-                return containingSymbol switch
+                switch (typeParameter.ContainingSymbol)
                 {
-                    MethodSymbol method => method,
-                    NamedTypeSymbol namedType when namedType.IsDelegateType() => namedType.DelegateInvokeMethod,
-                    _ => null
-                };
+                    case MethodSymbol method:
+                        return method.Parameters;
+                    case NamedTypeSymbol namedType when namedType.IsDelegateType():
+                        return getDelegateParameters(namedType);
+                    default:
+                        Debug.Assert(false);
+                        return default;
+                }
+            }
+
+            static ImmutableArray<ParameterSymbol> getDelegateParameters(NamedTypeSymbol delegateType)
+            {
+                Debug.Assert(delegateType.IsDelegateType());
+                if (delegateType.DelegateInvokeMethod is { } invokeMethod)
+                {
+                    return invokeMethod.Parameters;
+                }
+
+                Debug.Assert(false);
+                return default;
             }
 
             static ImmutableArray<ParameterSymbol> getSetterParameters(SourcePropertyAccessorSymbol setter)
@@ -295,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameters.RemoveAt(parameters.Length - 1);
             }
         }
+#nullable disable
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
