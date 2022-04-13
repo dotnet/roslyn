@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
         public abstract ISyntaxFacts SyntaxFacts { get; }
+        public abstract IBlockFacts BlockFacts { get; }
+
         protected abstract ISemanticFacts SemanticFacts { get; }
 
         protected abstract SyntaxToken ToIdentifierToken(string identifier);
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
-                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
+                a => BlockFacts.IsExecutableBlock(a) || SyntaxFacts.IsParameterList(a) || SyntaxFacts.IsMethodBody(a));
 
             var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
             var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;

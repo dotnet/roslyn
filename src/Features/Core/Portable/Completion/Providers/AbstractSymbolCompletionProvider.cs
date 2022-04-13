@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> TryGetSymbolsForContextAsync(
             CompletionContext? completionContext, TSyntaxContext syntaxContext, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var syntaxFacts = syntaxContext.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = syntaxContext.GetRequiredLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)
                 ? default
                 : await GetSymbolsAsync(completionContext, syntaxContext, syntaxContext.Position, options, cancellationToken).ConfigureAwait(false);

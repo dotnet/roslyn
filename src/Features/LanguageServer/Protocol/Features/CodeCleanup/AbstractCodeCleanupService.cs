@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             EnabledDiagnosticOptions enabledDiagnostics,
             IProgressTracker progressTracker,
             CodeActionOptions options,
+            SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 progressTracker.Description = this.OrganizeImportsDescription;
                 document = await RemoveSortUsingsAsync(
-                    document, enabledDiagnostics.OrganizeUsings, cancellationToken).ConfigureAwait(false);
+                    document, enabledDiagnostics.OrganizeUsings, formattingOptions, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 progressTracker.Description = FeaturesResources.Formatting_document;
                 using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
                 {
-                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document = await Formatter.FormatAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
                     progressTracker.ItemCompleted();
                 }
             }
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private static async Task<Document> RemoveSortUsingsAsync(
-            Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
+            Document document, OrganizeUsingsSet organizeUsingsSet, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
             {
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 {
                     using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
                     {
-                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

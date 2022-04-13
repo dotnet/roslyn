@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 

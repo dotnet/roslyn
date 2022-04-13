@@ -48,18 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return Task.CompletedTask;
             }
 
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpAnalyzersResources.Convert_switch_statement_to_expression,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                    nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Convert_switch_statement_to_expression, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)

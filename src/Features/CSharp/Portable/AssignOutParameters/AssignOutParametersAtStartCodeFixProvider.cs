@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(
-               CSharpFeaturesResources.Assign_out_parameters_at_start,
-               c => FixAsync(document, context.Diagnostics[0], c)), context.Diagnostics);
+            context.RegisterCodeFix(
+                new MyCodeAction(CSharpFeaturesResources.Assign_out_parameters_at_start, GetDocumentUpdater(context)),
+                context.Diagnostics);
         }
 
         protected override void AssignOutParameters(

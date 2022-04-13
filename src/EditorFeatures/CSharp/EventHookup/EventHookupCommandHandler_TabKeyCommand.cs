@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var documentWithNameAndAnnotationsAdded = AddMethodNameAndAnnotationsToSolution(document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken);
             var semanticDocument = SemanticDocument.CreateAsync(documentWithNameAndAnnotationsAdded, cancellationToken).WaitAndGetResult(cancellationToken);
-            var preferences = CSharpCodeGenerationPreferences.FromDocumentAsync(semanticDocument.Document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var preferences = CSharpCodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, preferences, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
             if (updatedRoot == null)
@@ -167,8 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var newRoot = formattedDocument.GetSyntaxRootSynchronously(cancellationToken);
             plusEqualTokenEndPosition = newRoot.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)

@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 return;
             }
 
-            context.RegisterCodeFix(
-               new MyCodeAction(c => FixAsync(document, diagnostics.First(), c)),
-               diagnostics);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Fix_return_type, nameof(CSharpCodeFixesResources.Fix_return_type));
 
             return;
 
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return (declarationTypeToFix, fixedDeclaration);
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var (declarationTypeToFix, fixedDeclaration) =
                 await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -127,14 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                     LocalFunctionStatementSyntax localFunction => (localFunction.ReturnType, localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword)),
                     _ => default,
                 };
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Fix_return_type, createChangedDocument, nameof(CSharpCodeFixesResources.Fix_return_type))
-            {
             }
         }
     }

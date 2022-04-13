@@ -34,22 +34,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         ''' </summary>
         Public ReadOnly MustBeginNewStatement As Boolean
 
-        Public ReadOnly IsSingleLineStatementContext As Boolean
+        Public ReadOnly IsCustomEventContext As Boolean
+        Public ReadOnly IsInLambda As Boolean
+        Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
-
+        Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
+        Public ReadOnly IsPreprocessorStartContext As Boolean
+        Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly IsTypeDeclarationKeywordContext As Boolean
         Public ReadOnly IsTypeMemberDeclarationKeywordContext As Boolean
-        Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
+        Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Public ReadOnly ModifierCollectionFacts As ModifierCollectionFacts
-        Public ReadOnly IsPreprocessorStartContext As Boolean
-        Public ReadOnly IsInLambda As Boolean
-        Public ReadOnly IsQueryOperatorContext As Boolean
-        Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
-        Public ReadOnly IsCustomEventContext As Boolean
 
-        Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
-        Public ReadOnly IsWithinPreprocessorContext As Boolean
+        Public ReadOnly EnclosingNamedType As INamedTypeSymbol
 
         Private Sub New(
             document As Document,
@@ -57,53 +55,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
-            isTypeContext As Boolean,
+            isAttributeNameContext As Boolean,
+            isAwaitKeywordContext As Boolean,
+            isCustomEventContext As Boolean,
+            isEnumTypeMemberAccessContext As Boolean,
+            isAnyExpressionContext As Boolean,
+            isGlobalStatementContext As Boolean,
+            isOnArgumentListBracketOrComma As Boolean,
+            isInImportsDirective As Boolean,
+            isInLambda As Boolean,
+            isInQuery As Boolean,
+            isInTaskLikeTypeContext As Boolean,
+            isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
+            isPossibleTupleContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
             isPreProcessorExpressionContext As Boolean,
             isRightOfNameSeparator As Boolean,
-            isSingleLineStatementContext As Boolean,
-            isGlobalStatementContext As Boolean,
-            isExpressionContext As Boolean,
-            isAttributeNameContext As Boolean,
-            isEnumTypeMemberAccessContext As Boolean,
-            isNameOfContext As Boolean,
-            isInLambda As Boolean,
-            isInQuery As Boolean,
-            isInImportsDirective As Boolean,
-            isCustomEventContext As Boolean,
-            isPossibleTupleContext As Boolean,
-            isInArgumentList As Boolean,
+            isRightSideOfNumericType As Boolean,
+            isStatementContext As Boolean,
+            isTypeContext As Boolean,
+            isWithinAsyncMethod As Boolean,
             cancellationToken As CancellationToken
         )
-
             MyBase.New(
                 document,
                 semanticModel,
                 position,
                 leftToken,
                 targetToken,
-                isTypeContext,
+                isAnyExpressionContext:=isAnyExpressionContext,
+                isAtEndOfPattern:=False,
+                isAtStartOfPattern:=False,
+                isAttributeNameContext:=isAttributeNameContext,
+                isAwaitKeywordContext:=isAwaitKeywordContext,
+                isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
+                isGlobalStatementContext:=isGlobalStatementContext,
+                isInImportsDirective:=isInImportsDirective,
+                isInQuery:=isInQuery,
+                isInTaskLikeTypeContext:=isInTaskLikeTypeContext,
+                isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
                 isNamespaceDeclarationNameContext,
-                isPreProcessorDirectiveContext,
-                isPreProcessorExpressionContext,
-                isRightOfNameSeparator,
-                isStatementContext:=isSingleLineStatementContext,
-                isGlobalStatementContext:=isGlobalStatementContext,
-                isAnyExpressionContext:=isExpressionContext,
-                isAttributeNameContext:=isAttributeNameContext,
-                isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
-                isNameOfContext:=isNameOfContext,
-                isInQuery:=isInQuery,
-                isInImportsDirective:=isInImportsDirective,
-                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken),
+                isOnArgumentListBracketOrComma:=isOnArgumentListBracketOrComma,
                 isPossibleTupleContext:=isPossibleTupleContext,
-                isAtStartOfPattern:=False,
-                isAtEndOfPattern:=False,
-                isRightSideOfNumericType:=False,
-                isOnArgumentListBracketOrComma:=isInArgumentList,
+                isPreProcessorDirectiveContext:=isPreProcessorDirectiveContext,
+                isPreProcessorExpressionContext:=isPreProcessorExpressionContext,
+                isRightOfNameSeparator:=isRightOfNameSeparator,
+                isRightSideOfNumericType:=isRightSideOfNumericType,
+                isStatementContext:=isStatementContext,
+                isTypeContext:=isTypeContext,
+                isWithinAsyncMethod:=isWithinAsyncMethod,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -111,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.FollowsEndOfStatement = targetToken.FollowsEndOfStatement(position)
             Me.MustBeginNewStatement = targetToken.MustBeginNewStatement(position)
 
-            Me.IsSingleLineStatementContext = isSingleLineStatementContext
             Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
 
             Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
@@ -124,13 +126,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
             Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
-            Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
+            Me.EnclosingNamedType = ComputeEnclosingNamedType(cancellationToken)
             Me.IsCustomEventContext = isCustomEventContext
 
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsInTaskLikeTypeContext(targetToken As SyntaxToken) As Boolean
+            ' If we're after the 'as' in an async method declaration, then filter down to task-like types only.
+            If targetToken.Kind() = SyntaxKind.AsKeyword Then
+                Dim asClause = TryCast(targetToken.Parent, AsClauseSyntax)
+                Dim methodStatement = TryCast(asClause?.Parent, MethodBaseSyntax)
+                If methodStatement IsNot Nothing Then
+                    Return methodStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Shared Shadows Function ComputeIsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
@@ -140,40 +155,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
+            Dim isAnyExpressionContext = syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel)
+            Dim isInQuery = leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
+            Dim isStatementContext = syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken)
+
             Return New VisualBasicSyntaxContext(
                 document,
                 semanticModel,
                 position,
                 leftToken,
                 targetToken,
-                isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
+                isAnyExpressionContext:=isAnyExpressionContext,
+                isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
+                isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
+                isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
+                isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
+                isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
+                isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
+                isInQuery:=isInQuery,
+                isInTaskLikeTypeContext:=ComputeIsInTaskLikeTypeContext(targetToken),
+                isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
+                isOnArgumentListBracketOrComma:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
+                isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
-                isSingleLineStatementContext:=syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken),
-                isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
-                isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
-                isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
-                isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
-                isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
-                isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
-                isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
-                isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
-                isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
-                isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
-                isInArgumentList:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
+                isRightSideOfNumericType:=False,
+                isStatementContext:=isStatementContext,
+                isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
+                isWithinAsyncMethod:=ComputeIsWithinAsyncMethod(targetToken),
                 cancellationToken:=cancellationToken)
         End Function
 
-        Friend Overrides Function IsAwaitKeywordContext() As Boolean
-            If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
-                If IsInQuery Then
+        Private Shared Function ComputeIsAwaitKeywordContext(
+                targetToken As SyntaxToken,
+                isAnyExpressionContext As Boolean,
+                isInQuery As Boolean,
+                isSingleLineStatementContext As Boolean) As Boolean
+            If isAnyExpressionContext OrElse isSingleLineStatementContext Then
+                If isInQuery Then
                     ' There are some places where Await is allowed:
                     ' BC36929: 'Await' may only be used in a query expression within the first collection expression of the initial 'From' clause or within the collection expression of a 'Join' clause.
-                    If TargetToken.Kind = SyntaxKind.InKeyword Then
-                        Dim collectionRange = TryCast(TargetToken.Parent, CollectionRangeVariableSyntax)
+                    If targetToken.Kind = SyntaxKind.InKeyword Then
+                        Dim collectionRange = TryCast(targetToken.Parent, CollectionRangeVariableSyntax)
                         If collectionRange IsNot Nothing Then
                             If TypeOf collectionRange.Parent Is FromClauseSyntax AndAlso TypeOf collectionRange.Parent.Parent Is QueryExpressionSyntax Then
                                 Dim fromClause = DirectCast(collectionRange.Parent, FromClauseSyntax)
@@ -193,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
                     Return False
                 End If
-                For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
+                For Each node In targetToken.GetAncestors(Of SyntaxNode)()
                     If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
                                    SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
                         Return True
