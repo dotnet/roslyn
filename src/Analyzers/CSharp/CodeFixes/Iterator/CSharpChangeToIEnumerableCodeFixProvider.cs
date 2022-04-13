@@ -120,16 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             [NotNullWhen(true)] out INamedTypeSymbol? ienumerableSymbol,
             [NotNullWhen(true)] out INamedTypeSymbol? ienumerableGenericSymbol)
         {
-            ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
+            ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
 
-            if (ienumerableGenericSymbol == null ||
-                ienumerableSymbol == null)
-            {
-                return false;
-            }
-
-            return true;
+            return ienumerableGenericSymbol != null && ienumerableSymbol != null;
         }
     }
 }
