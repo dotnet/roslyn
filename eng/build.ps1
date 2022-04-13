@@ -44,6 +44,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$arm64Framework = $false,
   [switch]$oop64bit = $true,
   [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
@@ -112,6 +113,7 @@ function Print-Usage() {
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -sourceBuild              Simulate building source-build"
+  Write-Host "  -arm64Framework           Build .NET Framework Exes as ARM64 binaries" 
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -239,6 +241,7 @@ function BuildSolution() {
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+  $arm64 = if ($arm64Framework) { "/p:RoslynArm64Framework=true" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -267,6 +270,7 @@ function BuildSolution() {
       $buildFromSource `
       $generateDocumentationFile `
       $roslynUseHardLinks `
+      $arm64 `
       @properties
   }
   finally {

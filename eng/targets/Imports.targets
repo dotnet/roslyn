@@ -46,6 +46,8 @@
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+
+    <PlatformTarget Condition="'$(OutputType)' == 'Exe' AND '$(RoslynArm64Framework)' == 'true'">ARM64</PlatformTarget>
   </PropertyGroup>
 
   <!--
