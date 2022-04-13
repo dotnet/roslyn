@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
-            LoadComponentsBackgroundAsync(cancellationToken).Forget();
+            LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
         }
 
         // Overrides for VSSDK003 fix 
