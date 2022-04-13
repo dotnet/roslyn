@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">ref 赋值左侧必须为 ref 本地函数或参数。</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">ref 赋值左侧必须为 ref 本地函数或参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">

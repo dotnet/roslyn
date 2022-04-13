@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">ref atamasının sol tarafı, yerel ref veya parametresi olmalıdır.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">ref atamasının sol tarafı, yerel ref veya parametresi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">

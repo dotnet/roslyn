@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">La parte izquierda de una asignación de referencias debe ser una referencia local o un parámetro.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="needs-review-translation">La parte izquierda de una asignación de referencias debe ser una referencia local o un parámetro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">

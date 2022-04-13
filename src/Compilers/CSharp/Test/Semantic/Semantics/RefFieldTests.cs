@@ -2104,7 +2104,6 @@ class Program
             // PROTOTYPE: Should this scenario be supported? Test all valid combinations of { get, set, init }.
             // PROTOTYPE: Verify use of ref auto-property does not generate a LanguageVersion error
             // (since we generally don't look at how properties are implemented).
-            // PROTOTYPE: Change text of ERR_RefLocalOrParamExpected to "The left-hand side of a ref assignment must be a ref variable."
             comp.VerifyEmitDiagnostics(
                 // (4,18): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref T P { get; }
@@ -2112,22 +2111,22 @@ class Program
                 // (5,27): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly T Q { get; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Q").WithArguments("S<T>.Q").WithLocation(5, 27),
-                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         P = ref t;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9),
                 // (8,9): error CS8079: Use of possibly unassigned auto-implemented property 'P'
                 //         P = ref t;
                 Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "P").WithArguments("P").WithLocation(8, 9),
-                // (9,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (9,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         Q = ref t;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Q").WithLocation(9, 9),
                 // (9,9): error CS8079: Use of possibly unassigned auto-implemented property 'Q'
                 //         Q = ref t;
                 Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Q").WithArguments("Q").WithLocation(9, 9),
-                // (26,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (26,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         s.P = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P").WithLocation(26, 9),
-                // (27,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (27,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         s.Q = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.Q").WithLocation(27, 9));
         }
