@@ -331,6 +331,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingAfterUTF8String_5()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"u[||]8;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestMissingInVerbatimString()
         {
             TestNotHandled(
