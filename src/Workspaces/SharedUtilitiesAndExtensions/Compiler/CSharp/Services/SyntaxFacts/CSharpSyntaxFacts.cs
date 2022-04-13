@@ -432,6 +432,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GreaterThanGreaterThanToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return PredefinedOperator.RightShift;
+
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return PredefinedOperator.UnsignedRightShift;
             }
 
             return PredefinedOperator.None;

@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 "op_Modulus" => PredefinedOperator.Modulus,
                 "op_Multiply" => PredefinedOperator.Multiplication,
                 "op_RightShift" => PredefinedOperator.RightShift,
+                "op_UnsignedRightShift" => PredefinedOperator.UnsignedRightShift,
                 "op_Subtraction" or "op_UnaryNegation" => PredefinedOperator.Subtraction,
                 _ => PredefinedOperator.None,
             };

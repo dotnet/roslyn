@@ -3136,6 +3136,7 @@ class C
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "%", "Remainder"));
             TestOperatorKinds(GenerateTest(ShiftTemplate, "<<", "LeftShift"));
             TestOperatorKinds(GenerateTest(ShiftTemplate, ">>", "RightShift"));
+            TestOperatorKinds(GenerateTest(ShiftTemplate, ">>>", "UnsignedRightShift"));
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "==", "Equal"));
             TestOperatorKinds(GenerateTest(ArithmeticTemplate, "!=", "NotEqual"));
             TestOperatorKinds(GenerateTest(EqualityTemplate, "!=", "NotEqual"));
@@ -6756,7 +6757,7 @@ class op_RightShift
 }
 class op_UnsignedRightShift
 {
-		
+	public static long operator >>>  (op_UnsignedRightShift c, int i) { return 0; }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
@@ -6804,7 +6805,11 @@ class op_UnsignedRightShift
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "<<").WithArguments("op_LeftShift"),
                 // (60,30): error CS0542: 'op_RightShift': member names cannot be the same as their enclosing type
                 // 	public static long operator >>  (op_RightShift c, int i) { return 0; }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>").WithArguments("op_RightShift"));
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>").WithArguments("op_RightShift"),
+                // (64,30): error CS0542: 'op_UnsignedRightShift': member names cannot be the same as their enclosing type
+                // 	public static long operator >>>  (op_UnsignedRightShift c, int i) { return 0; }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, ">>>").WithArguments("op_UnsignedRightShift").WithLocation(64, 30)
+                );
         }
 
         [Fact]

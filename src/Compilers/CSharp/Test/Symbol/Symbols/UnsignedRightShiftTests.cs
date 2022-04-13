@@ -2265,6 +2265,45 @@ class C
         }
 
         [Fact]
+        public void UserDefined_06()
+        {
+            var source0 = @"
+public class C1
+{
+    public static C1 op_UnsignedRightShift(C1 x, int y)
+    {
+        return x;
+    }
+}
+";
+
+            var source1 =
+@"
+class C
+{
+    static C1 Test1(C1 x, int y) => x >>> y; 
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { compilation0.ToMetadataReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation2.VerifyDiagnostics(
+                // (4,37): error CS0019: Operator '>>>' cannot be applied to operands of type 'C1' and 'int'
+                //     static C1 Test1(C1 x, int y) => x >>> y; 
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "C1", "int").WithLocation(4, 37)
+                );
+
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, references: new[] { compilation0.EmitToImageReference() },
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation3.VerifyDiagnostics(
+                // (4,37): error CS0019: Operator '>>>' cannot be applied to operands of type 'C1' and 'int'
+                //     static C1 Test1(C1 x, int y) => x >>> y; 
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x >>> y").WithArguments(">>>", "C1", "int").WithLocation(4, 37)
+                );
+        }
+
+        [Fact]
         public void UserDefined_ExpressionTree_01()
         {
             var source1 =
@@ -3580,6 +3619,50 @@ class C
                                                  parseOptions: TestOptions.RegularNext);
                 compilation2.VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        public void TestGenericArgWithGreaterThan_05()
+        {
+            var source1 = @"
+class C
+{
+    void M()
+    {
+        var added = ImmutableDictionary<T<(S a, U b)>>>
+
+        ProjectChange = projectChange;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (6,21): error CS0103: The name 'ImmutableDictionary' does not exist in the current context
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ImmutableDictionary").WithArguments("ImmutableDictionary").WithLocation(6, 21),
+                // (6,41): error CS0103: The name 'T' does not exist in the current context
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "T").WithArguments("T").WithLocation(6, 41),
+                // (6,44): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(6, 44),
+                // (6,44): error CS8185: A declaration is not allowed in this context.
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "S a").WithLocation(6, 44),
+                // (6,49): error CS0246: The type or namespace name 'U' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "U").WithArguments("U").WithLocation(6, 49),
+                // (6,49): error CS8185: A declaration is not allowed in this context.
+                //         var added = ImmutableDictionary<T<(S a, U b)>>>
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "U b").WithLocation(6, 49),
+                // (8,9): error CS0103: The name 'ProjectChange' does not exist in the current context
+                //         ProjectChange = projectChange;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ProjectChange").WithArguments("ProjectChange").WithLocation(8, 9),
+                // (8,25): error CS0103: The name 'projectChange' does not exist in the current context
+                //         ProjectChange = projectChange;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "projectChange").WithArguments("projectChange").WithLocation(8, 25)
+                );
         }
 
         [Fact]

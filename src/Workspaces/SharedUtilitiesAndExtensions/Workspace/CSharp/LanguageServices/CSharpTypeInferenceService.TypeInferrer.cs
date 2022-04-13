@@ -937,12 +937,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
 
                         if (onRightOfToken)
                         {
-                            // x << Goo(), x >> Goo(), x <<= Goo(), x >>= Goo()
+                            // x << Goo(), x >> Goo(), x >>> Goo(), x <<= Goo(), x >>= Goo(), x >>>= Goo()
                             return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
 
@@ -1037,8 +1039,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PercentEqualsToken:
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                         return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
                     case SyntaxKind.BarEqualsToken:
