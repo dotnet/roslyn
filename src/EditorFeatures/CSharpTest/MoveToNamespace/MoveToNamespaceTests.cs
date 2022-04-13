@@ -59,6 +59,20 @@ namespace A
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
+            => TestMoveToNamespaceAsync(
+@"using System;
+[||]
+namespace A;
+
+class MyClass
+{
+}
+",
+expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace2()
             => TestMoveToNamespaceAsync(
 @"using System;[||]
@@ -195,6 +209,19 @@ expectedSymbolChanges: new Dictionary<string, string>()
         void Method() { }
     }
 }",
+expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
+        => TestMoveToNamespaceAsync(
+@"namespace A;  [||]
+
+class MyClass
+{
+    void Method() { }
+}
+",
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -372,6 +399,29 @@ expectedMarkup: @$"namespace {{|Warning:B|}}
     {{
     }}
 }}",
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyType", "B.MyType" }
+});
+
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Single_FileScopedNamespace(string typeKeyword)
+        => TestMoveToNamespaceAsync(
+@$"namespace A;
+
+{typeKeyword} MyType[||]
+{{
+}}
+",
+expectedMarkup: @$"namespace {{|Warning:B|}};
+
+{typeKeyword} MyType
+{{
+}}
+",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
