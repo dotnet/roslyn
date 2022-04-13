@@ -266,7 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
-                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, _handle, moduleSymbol);
+                if (_containingType.SpecialType != SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                {
+                    // We need to break the cycle when loading members of System.Runtime.CompilerServices.RuntimeFeature
+                    typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, _handle, moduleSymbol);
+                }
 
                 // We start without annotations
                 var type = TypeWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
                 case Cci.PrimitiveTypeCode.IntPtr:
                 case Cci.PrimitiveTypeCode.UIntPtr:
-                    return type.IsNativeIntegerType;
+                    return type.IsNativeIntegerTypeOrNumericIntPtr;
                 default:
                     return false;
             }
@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
                     switch (fromPredefTypeKind)
                     {
-                        case Microsoft.Cci.PrimitiveTypeCode.IntPtr when !fromType.IsNativeIntegerType:
-                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr when !fromType.IsNativeIntegerType:
+                        case Microsoft.Cci.PrimitiveTypeCode.IntPtr when !fromType.IsNativeIntegerTypeOrNumericIntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr when !fromType.IsNativeIntegerTypeOrNumericIntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
                         case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             Debug.Assert(IsNumeric(toType));
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         default:
                             Debug.Assert(IsNumeric(fromType));
                             Debug.Assert(
-                                (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerType ||
+                                (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerTypeOrNumericIntPtr ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
                             break;

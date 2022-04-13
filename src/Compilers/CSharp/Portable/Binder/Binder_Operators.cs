@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (kind == UnaryOperatorKind.UnaryMinus &&
                         (object)operand.Type != null &&
-                        (operand.Type.SpecialType == SpecialType.System_UInt64 || (operand.Type.SpecialType == SpecialType.System_UIntPtr && operand.Type.IsNativeIntegerType)))
+                        (operand.Type.SpecialType == SpecialType.System_UInt64 || isNuint(operand.Type)))
                     {
                         resultKind = LookupResultKind.OverloadResolutionFailure;
                     }
@@ -1422,6 +1422,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return possiblyBest;
+
+            bool isNuint(TypeSymbol type)
+            {
+                return type.SpecialType == SpecialType.System_UIntPtr
+                    && type.IsNativeIntegerTypeOrNumericIntPtr;
+            }
         }
 
         private static object FoldDecimalBinaryOperators(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight)

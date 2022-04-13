@@ -1650,8 +1650,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType.System_Decimal => BinaryOperatorKind.Decimal,
             SpecialType.System_String => BinaryOperatorKind.String,
             SpecialType.System_Boolean => BinaryOperatorKind.Bool,
-            SpecialType.System_IntPtr when type.IsNativeIntegerType => BinaryOperatorKind.NInt,
-            SpecialType.System_UIntPtr when type.IsNativeIntegerType => BinaryOperatorKind.NUInt,
+            SpecialType.System_IntPtr when type.IsNativeIntegerTypeOrNumericIntPtr => BinaryOperatorKind.NInt,
+            SpecialType.System_UIntPtr when type.IsNativeIntegerTypeOrNumericIntPtr => BinaryOperatorKind.NUInt,
             _ => BinaryOperatorKind.Error,
         };
 

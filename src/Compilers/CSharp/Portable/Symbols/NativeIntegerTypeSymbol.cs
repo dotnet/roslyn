@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlyingType) : base(underlyingType, tupleData: null)
         {
             Debug.Assert(underlyingType.TupleData is null);
-            Debug.Assert(!underlyingType.IsNativeIntegerType);
+            Debug.Assert(!underlyingType.IsNativeIntegerTypeOrNumericIntPtr);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
+            Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);
         }
 
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
-        internal override bool IsNativeIntegerType => true;
+        internal override bool IsNativeIntegerWrapperType => true;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
@@ -187,8 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+
+            Debug.Assert(!ContainingAssembly.RuntimeSupportsNumericIntPtr);
             return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other.IsNativeIntegerType;
+                other.IsNativeIntegerWrapperType;
         }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();

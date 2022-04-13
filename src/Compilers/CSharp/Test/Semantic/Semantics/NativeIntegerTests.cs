@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     nint Add(nint x, nuint y);
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(3, 22));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics();
         }
 
@@ -168,19 +170,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     void F2(System.UIntPtr x, nuint y);
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceA);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref1 }, parseOptions: TestOptions.Regular9);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics();
             verify(comp);
 
             comp = CreateEmptyCompilation(sourceB, references: new[] { ref2 }, parseOptions: TestOptions.Regular9);
+            Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
             comp.VerifyDiagnostics();
             verify(comp);
 
@@ -210,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(SymbolKind.NamedType, type.Kind);
             Assert.Equal(TypeKind.Struct, type.TypeKind);
             Assert.Same(type, type.ConstructedFrom);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerWrapperType);
             Assert.Equal(signed ? "IntPtr" : "UIntPtr", type.Name);
 
             if (isNativeInt)
@@ -589,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             bool containsType(TypeWithAnnotations type, bool useNativeInteger)
             {
-                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerType, (object)null) is { };
+                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerWrapperType, (object)null) is { };
             }
 
             static Symbol getUnderlyingMember(Symbol nativeIntegerMember)
@@ -712,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             Assert.Equal(SymbolKind.ErrorType, type.Kind);
             Assert.Equal(TypeKind.Error, type.TypeKind);
-            Assert.Equal(isNativeInt, type.IsNativeIntegerType);
+            Assert.Equal(isNativeInt, type.IsNativeIntegerWrapperType);
             Assert.Equal(specialType, type.SpecialType);
         }
 
@@ -798,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -893,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -982,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(type);
                 Assert.Equal(expectedAssembly, type.NativeIntegerUnderlyingType.ContainingAssembly);
             }
@@ -1054,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Assert.IsType<Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting.RetargetingFieldSymbol>(field);
                 Assert.Equal(expectedSymbol, field.ToTestDisplayString());
                 var type = (NamedTypeSymbol)field.Type;
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.IsType<NativeIntegerTypeSymbol>(type);
             }
         }
@@ -1102,7 +1108,7 @@ public class B : A<nint>
             var refA = AsReference(comp, useCompilationReference);
 
             var type1 = getConstraintType(comp);
-            Assert.True(type1.IsNativeIntegerType);
+            Assert.True(type1.IsNativeIntegerWrapperType);
             Assert.False(type1.IsErrorType());
 
             var sourceB =
@@ -1123,7 +1129,7 @@ public class B : A<nint>
 
             var type2 = getConstraintType(comp);
             Assert.True(type2.ContainingAssembly.IsMissing);
-            Assert.False(type2.IsNativeIntegerType);
+            Assert.False(type2.IsNativeIntegerWrapperType);
             Assert.True(type2.IsErrorType());
 
             static TypeSymbol getConstraintType(CSharpCompilation comp) =>
@@ -1177,7 +1183,7 @@ public class B : A<nint>
 
             var refA = comp.ToMetadataReference();
             var typeA = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
-            Assert.True(typeA.IsNativeIntegerType);
+            Assert.True(typeA.IsNativeIntegerWrapperType);
             Assert.False(typeA.IsErrorType());
 
             var sourceB =
@@ -1195,7 +1201,7 @@ public class B : A<nint>
 
             var typeB = comp.GetMember<NamedTypeSymbol>("A").BaseTypeNoUseSiteDiagnostics;
             Assert.True(typeB.ContainingAssembly.IsMissing);
-            Assert.False(typeB.IsNativeIntegerType);
+            Assert.False(typeB.IsNativeIntegerWrapperType);
             Assert.True(typeB.IsErrorType());
         }
 
@@ -1493,7 +1499,7 @@ namespace System
             {
                 var underlyingType = type.NativeIntegerUnderlyingType;
 
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
                 Assert.Equal(specialType, underlyingType.SpecialType);
 
                 var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
@@ -1740,7 +1746,7 @@ namespace System
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -1896,7 +1902,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2057,7 +2063,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2144,7 +2150,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2262,7 +2268,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2382,7 +2388,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2529,7 +2535,7 @@ class Program
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2623,7 +2629,7 @@ namespace System.Reflection
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -2763,7 +2769,7 @@ namespace System.Reflection
 
             static void verifyType(NamedTypeSymbol type, bool signed)
             {
-                Assert.True(type.IsNativeIntegerType);
+                Assert.True(type.IsNativeIntegerWrapperType);
 
                 VerifyType(type, signed: signed, isNativeInt: true);
                 VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
@@ -3528,9 +3534,9 @@ interface I
                 var underlyingType0 = method.Parameters[0].Type.GetSymbol<NamedTypeSymbol>();
                 var underlyingType1 = method.Parameters[1].Type.GetSymbol<NamedTypeSymbol>();
                 Assert.Equal(SpecialType.None, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3570,9 +3576,9 @@ System.Object");
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
-                Assert.False(underlyingType1.IsNativeIntegerType);
+                Assert.False(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3604,9 +3610,9 @@ class Program
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -3638,9 +3644,9 @@ class Program
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
-                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.False(underlyingType0.IsNativeIntegerWrapperType);
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
-                Assert.True(underlyingType1.IsNativeIntegerType);
+                Assert.True(underlyingType1.IsNativeIntegerWrapperType);
             }
         }
 
@@ -4599,7 +4605,7 @@ False
 
                 static bool isNativeInt(TypeSymbol type, bool signed)
                 {
-                    return type.IsNativeIntegerType &&
+                    return type.IsNativeIntegerWrapperType &&
                         type.SpecialType == (signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr);
                 }
 
@@ -14679,6 +14685,125 @@ enum E { }
                     comp.VerifyDiagnostics();
                 }
             }
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionTarget(bool nullable1, bool nullable2)
+        {
+            // Given two types T1 and T2, T1 is a better conversion target than T2 if one of the following holds:
+            // 1. An implicit conversion from T1 to T2 exists and no implicit conversion from T2 to T1 exists
+            // ...
+            // 3. T1 is S1 or S1? where S1 is a signed integral type, and T2 is S2 or S2? where S2 is an unsigned integral type.
+
+            string s1Nullable = nullable1 ? "?" : "";
+            string s2Nullable = nullable2 ? "?" : "";
+
+            string source = $$"""
+using static System.Console;
+
+C.M1(0);
+C.M2(0);
+C.M3(0);
+C.M4(0);
+C.M5(0);
+C.M6(0);
+C.M7(0);
+C.M8(0);
+
+public class C
+{
+    public static void M1(sbyte{{s1Nullable}} x) { Write("M1 ");  }
+    public static void M1(nuint{{s2Nullable}} x) { }
+
+    public static void M2(short{{s1Nullable}} x) { Write("M2 "); }
+    public static void M2(nuint{{s2Nullable}} x) { }
+
+    public static void M3(int{{s1Nullable}} x) { Write("M3 "); }
+    public static void M3(nuint{{s2Nullable}} x) { }
+
+    public static void M4(long{{s1Nullable}} x) { Write("M4 "); }
+    public static void M4(nuint{{s2Nullable}} x) { }
+
+    public static void M5(nint{{s1Nullable}} x) { Write("M5(nint) "); }
+    public static void M5(ushort{{s2Nullable}} x) { Write("M5(ushort) ");  }
+
+    public static void M6(nint{{s1Nullable}} x) { Write("M6 "); }
+    public static void M6(uint{{s2Nullable}} x) { }
+
+    public static void M7(nint{{s1Nullable}} x) { Write("M7 "); }
+    public static void M7(ulong{{s2Nullable}} x) { }
+
+    public static void M8(nint{{s1Nullable}} x) { Write("M8"); }
+    public static void M8(nuint{{s2Nullable}} x) { }
+}
+""";
+            var comp = CreateCompilation(source);
+
+            // Note: conversions ushort->nint, ushort?->nint?, ushort->nint? are implicit (so rule 1 kicks in), but ushort?->nint is explicit (so rule 3 kicks in)
+            var expected = (nullable1, nullable2) is (false, true)
+                ? "M1 M2 M3 M4 M5(nint) M6 M7 M8"
+                : "M1 M2 M3 M4 M5(ushort) M6 M7 M8";
+            CompileAndVerify(comp, expectedOutput: expected);
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionTarget_IntPtr(bool nullable1, bool nullable2)
+        {
+            // Given two types T1 and T2, T1 is a better conversion target than T2 if one of the following holds:
+            // 1. An implicit conversion from T1 to T2 exists and no implicit conversion from T2 to T1 exists
+            // ...
+            // 3. T1 is S1 or S1? where S1 is a signed integral type, and T2 is S2 or S2? where S2 is an unsigned integral type.
+
+            string s1Nullable = nullable1 ? "?" : "";
+            string s2Nullable = nullable2 ? "?" : "";
+
+            string source = $$"""
+using System;
+using static System.Console;
+
+C.M1(0);
+C.M2(0);
+C.M3(0);
+C.M4(0);
+C.M5(0);
+C.M6(0);
+C.M7(0);
+C.M8(0);
+C.M9(0);
+
+public class C
+{
+    public static void M1(sbyte{{s1Nullable}} x) { Write("M1 ");  }
+    public static void M1(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M2(short{{s1Nullable}} x) { Write("M2 "); }
+    public static void M2(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M3(int{{s1Nullable}} x) { Write("M3 "); }
+    public static void M3(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M4(long{{s1Nullable}} x) { Write("M4 "); }
+    public static void M4(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M5(nint{{s1Nullable}} x) { Write("M5 "); }
+    public static void M5(UIntPtr{{s2Nullable}} x) { }
+
+    public static void M6(IntPtr{{s1Nullable}} x) { }
+    public static void M6(ushort{{s2Nullable}} x) { Write("M6 "); }
+
+    public static void M7(IntPtr{{s1Nullable}} x) { }
+    public static void M7(uint{{s2Nullable}} x) { Write("M7 "); }
+
+    public static void M8(IntPtr{{s1Nullable}} x) { }
+    public static void M8(ulong{{s2Nullable}} x) { Write("M8 "); }
+
+    public static void M9(IntPtr{{s1Nullable}} x) { }
+    public static void M9(nuint{{s2Nullable}} x) { Write("M9"); }
+}
+""";
+            var comp = CreateCompilation(source);
+
+            CompileAndVerify(comp, expectedOutput: "M1 M2 M3 M4 M5 M6 M7 M8 M9");
         }
     }
 }

@@ -559,9 +559,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if the type represents a native integer. In C#, the types represented
-        /// by language keywords 'nint' and 'nuint'.
+        /// by language keywords 'nint' and 'nuint' on platforms where they were not unified
+        /// with 'System.IntPtr' and 'System.UIntPtr'.
         /// </summary>
-        internal virtual bool IsNativeIntegerType => false;
+        internal virtual bool IsNativeIntegerWrapperType => false;
+
+        // TODO2 will be renamed IsNativeInteger before merging this PR
+        internal bool IsNativeIntegerTypeOrNumericIntPtr => IsNativeIntegerWrapperType
+            || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);
 
         /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 

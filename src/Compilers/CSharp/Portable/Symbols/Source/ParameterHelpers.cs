@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void EnsureNativeIntegerAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
+            Debug.Assert(moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureNativeIntegerAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
@@ -283,11 +284,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (!compilation.ShouldEmitNativeIntegerAttributes())
+            {
+                return;
+            }
+
             EnsureNativeIntegerAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
         }
 
         private static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
         {
+            Debug.Assert(compilation.ShouldEmitNativeIntegerAttributes());
             foreach (var parameter in parameters)
             {
                 if (parameter.TypeWithAnnotations.ContainsNativeInteger())

@@ -256,7 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
                 }
 
-                if (returnType.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes() &&
+                    returnType.Type.ContainsNativeInteger())
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: false);
                 }

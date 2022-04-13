@@ -940,7 +940,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
-            return this.GetSpecialType(specialType, diagnostics, node).AsNativeInteger();
+            var type = this.GetSpecialType(specialType, diagnostics, node);
+            return type.ContainingAssembly.RuntimeSupportsNumericIntPtr ? type : type.AsNativeInteger();
         }
 
         private void ReportUseSiteDiagnosticForDynamic(BindingDiagnosticBag diagnostics, IdentifierNameSyntax node)

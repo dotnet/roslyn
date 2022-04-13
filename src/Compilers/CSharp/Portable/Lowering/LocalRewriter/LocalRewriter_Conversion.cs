@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenType: rewrittenType);
 
                 case ConversionKind.IntPtr:
-                    return RewriteIntPtrConversion(oldNodeOpt, syntax, rewrittenOperand, conversion, @checked,
+                    return RewriteIntPtrConversion(syntax, rewrittenOperand, conversion, @checked,
                         explicitCastInCode, constantValueOpt, rewrittenType);
 
                 case ConversionKind.ImplicitNullable:
@@ -1288,7 +1288,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression RewriteIntPtrConversion(
-            BoundConversion? oldNode,
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             Conversion conversion,
@@ -1300,6 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenOperand != null);
             Debug.Assert((object)rewrittenType != null);
             Debug.Assert(rewrittenOperand.Type is { });
+            Debug.Assert(!_compilation.Assembly.RuntimeSupportsNumericIntPtr);
 
             TypeSymbol source = rewrittenOperand.Type;
             TypeSymbol target = rewrittenType;
@@ -1602,6 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case ConversionKind.IntPtr:
                     {
+                        Debug.Assert(!_compilation.Assembly.RuntimeSupportsNumericIntPtr);
                         SpecialMember member = GetIntPtrConversionMethod(fromType, toType);
                         MethodSymbol method;
                         if (!TryGetSpecialTypeMethod(syntax, member, out method))

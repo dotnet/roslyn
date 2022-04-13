@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (returnType.HasType)
             {
-                if (returnType.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes() && returnType.Type.ContainsNativeInteger())
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
                 }

@@ -298,14 +298,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureAttributesFromConstraints(BindingDiagnosticBag diagnostics)
         {
-            if (ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger()))
+            if (DeclaringCompilation.ShouldEmitNativeIntegerAttributes()
+                && ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger()))
             {
                 DeclaringCompilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
             }
+
             if (ConstraintsNeedNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
             }
+
             Location getLocation() => this.GetNonNullSyntaxNode().Location;
         }
 

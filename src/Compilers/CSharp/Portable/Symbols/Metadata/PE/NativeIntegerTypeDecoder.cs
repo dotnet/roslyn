@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
+            if (type.ContainingAssembly?.RuntimeSupportsNumericIntPtr == true)
+            {
+                return type;
+            }
+
             return containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags) ?
                 TransformType(type, transformFlags) :
                 type;
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             throw new UnsupportedSignatureContent();
                         }
-                        return (_transformFlags[_index++], type.IsNativeIntegerType) switch
+                        return (_transformFlags[_index++], type.IsNativeIntegerWrapperType) switch
                         {
                             (false, true) => type.NativeIntegerUnderlyingType,
                             (true, false) => type.AsNativeInteger(),

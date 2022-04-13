@@ -166,7 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol originalPropertyType = returnInfo.Type;
 
             originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
-            originalPropertyType = NativeIntegerTypeDecoder.TransformType(originalPropertyType, handle, moduleSymbol);
+            if (_containingType.SpecialType != SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            {
+                // We need to break the cycle when loading members of System.Runtime.CompilerServices.RuntimeFeature
+                originalPropertyType = NativeIntegerTypeDecoder.TransformType(originalPropertyType, handle, moduleSymbol);
+            }
 
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
