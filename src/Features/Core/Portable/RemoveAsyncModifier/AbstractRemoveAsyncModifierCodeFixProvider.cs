@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         where TReturnStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
-
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncModifier(SyntaxGenerator generator, SyntaxNode methodLikeNode);
         protected abstract SyntaxNode? ConvertToBlockBody(SyntaxNode node, TExpressionSyntax expressionBody);
@@ -53,15 +51,13 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(document, diagnostic, c)),
-                    context.Diagnostics);
+                context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
             }
         }
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

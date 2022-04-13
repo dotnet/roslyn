@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -13,6 +14,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
     {
+        private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
+            ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution,
+                FixAllScope.ContainingMember, FixAllScope.ContainingType);
+
+#if CODE_STYLE
+        private static readonly CodeActionOptionsProvider s_codeStyleOptionsProvider = new(_ => default);
+#endif
+
         private readonly bool _supportsFixAll;
 
         protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
@@ -40,21 +49,43 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     if (filteredDiagnostics.Length == 0)
                         return document;
 
-                    return await this.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
-                });
+#if CODE_STYLE
+                    var optionsProvider = s_codeStyleOptionsProvider;
+#else
+                    var optionsProvider = fixAllContext.State.CodeActionOptionsProvider;
+#endif
+                    return await FixAllAsync(document, filteredDiagnostics, optionsProvider, fixAllContext.CancellationToken).ConfigureAwait(false);
+                },
+                s_defaultSupportedFixAllScopes);
         }
 
-        protected Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, Diagnostic? diagnostic = null)
+            => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey), context.Diagnostics);
+
+        protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, CodeActionPriority priority, Diagnostic? diagnostic = null)
+            => context.RegisterCodeFix(new CustomCodeActions.DocumentChangeAction(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
+
+        protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
+#if CODE_STYLE
+            var optionsProvider = s_codeStyleOptionsProvider;
+#else
+            var optionsProvider = context.Options;
+#endif
+            var diagnostics = ImmutableArray.Create(diagnostic ?? context.Diagnostics[0]);
+
+            return cancellationToken => FixAllAsync(context.Document, diagnostics, optionsProvider, cancellationToken);
         }
+
+        protected Task<Document> FixAsync(Document document, Diagnostic diagnostic, CodeActionOptions options, CancellationToken cancellationToken)
+            => FixAllAsync(document, ImmutableArray.Create(diagnostic), _ => options, cancellationToken);
 
         private Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
-            return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, diagnostics, editor, cancellationToken),
+            return FixAllWithEditorAsync(
+                document,
+                editor => FixAllAsync(document, diagnostics, editor, options, cancellationToken),
                 cancellationToken);
         }
 
@@ -72,10 +103,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
-        internal abstract CodeFixCategory CodeFixCategory { get; }
-
         protected abstract Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is

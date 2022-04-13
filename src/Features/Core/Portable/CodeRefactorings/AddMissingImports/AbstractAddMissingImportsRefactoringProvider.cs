@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
 
             var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var options = new AddMissingImportsOptions(context.Options.HideAdvancedMembers, placement);
+            var options = new AddMissingImportsOptions(context.Options(document.Project.Language).HideAdvancedMembers, placement);
 
             var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             if (!analysis.CanAddMissingImports)

@@ -1,5 +1,58 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## UTF8 String Literal conversion
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+The language added conversions between `string` constants and `byte` sequences
+where the text is converted into the equivalent UTF8 byte representation.
+Specifically the compiler allowed an implicit conversions from **`string` constants**
+to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>` types.
+
+The conversions can lead to an overload resolution failure due to an ambiguity for a code
+that compiled successfully before. For example:
+``` C#
+Test("s"); // error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(ReadOnlySpan<char>)' and 'C.Test(byte[])'
+
+static string Test(ReadOnlySpan<char> a) => "ReadOnlySpan";
+static string Test(byte[] a) => "array";
+```
+
+A possible workaround is to apply an explicit cast to the constant string argument.
+
+The conversions can lead to an invocation of a different member. For example:
+``` C#
+Test("s", (int)1); // Used to call `Test(ReadOnlySpan<char> a, long x)`, but calls `Test(byte[] a, int x)` now
+
+static string Test(ReadOnlySpan<char> a, long x) => "ReadOnlySpan";
+static string Test(byte[] a, int x) => "array";
+```
+
+A possible workaround is to apply an explicit cast to the constant string argument.
+
+The conversions can lead to an invocation of an instance member where an extension method used to be invoked.
+For example:
+``` C#
+class Program
+{
+    static void Main()
+    {
+        var p = new Program();
+        p.M(""); // Used to call E.M, but calls Program.M now
+    }
+
+    public string M(byte[] b) => "byte[]";
+}
+
+static class E
+{
+    public static string M(this object o, string s) => "string";
+}
+```
+
+Possible workarounds are:
+1. Apply an explicit cast to the constant string argument.
+2. Call the extension method by using static method invocation syntax.
+
 ## Foreach enumerator as a ref struct
 
 ***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.*** A `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or earlier.

@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Always_use_default_symbol_servers_for_navigation">
         <source>Always use default symbol servers for navigation</source>
-        <target state="new">Always use default symbol servers for navigation</target>
+        <target state="translated">Usa sempre i server di simboli predefiniti per lo spostamento</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
@@ -172,6 +172,11 @@
         <target state="translated">Calcolo dei dipendenti...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="new">Call Hierarchy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Valore del sito di chiamata:</target>
@@ -244,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Colorize_JSON_strings">
         <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
+        <target state="translated">Colora le stringhe JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -299,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Default_None">
         <source>Default (None)</source>
-        <target state="new">Default (None)</target>
+        <target state="translated">Predefinito (Nessuno)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -409,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Entire_solution_and_external_sources">
         <source>Entire Solution and External Sources</source>
-        <target state="new">Entire Solution and External Sources</target>
+        <target state="translated">Intera soluzione e origini esterne</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
@@ -429,7 +434,7 @@
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
-        <target state="new">External Sources</target>
+        <target state="translated">Origini esterne</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -455,6 +460,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Genera file con estensione editorconfig dalle impostazioni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -564,7 +574,7 @@
       </trans-unit>
       <trans-unit id="JSON_strings">
         <source>JSON strings</source>
-        <target state="new">JSON strings</target>
+        <target state="translated">Stringhe JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -827,6 +837,11 @@
         <target state="translated">Regole di denominazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Passa a '{0}'</target>
@@ -835,6 +850,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">Passa a origini esterne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
@@ -1019,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
-        <target state="new">Prefer method group conversion</target>
+        <target state="translated">Preferisci la conversione del gruppo di metodi</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
@@ -1055,6 +1075,11 @@
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Preferisci funzioni locali statiche</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top-level statements</source>
+        <target state="new">Prefer top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
@@ -1114,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
+        <target state="translated">Segnala stringhe JSON non valide</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -1164,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
-        <target state="new">Run background code analysis for:</target>
+        <target state="translated">Eseguire l'analisi del codice in background per:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

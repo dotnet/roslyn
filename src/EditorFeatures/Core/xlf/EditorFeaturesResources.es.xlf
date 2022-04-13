@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
         <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <target state="translated">No se puede navegar al símbolo que hay debajo del símbolo de intercalación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -154,57 +154,57 @@
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Array">
         <source>JSON in string literal - Array</source>
-        <target state="new">JSON in string literal - Array</target>
+        <target state="translated">JSON en el literal de cadena: matriz</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Comment">
         <source>JSON in string literal - Comment</source>
-        <target state="new">JSON in string literal - Comment</target>
+        <target state="translated">JSON en el literal de cadena: comentario</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Constructor_Name">
         <source>JSON in string literal - Constructor Name</source>
-        <target state="new">JSON in string literal - Constructor Name</target>
+        <target state="translated">JSON en el literal de cadena: nombre del constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Keyword">
         <source>JSON in string literal - Keyword</source>
-        <target state="new">JSON in string literal - Keyword</target>
+        <target state="translated">JSON en el literal de cadena: palabra clave</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Number">
         <source>JSON in string literal - Number</source>
-        <target state="new">JSON in string literal - Number</target>
+        <target state="translated">JSON en el literal de cadena: número</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Object">
         <source>JSON in string literal - Object</source>
-        <target state="new">JSON in string literal - Object</target>
+        <target state="translated">JSON en el literal de cadena: objeto</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Operator">
         <source>JSON in string literal - Operator</source>
-        <target state="new">JSON in string literal - Operator</target>
+        <target state="translated">JSON en el literal de cadena: operador</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Property_Name">
         <source>JSON in string literal - Property Name</source>
-        <target state="new">JSON in string literal - Property Name</target>
+        <target state="translated">JSON en el literal de cadena: nombre de propiedad</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Punctuation">
         <source>JSON in string literal - Punctuation</source>
-        <target state="new">JSON in string literal - Punctuation</target>
+        <target state="translated">JSON en el literal de cadena: puntuación</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_String">
         <source>JSON in string literal - String</source>
-        <target state="new">JSON in string literal - String</target>
+        <target state="translated">JSON en el literal de cadena: cadena</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_in_string_literal_Text">
         <source>JSON in string literal - Text</source>
-        <target state="new">JSON in string literal - Text</target>
+        <target state="translated">JSON en el literal de cadena: texto</target>
         <note />
       </trans-unit>
       <trans-unit id="Keyword_Control">
@@ -596,6 +596,11 @@
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">No se puede cambiar el nombre de este elemento porque está en una ubicación a la que no se puede navegar.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_Esc_to_cancel">
+        <source>{0} (Esc to cancel)</source>
+        <target state="new">{0} (Esc to cancel)</target>
+        <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>

@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static InferredLambdaReturnType InferReturnTypeImpl(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             BoundNode node, Binder binder, TypeSymbol? delegateType, bool isAsync, ConversionsBase conversions, bool withDependencies)
         {
-            var types = ArrayBuilder<(BoundExpression, TypeWithAnnotations)>.GetInstance();
+            var types = ArrayBuilder<(BoundExpression expr, TypeWithAnnotations resultType, bool isChecked)>.GetInstance();
             bool hasReturnWithoutArgument = false;
             RefKind refKind = RefKind.None;
             foreach (var (returnStatement, type) in returnTypes)
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    types.Add((returnStatement.ExpressionOpt!, type));
+                    types.Add((returnStatement.ExpressionOpt!, type, returnStatement.Checked));
                 }
             }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             ConversionsBase conversions,
             TypeSymbol? delegateType,
-            ArrayBuilder<(BoundExpression expr, TypeWithAnnotations resultType)> returns,
+            ArrayBuilder<(BoundExpression expr, TypeWithAnnotations resultType, bool isChecked)> returns,
             bool isAsync,
             BoundNode node,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,

@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, cancellationToken)
                     .ConfigureAwait(false);
 
-            var optionSet = await documentWithRefFixed.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var addImportsOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             var documentWithAdditionalImports = await AddImportsInContainersAsync(
@@ -663,9 +663,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 cancellationToken).ConfigureAwait(false);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, optionSet, cancellationToken)
+            var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, formattingOptions, cancellationToken)
                 .ConfigureAwait(false);
 
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
@@ -789,18 +790,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorker(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)
             {
                 var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, token).ConfigureAwait(false);
 
-                return removeImportService.RemoveUnnecessaryImportsAsync(
+                return await removeImportService.RemoveUnnecessaryImportsAsync(
                     doc,
                     import => importsToRemove.Any(importToRemove => syntaxFacts.AreEquivalent(importToRemove, import)),
-                    token);
+                    formattingOptions,
+                    token).ConfigureAwait(false);
             }
         }
 
