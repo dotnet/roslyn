@@ -355,7 +355,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, _ => ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

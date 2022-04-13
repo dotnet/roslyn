@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             }
 
             var syncService = projects[0].GetRequiredLanguageService<ISyncNamespacesService>();
-            var options = _globalOptions.GetCodeActionOptions(projects[0].Language);
+            var options = _globalOptions.GetCodeActionOptionsProvider();
 
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
