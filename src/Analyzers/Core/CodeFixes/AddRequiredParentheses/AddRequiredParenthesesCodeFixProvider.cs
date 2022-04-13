@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var firstDiagnostic = context.Diagnostics[0];
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => FixAsync(context.Document, firstDiagnostic, c),
+                CodeAction.Create(
+                    AnalyzersResources.Add_parentheses_for_clarity,
+                    GetDocumentUpdater(context),
                     firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
                 context.Diagnostics);
             return Task.CompletedTask;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
@@ -62,14 +63,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(AnalyzersResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

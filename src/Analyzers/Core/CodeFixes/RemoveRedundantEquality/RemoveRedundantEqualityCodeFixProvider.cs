@@ -34,16 +34,13 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(new MyCodeAction(
-                    AnalyzersResources.Remove_redundant_equality,
-                    c => FixAsync(context.Document, diagnostic, c)),
-                    diagnostic);
+                RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality), diagnostic);
             }
 
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -80,14 +77,6 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
             {
                 return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

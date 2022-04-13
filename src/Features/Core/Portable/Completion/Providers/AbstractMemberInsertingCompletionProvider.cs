@@ -85,8 +85,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return document;
             }
 
-            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
-            var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
+            var memberContainingDocumentFormattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, memberContainingDocumentFormattingOptions, cancellationToken).ConfigureAwait(false);
+            var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, memberContainingDocumentFormattingOptions, cancellationToken).ConfigureAwait(false);
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot);
 
@@ -98,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(document, _annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document?> GenerateMemberAndUsingsAsync(
@@ -177,17 +179,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private async Task<string> GenerateInsertionTextAsync(
-            Document memberContainingDocument, CancellationToken cancellationToken)
+            Document memberContainingDocument, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             memberContainingDocument = await Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
-            memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             var root = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return root.GetAnnotatedNodes(_annotation).Single().ToString().Trim();
         }
 
         private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             // Added imports are annotated for simplification too. Therefore, we simplify the document
             // before removing added member node to preserve those imports in the document.
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var dismemberedDocument = document.WithSyntaxRoot(root);
 
-            dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
             return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 

@@ -37,14 +37,12 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
                 if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
                     root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) != null)
                 {
-                    context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                        diagnostic);
+                    RegisterCodeFix(context, CodeFixesResources.Update_suppression_format, nameof(CodeFixesResources.Update_suppression_format));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -54,14 +52,6 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Update_suppression_format, createChangedDocument, nameof(UpdateLegacySuppressionsCodeFixProvider))
-            {
-            }
         }
     }
 }

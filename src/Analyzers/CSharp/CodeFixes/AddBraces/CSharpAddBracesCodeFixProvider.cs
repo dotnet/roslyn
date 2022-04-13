@@ -34,16 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Add_braces, nameof(CSharpAnalyzersResources.Add_braces));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
@@ -62,14 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             return Task.CompletedTask;
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Add_braces, createChangedDocument, CSharpAnalyzersResources.Add_braces)
-            {
-            }
         }
     }
 }

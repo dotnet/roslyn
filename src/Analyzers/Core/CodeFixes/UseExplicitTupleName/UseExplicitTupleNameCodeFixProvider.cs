@@ -31,15 +31,13 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_explicitly_provided_tuple_name, nameof(AnalyzersResources.Use_explicitly_provided_tuple_name));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
 
@@ -57,16 +55,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_explicitly_provided_tuple_name,
-                       createChangedDocument,
-                       AnalyzersResources.Use_explicitly_provided_tuple_name)
-            {
-            }
         }
     }
 }

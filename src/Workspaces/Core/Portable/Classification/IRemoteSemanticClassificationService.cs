@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan span,
             ClassificationType type,
             ClassificationOptions options,
-            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken);
 
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationType type,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken);
     }
 

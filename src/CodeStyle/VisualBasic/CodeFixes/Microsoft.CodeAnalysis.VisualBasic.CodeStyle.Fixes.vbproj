@@ -59,14 +59,11 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="VBCodeStyleFixesResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="build\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.props" />

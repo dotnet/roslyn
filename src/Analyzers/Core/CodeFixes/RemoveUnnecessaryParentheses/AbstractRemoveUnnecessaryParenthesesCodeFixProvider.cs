@@ -27,16 +27,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_parentheses, nameof(AnalyzersResources.Remove_unnecessary_parentheses));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalNodes = diagnostics.SelectAsArray(
@@ -48,14 +45,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel, cancellationToken),
                 (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
                 cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_parentheses, createChangedDocument, AnalyzersResources.Remove_unnecessary_parentheses)
-            {
-            }
         }
     }
 }
