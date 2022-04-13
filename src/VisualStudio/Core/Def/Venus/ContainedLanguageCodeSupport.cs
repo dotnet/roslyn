@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
             var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
-            var simplifierOptions = globalOptions.GetSimplifierOptionsAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var simplifierOptions = targetDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Simplifier.ReduceAsync(
                 targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);

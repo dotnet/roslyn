@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // We can therefore fetch all necessary options for the language now rather then lazily,
             // which would be needed if we had to apply them to documents of different languages.
             var fallbackOptions = new EncapsulateFieldOptions(
-                SimplifierOptions: _globalOptions.GetFallbackSimplifierOptions(document.Project.LanguageServices));
+                SimplifierOptions: _globalOptions.GetSimplifierOptions(document.Project.LanguageServices));
 
             var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), fallbackOptions, useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
 

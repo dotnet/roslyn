@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim simplifierOptions = _globalOptions.GetSimplifierOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions)
 
                 Dim finalDocument As Document

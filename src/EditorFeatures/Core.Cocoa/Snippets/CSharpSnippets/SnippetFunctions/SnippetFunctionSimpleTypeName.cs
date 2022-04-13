@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var updatedRoot = syntaxRoot.ReplaceNode(nodeToReplace, nodeToReplace.WithAdditionalAnnotations(typeAnnotation, Simplifier.Annotation));
             var documentWithAnnotations = documentWithFullyQualifiedTypeName.WithSyntaxRoot(updatedRoot);
 
-            var simplifierOptions = _snippetExpansionClient.GlobalOptions.GetSimplifierOptionsAsync(documentWithAnnotations, cancellationToken).WaitAndGetResult(cancellationToken);
+            var simplifierOptions = documentWithAnnotations.GetSimplifierOptionsAsync(_snippetExpansionClient.GlobalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, simplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             simplifiedTypeName = simplifiedDocument.GetRequiredSyntaxRootSynchronously(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
             return true;

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
             => new(
-                SimplifierOptions: globalOptions.GetFallbackSimplifierOptions(languageServices),
+                SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
                 NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
                 AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 

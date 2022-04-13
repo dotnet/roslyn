@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             End If
 
             Dim formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim simplifierOptions = _globalOptions.GetSimplifierOptionsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim simplifierOptions = newDocument.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
 
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
             newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)

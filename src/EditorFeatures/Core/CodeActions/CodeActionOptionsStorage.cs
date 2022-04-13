@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 SearchOptions: globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions: globalOptions.GetImplementTypeOptions(languageServices.Language),
                 ExtractMethodOptions: globalOptions.GetExtractMethodOptions(languageServices.Language),
-                SimplifierOptions: globalOptions.GetFallbackSimplifierOptions(languageServices),
+                SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 IsBlocking: isBlocking);
 
