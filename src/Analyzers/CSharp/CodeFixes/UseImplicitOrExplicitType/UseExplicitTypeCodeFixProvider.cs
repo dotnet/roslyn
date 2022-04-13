@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
-        
+
         private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
         {
             // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
