@@ -150,6 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
         GreaterThanGreaterThanGreaterThanEqualsToken = 8287,
 
+        // When adding punctuation, the following functions must be adapted:
+        // <see cref="SyntaxFacts.IsPunctuation"/>
+        // <see cref="SyntaxFacts.GetPunctuationKinds"/>
+
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
         BoolKeyword = 8304,

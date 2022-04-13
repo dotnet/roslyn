@@ -6411,5 +6411,32 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestExclamationExclamation(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string v!!)
+    {
+    }
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("string"),
+                Parameter("v"),
+                Punctuation.ExclamationExclamation,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }
