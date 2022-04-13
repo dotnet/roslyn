@@ -55,14 +55,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? SyntaxFactory.Token(SyntaxKind.ImplicitKeyword)
                 : SyntaxFactory.Token(SyntaxKind.ExplicitKeyword);
 
+            var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+                ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword)
+                : default;
+
             var declaration = SyntaxFactory.ConversionOperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
                 modifiers: GenerateModifiers(),
                 implicitOrExplicitKeyword: keyword,
+                explicitInterfaceSpecifier: null,
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+                checkedKeyword: checkedToken,
                 type: method.ReturnType.GenerateTypeSyntax(),
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options: options),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             declaration = UseExpressionBodyIfDesired(options, declaration);
