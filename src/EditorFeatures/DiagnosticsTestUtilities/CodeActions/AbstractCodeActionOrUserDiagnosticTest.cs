@@ -894,5 +894,91 @@ Consider using the title as the equivalence key instead of 'null'";
 
             await TestActionCountAsync(input, outputs.Length, parameters);
         }
+
+        protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
+            TestWorkspace workspace,
+            out Document document,
+            out TextSpan span,
+            out string annotation)
+        {
+            annotation = null;
+            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            {
+                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+            }
+        }
+
+        private static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
+        {
+            var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
+            if (hostDocument == null)
+            {
+                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
+                // there if so.
+                hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
+                if (hostDocument == null)
+                {
+                    document = null;
+                    span = default;
+                    return false;
+                }
+
+                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                return true;
+            }
+
+            span = hostDocument.SelectedSpans.Single();
+            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            return true;
+        }
+
+        private static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
+        {
+            var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
+            var hostDocument = annotatedDocuments.Single();
+            var annotatedSpan = hostDocument.AnnotatedSpans.Single();
+            annotation = annotatedSpan.Key;
+            span = annotatedSpan.Value.Single();
+            return workspace.CurrentSolution.GetDocument(hostDocument.Id);
+        }
+
+        protected static FixAllScope? GetFixAllScopeForCodeFix(string annotation)
+        {
+            if (annotation == null)
+            {
+                return null;
+            }
+
+            return annotation switch
+            {
+                "FixAllInDocument" => FixAllScope.Document,
+                "FixAllInProject" => FixAllScope.Project,
+                "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInContainingMember" => FixAllScope.ContainingMember,
+                "FixAllInContainingType" => FixAllScope.ContainingType,
+                "FixAllInSelection" => FixAllScope.Custom,
+                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
+            };
+        }
+
+        private protected static CodeRefactorings.FixAllScope? GetFixAllScopeForCodeRefactoring(string annotation)
+        {
+            if (annotation == null)
+            {
+                return null;
+            }
+
+            return annotation switch
+            {
+                "FixAllInDocument" => CodeRefactorings.FixAllScope.Document,
+                "FixAllInProject" => CodeRefactorings.FixAllScope.Project,
+                "FixAllInSolution" => CodeRefactorings.FixAllScope.Solution,
+                "FixAllInContainingMember" => CodeRefactorings.FixAllScope.ContainingMember,
+                "FixAllInContainingType" => CodeRefactorings.FixAllScope.ContainingType,
+                "FixAllInSelection" => CodeRefactorings.FixAllScope.Custom,
+                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
+            };
+        }
     }
 }
