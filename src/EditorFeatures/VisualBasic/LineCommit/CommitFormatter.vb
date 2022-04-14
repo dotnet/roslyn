@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
@@ -90,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
                 Dim simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
-                Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions)
+                Dim addImportOptions = AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then

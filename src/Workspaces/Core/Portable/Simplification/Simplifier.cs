@@ -145,7 +145,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not used banned APIs
             return await ReduceAsync(document, root.FullSpan, optionSet, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
         }
 
         internal static async Task<Document> ReduceAsync(Document document, SimplifierOptions options, CancellationToken cancellationToken)
@@ -171,7 +173,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not used banned APIs
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), optionSet, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
         }
 
         internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
@@ -191,8 +195,10 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(document));
             }
 
+#pragma warning disable RS0030 // Do not used banned APIs
             return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
         }
+#pragma warning restore
 
         internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
             => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);

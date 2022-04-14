@@ -60,12 +60,14 @@ public class SimplifierTests
     {
         var document = GetDocument();
 
+#pragma warning disable RS0030 // Do not used banned APIs
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ReduceAsync(document: null!));
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ReduceAsync(document: null!, annotation: null!));
         await Assert.ThrowsAsync<ArgumentNullException>("annotation", () => Simplifier.ReduceAsync(document, annotation: null!));
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ReduceAsync(document: null!, span: default));
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ReduceAsync(document: null!, spans: null!));
         await Assert.ThrowsAsync<ArgumentNullException>("spans", () => Simplifier.ReduceAsync(document, spans: null!));
+#pragma warning restore
     }
 
     [Fact]
