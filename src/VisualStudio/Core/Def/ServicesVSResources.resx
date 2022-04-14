@@ -1940,4 +1940,10 @@ Additional information: {1}</value>
   <data name="Prefer_top_level_statements" xml:space="preserve">
     <value>Prefer top level statements</value>
   </data>
+  <data name="Collapse_metadata_on_file_open" xml:space="preserve">
+    <value>Collapse implementations from metadata on file open</value>
+  </data>
+  <data name="Collapse_regions_on_file_open" xml:space="preserve">
+    <value>Collapse #regions on file open</value>
+  </data>
 </root>

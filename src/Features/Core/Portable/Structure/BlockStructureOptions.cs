@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Structure
         bool ShowOutliningForCommentsAndPreprocessorRegions = true,
         bool ShowOutliningForDeclarationLevelConstructs = true,
         bool ShowOutliningForCodeLevelConstructs = true,
+        bool CollapseRegionsOnFileOpen = true,
+        bool CollapseUsingsOnFileOpen = false,
+        bool CollapseImplementationsFromMetadataOnFileOpen = true,
         bool CollapseRegionsWhenCollapsingToDefinitions = false,
         int MaximumBannerLength = 80,
         bool IsMetadataAsSource = false)

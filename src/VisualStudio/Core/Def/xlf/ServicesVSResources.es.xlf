@@ -242,6 +242,16 @@
         <target state="translated">El análisis de código terminó antes de completarse para la solución.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_on_file_open">
+        <source>Collapse implementations from metadata on file open</source>
+        <target state="new">Collapse implementations from metadata on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Sugerencias de color</target>

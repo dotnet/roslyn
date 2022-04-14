@@ -242,6 +242,16 @@
         <target state="translated">L'esecuzione di Code Analysis è stata terminata prima del completamento per la soluzione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_on_file_open">
+        <source>Collapse implementations from metadata on file open</source>
+        <target state="new">Collapse implementations from metadata on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Suggerimenti per i colori</target>

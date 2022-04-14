@@ -88,6 +88,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Outlining
             BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
+            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsOnFileOpen, LanguageNames.VisualBasic)
+            BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseUsingsOnFileOpen, LanguageNames.VisualBasic)
+            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, LanguageNames.VisualBasic)
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)
@@ -206,6 +209,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub DisplayInlineParameterNameHints_Unchecked()
             Me.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub EnableOutlining_Checked(sender As Object, e As RoutedEventArgs)
+            Collapse_regions_on_file_open.IsEnabled = True
+            Collapse_imports_on_file_open.IsEnabled = True
+            Collapse_metadata_on_file_open.IsEnabled = True
+        End Sub
+
+        Private Sub EnableOutlining_Unchecked(sender As Object, e As RoutedEventArgs)
+            Collapse_regions_on_file_open.IsEnabled = False
+            Collapse_imports_on_file_open.IsEnabled = False
+            Collapse_metadata_on_file_open.IsEnabled = False
         End Sub
     End Class
 End Namespace
