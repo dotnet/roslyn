@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, options, _fixAllProviderMap, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
                                 return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
-                                    extensionManager, options, _fixAllProviderMap, cancellationToken);
+                                    extensionManager, options, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -145,14 +145,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private static async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             CodeActionOptionsProvider options,
-            ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> fixAllProviderMap,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 if (actions.Count > 0)
                 {
                     var fixAllProviderInfo = extensionManager.PerformFunction(
-                        provider, () => ImmutableInterlocked.GetOrAdd(ref fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                        provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
                     return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
                 }
                 else
