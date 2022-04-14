@@ -8696,12 +8696,12 @@ public class MyAttribute : System.Attribute
         /// <summary>
         /// Look for usages of "parameter" and verify the index-th one.
         /// </summary>
-        private void VerifyParameter(CSharpCompilation comp, int index, string expectedMethod)
+        private void VerifyParameter(CSharpCompilation comp, int index, string expectedMethod, string parameterName = "parameter")
         {
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var parameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
-                .Where(i => i.Identifier.ValueText == "parameter")
+                .Where(i => i.Identifier.ValueText == parameterName)
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.TypeConstraint) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
                 .ToArray();
 
@@ -8720,7 +8720,7 @@ public class MyAttribute : System.Attribute
                 Assert.Equal("System.Int32", model.GetTypeInfo(parameterUsage).Type.ToTestDisplayString());
 
                 var lookupResults = model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings();
-                Assert.Contains("System.Int32 parameter", lookupResults);
+                Assert.Contains($"System.Int32 {parameterName}", lookupResults);
             }
         }
 
@@ -9237,22 +9237,10 @@ public class MyAttribute : System.Attribute
 
             VerifyTParameter(comp, 0, "MyDelegate<TParameter>");
 
-            source = @"
-[My(nameof(parameter))] delegate int MyDelegate<parameter>(int parameter);
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-";
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyDiagnostics(
-                // (2,49): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // [My(nameof(parameter))] delegate int MyDelegate<parameter>(int parameter);
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(2, 49)
-                );
+            comp.VerifyDiagnostics();
 
-            VerifyParameter(comp, 0, "System.Int32 MyDelegate<parameter>.Invoke(System.Int32 parameter)");
+            VerifyParameter(comp, 0, "System.Int32 MyDelegate<TParameter>.Invoke(System.Int32 TParameter)", parameterName: "TParameter");
         }
 
         [Fact]
@@ -9501,42 +9489,18 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 TParameter)");
             VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 TParameter)");
 
-            source = @"
-class C
-{
-    void M()
-    {
-        local<object>(0);
-
-        void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
-    }
-
-    void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-";
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-                // (8,20): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                //         void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(8, 20),
-                // (8,59): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void local<parameter>([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(8, 59),
-                // (11,13): warning CS8981: The type name 'parameter' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                //     void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "parameter").WithArguments("parameter").WithLocation(11, 13),
-                // (11,52): error CS0412: 'parameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //     void M2<parameter>([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "parameter").WithArguments("parameter").WithLocation(11, 52)
+                // (8,61): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void local<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(8, 61),
+                // (11,54): error CS0412: 'TParameter': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //     void M2<TParameter>([My(nameof(TParameter))] int TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TParameter").WithArguments("TParameter").WithLocation(11, 54)
                 );
 
-            VerifyParameter(comp, 0, "void local<parameter>(System.Int32 parameter)");
-            VerifyParameter(comp, 1, "void C.M2<parameter>(System.Int32 parameter)");
+            VerifyParameter(comp, 0, "void local<TParameter>(System.Int32 TParameter)", parameterName: "TParameter");
+            VerifyParameter(comp, 1, "void C.M2<TParameter>(System.Int32 TParameter)", parameterName: "TParameter");
         }
 
         [Fact]
