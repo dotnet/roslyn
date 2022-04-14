@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
         /// if individual calls get canceled.
         /// </summary>
-        private readonly Dictionary<Checksum, ReferenceCountedDisposable<Scope>> _checksumToScope = new();
+        private readonly Dictionary<Checksum, (int scopeId, ReferenceCountedDisposable<Scope> refCountedDisposable)> _checksumToScope = new();
 
         /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
-                if (_checksumToScope.TryGetValue(checksum, out var refCountedScope))
+                if (_checksumToScope.TryGetValue(checksum, out var tuple))
                 {
                     // Found a matching scope for this checksum.  See if we can up the refcount on it (i.e. it didn't
                     // concurrently drop to 0 just before this on another thread.  If so, we're all good and the scope
                     // can be shared.
-                    var result = refCountedScope.TryAddReference();
+                    var result = tuple.refCountedDisposable.TryAddReference();
                     if (result != null)
                         return result;
 
@@ -84,24 +84,26 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfFalse(_checksumToScope.Remove(checksum));
                 }
 
-                var id = Interlocked.Increment(ref s_scopeId);
+                var scopeId = Interlocked.Increment(ref s_scopeId);
                 var solutionInfo = new PinnedSolutionInfo(
-                    id,
+                    scopeId,
                     fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                     solutionState.WorkspaceVersion,
                     checksum);
 
-                Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, SolutionReplicationContext.Create())));
+                Contract.ThrowIfFalse(_solutionStates.TryAdd(scopeId, (solutionState, SolutionReplicationContext.Create())));
 
-                refCountedScope = new ReferenceCountedDisposable<Scope>(new Scope(this, checksum, solutionInfo));
-                _checksumToScope.Add(checksum, refCountedScope);
+                tuple = (scopeId, new ReferenceCountedDisposable<Scope>(new Scope(this, checksum, solutionInfo)));
+                _checksumToScope.Add(checksum, tuple);
 
-                return refCountedScope;
+                return tuple.refCountedDisposable;
             }
         }
 
         private void DisposeScope(Scope scope)
         {
+            SolutionReplicationContext replicationContext;
+
             lock (_gate)
             {
                 // See if the checksum mapping is still pointing at this scope.  Definitely remove it in that scope has
@@ -117,17 +119,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 //  4. Alternate 1: Scope-I's Dispose then gets run and calls into this method.  Due to '3' the checksum now points at Scope-J.
                 //  4. Alternate 2:, Scope-J gets refcounted to 0 by Feature-B, gets Dispose()'d and then gets removed
                 //     as well from the mapping. Scope-I's Dispose then calls into this and sees nothing at all.
-                if (_checksumToScope.TryGetValue(scope.Checksum, out var currentScopeMapping) &&
-                    currentScopeMapping.Target?.SolutionInfo.ScopeId == scope.SolutionInfo.ScopeId)
+                if (_checksumToScope.TryGetValue(scope.Checksum, out var tuple) &&
+                    tuple.scopeId == scope.SolutionInfo.ScopeId)
                 {
                     Contract.ThrowIfFalse(_checksumToScope.Remove(scope.Checksum));
                 }
+
+                // We know at this point that absolutely no operations are in flight corresponding to this scope id.  So we
+                // can also remove it from the states map.
+                Contract.ThrowIfFalse(_solutionStates.TryRemove(scope.SolutionInfo.ScopeId, out var entry));
+                replicationContext = entry.ReplicationContext;
             }
 
-            // We know at this point that absolutely no operations are in flight corresponding to this scope id.  So we
-            // can also remove it from the states map.
-            Contract.ThrowIfFalse(_solutionStates.TryRemove(scope.SolutionInfo.ScopeId, out var entry));
-            entry.ReplicationContext.Dispose();
+            replicationContext.Dispose();
         }
 
         /// <summary>
