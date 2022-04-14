@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
@@ -18,6 +17,9 @@ using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+
+using CodeFixesFixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using CodeRefactoringsFixAllScope = Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -113,10 +115,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             bool applyFix = false,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null,
+            CodeFixesFixAllScope? fixAllScope = null,
+            CodeRefactoringsFixAllScope? refactoringFixAllScope = null,
             bool blockUntilComplete = true,
             CancellationToken cancellationToken = default)
         {
+            Assert.True(fixAllScope == null || refactoringFixAllScope == null);
+
             var expectedItems = new[] { expectedItem };
 
             bool? applied;
@@ -125,7 +130,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 cancellationToken.ThrowIfCancellationRequested();
 
                 applied = await CodeActionsAsync(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete, cancellationToken);
+                    ensureExpectedItemsAreOrdered, fixAllScope, refactoringFixAllScope, blockUntilComplete, cancellationToken);
             } while (applied is false);
         }
 
@@ -141,10 +146,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             string? applyFix = null,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            FixAllScope? fixAllScope = null,
+            CodeFixesFixAllScope? fixAllScope = null,
+            CodeRefactoringsFixAllScope? refactoringFixAllScope = null,
             bool blockUntilComplete = true,
             CancellationToken cancellationToken = default)
         {
+            Assert.True(fixAllScope == null || refactoringFixAllScope == null);
+
             var events = new List<WorkspaceChangeEventArgs>();
             void WorkspaceChangedHandler(object sender, WorkspaceChangeEventArgs e) => events.Add(e);
 
@@ -177,7 +185,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 }
             }
 
-            if (fixAllScope.HasValue)
+            if (fixAllScope.HasValue || refactoringFixAllScope.HasValue)
             {
                 Assumes.Present(applyFix);
             }
@@ -187,7 +195,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var codeActionLogger = new CodeActionLogger();
                 using var loggerRestorer = WithLogger(AggregateLogger.AddOrReplace(codeActionLogger, Logger.GetLogger(), logger => logger is CodeActionLogger));
 
-                var result = await TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
+                var result = await TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, refactoringFixAllScope, blockUntilComplete, cancellationToken);
 
                 if (blockUntilComplete)
                 {

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal sealed class FixAllCodeRefactoringCodeAction : CodeAction
     {
         internal readonly FixAllState FixAllState;
+        private bool _showPreviewChangesDialog;
 
         internal FixAllCodeRefactoringCodeAction(FixAllState fixAllState)
         {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
             progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
-            return service.GetFixAllOperationsAsync(fixAllContext);
+            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
         internal sealed override Task<Solution?> GetChangedSolutionAsync(
@@ -61,6 +62,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             return service.GetFixAllChangedSolutionAsync(fixAllContext);
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly FixAllCodeRefactoringCodeAction _fixAllCodeRefactoringCodeAction;
+
+            internal TestAccessor(FixAllCodeRefactoringCodeAction fixAllCodeRefactoringCodeAction)
+                => _fixAllCodeRefactoringCodeAction = fixAllCodeRefactoringCodeAction;
+
+            /// <summary>
+            /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.
+            /// </summary>
+            public ref bool ShowPreviewChangesDialog
+                => ref _fixAllCodeRefactoringCodeAction._showPreviewChangesDialog;
         }
     }
 }

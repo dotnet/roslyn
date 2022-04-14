@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -43,6 +41,11 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
+
+using CodeFixesFixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using CodeRefactoringsFixAllScope = Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope;
+using FixAllCodeRefactoringCodeAction = Microsoft.CodeAnalysis.CodeRefactorings.FixAllCodeRefactoringCodeAction;
+using FixSomeCodeAction = Microsoft.CodeAnalysis.CodeFixes.FixSomeCodeAction;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -672,9 +675,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return (await GetLightBulbActionsAsync(broker, view, cancellationToken)).Select(a => a.DisplayText).ToArray();
         }
 
-        public async Task<bool> ApplyLightBulbActionAsync(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete, CancellationToken cancellationToken)
+        public async Task<bool> ApplyLightBulbActionAsync(
+            string actionName,
+            CodeFixesFixAllScope? fixAllScope,
+            CodeRefactoringsFixAllScope? refactoringFixAllScope,
+            bool blockUntilComplete,
+            CancellationToken cancellationToken)
         {
-            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
+            var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, refactoringFixAllScope, blockUntilComplete);
 
             var listenerProvider = await GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(cancellationToken);
             var listener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
@@ -699,8 +707,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return true;
         }
 
-        private Func<IWpfTextView, CancellationToken, Task<bool>> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
+        private Func<IWpfTextView, CancellationToken, Task<bool>> GetLightBulbApplicationAction(
+            string actionName,
+            CodeFixesFixAllScope? fixAllScope,
+            CodeRefactoringsFixAllScope? refactoringFixAllScope,
+            bool willBlockUntilComplete)
         {
+            Assert.True(fixAllScope == null || refactoringFixAllScope == null);
+
             return async (view, cancellationToken) =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -723,7 +737,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         $"ISuggestedAction {actionName} not found.  Buffer content type={bufferType}\r\nActions: {sb}");
                 }
 
-                if (fixAllScope != null)
+                if (fixAllScope != null || refactoringFixAllScope != null)
                 {
                     if (!action.HasActionSets)
                     {
@@ -731,22 +745,44 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(cancellationToken);
-                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
-                    if (fixAllAction == null)
+
+                    if (fixAllScope != null)
                     {
-                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
+                        var fixAllAction = await GetFixAllCodeFixSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
+                        if (fixAllAction == null)
+                        {
+                            throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope} code fix for suggested action '{action.DisplayText}'.");
+                        }
+
+                        action = fixAllAction;
+                    }
+                    else
+                    {
+                        var fixAllAction = await GetFixAllCodeRefactoringSuggestedActionAsync(actionSetsForAction, refactoringFixAllScope!.Value, cancellationToken);
+                        if (fixAllAction == null)
+                        {
+                            throw new InvalidOperationException($"Unable to find FixAll in {refactoringFixAllScope} code fix for suggested action '{action.DisplayText}'.");
+                        }
+
+                        action = fixAllAction;
                     }
 
-                    action = fixAllAction;
-
-                    if (willBlockUntilComplete
-                        && action is FixAllCodeFixSuggestedAction fixAllSuggestedAction
-                        && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                    if (willBlockUntilComplete)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
                         // either timeout or deadlock.
-                        fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+
+                        if (action is FixAllCodeFixSuggestedAction fixAllCodeFixSuggestedAction
+                            && fixAllCodeFixSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                        {
+                            fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                        }
+                        else if (action is FixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringSuggestedAction
+                            && fixAllCodeRefactoringSuggestedAction.CodeAction is FixAllCodeRefactoringCodeAction fixAllCodeRefactoringCodeAction)
+                        {
+                            fixAllCodeRefactoringCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                        }
                     }
 
                     if (string.IsNullOrEmpty(actionName))
@@ -828,7 +864,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return actions;
         }
 
-        private async Task<FixAllCodeFixSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+        private async Task<FixAllCodeFixSuggestedAction?> GetFixAllCodeFixSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, CodeFixesFixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -848,7 +884,39 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
-                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
+                        var fixAllCodeAction = await GetFixAllCodeFixSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
+                        if (fixAllCodeAction != null)
+                        {
+                            return fixAllCodeAction;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<FixAllCodeRefactoringSuggestedAction?> GetFixAllCodeRefactoringSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, CodeRefactoringsFixAllScope fixAllScope, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            foreach (var actionSet in actionSets)
+            {
+                foreach (var action in actionSet.Actions)
+                {
+                    if (action is FixAllCodeRefactoringSuggestedAction fixAllSuggestedAction)
+                    {
+                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixAllCodeRefactoringCodeAction;
+                        if (fixAllCodeAction?.FixAllState?.FixAllScope == fixAllScope)
+                        {
+                            return fixAllSuggestedAction;
+                        }
+                    }
+
+                    if (action.HasActionSets)
+                    {
+                        var nestedActionSets = await action.GetActionSetsAsync(cancellationToken);
+                        var fixAllCodeAction = await GetFixAllCodeRefactoringSuggestedActionAsync(nestedActionSets, fixAllScope, cancellationToken);
                         if (fixAllCodeAction != null)
                         {
                             return fixAllCodeAction;

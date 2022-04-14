@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(FixAllContext fixAllContext)
+        public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(FixAllContext fixAllContext, bool showPreviewChangesDialog)
         {
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return await FixAllGetFixesServiceHelper.GetFixAllOperationsAsync(
                 codeAction, fixAllContext.State.Project, fixAllContext.State.CorrelationId,
                 FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
-                showPreviewChangesDialog: true, fixAllContext.CancellationToken).ConfigureAwait(false);
+                showPreviewChangesDialog, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CodeAction?> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
