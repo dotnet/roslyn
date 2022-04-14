@@ -54,11 +54,13 @@ namespace Microsoft.CodeAnalysis.Remote
             cancellationToken.ThrowIfCancellationRequested();
             var mustNotCancelToken = CancellationToken.None;
 
-            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
-            // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
+            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC
+            // pipe. Run two tasks - the first synchronously writes to a local pipe and the second asynchronously
+            // transfers the data to the RPC pipe.
             //
-            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but might result in more
-            // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
+            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but
+            // might result in more (non-contiguous) memory allocated for the underlying buffers. The amount of memory
+            // is bounded by the total size of the serialized assets.
             var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
             var task1 = Task.Run(() =>
