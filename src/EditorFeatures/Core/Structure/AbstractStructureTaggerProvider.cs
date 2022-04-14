@@ -67,37 +67,146 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (openDocument == null)
                 return false;
 
+            // If the main Outlining option is turned off, we can just skip computing tags synchronously
+            // so when the document first opens, there won't be any tags yet. When the tags do come in
+            // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
+            // because the document will already be open.
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
-            if (isMetadataAsSource)
+            if (openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource &&
+                GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, openDocument.Project.Language))
+            {
                 return true;
+            }
 
-            // If we contain any #region sections, we want to collapse those automatically on open the first
-            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
-            // do that.
-            if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
+            // If the user wants to collapse usings or #regions then we need to compute
+            // synchronously, but only if there are usings or #regions in the file. To
+            // save some work, we'll look for both in a single pass.
+            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsOnFileOpen, openDocument.Project.Language);
+            var collapseUsings = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseUsingsOnFileOpen, openDocument.Project.Language);
+
+            if (!collapseRegions && !collapseUsings)
+            {
+                return false;
+            }
+
+            if (ContainsRegionOrUsing(subjectBuffer.CurrentSnapshot, collapseRegions, collapseUsings, openDocument.Project.Language))
+            {
                 return true;
+            }
+
+            return false;
+        }
+
+        // Internal for testing. Can't use TestAccessor because the base class already defines one
+        internal static bool ContainsRegionOrUsing(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseUsings, string language)
+        {
+            foreach (var line in textSnapshot.Lines)
+            {
+                if (collapseRegions && StartsWithRegionTag(line))
+                {
+                    return true;
+                }
+                else if (collapseUsings && IsUsingDeclarationOrExtern(line, language))
+                {
+                    return true;
+                }
+            }
 
             return false;
 
-            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
+            static bool StartsWithRegionTag(ITextSnapshotLine line)
             {
-                foreach (var line in textSnapshot.Lines)
+                if (line.Length < 7)
+                    return false;
+
+                var index = line.Start.Position;
+                Skip(line.Snapshot, ref index, line.End.Position, whitespace: true);
+                // Ignore case here because this deals with VB and C#
+                return line.StartsWith(index, "#region", ignoreCase: true);
+            }
+
+            static bool IsUsingDeclarationOrExtern(ITextSnapshotLine line, string language)
+            {
+                if (line.Length < 8)
+                    return false;
+
+                var index = line.Start.Position;
+                var text = line.Snapshot;
+                var lineEnd = line.End.Position;
+
+                // Skip whitespace at the start of the line
+                Skip(text, ref index, lineEnd, whitespace: true);
+
+                // For VB we only need to find "Imports" at the start of a line
+                if (language == LanguageNames.VisualBasic)
                 {
-                    if (StartsWithRegionTag(line))
-                        return true;
+                    return line.StartsWith(index, "Imports", ignoreCase: true);
                 }
 
-                return false;
+                // For the purposes of collapsing, extern aliases are grouped with usings, so
+                // we need to check for them too
+                if (line.StartsWith(index, "extern alias", ignoreCase: false))
+                    return true;
 
-                static bool StartsWithRegionTag(ITextSnapshotLine line)
+                // For C# there are 5 types of statements that start with "using", but we only want to know about 2:
+                // Want to find:
+                //     1. using Y;
+                //     2. using X = Y;
+                //     3. using static X;
+                // Don't want to find:
+                //     4. using var X = Y;
+                //     5. using ({var X = Y|X = Y|X})
+                //
+                // So any line that starts with "using", ends with ";", doesn't have "(", and has
+                // 2 or 4 words.
+
+                // We expect the using keyword first
+                if (!line.StartsWith(index, "using", ignoreCase: false))
+                    return false;
+
+                // Skip past "using"
+                index += 5;
+
+                // Skip whitespace after using keyword
+                Skip(text, ref index, lineEnd, whitespace: true);
+
+                // If we find a static then this can only be case 3
+                if (line.StartsWith(index, "static", ignoreCase: false))
+                    return true;
+
+                // If we find an open paren then this is case 4
+                if (index >= lineEnd || text[index] == '(')
+                    return false;
+
+                // Skip the next word. It could be a namespace, alias, type name, or "var"
+                Skip(text, ref index, lineEnd, whitespace: false);
+
+                // Skip whitespace after that identifier
+                Skip(text, ref index, lineEnd, whitespace: true);
+
+                // Now we either need to find a semicolon, for case 1, or an equals sign, for case 3
+                if (index < lineEnd && (text[index] == ';' || text[index] == '='))
+                    return true;
+
+                // Otherwise it must be case 5
+                return false;
+            }
+
+            static void Skip(ITextSnapshot text, ref int index, int lineEnd, bool whitespace)
+            {
+                for (; index < lineEnd; index++)
                 {
-                    var start = line.GetFirstNonWhitespacePosition();
-                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
+                    var isWhitespace = text[index] is ' ' or '\t';
+                    if (isWhitespace != whitespace)
+                        return;
+                    // If we're skipping non-whitespace we want the caller to know about the
+                    // end of the statement
+                    if (text[index] == ';')
+                        return;
                 }
             }
         }

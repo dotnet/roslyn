@@ -8,11 +8,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
@@ -200,7 +199,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
-            ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
+            // If the file is metadata as source, and the user has the preference set to collapse them, then
+            // always collapse all metadata as source
+            var collapseAllImplementations = isOpenMetadataAsSource &&
+                workspace.Options.GetOption<bool>(BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, openDocument.Project.Language);
+
+            ConditionallyCollapseOutliningRegions(textView, wpfTextView, collapseAllImplementations);
 
             // If this is a metadata-to-source view, we want to consider the file read-only
             if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
@@ -218,34 +222,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Microsoft.CodeAnalysis.Workspace workspace, bool isOpenMetadataAsSource)
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, bool collapseAllImplementations)
         {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
             if (outliningManager == null)
                 return;
 
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
+            if (textView is IVsTextViewEx viewEx)
             {
-                outliningManager.Enabled = false;
-            }
-            else
-            {
-                if (textView is IVsTextViewEx viewEx)
+                if (collapseAllImplementations)
                 {
-                    if (isOpenMetadataAsSource)
-                    {
-                        // If this file is a metadata-from-source file, we want to force-collapse any implementations
-                        // to keep the display clean and condensed.
-                        outliningManager.CollapseAll(wpfTextView.TextBuffer.CurrentSnapshot.GetFullSpan(), c => c.Tag.IsImplementation);
-                    }
-                    else
-                    {
-                        // Otherwise, attempt to persist any outlining state we have computed. This
-                        // ensures that any new opened files that have any IsDefaultCollapsed spans
-                        // will both have them collapsed and remembered in the SUO file.
-                        viewEx.PersistOutliningState();
-                    }
+                    // If this file is a metadata-from-source file, we want to force-collapse any implementations
+                    // to keep the display clean and condensed.
+                    outliningManager.CollapseAll(wpfTextView.TextBuffer.CurrentSnapshot.GetFullSpan(), c => c.Tag.IsImplementation);
+                }
+                else
+                {
+                    // Otherwise, attempt to persist any outlining state we have computed. This
+                    // ensures that any new opened files that have any IsDefaultCollapsed spans
+                    // will both have them collapsed and remembered in the SUO file.
+                    // NOTE: Despite its name, this call will LOAD the state from the SUO file,
+                    //       or collapse to definitions if it can't do that.
+                    viewEx.PersistOutliningState();
                 }
             }
         }

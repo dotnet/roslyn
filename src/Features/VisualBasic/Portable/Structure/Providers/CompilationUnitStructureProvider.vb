@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 spans.AddIfNotNull(CreateBlockSpan(
                     span, span, bannerText:="Imports" & SpaceEllipsis,
                     autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True,
-                    isDefaultCollapsed:=False))
+                    isDefaultCollapsed:=options.CollapseUsingsOnFileOpen))
             End If
 
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
