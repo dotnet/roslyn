@@ -6,22 +6,21 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource;
+
+internal static class MetadataAsSourceOptionsStorage
 {
-    internal static class MetadataAsSourceOptionsStorage
-    {
-        public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-            => new(
-                SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
-                NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
-                AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
+    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        => new(
+            SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
+            NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
+            AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 
-        public static Option2<bool> NavigateToDecompiledSources =
-            new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
+    public static Option2<bool> NavigateToDecompiledSources =
+        new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
 
-        public static Option2<bool> AlwaysUseDefaultSymbolServers =
-            new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
-    }
+    public static Option2<bool> AlwaysUseDefaultSymbolServers =
+        new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
 }
