@@ -3574,6 +3574,9 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
+            // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : base()
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
             // (21,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop3.ToString(); // 1
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
@@ -3584,7 +3587,7 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_10()
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09()
     {
         var code = """
             using System.Diagnostics.CodeAnalysis;
@@ -3620,6 +3623,313 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
+            // (22,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_10()
+    {
+        // This IL is equivalent to:
+        // #nullable enable
+        // [constructor: SetsRequiredMembers]
+        // public record Base(bool unused) { public required string Prop { get; init; } }
+        var il = """
+            .assembly extern attr {}
+
+            .class public auto ansi beforefieldinit Base
+                extends [mscorlib]System.Object
+                implements class [mscorlib]System.IEquatable`1<class Base>
+            {
+                .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 00 00 00
+                )
+                // Fields
+                .field public string Field1
+                .custom instance void [attr]RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field public string Field2
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 02 00 00
+                )
+                .custom instance void [attr]RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        bool 'unused'
+                    ) cil managed 
+                {
+                    .custom instance void [attr]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::.ctor
+            
+                .method family hidebysig specialname newslot virtual 
+                    instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::get_EqualityContract
+            
+                .method public hidebysig specialname 
+                    instance bool get_unused () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::get_unused
+            
+                .method public hidebysig specialname 
+                    instance void modreq([mscorlib]mscorlib.CompilerServices.IsExternalInit) set_unused (
+                        bool 'value'
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::set_unused
+            
+                .method public hidebysig virtual 
+                    instance string ToString () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::ToString
+            
+                .method family hidebysig newslot virtual 
+                    instance bool PrintMembers (
+                        class [mscorlib]System.Text.StringBuilder builder
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::PrintMembers
+            
+                .method public hidebysig specialname static 
+                    bool op_Inequality (
+                        class Base left,
+                        class Base right
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::op_Inequality
+            
+                .method public hidebysig specialname static 
+                    bool op_Equality (
+                        class Base left,
+                        class Base right
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::op_Equality
+            
+                .method public hidebysig virtual 
+                    instance int32 GetHashCode () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::GetHashCode
+            
+                .method public hidebysig virtual 
+                    instance bool Equals (
+                        object obj
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Equals
+            
+                .method public hidebysig newslot virtual 
+                    instance bool Equals (
+                        class Base other
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Equals
+            
+                .method public hidebysig newslot virtual 
+                    instance class Base '<Clone>$' () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::'<Clone>$'
+            
+                .method family hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        class Base original
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::.ctor
+            
+                .method public hidebysig 
+                    instance void Deconstruct (
+                        [out] bool& 'unused'
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Deconstruct
+            
+                // Properties
+                .property instance class [mscorlib]System.Type EqualityContract()
+                {
+                    .get instance class [mscorlib]System.Type Base::get_EqualityContract()
+                }
+                .property instance bool 'unused'()
+                {
+                    .get instance bool Base::get_unused()
+                    .set instance void modreq([mscorlib]mscorlib.CompilerServices.IsExternalInit) Base::set_unused(bool)
+                }
+            } // end of class Base
+
+            .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+                    01 00 84 6b 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field public initonly uint8[] NullableFlags
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8 ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableAttribute::.ctor
+            
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8[] ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableAttribute::.ctor
+            } // end of class mscorlib.CompilerServices.NullableAttribute
+            
+            .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableContextAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+                    01 00 4c 14 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field public initonly uint8 Flag
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8 ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableContextAttribute::.ctor
+            }
+            .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method EmbeddedAttribute::.ctor
+            } // end of class Microsoft.CodeAnalysis.EmbeddedAttribute
+            """;
+
+        var attrComp = CreateCompilationWithRequiredMembers("", assemblyName: "attr");
+
+        var code = """
+            #nullable enable
+            public record Derived(bool unused) : Base(unused);
+            """;
+
+        var comp = CreateCompilationWithIL(code, ilSource: il, references: new[] { attrComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (2,42): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // public record Derived(bool unused) : Base(unused);
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "(unused)").WithLocation(2, 42)
         );
     }
 
@@ -3671,6 +3981,35 @@ public class Derived : Base
             // (1,15): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor'
             // public record C
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ".ctor").WithLocation(1, 15)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
+    {
+        var code = """
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; } = Prop1.ToString();
+                public string Prop4 { get; set; } = Prop2.ToString();
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
+            //     public required string Prop3 { get; set; } = Prop1.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
+            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
+            //     public string Prop4 { get; set; } = Prop2.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
         );
     }
 

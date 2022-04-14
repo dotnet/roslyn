@@ -4123,6 +4123,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics);
                     }
 
+                    if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
+                    {
+                        hasErrors = true;
+                        // This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+                        diagnostics.Add(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, errorLocation);
+                    }
+
                     return new BoundCall(
                         nonNullSyntax,
                         receiver,

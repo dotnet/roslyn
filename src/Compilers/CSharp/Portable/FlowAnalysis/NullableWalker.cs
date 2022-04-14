@@ -906,8 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // We don't use a default initial state for value type instance constructors without `: this()` because
-                    // any usages of uninitialized fields will get definite assignment errors anyway.
                     // Pre-C# 11, we don't use a default initial state for value type instance constructors without `: this()`
                     // because any usages of uninitialized fields will get definite assignment errors anyway.
                     if (!hasThisConstructorInitializer
