@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public void Method()
     {
-        if ($$true) { }
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
@@ -52,7 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 ";
 
             var expectedCodeAfterCommit =
-@"if ($$true) { }
+@"if (true)
+{$$
+}
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
@@ -111,7 +115,9 @@ class Program
     public Program()
     {
         var x = 5;
-        if ($$true) { }
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
@@ -141,7 +147,9 @@ class Program
         var x = 5;
         void LocalMethod()
         {
-            if ($$true) { }
+            if (true)
+            {$$
+            }
         }
     }
 }";
@@ -168,7 +176,9 @@ static void Main(string[] args)
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        if ($$true) { }
+        if (true)
+        {$$
+        }
     };
 
 }";
@@ -188,7 +198,10 @@ static void Main(string[] args)
             var expectedCodeAfterCommit =
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
-    if ($$true) { }
+    if (true)
+    {$$
+    }
+
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
@@ -331,7 +344,9 @@ class Test
 {
     public void Method()
     {
-        if ($$true) { }
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
@@ -354,7 +369,9 @@ class Test
 {
     public void Method()
     {
-        if ($$true) { }
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);

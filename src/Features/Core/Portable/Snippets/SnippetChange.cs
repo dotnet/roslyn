@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal readonly struct SnippetChange
     {
         /// <summary>
-        /// The primary text change.
-        /// This will be the change that has associated renaming and tab stops.
-        /// </summary>
-        public readonly TextChange? MainTextChange;
-
-        /// <summary>
         /// The TextChange's associated with introducing a snippet into a document
         /// </summary>
         public readonly ImmutableArray<TextChange> TextChanges;
@@ -34,20 +28,18 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The items that we will want to rename as well as the ordering
         /// in which to visit those items.
         /// </summary>
-        public readonly List<(string, List<TextSpan>)>? Placeholders;
+        public readonly List<(string, List<TextSpan>)> Placeholders;
 
         public SnippetChange(
-            TextChange? mainTextChange,
             ImmutableArray<TextChange> textChanges,
             int? cursorPosition,
-            List<(string, List<TextSpan>)>? placeholders)
+            List<(string, List<TextSpan>)> placeholders)
         {
-            if (textChanges.IsEmpty || mainTextChange is null)
+            if (textChanges.IsEmpty)
             {
                 throw new ArgumentException($"{ textChanges.Length } must not be empty");
             }
 
-            MainTextChange = mainTextChange;
             TextChanges = textChanges;
             CursorPosition = cursorPosition;
             Placeholders = placeholders;

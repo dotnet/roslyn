@@ -37,17 +37,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            var lspSnippet = GenerateLSPSnippet(snippet.MainTextChange, snippet.Placeholders);
+            var lspSnippet = GenerateLSPSnippet(change, snippet.Placeholders);
             return CompletionChange.CreateSpecialLSPSnippetChange(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true, lspSnippet);
         }
 
-        private static string? GenerateLSPSnippet(TextChange? textChange, List<(string, List<TextSpan>)>? placeholders)
+        private static string? GenerateLSPSnippet(TextChange textChange, List<(string, List<TextSpan>)> placeholders)
         {
-            var textChangeText = textChange!.Value.NewText!;
-            if (placeholders is null)
-            {
-                return textChangeText;
-            }
+            var textChangeText = textChange.NewText!;
 
             for (var i = 0; i < placeholders.Count; i++)
             {
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 else
                 {
                     var location = placeholderList[0];
-                    textChangeText = textChangeText.Insert(location.Start, $"$0");
+                    textChangeText = textChangeText.Insert(location.Start - textChange.Span.Start, $"$0");
                 }
             }
 

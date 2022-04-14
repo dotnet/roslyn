@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -75,7 +76,55 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
+            var openParenToken = GetOpenParenToken(caretTarget, syntaxFacts);
+            if (openParenToken is null)
+            {
+                return null;
+            }
+
+            return openParenToken.Value.Span.End;
+        }
+
+        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
+            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            if (snippetExpressionNode is null)
+            {
+                return root;
+            }
+
+            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
+            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
+        }
+
+        protected override List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            var renameLocationsMap = new List<(string, List<TextSpan>)>();
+            var openParenToken = GetOpenParenToken(node, syntaxFacts);
+
+            if (openParenToken is null)
+            {
+                return renameLocationsMap;
+            }
+
+            var list1 = new List<TextSpan>
+            {
+                new TextSpan(openParenToken.Value.Span.End, openParenToken.Value.Span.Length)
+            };
+
+            renameLocationsMap.Add(("", list1));
+
+            return renameLocationsMap;
+        }
+
+        private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)
+        {
+            var invocationExpression = node.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
             if (invocationExpression is null)
             {
                 return null;
@@ -88,27 +137,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
-            return openParenToken.Span.End;
+
+            return openParenToken;
         }
 
-        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = GetConsoleExpressionStatement(syntaxFacts, root, position);
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
-
-            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
-            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
-        }
-
-        private static SyntaxNode? GetConsoleExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
             var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);

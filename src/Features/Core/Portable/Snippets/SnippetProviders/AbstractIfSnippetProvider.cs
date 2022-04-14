@@ -44,13 +44,14 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
+
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            GetPartsOfIfStatement(caretTarget, out var openParen, out _, out _);
-            return openParen.Span.End;
+            GetPartsOfIfStatement(caretTarget, out _, out _, out var statement);
+            return statement.SpanStart + 1;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = GetIfExpressionStatement(syntaxFacts, root, position);
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -68,42 +69,43 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override async Task<List<(string, List<TextSpan>)>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = GetIfExpressionStatement(syntaxFacts, root, position);
-            if (snippetExpressionNode is null)
-            {
-                return null;
-            }
-
             var renameLocationsMap = new List<(string, List<TextSpan>)>();
-            GetPartsOfIfStatement(snippetExpressionNode, out _, out var condition, out var statement);
-
-            var list2 = new List<TextSpan>
-            {
-                new TextSpan(statement.SpanStart - snippetExpressionNode.SpanStart + 1, statement.Span.Length)
-            };
-
-            renameLocationsMap.Add(("", list2));
+            GetPartsOfIfStatement(node, out _, out var condition, out var statement);
 
             var list1 = new List<TextSpan>
             {
-                new TextSpan(condition.SpanStart - snippetExpressionNode.SpanStart, condition.Span.Length)
+                // Need to add 1 to the span start because we are retrieving a block and want the cursor to appear inside the block.
+                new TextSpan(statement.SpanStart + 1, statement.Span.Length)
             };
 
-            renameLocationsMap.Add((condition.ToFullString(), list1));
+            renameLocationsMap.Add(("", list1));
+
+            var list2 = new List<TextSpan>
+            {
+                new TextSpan(condition.SpanStart, condition.Span.Length)
+            };
+
+            renameLocationsMap.Add((condition.ToString(), list2));
 
             return renameLocationsMap;
         }
 
-        private static SyntaxNode? GetIfExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
 
-            var nearestStatement = syntaxFacts.IsGlobalStatement(closestNode)
-                ? syntaxFacts.GetStatementOfGlobalStatement(closestNode)
+            SyntaxNode? statementOfGlobalStatement = null;
+            if (syntaxFacts.IsGlobalStatement(closestNode))
+            {
+                statementOfGlobalStatement = syntaxFacts.GetStatementOfGlobalStatement(closestNode);
+            }
+
+            var nearestStatement = statementOfGlobalStatement is not null
+                ? syntaxFacts.IsIfStatement(statementOfGlobalStatement)
+                    ? statementOfGlobalStatement
+                    : null
                 : closestNode.DescendantNodesAndSelf(syntaxFacts.IsIfStatement).FirstOrDefault();
 
             if (nearestStatement is null)

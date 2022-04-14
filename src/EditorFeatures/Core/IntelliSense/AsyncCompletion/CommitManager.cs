@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
+            // For all other completions and if the snippet LSP service fails
+            // we still want to try and insert the snippet sans the placeholders + tab stop behavior.
             if (!snippetServiceSucceeded)
             {
 
@@ -323,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
                     {
-                    // Make sure the notification isn't sent on UI thread.
+                        // Make sure the notification isn't sent on UI thread.
                         await TaskScheduler.Default;
                         _ = notifyProvider.NotifyCommittingItemAsync(document, roslynItem, commitCharacter, cancellationToken).ReportNonFatalErrorAsync();
                     });

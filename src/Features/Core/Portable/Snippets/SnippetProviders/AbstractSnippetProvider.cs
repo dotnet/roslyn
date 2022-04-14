@@ -13,7 +13,9 @@ using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -46,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
 
+        protected abstract SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts);
+
         /// <summary>
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
@@ -77,20 +81,36 @@ namespace Microsoft.CodeAnalysis.Snippets
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
-            var mainChanges = await snippetDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var mainChange = mainChanges.Where(change => change.Span.Start == position).FirstOrDefault();
-            var placeholders = await GetRenameLocationsMapAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
-            var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
+            var snippetWithTriviaDocument = await GetDocumentWithSnippetAndTriviaAsync(snippetDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+            var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetWithTriviaDocument, position, cancellationToken).ConfigureAwait(false);
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-
+            var placeholders = GetRenameLocationsMap(mainChangeNode, syntaxFacts, cancellationToken);
+            var changesArray = changes.ToImmutableArray();
             return new SnippetChange(
-                mainTextChange: mainChange,
-                textChanges: changes.ToImmutableArray(),
+                textChanges: changesArray,
                 cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
                 placeholders: placeholders);
+        }
+
+        protected static SyntaxNode? GenerateElasticTriviaForSyntax(ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            if (node is null)
+            {
+                return null;
+            }
+
+            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true), AddAnnotations);
+
+            return nodeWithTrivia;
+
+            SyntaxToken AddAnnotations(SyntaxToken oldToken, SyntaxToken newToken)
+            {
+                return oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation).WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker).WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+            }
         }
 
         private async Task<Document> CleanupDocumentAsync(
@@ -115,6 +135,27 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
+        private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            var root = await snippetDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+
+            if (nearestStatement is null)
+            {
+                return snippetDocument;
+            }
+
+            var nearestStatementWithTrivia = GenerateElasticTriviaForSyntax(syntaxFacts, nearestStatement);
+
+            if (nearestStatementWithTrivia is null)
+            {
+                return snippetDocument;
+            }
+
+            root = root.ReplaceNode(nearestStatement, nearestStatementWithTrivia);
+            return snippetDocument.WithSyntaxRoot(root);
+        }
+
         private static async Task<Document> GetDocumentWithSnippetAsync(Document document, ImmutableArray<TextChange> snippets, CancellationToken cancellationToken)
         {
             var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -132,9 +173,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
-        protected virtual Task<List<(string, List<TextSpan>)>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        protected virtual List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return Task.FromResult<List<(string, List<TextSpan>)>?>(null);
+            return new List<(string, List<TextSpan>)>();
         }
     }
 }
