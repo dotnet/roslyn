@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class SolutionAssetStorage
     {
-        internal class Scope : IDisposable
+        internal sealed class Scope : IDisposable
         {
             private readonly SolutionAssetStorage _storage;
 
