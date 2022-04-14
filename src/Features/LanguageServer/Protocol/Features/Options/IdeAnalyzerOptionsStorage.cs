@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-// TODO: move to LSP layer
 internal static class IdeAnalyzerOptionsStorage
 {
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, Project project)
@@ -15,7 +15,7 @@ internal static class IdeAnalyzerOptionsStorage
 
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostWorkspaceServices services, string language)
     {
-        var provider = services.GetLanguageService<IGlobalIdeOptionsProvider>(language);
+        var provider = services.GetLanguageService<ISimplifierOptionsStorage>(language);
 
         return new(
             CrashOnAnalyzerException: globalOptions.GetOption(CrashOnAnalyzerException),
@@ -25,7 +25,7 @@ internal static class IdeAnalyzerOptionsStorage
             ReportInvalidRegexPatterns: globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns: globalOptions.GetOption(ReportInvalidJsonPatterns, language),
             DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
-            SimplifierOptions: provider?.GetSimplifierOptions(globalOptions));
+            SimplifierOptions: provider?.GetOptions(globalOptions));
     }
 
     // for testing only
