@@ -1815,7 +1815,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.ConstructorMethodBody:
                             var constructor = (BoundConstructorMethodBody)methodBody;
                             body = constructor.BlockBody ?? constructor.ExpressionBody!;
-                            Debug.Assert(body != null);
 
                             if (constructor.Initializer is BoundExpressionStatement expressionStatement)
                             {
