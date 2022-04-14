@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
         /// if individual calls get canceled.
         /// </summary>
-        private readonly Dictionary<Checksum, ReferenceCountedDisposable<Scope>> _checksumToScope = new();
+        private readonly Dictionary<Checksum, (Scope scope, ReferenceCountedDisposable<Scope> scopeWrapper)> _checksumToScope = new();
 
         /// <summary>
         /// Map from solution checksum to its associated <see cref="SolutionState"/>.
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
-                if (_checksumToScope.TryGetValue(checksum, out var refCountedScope))
+                if (_checksumToScope.TryGetValue(checksum, out var tuple))
                 {
                     // Found a matching scope for this checksum.  See if we can up the refcount on it (i.e. it didn't
                     // concurrently drop to 0 just before this on another thread.  If so, we're all good and the scope
                     // can be shared.
-                    var result = refCountedScope.TryAddReference();
+                    var result = tuple.scopeWrapper.TryAddReference();
                     if (result != null)
                         return result;
 
@@ -89,10 +89,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 Contract.ThrowIfFalse(_solutionStates.TryAdd(checksum, (solutionState, SolutionReplicationContext.Create())));
 
-                refCountedScope = new ReferenceCountedDisposable<Scope>(new Scope(this, checksum, solutionInfo));
-                _checksumToScope.Add(checksum, refCountedScope);
+                var scope = new Scope(this, checksum, solutionInfo);
+                tuple = (scope, new ReferenceCountedDisposable<Scope>(scope));
+                _checksumToScope.Add(checksum, tuple);
 
-                return refCountedScope;
+                return tuple.scopeWrapper;
             }
         }
 
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 //  4. Alternate 1: Scope-I's Dispose then gets run and calls into this method.  Due to '3' the checksum now points at Scope-J.
                 //  4. Alternate 2:, Scope-J gets refcounted to 0 by Feature-B, gets Dispose()'d and then gets removed
                 //     as well from the mapping. Scope-I's Dispose then calls into this and sees nothing at all.
-                if (_checksumToScope.TryGetValue(scope.Checksum, out var currentScopeMapping))
+                if (_checksumToScope.TryGetValue(scope.Checksum, out var tuple) &&
+                    tuple.scope == scope)
                 {
                     Contract.ThrowIfFalse(_checksumToScope.Remove(scope.Checksum));
                 }
