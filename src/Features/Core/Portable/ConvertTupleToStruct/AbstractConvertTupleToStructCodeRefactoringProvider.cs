@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -85,11 +86,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                       .ToImmutableArray();
 
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var fallbackOptions = CodeCleanupOptions.CreateProvider(context.Options);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.SupportsRecordStruct(syntaxTree.Options))
             {
-                var recordChildActions = CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: true);
+                var recordChildActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, fallbackOptions, isRecord: true);
                 if (recordChildActions.Length > 0)
                 {
                     context.RegisterRefactoring(
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 }
             }
 
-            var childActions = CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: false);
+            var childActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, fallbackOptions, isRecord: false);
             if (childActions.Length > 0)
             {
                 context.RegisterRefactoring(
@@ -115,17 +117,19 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return;
 
             ImmutableArray<CodeAction> CreateChildActions(
-                CodeRefactoringContext context,
+                Document document,
+                TextSpan span,
                 SyntaxNode tupleExprOrTypeNode,
                 ImmutableArray<IFieldSymbol> fields,
                 ImmutableArray<ITypeParameterSymbol> capturedTypeParameters,
+                CodeCleanupOptionsProvider fallbackOptions,
                 bool isRecord)
             {
                 using var scopes = TemporaryArray<CodeAction>.Empty;
                 var containingMember = GetContainingMember(context.Document, tupleExprOrTypeNode);
 
                 if (containingMember != null)
-                    scopes.Add(CreateAction(context, Scope.ContainingMember, isRecord));
+                    scopes.Add(CreateAction(document, span, Scope.ContainingMember, fallbackOptions, isRecord));
 
                 // If we captured any Method type-parameters, we can only replace the tuple types we
                 // find in the containing method.  No other tuple types in other members would be able
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                     if (containingType != null)
-                        scopes.Add(CreateAction(context, Scope.ContainingType, isRecord));
+                        scopes.Add(CreateAction(document, span, Scope.ContainingType, fallbackOptions, isRecord));
 
                     // If we captured any Type type-parameters, we can only replace the tuple
                     // types we find in the containing type.  No other tuple types in other
@@ -149,8 +153,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         // latter has members called Item1 and Item2, but those names don't show up in source.
                         if (fields.All(f => f.CorrespondingTupleField != f))
                         {
-                            scopes.Add(CreateAction(context, Scope.ContainingProject, isRecord));
-                            scopes.Add(CreateAction(context, Scope.DependentProjects, isRecord));
+                            scopes.Add(CreateAction(document, span, Scope.ContainingProject, fallbackOptions, isRecord));
+                            scopes.Add(CreateAction(document, span, Scope.DependentProjects, fallbackOptions, isRecord));
                         }
                     }
                 }
@@ -165,8 +169,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return tupleExprOrTypeNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts);
         }
 
-        private CodeAction CreateAction(CodeRefactoringContext context, Scope scope, bool isRecord)
-            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, isRecord, c), scope.ToString());
+        private CodeAction CreateAction(Document document, TextSpan span, Scope scope, CodeCleanupOptionsProvider fallbackOptions, bool isRecord)
+            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, c), scope.ToString());
 
         private static string GetTitle(Scope scope)
             => scope switch
@@ -201,7 +205,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         public async Task<Solution> ConvertToStructAsync(
-            Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, CodeCleanupOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -213,7 +217,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, isRecord, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.ConvertToStructAsync(solutionInfo, callbackId, document.Id, span, scope, isRecord, cancellationToken),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions.Invoke),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -230,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
 
             return await ConvertToStructInCurrentProcessAsync(
-                document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
+                document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> AddRenameTokenAsync(
@@ -247,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private async Task<Solution> ConvertToStructInCurrentProcessAsync(
-            Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, CodeCleanupOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
                 document, span, cancellationToken).ConfigureAwait(false);
@@ -303,7 +308,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 documentToEditorMap, cancellationToken).ConfigureAwait(false);
 
             var updatedSolution = await ApplyChangesAsync(
-                document, documentToEditorMap, cancellationToken).ConfigureAwait(false);
+                document, documentToEditorMap, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return updatedSolution;
         }
@@ -568,7 +573,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static async Task<Solution> ApplyChangesAsync(
-            Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CancellationToken cancellationToken)
+            Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var currentSolution = startingDocument.Project.Solution;
 
@@ -585,7 +590,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // so that our generated methods follow any special formatting rules specific to
                     // them.
                     var equalsAndGetHashCodeService = startingDocument.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
-                    var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+                    var formattingOptions = await updatedDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                     updatedDocument = await equalsAndGetHashCodeService.FormatDocumentAsync(
                         updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);

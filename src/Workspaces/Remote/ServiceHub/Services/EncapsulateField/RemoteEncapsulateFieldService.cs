@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,22 +18,28 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteEncapsulateFieldService : BrokeredServiceBase, IRemoteEncapsulateFieldService
     {
-        internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService>
+        internal sealed class Factory : FactoryBase<IRemoteEncapsulateFieldService, IRemoteEncapsulateFieldService.ICallback>
         {
-            protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteEncapsulateFieldService(arguments);
+            protected override IRemoteEncapsulateFieldService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
+                => new RemoteEncapsulateFieldService(arguments, callback);
         }
 
-        public RemoteEncapsulateFieldService(in ServiceConstructionArguments arguments)
+        private readonly RemoteCallback<IRemoteEncapsulateFieldService.ICallback> _callback;
+
+        public RemoteEncapsulateFieldService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback)
             : base(arguments)
         {
+            _callback = callback;
         }
+
+        private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
+            => new((language, cancellationToken) => GetClientOptionsAsync<CodeCleanupOptions, IRemoteEncapsulateFieldService.ICallback>(_callback, callbackId, language, cancellationToken));
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
-            EncapsulateFieldOptions fallbackOptions,
             bool updateReferences,
             CancellationToken cancellationToken)
         {
@@ -53,9 +60,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+                var fallbackOptions = GetClientOptionsProvider(callbackId);
 
                 var newSolution = await service.EncapsulateFieldsAsync(
                     document, fields.ToImmutable(), fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
+
                 return await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, newSolution, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

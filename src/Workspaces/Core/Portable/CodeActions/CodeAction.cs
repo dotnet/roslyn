@@ -312,7 +312,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns>A document with the post processing changes applied.</returns>
         protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
-            var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            // TODO: fallback options https://github.com/dotnet/roslyn/issues/60777
+            var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 

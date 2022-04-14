@@ -6,11 +6,25 @@ using System.Runtime.Serialization;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 
 #if CODE_STYLE
 using TOption = Microsoft.CodeAnalysis.Options.IOption2;
 #else
 using TOption = Microsoft.CodeAnalysis.Options.IOption;
+#endif
+
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.CodeCleanup
+{
+    internal readonly struct CodeCleanupOptions
+    {
+    }
+}
 #endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -24,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [property: DataMember(Order = 4)] bool ReportInvalidRegexPatterns = true,
         [property: DataMember(Order = 5)] bool ReportInvalidJsonPatterns = true,
         [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true,
-        [property: DataMember(Order = 7)] SimplifierOptions? SimplifierOptions = null)
+        [property: DataMember(Order = 7)] CodeCleanupOptions? CleanupOptions = null)
     {
         public IdeAnalyzerOptions()
             : this(CrashOnAnalyzerException: false)
@@ -51,6 +65,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #else
             => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
 #endif
+
+        public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerOptions options, SyntaxTree tree, ISyntaxFormatting formatting)
+        {
+#if CODE_STYLE
+            var fallbackOptions = (SyntaxFormattingOptions?)null;
+#else
+            var fallbackOptions = options.GetIdeOptions().CleanupOptions?.FormattingOptions;
+#endif
+            return formatting.GetFormattingOptions(options.AnalyzerConfigOptionsProvider.GetOptions(tree), fallbackOptions);
+        }
 
         public static T GetOption<T>(this SemanticModelAnalysisContext context, Option2<T> option)
         {

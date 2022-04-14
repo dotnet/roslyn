@@ -5,17 +5,18 @@
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static class IdeAnalyzerOptionsStorage
 {
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, Project project)
-        => GetIdeAnalyzerOptions(globalOptions, project.Solution.Workspace.Services, project.Language);
+        => GetIdeAnalyzerOptions(globalOptions, project.LanguageServices);
 
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostWorkspaceServices services, string language)
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
     {
-        var provider = services.GetLanguageService<ISimplifierOptionsStorage>(language);
+        var language = languageServices.Language;
 
         return new(
             CrashOnAnalyzerException: globalOptions.GetOption(CrashOnAnalyzerException),
@@ -25,7 +26,7 @@ internal static class IdeAnalyzerOptionsStorage
             ReportInvalidRegexPatterns: globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns: globalOptions.GetOption(ReportInvalidJsonPatterns, language),
             DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
-            SimplifierOptions: provider?.GetOptions(globalOptions));
+            CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices));
     }
 
     // for testing only

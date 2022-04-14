@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,11 +15,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 {
     internal interface IRemoteEncapsulateFieldService
     {
+        internal interface ICallback : IRemoteOptionsCallback<CodeCleanupOptions>
+        {
+        }
+
         ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
-            EncapsulateFieldOptions fallbackOptions,
             bool updateReferences,
             CancellationToken cancellationToken);
     }

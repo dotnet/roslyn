@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -63,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Public Overrides Function PlaceImportsInsideNamespaces(optionSet As OptionSet) As Boolean
+        Public Overrides Function PlaceImportsInsideNamespaces(configOptions As AnalyzerConfigOptions, fallbackValue As Boolean) As Boolean
             ' Visual Basic doesn't support imports inside namespaces
             Return False
         End Function

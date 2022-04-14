@@ -52,18 +52,17 @@ namespace Microsoft.CodeAnalysis.Editing
         public static Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? options = null, CancellationToken cancellationToken = default)
             => AddImportsFromSyntaxesAsync(document, spans, options, cancellationToken);
 
-        private static async Task<Document> AddImportsFromSyntaxesAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? options, CancellationToken cancellationToken)
+        private static async Task<Document> AddImportsFromSyntaxesAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? _, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<ImportAdderService>();
-            if (service != null)
-            {
-                var addImportOptions = AddImportPlacementOptions.FromDocument(document, options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
-                return await service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, addImportOptions, cancellationToken).ConfigureAwait(false);
-            }
-            else
+            if (service == null)
             {
                 return document;
             }
+
+            // Since no public options affect the behavior we can ignore options parameter and pass no fallback options:
+            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            return await service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, addImportOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

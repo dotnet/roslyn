@@ -10,9 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -55,7 +58,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
             var ideOptions = new IdeAnalyzerOptions(
-                SimplifierOptions: new CSharpSimplifierOptions(varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)));
+                CleanupOptions: new CodeCleanupOptions(
+                    FormattingOptions: CSharpSyntaxFormattingOptions.Default,
+                    SimplifierOptions: new CSharpSimplifierOptions(
+                        varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
+                    AddImportOptions: AddImportPlacementOptions.Default));
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
 

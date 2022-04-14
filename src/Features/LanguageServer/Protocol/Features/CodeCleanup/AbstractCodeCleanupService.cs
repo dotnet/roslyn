@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
             IProgressTracker progressTracker,
-            CodeActionOptionsProvider options,
-            SyntaxFormattingOptions formattingOptions,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
@@ -52,11 +51,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
 
             document = await ApplyCodeFixesAsync(
-                document, enabledDiagnostics.Diagnostics, progressTracker, options, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics.Diagnostics, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
             {
+                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
                 progressTracker.Description = this.OrganizeImportsDescription;
                 document = await RemoveSortUsingsAsync(
                     document, enabledDiagnostics.OrganizeUsings, formattingOptions, cancellationToken).ConfigureAwait(false);
@@ -65,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             if (enabledDiagnostics.FormatDocument)
             {
+                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
                 progressTracker.Description = FeaturesResources.Formatting_document;
                 using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
                 {
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
             progressTracker.AddItems(enabledDiagnosticSets.Length);
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 progressTracker.Description = diagnosticSet.Description;
                 document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-                    document, diagnosticSet.DiagnosticIds, progressTracker, options, cancellationToken).ConfigureAwait(false);
+                    document, diagnosticSet.DiagnosticIds, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
@@ -125,27 +128,27 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
                     document = await ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, progressTracker, options, cancellationToken).ConfigureAwait(false);
+                        document, diagnosticId, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
 
             var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-                document, textSpan, diagnosticId, options, cancellationToken).ConfigureAwait(false);
+                document, textSpan, diagnosticId, fallbackOptions, cancellationToken).ConfigureAwait(false);
             if (fixCollection == null)
             {
                 return document;

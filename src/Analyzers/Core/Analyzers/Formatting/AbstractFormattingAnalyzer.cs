@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var options = SyntaxFormatting.GetFormattingOptions(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree));
+            var options = context.Options.GetSyntaxFormattingOptions(context.Tree, SyntaxFormatting);
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormatting, Descriptor, options);
         }
     }

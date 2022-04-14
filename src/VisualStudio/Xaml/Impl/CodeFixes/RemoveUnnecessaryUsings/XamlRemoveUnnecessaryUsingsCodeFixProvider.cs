@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
@@ -46,16 +47,16 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                    c => RemoveUnnecessaryImportsAsync(context.Document, context.Options, c)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         private static async Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-            var syntaxFormattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return await service.RemoveUnnecessaryImportsAsync(document, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
         }
 

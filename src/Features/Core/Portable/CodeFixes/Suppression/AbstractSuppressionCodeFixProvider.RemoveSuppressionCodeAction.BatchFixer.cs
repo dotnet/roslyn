@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         var span = diagnostic.Location.SourceSpan;
                         var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                            document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                            document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
                         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
                         var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                            project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
+                            project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                         if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {
                             if (fixAllState.IsFixMultiple)

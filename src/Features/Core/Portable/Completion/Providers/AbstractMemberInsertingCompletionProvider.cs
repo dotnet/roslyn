@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
-            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
+            // TODO: pass fallback options: https://github.com/dotnet/roslyn/issues/60786
+            var fallbackOptions = new CodeCleanupOptionsProvider(CodeCleanupOptions.GetDefaultAsync);
+
+            var newDocument = await DetermineNewDocumentAsync(document, item, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
-        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
+        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return document;
             }
 
-            var memberContainingDocumentCleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var memberContainingDocumentCleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return await Formatter.FormatAsync(document, _annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 

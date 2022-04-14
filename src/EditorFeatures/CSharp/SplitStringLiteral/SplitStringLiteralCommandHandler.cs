@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             }
 
             // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            var options = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);

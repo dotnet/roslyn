@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 context,
                 cancellationToken).ConfigureAwait(false);
 
-            var newCleanupOptions = await CodeCleanupOptions.FromDocumentAsync(newTypeDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
+            var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return (formattedDocument, typeAnnotation);
         }
 
-        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions options, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
+        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
         {
             var typeParameters = GetRequiredTypeParametersForMembers(type, extractableMembers);
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, options, cancellationToken).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, formattingOptions, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)

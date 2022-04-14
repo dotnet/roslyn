@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                         testState.InvocationDocument,
                         testState.TestInvocationDocument.SelectedSpans.Single(),
-                        language => ChangeNamespaceOptions.GetDefault(workspace.Services.GetLanguageServices(GetLanguage())),
+                        language => CodeCleanupOptions.GetDefault(workspace.Services.GetLanguageServices(GetLanguage())),
                         CancellationToken.None);
 
                 var operationTasks = actions

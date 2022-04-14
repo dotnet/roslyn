@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
-                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+                    CodeCleanupOptions.GetDefaultAsync);
 
             return Task.FromResult(result);
         }

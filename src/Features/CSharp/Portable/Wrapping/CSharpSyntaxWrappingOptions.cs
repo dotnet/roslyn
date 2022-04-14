@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
 
         public static CSharpSyntaxWrappingOptions Create(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
             => new(
-                CSharpSyntaxFormattingOptions.Create(options),
+                CSharpSyntaxFormattingOptions.Create(options, (CSharpSyntaxFormattingOptions?)ideOptions.CleanupOptions?.FormattingOptions),
                 operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
                 wrappingColumn: ideOptions.WrappingColumn,
                 newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers));

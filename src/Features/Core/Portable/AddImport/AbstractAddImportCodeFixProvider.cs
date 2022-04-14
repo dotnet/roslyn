@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchOptions = searchOptions with { SearchNuGetPackages = false };
             }
 
-            var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             var addImportOptions = new AddImportOptions(
                 searchOptions,

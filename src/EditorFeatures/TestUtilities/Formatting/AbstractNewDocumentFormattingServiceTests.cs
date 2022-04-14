@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
+                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
                 var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
                 var actual = await formattedDocument.GetTextAsync();

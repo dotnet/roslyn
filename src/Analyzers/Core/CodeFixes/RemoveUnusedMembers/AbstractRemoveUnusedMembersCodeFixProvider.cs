@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -12,8 +13,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             public override string Title => FeaturesResources.Move_to_namespace;
 
-            public MoveTypeToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, ChangeNamespaceOptionsProvider changeNamespaceOptions)
-                : base(changeNamespaceService, analysisResult, changeNamespaceOptions)
+            public MoveTypeToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+                : base(changeNamespaceService, analysisResult, cleanupOptions)
             {
             }
         }

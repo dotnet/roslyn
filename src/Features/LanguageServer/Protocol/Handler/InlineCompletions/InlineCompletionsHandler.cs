@@ -44,6 +44,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
     private readonly XmlSnippetParser _xmlSnippetParser;
+    private readonly IGlobalOptionService _globalOptions;
 
     public override bool MutatesSolutionState => false;
 
@@ -51,9 +52,10 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
+    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser, IGlobalOptionService globalOptions)
     {
         _xmlSnippetParser = xmlSnippetParser;
+        _globalOptions = globalOptions;
     }
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
@@ -99,8 +101,8 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = await SimplifierOptions.FromDocumentAsync(context.Document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, _globalOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await context.Document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
         var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
 

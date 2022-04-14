@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
                 var compilation = semanticModel.Compilation;
 
-                var options = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetAddImportPlacementOptionsAsync(addImportService, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
 
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())

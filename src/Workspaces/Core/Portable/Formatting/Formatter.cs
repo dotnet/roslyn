@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var services = document.Project.Solution.Workspace.Services;
-            var formattingOptions = SyntaxFormattingOptions.Create(options, services, document.Project.Language);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, services, fallbackOptions: null, document.Project.Language);
             return await formattingService.FormatAsync(document, spans, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return document.WithSyntaxRoot(Format(root, annotation, services, options, rules, cancellationToken));
         }
 
-        internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet? options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet? optionSet, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -144,9 +144,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var services = document.Project.Solution.Workspace.Services;
-            var formattingOptions = SyntaxFormattingOptions.Create(documentOptions, services, root.Language);
+            var formattingOptions = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(Format(root, annotation, services, formattingOptions, rules, cancellationToken));
         }
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             options ??= workspace.Options;
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            var formattingOptions = SyntaxFormattingOptions.Create(options, workspace.Services, node.Language);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, workspace.Services, fallbackOptions: null, node.Language);
             return languageFormatter.GetFormattingResult(node, spans, formattingOptions, rules, cancellationToken);
         }
 
@@ -325,6 +324,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(node.Language);
             return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
+        }
+
+        internal static async Task<SyntaxFormattingOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
+        {
+            return (optionSet != null) ?
+                SyntaxFormattingOptions.Create(optionSet, document.Project.Solution.Workspace.Services, fallbackOptions: null, document.Project.Language) :
+                await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

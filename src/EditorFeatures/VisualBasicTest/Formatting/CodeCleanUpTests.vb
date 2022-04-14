@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -16,6 +17,7 @@ Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -331,7 +333,6 @@ End Class
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
-                Dim options = CodeActionOptions.Default
 
                 Dim solution = workspace.CurrentSolution _
                     .WithOptions(workspace.Options _
@@ -346,10 +347,6 @@ End Class
 
                 workspace.TryApplyChanges(solution)
 
-                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
-                    LineFormattingOptions.Default,
-                    separateImportDirectiveGroups:=separateImportsGroups)
-
                 ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
                 Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
                 incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
@@ -361,12 +358,19 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
+                Dim options = New CodeActionOptions(
+                    CleanupOptions:=New CodeCleanupOptions(
+                        FormattingOptions:=New VisualBasicSyntaxFormattingOptions(
+                            LineFormattingOptions.Default,
+                            separateImportDirectiveGroups:=separateImportsGroups),
+                        SimplifierOptions:=VisualBasicSimplifierOptions.Default,
+                        AddImportOptions:=AddImportPlacementOptions.Default))
+
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
                     Function(language) options,
-                    formattingOptions,
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

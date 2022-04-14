@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// first.  This will also attempt to return a fix for an error first, but will fall back to any fix if that
         /// does not succeed.
         /// </summary>
-        Task<FirstFixResult> GetMostSevereFixAsync(Document document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptionsProvider options, CancellationToken cancellationToken);
+        Task<FirstFixResult> GetMostSevereFixAsync(Document document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
-        Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CodeActionOptionsProvider options, CancellationToken cancellationToken);
+        Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
     }
 

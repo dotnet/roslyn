@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
         private readonly AbstractFormattingRule _endRegionFormattingRule;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractCodeModelService(
@@ -60,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
             AbstractFormattingRule endRegionFormattingRule,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
             RoslynDebug.AssertNotNull(languageServiceProvider);
@@ -70,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
+            _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
@@ -1039,7 +1042,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,
@@ -1085,7 +1088,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 document = _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
                     return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 });
             }

@@ -3,12 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -29,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; }
         [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; }
         [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; }
-        [DataMember(Order = 3)] public SimplifierOptions? SimplifierOptions { get; init; }
+        [DataMember(Order = 3)] public CodeCleanupOptions? CleanupOptions { get; init; }
         [DataMember(Order = 4)] public bool HideAdvancedMembers { get; init; }
         [DataMember(Order = 5)] public bool IsBlocking { get; init; }
         [DataMember(Order = 6)] public int WrappingColumn { get; init; }
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             SymbolSearchOptions? SearchOptions = null,
             ImplementTypeOptions? ImplementTypeOptions = null,
             ExtractMethodOptions? ExtractMethodOptions = null,
-            SimplifierOptions? SimplifierOptions = null,
+            CodeCleanupOptions? CleanupOptions = null,
             bool HideAdvancedMembers = false,
             bool IsBlocking = false,
             int WrappingColumn = DefaultWrappingColumn)
@@ -58,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             this.SearchOptions = SearchOptions ?? SymbolSearchOptions.Default;
             this.ImplementTypeOptions = ImplementTypeOptions ?? ImplementType.ImplementTypeOptions.Default;
             this.ExtractMethodOptions = ExtractMethodOptions ?? ExtractMethod.ExtractMethodOptions.Default;
-            this.SimplifierOptions = SimplifierOptions;
+            this.CleanupOptions = CleanupOptions;
             this.HideAdvancedMembers = HideAdvancedMembers;
             this.IsBlocking = IsBlocking;
             this.WrappingColumn = WrappingColumn;
@@ -74,4 +81,32 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #endif
 
     internal delegate CodeActionOptions CodeActionOptionsProvider(HostLanguageServices languageService);
+
+    internal static class CodeActionOptionsProviders
+    {
+        internal static CodeActionOptionsProvider GetOptionsProvider(this CodeFixContext context)
+#if CODE_STYLE
+            => _ => default;
+#else
+            => context.Options;
+#endif
+
+        internal static CodeActionOptionsProvider GetOptionsProvider(this FixAllContext context)
+#if CODE_STYLE
+            => _ => default;
+#else
+            => context.State.CodeActionOptionsProvider;
+#endif
+
+        internal static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting syntaxFormatting, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        {
+#if CODE_STYLE
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return syntaxFormatting.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), fallbackOptions: null);
+#else
+            var fallbackFormattingOptions = fallbackOptions(document.Project.GetExtendedLanguageServices()).CleanupOptions?.FormattingOptions;
+            return await document.GetSyntaxFormattingOptionsAsync(fallbackFormattingOptions, cancellationToken).ConfigureAwait(false);
+#endif
+        }
+    }
 }

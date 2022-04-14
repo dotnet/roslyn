@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -622,8 +623,6 @@ namespace A
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            var options = CodeActionOptions.Default;
-
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
@@ -636,17 +635,6 @@ namespace A
 
             workspace.TryApplyChanges(solution);
 
-            var formattingOptions = new CSharpSyntaxFormattingOptions(
-                lineFormatting: LineFormattingOptions.Default,
-                separateImportDirectiveGroups: separateUsingGroups,
-                spacing: CSharpSyntaxFormattingOptions.Default.Spacing,
-                spacingAroundBinaryOperator: CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-                newLines: CSharpSyntaxFormattingOptions.Default.NewLines,
-                labelPositioning: CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-                indentation: CSharpSyntaxFormattingOptions.Default.Indentation,
-                wrappingKeepStatementsOnSingleLine: CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine,
-                wrappingPreserveSingleLine: CSharpSyntaxFormattingOptions.Default.WrappingPreserveSingleLine);
-
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
             incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
@@ -658,8 +646,14 @@ namespace A
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
+            var fallbackOptions = new CodeActionOptions(
+                CleanupOptions: CodeCleanupOptions.GetDefault(document.Project.LanguageServices) with
+                {
+                    FormattingOptions = new CSharpSyntaxFormattingOptions(separateImportDirectiveGroups: separateUsingGroups)
+                });
+
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), _ => options, formattingOptions, CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), _ => fallbackOptions, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

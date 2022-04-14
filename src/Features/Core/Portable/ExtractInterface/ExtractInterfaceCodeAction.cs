@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,
                 containingNamespaceDisplay,
+                _typeAnalysisResult.FallbackOptions,
                 cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
                 var extractInterfaceResult = await _extractInterfaceService
-                        .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+                        .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 if (extractInterfaceResult.Succeeded)
                 {

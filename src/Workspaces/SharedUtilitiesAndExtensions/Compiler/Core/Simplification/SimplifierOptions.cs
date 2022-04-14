@@ -5,6 +5,8 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeActions;
 
 #if !CODE_STYLE
 using System.Threading;
@@ -64,18 +66,33 @@ namespace Microsoft.CodeAnalysis.Simplification
             };
 
 #if !CODE_STYLE
+        public static SimplifierOptions GetDefault(HostLanguageServices languageServices)
+            => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
+
         public static SimplifierOptions Create(OptionSet options, HostWorkspaceServices services, SimplifierOptions? fallbackOptions, string language)
         {
             var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(language);
             var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
             return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions);
         }
-
-        public static async Task<SimplifierOptions> FromDocumentAsync(Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
-        }
 #endif
     }
+
+#if !CODE_STYLE
+    internal static class SimplifierOptionsProviders
+    {
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return SimplifierOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
+        }
+
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetSimplifierOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.SimplifierOptions ?? SimplifierOptions.GetDefault(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
+
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetSimplifierOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions, cancellationToken).ConfigureAwait(false);
+
+    }
+#endif
 }

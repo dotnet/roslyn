@@ -140,7 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 subjectBuffer: SubjectBuffer,
                 dataBuffer: DataBuffer,
                 bufferCoordinator,
-                this.Workspace,
+                Workspace,
+                _diagnosticAnalyzerService.GlobalOptions,
                 project,
                 componentModel,
                 vbHelperFormattingRule);

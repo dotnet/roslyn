@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             bool newLineForMembersInObjectInit,
             bool newLineForMembersInAnonymousTypes,
             bool newLineForClausesInQuery)
-            => new(formattingOptions: new CSharpSyntaxFormattingOptions(
+            => new(new(
+                FormattingOptions: new CSharpSyntaxFormattingOptions(
                     new LineFormattingOptions(
                         UseTabs: useTabs,
                         TabSize: tabSize,
@@ -133,6 +135,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                         (indentSwitchSection ? IndentationPlacement.SwitchSection : 0),
                     wrappingKeepStatementsOnSingleLine: wrappingKeepStatementsOnSingleLine,
                     wrappingPreserveSingleLine: wrappingPreserveSingleLine),
-                simplifierOptions: CSharpSimplifierOptions.Default);
+                SimplifierOptions: CSharpSimplifierOptions.Default,
+                AddImportOptions: AddImportPlacementOptions.Default));
     }
 }

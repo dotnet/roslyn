@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
-#if CODE_STYLE
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
-#endif
 
         protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -77,11 +75,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
 #if CODE_STYLE
             var provider = GetSyntaxFormatting();
-            var formattingOptions = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken));
 #else
             var provider = document.Project.Solution.Workspace.Services;
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
 
             changedRoot = formattedRoot;

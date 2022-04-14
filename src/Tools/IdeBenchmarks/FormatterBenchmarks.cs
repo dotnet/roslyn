@@ -46,7 +46,7 @@ namespace IdeBenchmarks
             using var workspace = TestWorkspace.CreateCSharp(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
             return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
 
@@ -59,7 +59,7 @@ namespace IdeBenchmarks
             using var workspace = TestWorkspace.CreateVisualBasic(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
             return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
     }

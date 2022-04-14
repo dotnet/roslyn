@@ -244,7 +244,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (context.AddImports)
             {
-                var addImportsOptions = await AddImportPlacementOptions.FromDocumentAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
+                var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
             }
 

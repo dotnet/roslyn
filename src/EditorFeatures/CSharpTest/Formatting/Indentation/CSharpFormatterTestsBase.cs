@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var rules = ImmutableArray.Create(formattingRuleProvider.CreateRule(document, position)).AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var options = new IndentationOptions(
-                await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false),
+                await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false),
                 AutoFormattingOptions.Default);
 
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);

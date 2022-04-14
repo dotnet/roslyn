@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract SyntaxGenerator Generator { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
-            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+            Document document, int position, bool restrictToDeclarations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
+                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration, fallbackOptions);
         }
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var formattedRoot = Formatter.Format(
                     newRoot,
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(updatedDoc, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

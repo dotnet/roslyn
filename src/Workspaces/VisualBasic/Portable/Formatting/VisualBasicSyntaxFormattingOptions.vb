@@ -12,20 +12,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
 
-        Public Sub New(lineFormatting As LineFormattingOptions,
-                       separateImportDirectiveGroups As Boolean)
+        Public Sub New(Optional lineFormatting As LineFormattingOptions? = Nothing,
+                       Optional separateImportDirectiveGroups As Boolean = False)
 
-            MyBase.New(lineFormatting, separateImportDirectiveGroups)
+            MyBase.New(lineFormatting,
+                       separateImportDirectiveGroups)
         End Sub
 
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions(
             lineFormatting:=LineFormattingOptions.Default,
             separateImportDirectiveGroups:=GenerationOptions.SeparateImportDirectiveGroups.DefaultValue)
 
-        Public Shared Shadows Function Create(options As AnalyzerConfigOptions) As VisualBasicSyntaxFormattingOptions
+        Public Shared Shadows Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
+            fallbackOptions = If(fallbackOptions, [Default])
+
             Return New VisualBasicSyntaxFormattingOptions(
-                lineFormatting:=LineFormattingOptions.Create(options),
-                separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
+                lineFormatting:=LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
+                separateImportDirectiveGroups:=options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups))
         End Function
 
         Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions

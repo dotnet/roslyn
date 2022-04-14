@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             var services = document.Project.Solution.Workspace.Services;
 
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
 
             var indentationOptions = new IndentationOptions(
-               SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language),
-               globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
+               SyntaxFormattingOptions.Create(documentOptions, services, globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices), document.Project.Language),
+               globalOptions.GetAutoFormattingOptions(document.Project.Language));
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }

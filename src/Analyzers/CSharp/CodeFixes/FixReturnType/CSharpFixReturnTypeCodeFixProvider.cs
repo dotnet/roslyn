@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return (declarationTypeToFix, fixedDeclaration);
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var (declarationTypeToFix, fixedDeclaration) =
                 await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);

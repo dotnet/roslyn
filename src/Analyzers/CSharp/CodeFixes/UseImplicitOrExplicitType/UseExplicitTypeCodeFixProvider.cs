@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 

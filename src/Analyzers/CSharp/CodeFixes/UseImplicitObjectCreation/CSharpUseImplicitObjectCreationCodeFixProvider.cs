@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // process from inside->out so that outer rewrites see the effects of inner changes.
             foreach (var diagnostic in diagnostics.OrderBy(d => d.Location.SourceSpan.End))

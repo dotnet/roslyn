@@ -12,7 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim configOptions = options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree)
             Dim ideOptions = options.GetIdeOptions()
 
-            Return VisualBasicSimplifierOptions.Create(configOptions, DirectCast(ideOptions.SimplifierOptions, VisualBasicSimplifierOptions))
+#If CODE_STYLE Then
+            Dim fallbackOptions As VisualBasicSimplifierOptions = Nothing
+#Else
+            Dim fallbackOptions = DirectCast(ideOptions.CleanupOptions?.SimplifierOptions, VisualBasicSimplifierOptions)
+#End If
+            Return VisualBasicSimplifierOptions.Create(configOptions, fallbackOptions)
         End Function
     End Module
 End Namespace

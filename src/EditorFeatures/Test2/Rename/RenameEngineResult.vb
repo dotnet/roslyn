@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, fallbackOptions:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
 
                 Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
             Else
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions,
+                    solution, symbol, renameTo, renameOptions, fallbackOptions:=Nothing,
                     nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

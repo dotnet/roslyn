@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return Nothing
         End Function
 
-        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, cancellationToken As CancellationToken) As Document
+        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Document
             ' vb does automatic line commit
             ' no need to do explicit formatting
             Return document

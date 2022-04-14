@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public abstract SyntaxFormattingOptions DefaultOptions { get; }
-        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
+        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions);
 
         public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 

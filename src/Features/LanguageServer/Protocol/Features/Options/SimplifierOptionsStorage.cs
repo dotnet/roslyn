@@ -16,9 +16,9 @@ internal interface ISimplifierOptionsStorage : ILanguageService
 
 internal static class SimplifierOptionsStorage
 {
-    public static Task<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => SimplifierOptions.FromDocumentAsync(document, globalOptions.GetSimplifierOptions(document.Project.LanguageServices), cancellationToken);
+    public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        => document.GetSimplifierOptionsAsync(globalOptions.GetSimplifierOptions(document.Project.LanguageServices), cancellationToken);
 
-    public static SimplifierOptions? GetSimplifierOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => languageServices.GetService<ISimplifierOptionsStorage>()?.GetOptions(globalOptions);
+    public static SimplifierOptions GetSimplifierOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        => languageServices.GetRequiredService<ISimplifierOptionsStorage>().GetOptions(globalOptions);
 }
