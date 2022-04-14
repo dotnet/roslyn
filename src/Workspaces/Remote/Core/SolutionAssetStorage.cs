@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = SolutionAsset.Null;
             }
 
+            if (!_solutionStates.ContainsKey(scopeId))
+                throw new InvalidOperationException($"Request for scopeId '{scopeId}' that was not pinned on the host side.");
+
             await FindAssetsAsync(_solutionStates[scopeId].Solution, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
