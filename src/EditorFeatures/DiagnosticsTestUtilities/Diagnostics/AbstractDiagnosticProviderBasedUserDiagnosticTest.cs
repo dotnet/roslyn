@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            IdeAnalyzerOptions ideAnalyzerOptions = null,
             OptionsCollection options = null,
             LocalizableString diagnosticMessage = null)
         {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollection options,
-            IdeAnalyzerOptions? ideAnalyzerOptions,
+            IdeAnalyzerOptions ideAnalyzerOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)

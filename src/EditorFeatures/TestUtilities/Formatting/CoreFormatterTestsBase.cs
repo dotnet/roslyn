@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             }
 
             var root = await syntaxTree.GetRootAsync();
-            var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
+            var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, fallbackOptions: null, root.Language);
 
             document = workspace.CurrentSolution.GetDocument(syntaxTree);
             var rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document));
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = new AdhocWorkspace();
             var formattingService = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISyntaxFormattingService>();
-            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty, fallbackOptions: null);
             var result = Formatter.Format(node, workspace.Services, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 
