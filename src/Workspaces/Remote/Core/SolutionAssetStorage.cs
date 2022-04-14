@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Note: we cannot assume the checksum mapping even has a mapping for this checksum, or that if it has a
                 // mapping that it points to this scope.  Specifically we may get the following sequences of steps:
                 //
-                //  1. Feature A creates and stores a scope-I associated with checksum X.  Scope-I will have a refcount of 1.
-                //  2. Feature A finishes their work and disposes the scope.  This will drop the refcount of the scope-I to 0.
-                //  3. Concurrently, feature B calls in to get a scope for checksum X.  THey see the mapping from that checksum to
-                //     scope with refcount 0.  They then remove that mapping and create a new mapping from checksum X to scope-J.
-                //  4a. Scope-I's Dispose then gets run and calls into this method.  Due to '3' the checksum now points at scope-J.
-                //  4b. Alternatively, Scope-J gets refcounted to 0, gets Disposed and then gets removed as well from the mapping
-                //      Scope-I's Dispose then calls into this and sees nothing at all.
+                //  1. Feature-A creates and stores a Scope-I associated with Checksum-X.  Scope-I will have a ref-count of 1.
+                //  2. Feature-A finishes their work and disposes the scope.  This will drop the ref-count of Scope-I to 0.
+                //  3. Concurrently, Feature-B calls in to get a scope for checksum X.  They see the mapping from that checksum to
+                //     Scope-I with ref-count 0.  They then remove that mapping and create a new mapping from Checksum-X to Scope-J.
+                //  4. Alternate 1: Scope-I's Dispose then gets run and calls into this method.  Due to '3' the checksum now points at Scope-J.
+                //  4. Alternate 2:, Scope-J gets refcounted to 0 by Feature-B, gets Dispose()'d and then gets removed
+                //     as well from the mapping. Scope-I's Dispose then calls into this and sees nothing at all.
                 if (_checksumToScope.TryGetValue(scope.Checksum, out var currentScopeMapping) &&
                     currentScopeMapping.Target?.SolutionInfo.ScopeId == scope.SolutionInfo.ScopeId)
                 {
