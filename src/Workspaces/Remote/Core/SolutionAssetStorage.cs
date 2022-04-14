@@ -23,6 +23,25 @@ namespace Microsoft.CodeAnalysis.Remote
         private static int s_scopeId = 1;
 
         /// <summary>
+        /// Lock over mutable state in this type.  Note: We could consider making this a SemaphoreSlim if the locking
+        /// proves to be a problem. However, it would greatly complicate the implementation and consumption side due to
+        /// the pattern around <c>await using</c> as well as <see cref="ReferenceCountedDisposable{T}"/> not supporting
+        /// <see cref="IAsyncDisposable"/>.
+        /// </summary>
+        private readonly object _gate = new();
+
+        /// <summary>
+        /// Mapping from operation checksum to the scope for the syncing operation that we've created for it.
+        /// Ref-counted so that if we have many concurrent calls going out from the host to the OOP side that we share
+        /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
+        /// if individual calls get canceled.
+        /// </summary>
+        /// <remarks>
+        /// Accessed across many threads.  Lock this type itself to quickly update it.
+        /// </remarks>
+        private readonly Dictionary<Checksum, ReferenceCountedDisposable<Scope>> _checksumToScope = new();
+
+        /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
         private readonly ConcurrentDictionary<int, (SolutionState Solution, SolutionReplicationContext ReplicationContext)> _solutionStates = new(concurrencyLevel: 2, capacity: 10);
@@ -33,33 +52,85 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
         /// </summary>
-        internal ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
+        internal ValueTask<ReferenceCountedDisposable<Scope>> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
             => StoreAssetsAsync(solution, projectId: null, cancellationToken);
 
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
         /// </summary>
-        internal ValueTask<Scope> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
+        internal ValueTask<ReferenceCountedDisposable<Scope>> StoreAssetsAsync(Project project, CancellationToken cancellationToken)
             => StoreAssetsAsync(project.Solution, project.Id, cancellationToken);
 
-        private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
+        private async ValueTask<ReferenceCountedDisposable<Scope>> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = projectId == null
+            var checksum = projectId == null
                 ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
                 : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
-            var context = SolutionReplicationContext.Create();
 
-            var id = Interlocked.Increment(ref s_scopeId);
-            var solutionInfo = new PinnedSolutionInfo(
-                id,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
-                solutionState.WorkspaceVersion,
-                solutionChecksum);
+            lock (_gate)
+            {
+                if (_checksumToScope.TryGetValue(checksum, out var refCountedScope))
+                {
+                    // Found a matching scope for this checksum.  See if we can up the refcount on it (i.e. it didn't
+                    // concurrently drop to 0 just before this on another thread.  If so, we're all good and the scope
+                    // can be shared.
+                    var result = refCountedScope.TryAddReference();
+                    if (result != null)
+                        return result;
 
-            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
+                    // Otherwise scope's refcount has dropped to zero externally, but we still got a concurrent call to
+                    // do an operation with the same checksum.  We have to recreate a scope at this point.  Explicitly
+                    // remove teh mapping here as we're going to update it below.  Note: when the scope itself calls
+                    // back into us to clean it will check to ensure that the mapping still points to it, so there's no
+                    // risk of both paths racing with each other.
+                    Contract.ThrowIfFalse(_checksumToScope.Remove(checksum));
+                }
 
-            return new Scope(this, solutionInfo);
+                var id = Interlocked.Increment(ref s_scopeId);
+                var solutionInfo = new PinnedSolutionInfo(
+                    id,
+                    fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                    solutionState.WorkspaceVersion,
+                    checksum);
+
+                Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, SolutionReplicationContext.Create())));
+
+                refCountedScope = new ReferenceCountedDisposable<Scope>(new Scope(this, checksum, solutionInfo));
+                _checksumToScope.Add(checksum, refCountedScope);
+
+                return refCountedScope;
+            }
+        }
+
+        private void DisposeScope(Scope scope)
+        {
+            lock (_gate)
+            {
+                // See if the checksum mapping is still pointing at this scope.  Definitely remove it in that scope has
+                // been disposed and should not be used by anyone anymore.
+                //
+                // Note: we cannot assume the checksum mapping even has a mapping for this checksum, or that if it has a
+                // mapping that it points to this scope.  Specifically we may get the following sequences of steps:
+                //
+                //  1. Feature A creates and stores a scope-I associated with checksum X.  Scope-I will have a refcount of 1.
+                //  2. Feature A finishes their work and disposes the scope.  This will drop the refcount of the scope-I to 0.
+                //  3. Concurrently, feature B calls in to get a scope for checksum X.  THey see the mapping from that checksum to
+                //     scope with refcount 0.  They then remove that mapping and create a new mapping from checksum X to scope-J.
+                //  4a. Scope-I's Dispose then gets run and calls into this method.  Due to '3' the checksum now points at scope-J.
+                //  4b. Alternatively, Scope-J gets refcounted to 0, gets Disposed and then gets removed as well from the mapping
+                //      Scope-I's Dispose then calls into this and sees nothing at all.
+                if (_checksumToScope.TryGetValue(scope.Checksum, out var currentScopeMapping) &&
+                    currentScopeMapping.Target?.SolutionInfo.ScopeId == scope.SolutionInfo.ScopeId)
+                {
+                    Contract.ThrowIfFalse(_checksumToScope.Remove(scope.Checksum));
+                }
+            }
+
+            // We know at this point that absolutely no operations are in flight corresponding to this scope id.  So we
+            // can also remove it from the states map.
+            Contract.ThrowIfFalse(_solutionStates.TryRemove(scope.SolutionInfo.ScopeId, out var entry));
+            entry.ReplicationContext.Dispose();
         }
 
         /// <summary>

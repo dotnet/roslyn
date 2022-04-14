@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.Target.SolutionInfo, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.Target.SolutionInfo, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.Target.SolutionInfo, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionInfo, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.Target.SolutionInfo, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.Target.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
 
                 return true;
             }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.Target.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.Target.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
 
                 return true;
             }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.Target.SolutionInfo, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
                 return await InvokeStreamingServiceAsync(
                     rental.Service,
-                    (service, pipeWriter, cancellationToken) => invocation(service, scope.SolutionInfo, pipeWriter, cancellationToken),
+                    (service, pipeWriter, cancellationToken) => invocation(service, scope.Target.SolutionInfo, pipeWriter, cancellationToken),
                     reader,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
                 return await InvokeStreamingServiceAsync(
                     rental.Service,
-                    (service, pipeWriter, cancellationToken) => invocation(service, scope.SolutionInfo, pipeWriter, cancellationToken),
+                    (service, pipeWriter, cancellationToken) => invocation(service, scope.Target.SolutionInfo, pipeWriter, cancellationToken),
                     reader,
                     cancellationToken).ConfigureAwait(false);
             }
