@@ -26,7 +26,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             var (document, textSpan, cancellationToken) = context;
             var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
-            var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+
+            var fallbackOptions = new EncapsulateFieldOptions(
+                SimplifierOptions: context.Options(document.Project.LanguageServices).SimplifierOptions);
+
+            var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, fallbackOptions, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

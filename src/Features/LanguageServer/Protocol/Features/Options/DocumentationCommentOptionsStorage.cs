@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-// TODO: move to LSP layer
-
 internal static class DocumentationCommentOptionsStorage
 {
     public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, DocumentOptionSet documentOptions)

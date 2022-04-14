@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var changedDocument = await GetChangedDocumentCoreAsync(cancellationToken).ConfigureAwait(false);
-                return await Simplifier.ReduceAsync(changedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await SimplifierOptions.FromDocumentAsync(changedDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                return await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
+    internal partial class CSharpSimplificationService
     {
         private class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
         {
