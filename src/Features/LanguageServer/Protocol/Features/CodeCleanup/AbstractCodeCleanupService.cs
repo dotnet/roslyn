@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
             IProgressTracker progressTracker,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
+            IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
             progressTracker.AddItems(enabledDiagnosticSets.Length);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);

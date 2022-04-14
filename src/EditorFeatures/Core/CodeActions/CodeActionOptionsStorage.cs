@@ -32,5 +32,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
             return language => ImmutableInterlocked.GetOrAdd(ref cache, language, (language, options) => GetCodeActionOptions(options, language), globalOptions);
         }
+
+        internal static CodeActionOptionsProvider GetBlockingCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
+        {
+            var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
+            return language => ImmutableInterlocked.GetOrAdd(ref cache, language, (language, options) => GetBlockingCodeActionOptions(options, language), globalOptions);
+        }
     }
 }

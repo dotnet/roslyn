@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             var token = root.FindToken(position);
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            if (token.IsKind(SyntaxKind.StringLiteralToken) ||
+                token.IsKind(SyntaxKind.UTF8StringLiteralToken))
             {
                 return new SimpleStringSplitter(
                     document, position, root,
