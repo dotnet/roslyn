@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
                 RoslynDebug.AssertNotNull(typeSyntax.Parent);
 
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
-                RoslynDebug.AssertNotNull(tupleTypeSymbol);
+                var tupleTypeSymbol = GetConvertedType(semanticModel, typeSyntax.Parent, cancellationToken);
 
                 var leadingTrivia = declarationExpression.GetLeadingTrivia()
                     .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
@@ -105,9 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
-                RoslynDebug.AssertNotNull(typeSymbol);
-
+                var typeSymbol = GetConvertedType(semanticModel, typeSyntax, cancellationToken);
                 editor.ReplaceNode(typeSyntax, GenerateTypeDeclaration(typeSyntax, typeSymbol));
             }
         }
@@ -136,8 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             typeSyntax = typeSyntax.StripRefIfNeeded();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
-            RoslynDebug.AssertNotNull(typeSymbol);
+            var typeSymbol = GetConvertedType(semanticModel, typeSyntax, cancellationToken);
 
             typeSymbol = AdjustNullabilityOfTypeSymbol(
                 typeSymbol,
@@ -220,6 +216,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                          .WithTriviaFrom(typeSyntax);
 
             return newTypeSyntax;
+        }
+
+        private static ITypeSymbol GetConvertedType(SemanticModel semanticModel, SyntaxNode typeSyntax, CancellationToken cancellationToken)
+        {
+            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType;
+            if (typeSymbol is null)
+            {
+                throw ExceptionUtilities.UnexpectedValue(typeSymbol);
+            }
+
+            return typeSymbol;
         }
     }
 }
