@@ -219,8 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                          .GenerateTypeSyntax(allowVar: false)
                          .WithTriviaFrom(typeSyntax);
 
-            Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
-
             return newTypeSyntax;
         }
     }

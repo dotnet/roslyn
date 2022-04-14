@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis
             return hasReference ? (bool?)false : null;
         }
 
+        /// <summary>
+        /// Determines if an operations references a specific symbol. Note that this will recurse in some
+        /// cases to work for operations like IAssignmentOperation, which logically references a symbol even if it
+        /// is the Target operation that actually does. 
+        /// </summary>
         private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol)
             => operation switch
             {
