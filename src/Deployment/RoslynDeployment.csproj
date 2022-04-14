@@ -15,7 +15,6 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\.editorconfig" Link=".editorconfig" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
