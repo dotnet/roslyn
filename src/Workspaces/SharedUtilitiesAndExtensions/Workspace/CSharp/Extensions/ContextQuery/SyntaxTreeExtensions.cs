@@ -1389,6 +1389,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e is > $$
+            // e is >= $$
+            // e is < $$
+            // e is <= $$
+            if (leftToken.IsKind(SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken) &&
+                leftToken.Parent.IsKind(SyntaxKind.RelationalPattern))
+            {
+                return true;
+            }
+
             return false;
         }
 
