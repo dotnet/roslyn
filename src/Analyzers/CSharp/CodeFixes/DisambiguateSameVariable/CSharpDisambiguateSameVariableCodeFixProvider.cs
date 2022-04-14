@@ -46,14 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (CanFix(
-                    semanticModel, diagnostic, cancellationToken,
-                    out _, out _, out var title))
+            if (CanFix(semanticModel, diagnostic, cancellationToken, out _, out _, out var title))
             {
-                context.RegisterCodeFix(new MyCodeAction(
-                    title,
-                    c => FixAsync(document, diagnostic, c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, title, nameof(CSharpDisambiguateSameVariableCodeFixProvider));
             }
         }
 
@@ -141,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -165,14 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 
                 newExpr = newExpr.WithTriviaFrom(nameNode);
                 editor.ReplaceNode(nameNode, newExpr);
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, nameof(CSharpDisambiguateSameVariableCodeFixProvider))
-            {
             }
         }
     }

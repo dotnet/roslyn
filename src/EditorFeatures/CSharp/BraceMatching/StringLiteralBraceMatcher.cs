@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
@@ -27,25 +26,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 
         public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
             if (!token.ContainsDiagnostics)
             {
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
-                    if (token.IsVerbatimStringLiteral())
-                    {
-                        return new BraceMatchingResult(
-                            new TextSpan(token.SpanStart, 2),
-                            new TextSpan(token.Span.End - 1, 1));
-                    }
-                    else
-                    {
-                        return new BraceMatchingResult(
-                            new TextSpan(token.SpanStart, 1),
-                            new TextSpan(token.Span.End - 1, 1));
-                    }
+                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 1);
+                }
+                else if (token.IsKind(SyntaxKind.UTF8StringLiteralToken))
+                {
+                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
                 }
                 else if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedVerbatimStringStartToken))
                 {
@@ -64,6 +56,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
             }
 
             return null;
+        }
+
+        private static BraceMatchingResult GetSimpleStringBraceMatchingResult(SyntaxToken token, int endTokenLength)
+        {
+            if (token.IsVerbatimStringLiteral())
+            {
+                return new BraceMatchingResult(
+                    new TextSpan(token.SpanStart, 2),
+                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
+            }
+            else
+            {
+                return new BraceMatchingResult(
+                    new TextSpan(token.SpanStart, 1),
+                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
+            }
         }
     }
 }

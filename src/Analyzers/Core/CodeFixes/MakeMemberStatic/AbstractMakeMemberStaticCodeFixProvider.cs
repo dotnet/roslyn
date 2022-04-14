@@ -23,16 +23,14 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             if (context.Diagnostics.Length == 1 &&
                 TryGetMemberDeclaration(context.Diagnostics[0].Location.FindNode(context.CancellationToken), out _))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, CodeFixesResources.Make_member_static, nameof(AbstractMakeMemberStaticCodeFixProvider));
             }
 
             return Task.CompletedTask;
         }
 
         protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -47,14 +45,6 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Make_member_static, createChangedDocument, nameof(AbstractMakeMemberStaticCodeFixProvider))
-            {
-            }
         }
     }
 }

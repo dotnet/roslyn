@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -34,11 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Make_readonly_fields_writable,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(CSharpAnalyzersResources.Make_readonly_fields_writable)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Make_readonly_fields_writable, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable));
             return Task.CompletedTask;
         }
 
@@ -46,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {

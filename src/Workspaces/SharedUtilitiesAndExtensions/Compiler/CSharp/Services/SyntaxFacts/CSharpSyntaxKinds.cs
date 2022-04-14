@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int SingleLineDocCommentTrivia => (int)SyntaxKind.SingleLineDocumentationCommentTrivia;
         public int? MultiLineDocCommentTrivia => (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
         public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+        public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;

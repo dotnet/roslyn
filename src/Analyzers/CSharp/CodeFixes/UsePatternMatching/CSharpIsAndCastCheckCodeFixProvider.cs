@@ -37,17 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Use_pattern_matching,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(CSharpAnalyzersResources.Use_pattern_matching)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {

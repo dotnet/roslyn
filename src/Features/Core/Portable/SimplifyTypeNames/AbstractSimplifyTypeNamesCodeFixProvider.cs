@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             context.RegisterCodeFix(new MyCodeAction(
                 title,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
+                GetDocumentUpdater(context),
                 diagnosticId), context.Diagnostics);
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
