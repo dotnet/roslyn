@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
         /// if individual calls get canceled.
         /// </summary>
-        /// <remarks>
-        /// Accessed across many threads.  Lock this type itself to quickly update it.
-        /// </remarks>
         private readonly Dictionary<Checksum, ReferenceCountedDisposable<Scope>> _checksumToScope = new();
 
         /// <summary>
