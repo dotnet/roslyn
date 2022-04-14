@@ -48,7 +48,7 @@ The best way to keep your repo in sync with this template's evolving features an
 git checkout main          # your default branch
 git pull                   # make sure you're at tip
 git fetch libtemplate      # fetch latest Library.Template
-git merge libtemplate/main
+git merge libtemplate/microbuild
 ```
 
 There will frequently be merge conflicts to work out, but they will be easier to resolve than running the `Apply-Template.ps1` script every time, which simply blows away all your local changes with the latest from the template.
@@ -74,7 +74,7 @@ Use `git rev-parse HEAD` within the Library.Template repo and record the resulti
 Run the `Apply-Template.ps1` script, passing in the path to your own Library.Template-based repo. This will blow away most customizations you may have made to your repo's build authoring. You should *carefully* review all changes to your repo, staging those changes that you want to keep and reverting those that remove customizations you made.
 
 Now it's time to commit your changes. We do this in a very low-level way in order to have git record this as a *merge* commit even though it didn't start as a merge.
-By doing this, git will allow future merges from `libtemplate/main` and only new changes will be brought down, which will be much easier than the `Apply-Template.ps1` script you just ran.
+By doing this, git will allow future merges from `libtemplate/microbuild` and only new changes will be brought down, which will be much easier than the `Apply-Template.ps1` script you just ran.
 We create the merge commit with these commands:
 
 1. Be sure to have staged or reverted all the changes in your repo.
