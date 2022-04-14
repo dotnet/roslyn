@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -30,18 +31,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
 
+        public readonly IGlobalOptionService GlobalOptions;
+
         protected bool _indentCaretOnCommit;
         protected int _indentDepth;
         protected bool _earlyEndExpansionHappened;
 
         public IExpansionSession? ExpansionSession { get; private set; }
 
-        public AbstractSnippetExpansionClient(IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
+        public AbstractSnippetExpansionClient(IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider, IGlobalOptionService globalOptions)
         {
-            this.LanguageServiceGuid = languageServiceGuid;
-            this.TextView = textView;
-            this.SubjectBuffer = subjectBuffer;
-            this.ExpansionServiceProvider = expansionServiceProvider;
+            LanguageServiceGuid = languageServiceGuid;
+            TextView = textView;
+            SubjectBuffer = subjectBuffer;
+            ExpansionServiceProvider = expansionServiceProvider;
+            GlobalOptions = globalOptions;
         }
 
         public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);

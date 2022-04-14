@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Func<string, IDisposable?> addOperationScope =
                         description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
 
-                    var options = GlobalOptions.GetBlockingCodeActionOptions(document.Project.Language);
+                    var options = GlobalOptions.GetBlockingCodeActionOptionsProvider();
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 if (state.Target.Owner._codeFixService == null ||
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 if (!selection.HasValue)
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 Document document,
                 SnapshotSpan range,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 foreach (var order in Orderings)
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
                 Document document,
                 TextSpan? selection,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 using var state = _state.TryAddReference();
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (document == null)
                     return null;
 
-                var options = GlobalOptions.GetCodeActionOptions(document.Project.Language);
+                var options = GlobalOptions.GetCodeActionOptionsProvider();
 
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;

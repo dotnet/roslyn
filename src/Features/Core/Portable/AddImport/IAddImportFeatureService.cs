@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.AddImport
     [DataContract]
     internal readonly record struct AddImportOptions(
         [property: DataMember(Order = 0)] SymbolSearchOptions SearchOptions,
-        [property: DataMember(Order = 1)] bool HideAdvancedMembers,
-        [property: DataMember(Order = 2)] AddImportPlacementOptions Placement);
+        [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions,
+        [property: DataMember(Order = 2)] bool HideAdvancedMembers);
 
     internal interface IAddImportFeatureService : ILanguageService
     {

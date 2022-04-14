@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                         fixAllContext.Project.Solution,
                         diagnostics,
                         fixAllContext.GetProgressTracker(),
+#if CODE_STYLE
+                        options: _ => default,
+#else
+                        fixAllContext.State.CodeActionOptionsProvider,
+#endif
                         cancellationToken),
                     title);
 
@@ -67,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
                 IProgressTracker progressTracker,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 // Use documentId instead of tree here because the
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     var document = newSolution.GetRequiredDocument(documentId);
                     using var _ = progressTracker.ItemCompletedScope(document.Name);
 
-                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
+                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, options, cancellationToken).ConfigureAwait(false);
                 }
 
                 return newSolution;

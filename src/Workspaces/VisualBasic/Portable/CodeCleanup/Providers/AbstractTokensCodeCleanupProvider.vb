@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Protected MustOverride Function GetRewriterAsync(
             document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim rewriter As Rewriter = Await GetRewriterAsync(document, root, spans, cancellationToken).ConfigureAwait(False)
             Dim newRoot = rewriter.Visit(root)

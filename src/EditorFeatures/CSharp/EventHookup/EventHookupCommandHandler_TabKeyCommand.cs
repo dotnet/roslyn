@@ -168,8 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             }
 
             var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var newRoot = formattedDocument.GetSyntaxRootSynchronously(cancellationToken);

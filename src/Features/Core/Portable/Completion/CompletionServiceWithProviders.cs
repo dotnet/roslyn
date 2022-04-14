@@ -102,6 +102,19 @@ namespace Microsoft.CodeAnalysis.Completion
             return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
+        internal override Task<CompletionList> GetCompletionsAsync(
+            Document document,
+            int caretPosition,
+            CompletionOptions options,
+            OptionSet passThroughOptions,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            CancellationToken cancellationToken)
+        {
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
+        }
+
         private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
