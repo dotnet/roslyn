@@ -30,30 +30,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
 
         public CSharpSimplifierOptions(
-            CodeStyleOption2<bool> qualifyFieldAccess,
-            CodeStyleOption2<bool> qualifyPropertyAccess,
-            CodeStyleOption2<bool> qualifyMethodAccess,
-            CodeStyleOption2<bool> qualifyEventAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInMemberAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInDeclaration,
-            CodeStyleOption2<bool> varForBuiltInTypes,
-            CodeStyleOption2<bool> varWhenTypeIsApparent,
-            CodeStyleOption2<bool> varElsewhere,
-            CodeStyleOption2<bool> preferSimpleDefaultExpression,
-            CodeStyleOption2<PreferBracesPreference> preferBraces)
+            CodeStyleOption2<bool>? qualifyFieldAccess = null,
+            CodeStyleOption2<bool>? qualifyPropertyAccess = null,
+            CodeStyleOption2<bool>? qualifyMethodAccess = null,
+            CodeStyleOption2<bool>? qualifyEventAccess = null,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess = null,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration = null,
+            CodeStyleOption2<bool>? varForBuiltInTypes = null,
+            CodeStyleOption2<bool>? varWhenTypeIsApparent = null,
+            CodeStyleOption2<bool>? varElsewhere = null,
+            CodeStyleOption2<bool>? preferSimpleDefaultExpression = null,
+            CodeStyleOption2<PreferBracesPreference>? preferBraces = null)
             : base(
-                qualifyFieldAccess: qualifyFieldAccess,
-                qualifyPropertyAccess: qualifyPropertyAccess,
-                qualifyMethodAccess: qualifyMethodAccess,
-                qualifyEventAccess: qualifyEventAccess,
-                preferPredefinedTypeKeywordInMemberAccess: preferPredefinedTypeKeywordInMemberAccess,
-                preferPredefinedTypeKeywordInDeclaration: preferPredefinedTypeKeywordInDeclaration)
+                qualifyFieldAccess: qualifyFieldAccess ?? Default.QualifyFieldAccess,
+                qualifyPropertyAccess: qualifyPropertyAccess ?? Default.QualifyPropertyAccess,
+                qualifyMethodAccess: qualifyMethodAccess ?? Default.QualifyMethodAccess,
+                qualifyEventAccess: qualifyEventAccess ?? Default.QualifyEventAccess,
+                preferPredefinedTypeKeywordInMemberAccess: preferPredefinedTypeKeywordInMemberAccess ?? Default.PreferPredefinedTypeKeywordInMemberAccess,
+                preferPredefinedTypeKeywordInDeclaration: preferPredefinedTypeKeywordInDeclaration ?? Default.PreferPredefinedTypeKeywordInDeclaration)
         {
-            VarForBuiltInTypes = varForBuiltInTypes;
-            VarWhenTypeIsApparent = varWhenTypeIsApparent;
-            VarElsewhere = varElsewhere;
-            PreferSimpleDefaultExpression = preferSimpleDefaultExpression;
-            PreferBraces = preferBraces;
+            VarForBuiltInTypes = varForBuiltInTypes ?? Default.VarForBuiltInTypes;
+            VarWhenTypeIsApparent = varWhenTypeIsApparent ?? Default.VarWhenTypeIsApparent;
+            VarElsewhere = varElsewhere ?? Default.VarElsewhere;
+            PreferSimpleDefaultExpression = preferSimpleDefaultExpression ?? Default.PreferSimpleDefaultExpression;
+            PreferBraces = preferBraces ?? Default.PreferBraces;
         }
 
         public static readonly CSharpSimplifierOptions Default = new(
