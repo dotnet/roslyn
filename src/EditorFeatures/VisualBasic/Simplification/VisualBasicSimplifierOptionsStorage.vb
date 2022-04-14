@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
-
             End Sub
 
             Public Function GetOptions(globalOptions As IGlobalOptionService) As SimplifierOptions Implements ISimplifierOptionsStorage.GetOptions

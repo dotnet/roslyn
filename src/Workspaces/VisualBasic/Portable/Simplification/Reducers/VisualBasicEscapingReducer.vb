@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
+
 #Disable Warning IDE0060 ' Remove unused parameter - False positive, used as a delegate in a nested type.
         ' https://github.com/dotnet/roslyn/issues/44226
         Private Shared Function TryUnescapeToken(identifier As SyntaxToken, semanticModel As SemanticModel, options As VisualBasicSimplifierOptions, cancellationToken As CancellationToken) As SyntaxToken

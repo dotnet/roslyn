@@ -18,11 +18,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
+        Private Shared ReadOnly s_simplifyVariableDeclarator As Func(Of VariableDeclaratorSyntax, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyVariableDeclarator
+
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyVariableDeclarator As Func(Of VariableDeclaratorSyntax, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyVariableDeclarator
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
 
         Private Overloads Shared Function SimplifyVariableDeclarator(
             node As VariableDeclaratorSyntax,

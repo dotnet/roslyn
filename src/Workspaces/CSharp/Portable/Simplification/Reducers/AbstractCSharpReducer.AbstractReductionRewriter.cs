@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public void RequireInitialized()
             {
                 Contract.ThrowIfNull(ParseOptions);
-                Debug.Assert(Options != null);
-                Debug.Assert(SemanticModel != null);
+                Contract.ThrowIfNull(Options);
+                Contract.ThrowIfNull(SemanticModel);
             }
 
             private static SyntaxNode? GetParentNode(SyntaxNode node)

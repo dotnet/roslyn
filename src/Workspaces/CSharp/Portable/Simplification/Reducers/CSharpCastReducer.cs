@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+            => true;
+
         private static readonly Func<CastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, ExpressionSyntax> s_simplifyCast = SimplifyCast;
 
         private static ExpressionSyntax SimplifyCast(CastExpressionSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken cancellationToken)

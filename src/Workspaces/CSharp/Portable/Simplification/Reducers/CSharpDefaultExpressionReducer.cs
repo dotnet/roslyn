@@ -16,5 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public CSharpDefaultExpressionReducer() : base(s_pool)
         {
         }
+
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
     }
 }

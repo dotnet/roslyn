@@ -21,11 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
+        private static readonly Func<SyntaxNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
+
         public CSharpNameReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<SyntaxNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxNode SimplifyName(
             SyntaxNode node,

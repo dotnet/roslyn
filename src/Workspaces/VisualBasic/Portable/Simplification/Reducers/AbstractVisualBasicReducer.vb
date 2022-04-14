@@ -47,8 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return IsApplicable(CType(options, VisualBasicSimplifierOptions))
         End Function
 
-        Public Overridable Overloads Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
-            Return True
-        End Function
+        Public MustOverride Overloads Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
     End Class
 End Namespace

@@ -24,9 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
+        private static readonly Func<ParameterSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
+
         public CSharpMiscellaneousReducer() : base(s_pool)
         {
         }
+
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static bool CanRemoveTypeFromParameter(
             ParameterSyntax parameterSyntax,
@@ -60,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             return false;
         }
-
-        private static readonly Func<ParameterSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParameter = SimplifyParameter;
 
         private static SyntaxNode SimplifyParameter(
             ParameterSyntax node,
