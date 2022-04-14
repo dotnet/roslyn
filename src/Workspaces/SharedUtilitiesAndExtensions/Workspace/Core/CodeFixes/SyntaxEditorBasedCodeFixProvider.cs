@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 #if CODE_STYLE
             var optionsProvider = s_codeStyleOptionsProvider;
 #else
-            var optionsProvider = new CodeActionOptionsProvider(_ => context.Options);
+            var optionsProvider = context.Options;
 #endif
             var diagnostics = ImmutableArray.Create(diagnostic ?? context.Diagnostics[0]);
 

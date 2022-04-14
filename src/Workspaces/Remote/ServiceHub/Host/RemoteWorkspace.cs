@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
 
+#if SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
         /// <summary>
         /// Mapping from solution checksum to to the solution computed for it.  This is used so that we can hold a
         /// solution around as long as the checksum for it is being used in service of some feature operation (e.g.
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
         private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _checksumToRefCountAndLazySolution = new();
+#endif
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -189,8 +191,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 await DecrementLazySolutionRefcountAsync().ConfigureAwait(false);
             }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
             async ValueTask<AsyncLazy<Solution>> GetLazySolutionAndIncrementRefCountAsync()
             {
+#if !SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
+                return
+                    AsyncLazy.Create(c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true);
+#else
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_checksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
@@ -212,6 +219,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return tuple.lazySolution;
                 }
+#endif
             }
 
             async ValueTask SetLastRequestedSolutionAsync(Solution solution)
@@ -228,6 +236,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async ValueTask DecrementLazySolutionRefcountAsync()
             {
+#if !SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
+                return;
+#else
                 // We use CancellationToken.None here as we have to ensure the refcount is decremented, or else we will
                 // have a memory leak.  This should hopefully not ever be an issue as we only ever hold this gate for
                 // very short periods of time in order to set do basic operations on our state.
@@ -247,7 +258,9 @@ namespace Microsoft.CodeAnalysis.Remote
                         _checksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
                     }
                 }
+#endif
             }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         }
 
         /// <summary>

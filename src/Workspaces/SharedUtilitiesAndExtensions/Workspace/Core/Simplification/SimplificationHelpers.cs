@@ -5,15 +5,8 @@
 #nullable disable
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -110,8 +103,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return symbol != null && !symbol.IsErrorType();
         }
 
-        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(
-            SemanticModel semanticModel, OptionSet optionSet, ISymbol symbol)
+        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(SimplifierOptions options, ISymbol symbol)
         {
             // If we're accessing a static member off of this/me then we should always consider this
             // simplifiable.  Note: in C# this isn't even legal to access a static off of `this`,
@@ -119,21 +111,15 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (symbol.IsStatic)
                 return true;
 
-            if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions2.QualifyFieldAccess, semanticModel.Language).Value ||
-                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions2.QualifyPropertyAccess, semanticModel.Language).Value) ||
-                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(CodeStyleOptions2.QualifyMethodAccess, semanticModel.Language).Value) ||
-                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(CodeStyleOptions2.QualifyEventAccess, semanticModel.Language).Value)))
+            if ((symbol.IsKind(SymbolKind.Field) && options.QualifyFieldAccess.Value ||
+                (symbol.IsKind(SymbolKind.Property) && options.QualifyPropertyAccess.Value) ||
+                (symbol.IsKind(SymbolKind.Method) && options.QualifyMethodAccess.Value) ||
+                (symbol.IsKind(SymbolKind.Event) && options.QualifyEventAccess.Value)))
             {
                 return false;
             }
 
             return true;
         }
-
-        internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
-            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
-
-        internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
-            => optionSet.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
     }
 }

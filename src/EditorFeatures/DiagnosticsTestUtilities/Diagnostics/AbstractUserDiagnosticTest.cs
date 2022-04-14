@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    options,
+                    _ => options,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);

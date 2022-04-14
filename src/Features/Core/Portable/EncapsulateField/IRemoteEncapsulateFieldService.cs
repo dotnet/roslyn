@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
+            EncapsulateFieldOptions fallbackOptions,
             bool updateReferences,
             CancellationToken cancellationToken);
     }
