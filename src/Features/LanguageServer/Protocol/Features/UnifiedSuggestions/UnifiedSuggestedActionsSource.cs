@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 Document document,
                 TextSpan selection,
                 CodeActionRequestPriority priority,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             => CodeFixesComputer.GetFilterAndOrderCodeFixesAsync(workspace, codeFixService, document, selection, priority, options, addOperationScope, cancellationToken);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 Document document,
                 TextSpan selection,
                 CodeActionRequestPriority priority,
-                CodeActionOptions options,
+                CodeActionOptionsProvider options,
                 Func<string, IDisposable?> addOperationScope,
                 bool filterOutsideSelection,
                 CancellationToken cancellationToken)

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private static async Task<CodeAction?> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
             using (Logger.LogBlock(
-                FunctionId.CodeFixes_FixAllOccurrencesComputation,
+                FunctionId.Refactoring_FixAllOccurrencesComputation,
                 KeyValueLogMessage.Create(LogType.UserAction, m =>
                 {
                     m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
