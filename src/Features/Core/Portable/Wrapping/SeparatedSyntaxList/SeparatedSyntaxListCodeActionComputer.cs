@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var openToken = _listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
 
-                var indentString = afterOpenTokenOffset.CreateIndentationString(Options.UseTabs, Options.TabSize);
+                var indentString = afterOpenTokenOffset.CreateIndentationString(Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
                 return indentString;
             }
 
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
 
                 // Block indentation is the only style that correctly indents across all initializer expressions
-                return GetIndentationAfter(previousToken, Formatting.FormattingOptions.IndentStyle.Block);
+                return GetIndentationAfter(previousToken, FormattingOptions2.IndentStyle.Block);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()

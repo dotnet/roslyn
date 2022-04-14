@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         }
 
         internal static async Task GenerateAndVerifySourceAsync(
-            string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null)
+            string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
         {
-            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion);
+            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
             await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
         }
 

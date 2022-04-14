@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, CancellationToken.None);
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, formattingOptions, CancellationToken.None);
 
                 var actual = await formattedDocument.GetTextAsync();
                 AssertEx.EqualOrDiff(expected, actual.ToString());

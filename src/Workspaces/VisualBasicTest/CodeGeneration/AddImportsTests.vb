@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -86,20 +87,22 @@ End NameSpace"
                 PlaceImportsInsideNamespaces:=False,
                 AllowInHiddenRegions:=False)
 
+            Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
+
             Dim imported = If(
                     useSymbolAnnotations,
                     Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None),
                     Await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None))
 
             If importsAddedText IsNot Nothing Then
-                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation)
+                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
                 Dim reduced = Await Simplifier.ReduceAsync(imported)
-                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation)
+                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(simplifiedText, actualText)
             End If

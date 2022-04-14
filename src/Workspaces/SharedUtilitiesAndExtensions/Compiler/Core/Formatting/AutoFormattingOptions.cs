@@ -2,18 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Options;
+using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+/// <summary>
+/// Automatic (on-type) formatting options.
+/// </summary>
+[DataContract]
+internal readonly record struct AutoFormattingOptions(
+    [property: DataMember(Order = 0)] bool FormatOnReturn = true,
+    [property: DataMember(Order = 1)] bool FormatOnTyping = true,
+    [property: DataMember(Order = 2)] bool FormatOnSemicolon = true,
+    [property: DataMember(Order = 3)] bool FormatOnCloseBrace = true)
 {
-    /// <summary>
-    /// Solution-wide format-on-type options.
-    /// </summary>
-    internal readonly partial record struct AutoFormattingOptions(
-        bool FormatOnReturn,
-        bool FormatOnTyping,
-        bool FormatOnSemicolon,
-        bool FormatOnCloseBrace);
+    public AutoFormattingOptions()
+        : this(FormatOnReturn: true)
+    {
+    }
+
+    public static readonly AutoFormattingOptions Default = new();
 }
