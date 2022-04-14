@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticModeExtensions
     {
