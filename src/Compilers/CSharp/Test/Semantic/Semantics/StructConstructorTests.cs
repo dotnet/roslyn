@@ -2933,6 +2933,9 @@ public struct S2
         [Fact]
         public void ImplicitlyInitializedFields_SequencePoints()
         {
+            // note: our testing is relatively limited here because:
+            // - there are no iterator constructors or async constructors
+            // - the implicit initializations can only occur on constructors which lack constructor initializers
             var source = @"
 public struct S
 {
@@ -2954,109 +2957,24 @@ public struct S
 
             verifier.VerifyIL("S..ctor", @"
 {
-  // Code size       21 (0x15)
-  .maxstack  2
- -IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int S.X""
- -IL_0007:  nop
- -IL_0008:  ldarg.0
-  IL_0009:  ldflda     ""int S.X""
-  IL_000e:  call       ""string int.ToString()""
-  IL_0013:  pop
- -IL_0014:  ret
+    // Code size       21 (0x15)
+    .maxstack  2
+    // sequence point: {
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldc.i4.0
+    IL_0003:  stfld      ""int S.X""
+    // sequence point: X.ToString();
+    IL_0008:  ldarg.0
+    IL_0009:  ldflda     ""int S.X""
+    IL_000e:  call       ""string int.ToString()""
+    IL_0013:  pop
+    // sequence point: }
+    IL_0014:  ret
 }
-", sequencePoints: "S..ctor");
-
-            verifier.VerifyPdb("S..ctor", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""S"" name="".ctor"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""22"" document=""1"" />
-        <entry offset=""0x14"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>
-");
-        }
-
-        [Fact]
-        public void ImplicitlyInitializedFields_NullCheckedParameter()
-        {
-            var source = @"
-public struct S
-{
-    public int X;
-
-    public S(string s!!)
-    {
-        X.ToString();
-    }
-}";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
-            verifier.VerifyDiagnostics(
-                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                //     public S(string s!!)
-                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12),
-                // (8,9): warning CS9019: Field 'X' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
-                //         X.ToString();
-                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "X").WithArguments("X").WithLocation(8, 9));
-
-            verifier.VerifyIL("S..ctor", @"
-{
-  // Code size       33 (0x21)
-  .maxstack  2
- ~IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""s""
-  IL_0006:  call       ""ThrowIfNull""
-  IL_000b:  nop
- -IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  stfld      ""int S.X""
- -IL_0013:  nop
- -IL_0014:  ldarg.0
-  IL_0015:  ldflda     ""int S.X""
-  IL_001a:  call       ""string int.ToString()""
-  IL_001f:  pop
- -IL_0020:  ret
-}
-", sequencePoints: "S..ctor");
-
-            verifier.VerifyPdb("S..ctor", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""S"" name="".ctor"" parameterNames=""s"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x13"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x14"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""22"" document=""1"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>
-");
+",
+                sequencePoints: "S..ctor",
+                source: source);
         }
 
         [Fact]
