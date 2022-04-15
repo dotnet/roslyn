@@ -43,15 +43,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
 
-#if SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
         /// <summary>
-        /// Mapping from solution checksum to to the solution computed for it.  This is used so that we can hold a
-        /// solution around as long as the checksum for it is being used in service of some feature operation (e.g.
-        /// classification).  As long as we're holding onto it, concurrent feature requests for the same checksum can
-        /// share the computation of that particular solution and avoid duplicated concurrent work.
+        /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
+        /// around as long as the checksum for it is being used in service of some feature operation (e.g.
+        /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
+        /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
-        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _checksumToRefCountAndLazySolution = new();
-#endif
+        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
+            return new AssetProvider(solutionInfo.SolutionChecksum, assetCache, assetSource, serializerService);
         }
 
         /// <summary>
@@ -191,22 +189,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 await DecrementLazySolutionRefcountAsync().ConfigureAwait(false);
             }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
             async ValueTask<AsyncLazy<Solution>> GetLazySolutionAndIncrementRefCountAsync()
             {
-#if !SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
-                return
-                    AsyncLazy.Create(c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true);
-#else
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_checksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
+                    if (_solutionChecksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
                     {
                         // Some other call was getting this same solution.  Increase our ref count on that to mark that we
                         // care about that computation as well.
                         Contract.ThrowIfTrue(tuple.refCount <= 0);
                         tuple.refCount++;
-                        _checksumToRefCountAndLazySolution[solutionChecksum] = tuple;
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = tuple;
                     }
                     else
                     {
@@ -214,12 +207,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         // refcount of 1 (for 'us').
                         tuple = (refCount: 1, AsyncLazy.Create(
                             c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true));
-                        _checksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
+                        _solutionChecksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
 
                     return tuple.lazySolution;
                 }
-#endif
             }
 
             async ValueTask SetLastRequestedSolutionAsync(Solution solution)
@@ -236,31 +228,26 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async ValueTask DecrementLazySolutionRefcountAsync()
             {
-#if !SHARE_SOLUTIONS_ACROSS_CONCURRENT_CALLS
-                return;
-#else
                 // We use CancellationToken.None here as we have to ensure the refcount is decremented, or else we will
                 // have a memory leak.  This should hopefully not ever be an issue as we only ever hold this gate for
                 // very short periods of time in order to set do basic operations on our state.
                 using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
-                    var (refCount, lazySolution) = _checksumToRefCountAndLazySolution[solutionChecksum];
+                    var (refCount, lazySolution) = _solutionChecksumToRefCountAndLazySolution[solutionChecksum];
                     refCount--;
                     Contract.ThrowIfTrue(refCount < 0);
                     if (refCount == 0)
                     {
                         // last computation of this solution went away.  Remove from in flight cache.
-                        _checksumToRefCountAndLazySolution.Remove(solutionChecksum);
+                        _solutionChecksumToRefCountAndLazySolution.Remove(solutionChecksum);
                     }
                     else
                     {
                         // otherwise, update with our decremented refcount.
-                        _checksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
                     }
                 }
-#endif
             }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         }
 
         /// <summary>

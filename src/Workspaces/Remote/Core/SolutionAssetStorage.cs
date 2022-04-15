@@ -20,15 +20,28 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SolutionAssetStorage
     {
-        private static int s_scopeId = 1;
+        /// <summary>
+        /// Lock over mutable state in this type.  Note: We could consider making this a SemaphoreSlim if the locking
+        /// proves to be a problem. However, it would greatly complicate the implementation and consumption side due to
+        /// the pattern around <c>await using</c>.
+        /// </summary>
+        private readonly object _gate = new();
 
         /// <summary>
-        /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
+        /// Mapping from operation checksum to the scope for the syncing operation that we've created for it.
+        /// Ref-counted so that if we have many concurrent calls going out from the host to the OOP side that we share
+        /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
+        /// if individual calls get canceled.
         /// </summary>
-        private readonly ConcurrentDictionary<int, (SolutionState Solution, SolutionReplicationContext ReplicationContext)> _solutionStates = new(concurrencyLevel: 2, capacity: 10);
+        private readonly Dictionary<Checksum, (int refCount, Scope scope)> _checksumToRefCountedScope = new();
 
-        public SolutionReplicationContext GetReplicationContext(int scopeId)
-            => _solutionStates[scopeId].ReplicationContext;
+        /// <summary>
+        /// Map from solution checksum to its associated <see cref="SolutionState"/>.
+        /// </summary>
+        private readonly ConcurrentDictionary<Checksum, (SolutionState Solution, SolutionReplicationContext ReplicationContext)> _solutionStates = new(concurrencyLevel: 2, capacity: 10);
+
+        public SolutionReplicationContext GetReplicationContext(Checksum checksum)
+            => _solutionStates[checksum].ReplicationContext;
 
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
@@ -45,27 +58,68 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = projectId == null
+            var checksum = projectId == null
                 ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
                 : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
-            var context = SolutionReplicationContext.Create();
 
-            var id = Interlocked.Increment(ref s_scopeId);
-            var solutionInfo = new PinnedSolutionInfo(
-                id,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
-                solutionState.WorkspaceVersion,
-                solutionChecksum);
+            lock (_gate)
+            {
+                if (_checksumToRefCountedScope.TryGetValue(checksum, out var refCountAndScope))
+                {
+                    Contract.ThrowIfTrue(refCountAndScope.refCount <= 0);
 
-            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
+                    refCountAndScope.refCount++;
+                    _checksumToRefCountedScope[checksum] = refCountAndScope;
+                    return refCountAndScope.scope;
+                }
 
-            return new Scope(this, solutionInfo);
+                Contract.ThrowIfFalse(_solutionStates.TryAdd(checksum, (solutionState, SolutionReplicationContext.Create())));
+
+                var solutionInfo = new PinnedSolutionInfo(
+                    checksum,
+                    fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                    solutionState.WorkspaceVersion);
+
+                var scope = new Scope(this, checksum, solutionInfo);
+                refCountAndScope = (refCount: 1, scope);
+                _checksumToRefCountedScope[checksum] = refCountAndScope;
+                return scope;
+            }
+        }
+
+        private void DisposeScope(Scope scope)
+        {
+            SolutionReplicationContext replicationContext;
+
+            lock (_gate)
+            {
+                var checksum = scope.Checksum;
+                var (refCount, existingScope) = _checksumToRefCountedScope[checksum];
+                Contract.ThrowIfTrue(existingScope != scope);
+
+                Contract.ThrowIfTrue(refCount <= 0);
+                refCount--;
+
+                // If our refcount is still above 0, then just update the map and return.  Nothing else to do at this point.
+                if (refCount > 0)
+                {
+                    _checksumToRefCountedScope[checksum] = (refCount, scope);
+                    return;
+                }
+
+                // Last ref went away, update our maps while under the lock, then cleanup its context data outside of the lock.
+                _checksumToRefCountedScope.Remove(checksum);
+                Contract.ThrowIfFalse(_solutionStates.TryRemove(scope.SolutionInfo.SolutionChecksum, out var stateAndContext));
+                replicationContext = stateAndContext.ReplicationContext;
+            }
+
+            replicationContext.Dispose();
         }
 
         /// <summary>
-        /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="scopeId"/> scope from the storage.
+        /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="solutionChecksum"/> scope from the storage.
         /// </summary>
-        public async ValueTask<SolutionAsset?> GetAssetAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<SolutionAsset?> GetAssetAsync(Checksum solutionChecksum, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
@@ -73,14 +127,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SolutionAsset.Null;
             }
 
-            var remotableData = await FindAssetAsync(_solutionStates[scopeId].Solution, checksum, cancellationToken).ConfigureAwait(false);
+            var remotableData = await FindAssetAsync(_solutionStates[solutionChecksum].Solution, checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
             }
 
-            // if it reached here, it means things get cancelled. due to involving 2 processes,
-            // current design can make slightly staled requests to running even when things cancelled.
+            // if it reached here, it means things get canceled. due to involving 2 processes,
+            // current design can make slightly staled requests to running even when things canceled.
             // if it is other case, remote host side will throw and close connection which will cause
             // vs to crash.
             // this should be changed once I address this design issue
@@ -90,9 +144,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Retrieve assets of specified <paramref name="checksums"/> available within <paramref name="scopeId"/> scope from the storage.
+        /// Retrieve assets of specified <paramref name="checksums"/> available within <paramref
+        /// name="solutionChecksum"/> scope from the storage.
         /// </summary>
-        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(
+            Checksum solutionChecksum, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
@@ -104,10 +160,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = SolutionAsset.Null;
             }
 
-            if (!_solutionStates.ContainsKey(scopeId))
-                throw new InvalidOperationException($"Request for scopeId '{scopeId}' that was not pinned on the host side.");
+            if (!_solutionStates.ContainsKey(solutionChecksum))
+                throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
 
-            await FindAssetsAsync(_solutionStates[scopeId].Solution, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(_solutionStates[solutionChecksum].Solution, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
@@ -115,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return result;
             }
 
-            // if it reached here, it means things get cancelled. due to involving 2 processes,
-            // current design can make slightly staled requests to running even when things cancelled.
+            // if it reached here, it means things get canceled. due to involving 2 processes,
+            // current design can make slightly staled requests to running even when things canceled.
             // if it is other case, remote host side will throw and close connection which will cause
             // vs to crash.
             // this should be changed once I address this design issue
