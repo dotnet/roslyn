@@ -702,6 +702,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitAssembly(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitAssembly(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitAssembly(Me)
         End Sub

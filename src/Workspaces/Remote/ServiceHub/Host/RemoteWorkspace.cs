@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         /// <summary>
-        /// Mapping from solution checksum to the solution computed for it.  This is used so that we can hold a solution
+        /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
         /// around as long as the checksum for it is being used in service of some feature operation (e.g.
-        /// classification).  As long as we're holding onto it, concurrent feature requests for the same checksum can
-        /// share the computation of that particular solution and avoid duplicated concurrent work.
+        /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
+        /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
-        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _checksumToRefCountAndLazySolution = new();
+        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
+            return new AssetProvider(solutionInfo.SolutionChecksum, assetCache, assetSource, serializerService);
         }
 
         /// <summary>
@@ -198,13 +198,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_checksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
+                    if (_solutionChecksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
                     {
                         // Some other call was getting this same solution.  Increase our ref count on that to mark that we
                         // care about that computation as well.
                         Contract.ThrowIfTrue(tuple.refCount <= 0);
                         tuple.refCount++;
-                        _checksumToRefCountAndLazySolution[solutionChecksum] = tuple;
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = tuple;
                     }
                     else
                     {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // refcount of 1 (for 'us').
                         tuple = (refCount: 1, AsyncLazy.Create(
                             c => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, c), cacheResult: true));
-                        _checksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
+                        _solutionChecksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
 
                     return tuple.lazySolution;
@@ -238,18 +238,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 // very short periods of time in order to set do basic operations on our state.
                 using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
-                    var (refCount, lazySolution) = _checksumToRefCountAndLazySolution[solutionChecksum];
+                    var (refCount, lazySolution) = _solutionChecksumToRefCountAndLazySolution[solutionChecksum];
                     refCount--;
                     Contract.ThrowIfTrue(refCount < 0);
                     if (refCount == 0)
                     {
                         // last computation of this solution went away.  Remove from in flight cache.
-                        _checksumToRefCountAndLazySolution.Remove(solutionChecksum);
+                        _solutionChecksumToRefCountAndLazySolution.Remove(solutionChecksum);
                     }
                     else
                     {
                         // otherwise, update with our decremented refcount.
-                        _checksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
                     }
                 }
             }

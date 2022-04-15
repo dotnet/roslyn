@@ -9,22 +9,22 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class SolutionAssetStorage
     {
-        internal readonly struct Scope : IDisposable
+        internal sealed class Scope : IDisposable
         {
-            private readonly SolutionAssetStorage _storages;
+            private readonly SolutionAssetStorage _storage;
+
+            public readonly Checksum Checksum;
             public readonly PinnedSolutionInfo SolutionInfo;
 
-            public Scope(SolutionAssetStorage storages, PinnedSolutionInfo solutionInfo)
+            public Scope(SolutionAssetStorage storage, Checksum checksum, PinnedSolutionInfo solutionInfo)
             {
-                _storages = storages;
+                _storage = storage;
+                Checksum = checksum;
                 SolutionInfo = solutionInfo;
             }
 
             public void Dispose()
-            {
-                Contract.ThrowIfFalse(_storages._solutionStates.TryRemove(SolutionInfo.ScopeId, out var entry));
-                entry.ReplicationContext.Dispose();
-            }
+                => _storage.DisposeScope(this);
         }
     }
 }
