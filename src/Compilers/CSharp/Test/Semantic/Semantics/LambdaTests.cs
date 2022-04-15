@@ -6310,42 +6310,6 @@ class A : Attribute { }
                 );
         }
 
-        [Fact]
-        public void ParameterScope_NotInMethodAttributeNameOf()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    void M()
-    {
-
-        var _ =
-            [My(nameof(parameter))] // 1
-            void(int parameter) => { };
-    }
-
-    [My(nameof(parameter))] // 2
-    void M2(int parameter) { }
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-");
-            comp.VerifyDiagnostics(
-                // (8,24): error CS0103: The name 'parameter' does not exist in the current context
-                //             [My(nameof(parameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 24),
-                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
-                );
-
-            VerifyParameter(comp, 0);
-            VerifyParameter(comp, 1);
-        }
-
         /// <summary>
         /// Look for usages of "parameter" and verify the index-th one.
         /// </summary>
@@ -6532,38 +6496,6 @@ public class MyAttribute : System.Attribute
                 // (9,17): error CS0103: The name 'parameter' does not exist in the current context
                 //     void M2([My(parameter)] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 17)
-                );
-
-            VerifyParameter(comp, 0);
-            VerifyParameter(comp, 1);
-        }
-
-        [Fact]
-        public void ParameterScope_NotInParameterAttributeNameOf()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    void M()
-    {
-        var _ = void ([My(nameof(parameter))] int parameter) => throw null;
-    }
-
-    void M2([My(nameof(parameter))] int parameter) => throw null;
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-");
-            comp.VerifyDiagnostics(
-                // (6,34): error CS0103: The name 'parameter' does not exist in the current context
-                //         var _ = void ([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 34),
-                // (9,24): error CS0103: The name 'parameter' does not exist in the current context
-                //     void M2([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 24)
                 );
 
             VerifyParameter(comp, 0);
