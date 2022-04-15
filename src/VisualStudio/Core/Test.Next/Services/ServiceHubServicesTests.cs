@@ -554,7 +554,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return (project, documents);
         }
 
-        // make sure we always move remote workspace forward
         private static async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
