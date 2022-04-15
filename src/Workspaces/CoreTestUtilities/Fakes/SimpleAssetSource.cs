@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 if (_map.TryGetValue(checksum, out var data))
                 {
                     using var stream = new MemoryStream();
-                    using var context = SolutionReplicationContext.Create();
+                    using var context = new SolutionReplicationContext();
 
                     using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
                     {

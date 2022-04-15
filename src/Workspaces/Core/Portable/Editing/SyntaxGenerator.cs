@@ -246,6 +246,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 WellKnownMemberNames.MultiplyOperatorName => OperatorKind.Multiply,
                 WellKnownMemberNames.OnesComplementOperatorName => OperatorKind.OnesComplement,
                 WellKnownMemberNames.RightShiftOperatorName => OperatorKind.RightShift,
+                WellKnownMemberNames.UnsignedRightShiftOperatorName => OperatorKind.UnsignedRightShift,
                 WellKnownMemberNames.SubtractionOperatorName => OperatorKind.Subtraction,
                 WellKnownMemberNames.TrueOperatorName => OperatorKind.True,
                 WellKnownMemberNames.UnaryNegationOperatorName => OperatorKind.UnaryNegation,
