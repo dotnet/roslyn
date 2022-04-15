@@ -35,20 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpAnalyzersResources.Remove_unnessary_discard,
-                    c => FixAsync(context.Document, diagnostic, c),
-                    nameof(CSharpAnalyzersResources.Remove_unnessary_discard)),
-                diagnostic);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Remove_unnessary_discard, nameof(CSharpAnalyzersResources.Remove_unnessary_discard));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
 

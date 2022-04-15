@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class AssetProvider : AbstractAssetProvider
     {
+        private readonly Checksum _solutionChecksum;
         private readonly ISerializerService _serializerService;
-        private readonly int _scopeId;
         private readonly SolutionAssetCache _assetCache;
         private readonly IAssetSource _assetSource;
 
-        public AssetProvider(int scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+        public AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
         {
-            _scopeId = scopeId;
+            _solutionChecksum = solutionChecksum;
             _assetCache = assetCache;
             _assetSource = assetSource;
             _serializerService = serializerService;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            return await _assetSource.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetSource.GetAssetsAsync(_solutionChecksum, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

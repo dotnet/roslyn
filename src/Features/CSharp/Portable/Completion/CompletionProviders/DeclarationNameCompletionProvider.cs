@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionFallbackRules, cancellationToken).ConfigureAwait(false);
             var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
-            var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
+            var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenBaseNames);
             using var _2 = PooledHashSet<string>.GetInstance(out var seenUniqueNames);

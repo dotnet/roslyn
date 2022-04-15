@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 

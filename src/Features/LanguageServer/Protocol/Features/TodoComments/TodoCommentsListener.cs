@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource = new();
+        private readonly AsyncBatchingWorkQueue<DocumentAndComments> _workQueue;
 
         public TodoCommentsListener(
             IGlobalOptionService globalOptions,
@@ -50,6 +50,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
             _onTodoCommentsUpdated = onTodoCommentsUpdated;
             _disposalToken = disposalToken;
+
+            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
+                TimeSpan.FromSeconds(1),
+                ProcessTodoCommentInfosAsync,
+                _asyncListener,
+                _disposalToken);
         }
 
         public void Dispose()
@@ -64,14 +70,10 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public async ValueTask StartAsync()
         {
-            var cancellationToken = _disposalToken;
+            // Should only be started once.
+            Contract.ThrowIfTrue(_lazyConnection != null);
 
-            _workQueueSource.SetResult(
-                new AsyncBatchingWorkQueue<DocumentAndComments>(
-                TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
-                _asyncListener,
-                cancellationToken));
+            var cancellationToken = _disposalToken;
 
             var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -120,12 +122,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             try
             {
-                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-                workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                _workQueue.AddWork(new DocumentAndComments(documentId, infos));
+                return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

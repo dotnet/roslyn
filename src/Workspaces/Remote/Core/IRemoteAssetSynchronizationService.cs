@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
         /// faster
         /// </summary>
-        ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
+        ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
         ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
     }
 }

@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         public abstract string SingleLineCommentString { get; }
         public abstract bool SupportsBlockComment { get; }
 
-        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
+        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var formattingSpans = changes.Select(s => CommonFormattingHelpers.GetFormattingSpan(root, s));
 
-            return Formatter.FormatAsync(document, formattingSpans, cancellationToken: cancellationToken);
+            return Formatter.FormatAsync(document, formattingSpans, formattingOptions, rules: null, cancellationToken);
         }
 
         public Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)

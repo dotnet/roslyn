@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
@@ -309,26 +310,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A document with the post processing changes applied.</returns>
-        protected virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            => CleanupDocumentAsync(document, cancellationToken);
+        protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+        {
+            var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+        }
 
         internal static async Task<Document> CleanupDocumentAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
             {
-                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, addImportOptions, cancellationToken).ConfigureAwait(false);
+                    document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
                 document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
             }

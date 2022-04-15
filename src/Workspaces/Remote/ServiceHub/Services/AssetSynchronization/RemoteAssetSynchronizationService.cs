@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
+        public ValueTask SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, solutionInfo.SolutionChecksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
                     var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.WorkspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

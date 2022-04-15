@@ -9,8 +9,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -23,9 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<CastExpressionSyntax, SemanticModel, OptionSet, CancellationToken, ExpressionSyntax> s_simplifyCast = SimplifyCast;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+            => true;
 
-        private static ExpressionSyntax SimplifyCast(CastExpressionSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        private static readonly Func<CastExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, ExpressionSyntax> s_simplifyCast = SimplifyCast;
+
+        private static ExpressionSyntax SimplifyCast(CastExpressionSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken cancellationToken)
         {
             if (!CastSimplifier.IsUnnecessaryCast(node, semanticModel, cancellationToken))
             {

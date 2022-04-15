@@ -69,9 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (tree.IsInNonUserCode(position, cancellationToken))
                     return;
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                .GetPreviousTokenIfTouchingWord(position);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
+                if (syntaxContext.IsInTaskLikeTypeContext)
+                    return;
+
+                var token = syntaxContext.TargetToken;
                 if (token.IsMandatoryNamedParameterPosition())
                     return;
 
@@ -85,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
                 var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
 
                 if (types.Length == 0)

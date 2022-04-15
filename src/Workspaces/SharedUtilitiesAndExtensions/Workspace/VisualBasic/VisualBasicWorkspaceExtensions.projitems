@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicIndentationService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicBlockFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicFileBannerFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicFixAllSpanMappingService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicHeaderFactsService.vb" />

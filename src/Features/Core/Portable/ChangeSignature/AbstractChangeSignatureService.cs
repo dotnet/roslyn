@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -416,10 +416,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(updatedDoc, cancellationToken).ConfigureAwait(false);
-                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, addImportOptions, cancellationToken).ConfigureAwait(false);
-                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(updatedDoc, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
+                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
                 currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, (await formattedDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!);
             }

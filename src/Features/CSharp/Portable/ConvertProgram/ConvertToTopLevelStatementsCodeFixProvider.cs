@@ -43,14 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
-            var diagnostic = context.Diagnostics[0];
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c), priority),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Convert_to_top_level_statements, nameof(ConvertToTopLevelStatementsCodeFixProvider), priority);
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
 
@@ -58,17 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, CodeActionPriority priority)
-                : base(CSharpAnalyzersResources.Convert_to_top_level_statements, createChangedDocument, nameof(ConvertToTopLevelStatementsCodeFixProvider))
-            {
-                this.Priority = priority;
-            }
         }
     }
 }

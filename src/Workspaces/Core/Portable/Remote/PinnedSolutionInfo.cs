@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class PinnedSolutionInfo
     {
         /// <summary>
-        /// Unique ID for this pinned solution
-        /// 
-        /// This later used to find matching solution between VS and remote host
+        /// Checksum for the pinned solution. Ensures that OOP synchronization requests can unique identify which
+        /// in-flight solution-snapshots they correspond to.
         /// </summary>
         [DataMember(Order = 0)]
-        public readonly int ScopeId;
+        public readonly Checksum SolutionChecksum;
 
         /// <summary>
         /// This indicates whether this scope is for primary branch or not (not forked solution)
@@ -36,19 +35,14 @@ namespace Microsoft.CodeAnalysis.Remote
         [DataMember(Order = 2)]
         public readonly int WorkspaceVersion;
 
-        [DataMember(Order = 3)]
-        public readonly Checksum SolutionChecksum;
-
         public PinnedSolutionInfo(
-            int scopeId,
+            Checksum solutionChecksum,
             bool fromPrimaryBranch,
-            int workspaceVersion,
-            Checksum solutionChecksum)
+            int workspaceVersion)
         {
-            ScopeId = scopeId;
+            SolutionChecksum = solutionChecksum;
             FromPrimaryBranch = fromPrimaryBranch;
             WorkspaceVersion = workspaceVersion;
-            SolutionChecksum = solutionChecksum;
         }
     }
 }

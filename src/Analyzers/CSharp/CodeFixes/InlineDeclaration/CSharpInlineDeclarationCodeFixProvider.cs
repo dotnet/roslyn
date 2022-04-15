@@ -49,22 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Inline_variable_declaration,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(CSharpAnalyzersResources.Inline_variable_declaration)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Inline_variable_declaration, nameof(CSharpAnalyzersResources.Inline_variable_declaration));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
 #if CODE_STYLE
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
+            var optionSet = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
 #else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
             // Gather all statements to be removed
@@ -97,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (_1, _2, _3) => true,
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        options, semanticModel, currentRoot, t.declarator,
+                        optionSet, semanticModel, currentRoot, t.declarator,
                         t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
                         cancellationToken),
                 cancellationToken).ConfigureAwait(false);

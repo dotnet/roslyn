@@ -24,18 +24,13 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Use_inferred_member_name,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(AnalyzersResources.Use_inferred_member_name)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Use_inferred_member_name, nameof(AnalyzersResources.Use_inferred_member_name));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 

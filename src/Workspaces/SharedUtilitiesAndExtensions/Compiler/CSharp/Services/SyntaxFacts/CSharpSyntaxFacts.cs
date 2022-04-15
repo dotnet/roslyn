@@ -1087,20 +1087,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
-        {
-            if (token.Kind() == SyntaxKind.CloseBraceToken)
-            {
-                var tuple = token.Parent.GetBraces();
-
-                openBrace = tuple.openBrace;
-                return openBrace.Kind() == SyntaxKind.OpenBraceToken;
-            }
-
-            openBrace = default;
-            return false;
-        }
-
         public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
@@ -1395,6 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
             => node.GetModifiers();
 
+        [return: NotNullIfNotNull("node")]
         public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 
@@ -1409,39 +1396,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
             => ((EqualsValueClauseSyntax?)node)?.Value;
-
-        public bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.Block);
-
-        public bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit);
-
-        public IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
-        {
-            return node switch
-            {
-                BlockSyntax block => block.Statements,
-                SwitchSectionSyntax switchSection => switchSection.Statements,
-                CompilationUnitSyntax compilationUnit => compilationUnit.Members.OfType<GlobalStatementSyntax>().SelectAsArray(globalStatement => globalStatement.Statement),
-                _ => throw ExceptionUtilities.UnexpectedValue(node),
-            };
-        }
-
-        public SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-            => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
-
-        public bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
-            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
-
-        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node)
-        {
-            if (IsExecutableBlock(node))
-                return GetExecutableBlockStatements(node);
-            else if (node.GetEmbeddedStatement() is { } embeddedStatement)
-                return ImmutableArray.Create<SyntaxNode>(embeddedStatement);
-            else
-                return ImmutableArray<SyntaxNode>.Empty;
-        }
 
         public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
