@@ -110,7 +110,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>.
         /// </para>
         /// </summary>
-        public async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+
+        public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+        {
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, fromPrimaryBranch: false, implementation, cancellationToken);
+        }
+
+        private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,

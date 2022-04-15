@@ -69,12 +69,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            var solutionInfo = new PinnedSolutionInfo(
-                checksum,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
-                solutionState.WorkspaceVersion);
-
-            scope = new Scope(this, checksum, solutionInfo, solutionState);
+            scope = new Scope(this, checksum, new PinnedSolutionInfo(checksum), solutionState);
             _checksumToScope[checksum] = scope;
             return scope;
         }

@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var (solution, _) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionInfo.SolutionChecksum,
-                solutionInfo.WorkspaceVersion,
-                solutionInfo.FromPrimaryBranch,
                 static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
 
@@ -104,8 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
                 solutionInfo.SolutionChecksum,
-                solutionInfo.WorkspaceVersion,
-                solutionInfo.FromPrimaryBranch,
                 implementation,
                 cancellationToken).ConfigureAwait(false);
 
