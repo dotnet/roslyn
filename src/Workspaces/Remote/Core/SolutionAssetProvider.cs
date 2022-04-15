@@ -35,18 +35,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
-            var replicationContext = assetStorage.GetReplicationContext(solutionChecksum);
+            var scope = assetStorage.GetScope(solutionChecksum);
 
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
 
             if (checksums.Length == 1)
             {
-                singleAsset = (await assetStorage.GetAssetAsync(solutionChecksum, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
+                singleAsset = await SolutionAssetStorage.GetAssetAsync(scope, checksums[0], cancellationToken).ConfigureAwait(false);
+                singleAsset ??= SolutionAsset.Null;
             }
             else
             {
-                assetMap = await assetStorage.GetAssetsAsync(solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+                assetMap = await SolutionAssetStorage.GetAssetsAsync(scope, checksums, cancellationToken).ConfigureAwait(false);
             }
 
             // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, solutionChecksum, checksums, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scope.ReplicationContext, solutionChecksum, checksums, cancellationToken);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -15,16 +15,33 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public readonly Checksum Checksum;
             public readonly PinnedSolutionInfo SolutionInfo;
+            public readonly SolutionState Solution;
 
-            public Scope(SolutionAssetStorage storage, Checksum checksum, PinnedSolutionInfo solutionInfo)
+            /// <summary>
+            ///  Will be disposed from <see cref="SolutionAssetStorage.DecreaseScopeRefCount(Scope)"/> when the last
+            ///  ref-count to this scope goes away.
+            /// </summary>
+            public readonly SolutionReplicationContext ReplicationContext = new();
+
+            /// <summary>
+            /// Only safe to read write while <see cref="_gate"/> is held.
+            /// </summary>
+            public int RefCount = 1;
+
+            public Scope(
+                SolutionAssetStorage storage,
+                Checksum checksum,
+                PinnedSolutionInfo solutionInfo,
+                SolutionState solution)
             {
                 _storage = storage;
                 Checksum = checksum;
                 SolutionInfo = solutionInfo;
+                Solution = solution;
             }
 
             public void Dispose()
-                => _storage.DisposeScope(this);
+                => _storage.DecreaseScopeRefCount(this);
         }
     }
 }
