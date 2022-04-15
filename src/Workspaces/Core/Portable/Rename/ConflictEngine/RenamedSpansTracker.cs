@@ -159,8 +159,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     if (replacementTextValid)
                     {
                         var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                        var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
-                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
                         document = await Formatter.FormatAsync(document, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
                     }
 

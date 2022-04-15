@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -48,24 +46,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// </summary>
         /// <param name="selectionSpan">Selection that user has originally made.</param>
         /// <param name="root">Root of the syntax tree.</param>
-        private static SyntaxNode GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
+        private static SyntaxNode? GetSyntaxNodeForSubmission(TextSpan selectionSpan, SyntaxNode root)
         {
             GetSelectedTokens(selectionSpan, root, out var startToken, out var endToken);
 
             // Ensure that the first token comes before the last token.
             // Otherwise selection did not contain any tokens.
             if (startToken != endToken && startToken.Span.End > endToken.SpanStart)
-            {
                 return null;
-            }
 
             if (startToken == endToken)
             {
-                return GetSyntaxNodeForSubmission(startToken.Parent);
+                return GetSyntaxNodeForSubmission(startToken.GetRequiredParent());
             }
 
-            var startNode = GetSyntaxNodeForSubmission(startToken.Parent);
-            var endNode = GetSyntaxNodeForSubmission(endToken.Parent);
+            var startNode = GetSyntaxNodeForSubmission(startToken.GetRequiredParent());
+            var endNode = GetSyntaxNodeForSubmission(endToken.GetRequiredParent());
 
             // If there is no SyntaxNode worth sending to the REPL return null.
             if (startNode == null || endNode == null)
@@ -92,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         /// Finds a <see cref="SyntaxNode"/> that should be submitted to REPL.
         /// </summary>
         /// <param name="node">The currently selected node.</param>
-        private static SyntaxNode GetSyntaxNodeForSubmission(SyntaxNode node)
+        private static SyntaxNode? GetSyntaxNodeForSubmission(SyntaxNode node)
         {
-            SyntaxNode candidate = node.GetAncestorOrThis<StatementSyntax>();
+            SyntaxNode? candidate = node.GetAncestorOrThis<StatementSyntax>();
             if (candidate != null)
             {
                 return candidate;

@@ -8,12 +8,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
+using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
@@ -29,7 +33,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         AnalyzersResources.Change_namespace_to_match_folder_structure,
-                        cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken),
+                        cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics,
+#if CODE_STYLE
+                        options: _ => default,
+#else
+                        context.Options,
+#endif
+                        cancellationToken),
                         nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                     context.Diagnostics);
             }
@@ -37,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // All the target namespaces should be the same for a given document
             Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[MatchFolderAndNamespaceConstants.TargetNamespace]).Distinct().Count() == 1);
@@ -54,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             var renameActionSet = await Renamer.RenameDocumentAsync(
                 documentWithInvalidFolders,
                 new DocumentRenameOptions(),
+#if !CODE_STYLE
+                ChangeNamespaceOptions.CreateProvider(options),
+#endif
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,
                 cancellationToken: cancellationToken).ConfigureAwait(false);

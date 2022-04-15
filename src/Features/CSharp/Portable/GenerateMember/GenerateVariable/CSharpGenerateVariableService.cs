@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
@@ -33,7 +32,28 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
+            => node is IdentifierNameSyntax identifierName && !IsProbablySyntacticConstruct(identifierName.Identifier);
+
+        private static bool IsProbablySyntacticConstruct(SyntaxToken token)
+        {
+            // Technically all C# contextual keywords are valid member names.
+            // However some of them start various syntactic constructs
+            // and we don't want to show "Generate <member name>" codefix for them:
+            // 1. "from" starts LINQ expression
+            // 2. "nameof" is probably nameof(some_name)
+            // 3. "async" can start a delegate declaration
+            // 4. "await" starts await expression
+            // 5. "var" is used in constructions like "var x = ..."
+            // The list can be expanded in the future if necessary
+            // This method tells if the given SyntaxToken is one of the cases above
+            var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+
+            return contextualKind is SyntaxKind.FromKeyword or
+                                  SyntaxKind.NameOfKeyword or
+                                  SyntaxKind.AsyncKeyword or
+                                  SyntaxKind.AwaitKeyword or
+                                  SyntaxKind.VarKeyword;
+        }
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
@@ -69,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         {
             identifierToken = identifierName.Identifier;
             if (identifierToken.ValueText != string.Empty &&
-                !identifierName.IsVar &&
                 !IsProbablyGeneric(identifierName, cancellationToken))
             {
                 var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;

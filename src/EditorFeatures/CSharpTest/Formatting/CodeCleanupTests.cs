@@ -659,7 +659,7 @@ namespace A
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, formattingOptions, CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), _ => options, formattingOptions, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

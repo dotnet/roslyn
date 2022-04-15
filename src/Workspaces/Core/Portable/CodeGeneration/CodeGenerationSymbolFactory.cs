@@ -580,5 +580,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 addMethod,
                 removeMethod);
         }
+
+        internal static IFieldSymbol CreateFieldSymbol(
+            IFieldSymbol field,
+            ImmutableArray<AttributeData> attributes = default,
+            Accessibility? accessibility = null,
+            DeclarationModifiers? modifiers = null,
+            string? name = null)
+        {
+            return CreateFieldSymbol(
+                attributes,
+                accessibility ?? field.DeclaredAccessibility,
+                modifiers ?? field.GetSymbolModifiers(),
+                field.Type,
+                name ?? field.Name);
+        }
     }
 }

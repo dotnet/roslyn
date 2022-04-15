@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Simplification
@@ -35,6 +36,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub
+
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+            Get
+                Return VisualBasicSimplifierOptions.Default
+            End Get
+        End Property
+
+        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
+            Return VisualBasicSimplifierOptions.Create(options, DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+        End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
