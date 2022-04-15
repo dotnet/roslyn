@@ -90,8 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
                 nodeParent.Parent is TupleExpressionSyntax tupleExpression &&
                 tupleExpression.Arguments.Any(a => a.Expression is ParenthesizedExpressionSyntax parenthesizedExpression
-                    ? parenthesizedExpression.Expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression)
-                    : a.Expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression)))
+                    ? parenthesizedExpression.Expression.IsKind(SyntaxKind.GreaterThanExpression)
+                    : a.Expression.IsKind(SyntaxKind.GreaterThanExpression)) &&
+                tupleExpression.Arguments.Any(a => a.Expression is ParenthesizedExpressionSyntax parenthesizedExpression
+                    ? parenthesizedExpression.Expression.IsKind(SyntaxKind.LessThanExpression)
+                    : a.Expression.IsKind(SyntaxKind.LessThanExpression)))
             {
                 return false;
             }
