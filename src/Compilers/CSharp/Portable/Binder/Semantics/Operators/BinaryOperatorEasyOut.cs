@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /* dec? */{ ERR, OSC, ERR, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, ERR, ERR, LDC, ERR, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, LDC, ERR, ERR, LDC },
             };
 
-            // Overload resolution for Y << >> X
+            // Overload resolution for Y << >> >>> X
             private static readonly BinaryOperatorKind[,] s_shift =
             {
                 //          obj  str  bool chr  i08  i16  i32  i64  u08  u16  u32  u64 nint nuint r32  r64  dec bool? chr? i08? i16? i32? i64? u08? u16? u32? u64?nint?nuint?r32? r64? dec? 
@@ -233,22 +233,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static readonly BinaryOperatorKind[][,] s_opkind =
             {
-                /* *  */ s_arithmetic,
-                /* +  */ s_addition,
-                /* -  */ s_arithmetic,
-                /* /  */ s_arithmetic,
-                /* %  */ s_arithmetic,
-                /* >> */ s_shift,
-                /* << */ s_shift,
-                /* == */ s_equality,
-                /* != */ s_equality,
-                /* >  */ s_arithmetic,
-                /* <  */ s_arithmetic,
-                /* >= */ s_arithmetic,
-                /* <= */ s_arithmetic,
-                /* &  */ s_logical,
-                /* |  */ s_logical,
-                /* ^  */ s_logical,
+                /* *   */ s_arithmetic,
+                /* +   */ s_addition,
+                /* -   */ s_arithmetic,
+                /* /   */ s_arithmetic,
+                /* %   */ s_arithmetic,
+                /* >>  */ s_shift,
+                /* <<  */ s_shift,
+                /* ==  */ s_equality,
+                /* !=  */ s_equality,
+                /* >   */ s_arithmetic,
+                /* <   */ s_arithmetic,
+                /* >=  */ s_arithmetic,
+                /* <=  */ s_arithmetic,
+                /* &   */ s_logical,
+                /* |   */ s_logical,
+                /* ^   */ s_logical,
+                /* >>> */ s_shift,
             };
 
             public static BinaryOperatorKind OpKind(BinaryOperatorKind kind, TypeSymbol left, TypeSymbol right)

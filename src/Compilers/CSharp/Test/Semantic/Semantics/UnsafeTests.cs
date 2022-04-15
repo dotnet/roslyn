@@ -5961,6 +5961,8 @@ unsafe class C
         var r14 = i | p;
         var r15 = p ^ i;
         var r16 = i ^ p;
+        var r17 = p >>> i;
+        var r18 = i >>> p;
     }
 }
 ";
@@ -6013,7 +6015,14 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p ^ i").WithArguments("^", "byte*", "int"),
                 // (21,19): error CS0019: Operator '^' cannot be applied to operands of type 'int' and 'byte*'
                 //         var r16 = i ^ p;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"),
+                // (22,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'byte*' and 'int'
+                //         var r17 = p >>> i;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p >>> i").WithArguments(">>>", "byte*", "int").WithLocation(22, 19),
+                // (23,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'int' and 'byte*'
+                //         var r18 = i >>> p;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i >>> p").WithArguments(">>>", "int", "byte*").WithLocation(23, 19)
+                );
         }
 
         [Fact]
