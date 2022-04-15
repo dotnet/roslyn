@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -79,8 +80,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var docId in changes)
             {
-                var cleaned = await CodeAction.CleanupDocumentAsync(
-                    newSolution.GetDocument(docId), cancellationToken).ConfigureAwait(false);
+                var document = newSolution.GetDocument(docId);
+
+                var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+
                 var cleanedRoot = await cleaned.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
             }

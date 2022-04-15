@@ -29,11 +29,13 @@ namespace Microsoft.CodeAnalysis.Rename
         internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
+            private readonly ChangeNamespaceOptionsProvider _options;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, ChangeNamespaceOptionsProvider options)
                 : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
+                _options = options;
             }
 
             public override string GetDescription(CultureInfo? culture)
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Rename
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
+                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, _options, cancellationToken).ConfigureAwait(false);
 
                 // If the solution fails to update fail silently. The user will see no large
                 // negative impact from not doing this modification, and it's possible the document
@@ -50,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution ?? document.Project.Solution;
             }
 
-            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
+            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, ChangeNamespaceOptionsProvider options)
             {
                 var analysisResult = Analyze(document, newFolders);
 
                 if (analysisResult.HasValue)
                 {
-                    return new SyncNamespaceDocumentAction(analysisResult.Value);
+                    return new SyncNamespaceDocumentAction(analysisResult.Value, options);
                 }
 
                 return null;

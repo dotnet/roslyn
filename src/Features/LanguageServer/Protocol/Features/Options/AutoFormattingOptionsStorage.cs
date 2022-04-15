@@ -6,8 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-// TODO: move to LSP layer
-
 internal static class AutoFormattingOptionsStorage
 {
     public static AutoFormattingOptions GetAutoFormattingOptions(this IGlobalOptionService globalOptions, string language)

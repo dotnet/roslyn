@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting;
 
-// TODO: move to LSP layer
 internal static class HighlightingOptionsStorage
 {
     public static HighlightingOptions GetHighlightingOptions(this IGlobalOptionService globalOptions, string language)

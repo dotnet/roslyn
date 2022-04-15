@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return _providerValues;
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             foreach (var provider in GetProviders())
             {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // before we call the next provider, otherwise they might not see things as they are meant to be.
                     // Because formatting providers often re-use code fix logic, they are often written assuming this will
                     // happen.
-                    document = await CodeAction.CleanupDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                    document = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.General))
                 {

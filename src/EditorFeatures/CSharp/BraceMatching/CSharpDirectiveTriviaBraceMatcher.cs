@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
         {
         }
 
-        internal override List<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        internal override List<DirectiveTriviaSyntax>? GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
                 => directive.GetMatchingConditionalDirectives(cancellationToken)?.ToList();
 
         internal override DirectiveTriviaSyntax GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)

@@ -5,8 +5,7 @@
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,8 +13,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     [DataContract]
     internal readonly record struct AddMissingImportsOptions(
-        [property: DataMember(Order = 0)] bool HideAdvancedMembers,
-        [property: DataMember(Order = 1)] AddImportPlacementOptions Placement);
+        [property: DataMember(Order = 0)] CodeCleanupOptions CleanupOptions,
+        [property: DataMember(Order = 1)] bool HideAdvancedMembers);
 
     internal interface IAddMissingImportsFeatureService : ILanguageService
     {

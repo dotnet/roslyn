@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
+            var options = _globalOptions.GetCodeActionOptionsProvider();
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
                 request, _codeActionsCache, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
