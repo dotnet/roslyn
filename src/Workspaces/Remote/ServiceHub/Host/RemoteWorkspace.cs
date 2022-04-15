@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         /// <summary>
-        /// Mapping from scope-id to the solution computed for it.  This is used so that we can hold a solution around
-        /// as long as the scope-id for it is being used in service of some feature operation (e.g. classification).  As
-        /// long as we're holding onto it, concurrent feature requests for the same scope-id can share the computation
-        /// of that particular solution and avoid duplicated concurrent work.
+        /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
+        /// around as long as the checksum for it is being used in service of some feature operation (e.g.
+        /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
+        /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
-        private readonly Dictionary<int, (int refCount, AsyncLazy<Solution> lazySolution)> _scopeIdToRefCountAndLazySolution = new();
+        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
+            return new AssetProvider(solutionInfo.SolutionChecksum, assetCache, assetSource, serializerService);
         }
 
         /// <summary>
@@ -163,8 +163,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
-            var scopeId = assetProvider.ScopeId;
-
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
             // need for us to force the same computation to happen ourselves.
             var lazySolution = await GetLazySolutionAndIncrementRefCountAsync().ConfigureAwait(false);
@@ -195,13 +193,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (_scopeIdToRefCountAndLazySolution.TryGetValue(scopeId, out var tuple))
+                    if (_solutionChecksumToRefCountAndLazySolution.TryGetValue(solutionChecksum, out var tuple))
                     {
                         // Some other call was getting this same solution.  Increase our ref count on that to mark that we
                         // care about that computation as well.
                         Contract.ThrowIfTrue(tuple.refCount <= 0);
                         tuple.refCount++;
-                        _scopeIdToRefCountAndLazySolution[scopeId] = tuple;
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = tuple;
                     }
                     else
                     {
@@ -209,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // refcount of 1 (for 'us').
                         tuple = (refCount: 1, AsyncLazy.Create(
                             c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true));
-                        _scopeIdToRefCountAndLazySolution.Add(scopeId, tuple);
+                        _solutionChecksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
 
                     return tuple.lazySolution;
@@ -235,18 +233,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 // very short periods of time in order to set do basic operations on our state.
                 using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
-                    var (refCount, lazySolution) = _scopeIdToRefCountAndLazySolution[scopeId];
+                    var (refCount, lazySolution) = _solutionChecksumToRefCountAndLazySolution[solutionChecksum];
                     refCount--;
                     Contract.ThrowIfTrue(refCount < 0);
                     if (refCount == 0)
                     {
                         // last computation of this solution went away.  Remove from in flight cache.
-                        _scopeIdToRefCountAndLazySolution.Remove(scopeId);
+                        _solutionChecksumToRefCountAndLazySolution.Remove(solutionChecksum);
                     }
                     else
                     {
                         // otherwise, update with our decremented refcount.
-                        _scopeIdToRefCountAndLazySolution[scopeId] = (refCount, lazySolution);
+                        _solutionChecksumToRefCountAndLazySolution[solutionChecksum] = (refCount, lazySolution);
                     }
                 }
             }
