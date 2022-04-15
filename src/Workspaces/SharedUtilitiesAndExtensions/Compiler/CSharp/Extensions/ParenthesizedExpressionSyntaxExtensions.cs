@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Check for cases like in https://github.com/dotnet/roslyn/issues/43934
             if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
-                nodeParent.Parent is TupleExpressionSyntax tupleExpression)
+                nodeParent.IsParentKind(SyntaxKind.TupleExpression))
             {
                 return false;
             }
