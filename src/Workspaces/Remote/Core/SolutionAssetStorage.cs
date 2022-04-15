@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(refCount <= 0);
                 refCount--;
 
-                // If our refcount is still above 0, then just update the map and return.  NOthing else to do at this point.
+                // If our refcount is still above 0, then just update the map and return.  Nothing else to do at this point.
                 if (refCount > 0)
                 {
                     _checksumToRefCountedScope[checksum] = (refCount, scope);
