@@ -80,6 +80,8 @@ internal class PRFinder
                 ExcludeReachableFrom = previousCommit
             });
 
+        logger.LogDebug($"### Changes from [{previousCommitSha}]({host.GetCommitUrl(repoUrl, previousCommitSha)}) to [{currentCommitSha}]({host.GetCommitUrl(repoUrl, currentCommitSha)}):");
+
         logger.LogInformation($"[View Complete Diff of Changes]({host.GetDiffUrl(repoUrl, previousCommitSha, currentCommitSha)})");
 
         var commitHeaderAdded = false;
