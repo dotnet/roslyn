@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
         /// </summary>
         ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
             SymbolRenameOptions options,
@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Rename
             CancellationToken cancellationToken);
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,

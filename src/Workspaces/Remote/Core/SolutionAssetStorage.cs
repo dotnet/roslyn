@@ -69,7 +69,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            scope = new Scope(this, checksum, new PinnedSolutionInfo(checksum), solutionState);
+            scope = new Scope(this, checksum, solutionState);
             _checksumToScope[checksum] = scope;
             return scope;
         }
@@ -79,8 +79,8 @@ internal partial class SolutionAssetStorage
     {
         lock (_gate)
         {
-            var checksum = scope.Checksum;
-            var existingScope = _checksumToScope[checksum];
+            var solutionChecksum = scope.SolutionChecksum;
+            var existingScope = _checksumToScope[solutionChecksum];
             Contract.ThrowIfTrue(existingScope != scope);
 
             Contract.ThrowIfTrue(scope.RefCount <= 0);
@@ -91,7 +91,7 @@ internal partial class SolutionAssetStorage
                 return;
 
             // Last ref went away, update our maps while under the lock, then cleanup its context data outside of the lock.
-            _checksumToScope.Remove(checksum);
+            _checksumToScope.Remove(solutionChecksum);
         }
 
         scope.ReplicationContext.Dispose();

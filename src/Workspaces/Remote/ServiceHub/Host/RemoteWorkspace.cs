@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
         }
 
-        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
+        public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.SolutionChecksum, assetCache, assetSource, serializerService);
+            return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
         /// <summary>

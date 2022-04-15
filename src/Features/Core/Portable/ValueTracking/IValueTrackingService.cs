@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
     internal interface IRemoteValueTrackingService
     {
-        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, TextSpan selection, DocumentId document, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, SerializableValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(Checksum solutionChecksum, TextSpan selection, DocumentId document, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(Checksum solutionChecksum, SerializableValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
     }
 }

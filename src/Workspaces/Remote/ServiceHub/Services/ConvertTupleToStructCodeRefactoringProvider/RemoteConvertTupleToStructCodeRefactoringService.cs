@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
             Scope scope,
             bool isRecord,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetDocument(documentId);
 
