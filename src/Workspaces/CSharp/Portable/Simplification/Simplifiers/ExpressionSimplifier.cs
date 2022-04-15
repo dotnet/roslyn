@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
+            if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, options, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
                 return true;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
-                return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, options, cancellationToken);
 
             if (expression is NameSyntax name)
-                return NameSimplifier.Instance.TrySimplify(name, semanticModel, optionSet, out replacementNode, out issueSpan, cancellationToken);
+                return NameSimplifier.Instance.TrySimplify(name, semanticModel, options, out replacementNode, out issueSpan, cancellationToken);
 
             return false;
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol))
+                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(options, symbol))
             {
                 return false;
             }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
 
                 // Check if the Expression can be replaced by Predefined Type keyword
-                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet, semanticModel))
+                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options, semanticModel))
                 {
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
                     {

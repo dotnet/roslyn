@@ -13,10 +13,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
         OmniSharpImplementTypeOptions ImplementTypeOptions)
     {
         internal CodeActionOptions GetCodeActionOptions()
-            => new(
-                SymbolSearchOptions.Default,
-                new ImplementTypeOptions(
-                    InsertionBehavior: (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
-                    PropertyGenerationBehavior: (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior));
+            => new(ImplementTypeOptions: new(
+                InsertionBehavior: (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
+                PropertyGenerationBehavior: (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior));
     }
 }

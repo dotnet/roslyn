@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
             Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var masOptions = _globalOptions.GetMetadataAsSourceOptions();
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
 
             var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 
