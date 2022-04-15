@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IInterceptionMiddleLayer? _middleLayer;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -85,7 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            IInterceptionMiddleLayer? middleLayer = null)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
+            _middleLayer = middleLayer;
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
@@ -212,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 lspMiscellaneousFilesWorkspace: null,
                 GlobalOptions,
                 _listenerProvider,
+                _middleLayer,
                 logger,
                 SupportedLanguages,
                 ServerKind);

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +12,6 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using StreamJsonRpc;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {

@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
+            IThreadingContext threadingContext,
+            IInterceptionMiddleLayer middleLayer)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, middleLayer)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }

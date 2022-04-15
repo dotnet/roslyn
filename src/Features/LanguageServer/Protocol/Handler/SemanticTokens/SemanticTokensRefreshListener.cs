@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -16,11 +18,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly JsonRpc _jsonRpc;
+        private readonly IInterceptionMiddleLayer? _interceptionMiddleLayer;
 
-        public SemanticTokensRefreshListener(LspWorkspaceManager lspWorkspaceManager, JsonRpc jsonRpc)
+        public SemanticTokensRefreshListener(
+            LspWorkspaceManager lspWorkspaceManager,
+            JsonRpc jsonRpc,
+            IInterceptionMiddleLayer? interceptionMiddleLayer)
         {
             _lspWorkspaceManager = lspWorkspaceManager;
             _jsonRpc = jsonRpc;
+            _interceptionMiddleLayer = interceptionMiddleLayer;
+
             _lspWorkspaceManager.LspWorkspaceChanged += OnLspWorkspaceChanged;
         }
 
@@ -28,6 +36,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             // TO-DO: Replace hardcoded string with const once LSP side is merged.
             _ = _jsonRpc.NotifyWithParameterObjectAsync("workspace/semanticTokens/refresh");
+
+            if (_interceptionMiddleLayer is not null && _interceptionMiddleLayer.CanHandle("workspace/semanticTokens/refresh"))
+            {
+                _ = _interceptionMiddleLayer.HandleNotificationAsync(
+                    methodName: "workspace/semanticTokens/refresh",
+                    methodParam: JToken.Parse("{}"),
+                    sendNotification: SendNotification);
+            }
+
+            static Task SendNotification(JToken token) => Task.CompletedTask;
         }
 
         public void Dispose()

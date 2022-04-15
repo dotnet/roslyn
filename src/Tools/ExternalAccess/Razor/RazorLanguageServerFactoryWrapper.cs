@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
@@ -21,13 +23,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
-        public RazorLanguageServerFactoryWrapper(ILanguageServerFactory languageServerFactory)
+        public RazorLanguageServerFactoryWrapper(ILanguageServerFactory languageServerFactory!!)
         {
-            if (languageServerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(languageServerFactory));
-            }
-
             _languageServerFactory = languageServerFactory;
         }
 

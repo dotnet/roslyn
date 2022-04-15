@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 lspMiscellaneousFilesWorkspace,
                 _globalOptions,
                 _listenerProvider,
+                middleLayer: null,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);

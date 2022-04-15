@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class LanguageServerTarget : ILanguageServerTarget
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
-
+        private readonly IInterceptionMiddleLayer? _middleLayer;
         private readonly JsonRpc _jsonRpc;
         private readonly RequestDispatcher _requestDispatcher;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
@@ -52,6 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
+            IInterceptionMiddleLayer? middleLayer,
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
@@ -59,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
 
             _capabilitiesProvider = capabilitiesProvider;
+            _middleLayer = middleLayer;
             _logger = logger;
 
             _jsonRpc = jsonRpc;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _clientCapabilities = initializeParams.Capabilities;
 
                 // TO-DO: Add client capability check below once LSP side is merged
-                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _jsonRpc);
+                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _jsonRpc, _middleLayer);
 
                 return Task.FromResult(new InitializeResult
                 {
