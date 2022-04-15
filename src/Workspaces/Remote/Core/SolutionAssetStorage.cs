@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     Contract.ThrowIfTrue(refCountAndScope.refCount <= 0);
 
-                    // Found a matching scope for this checksum.  See if we can up the refcount on it (i.e. it didn't
-                    // concurrently drop to 0 just before this on another thread.  If so, we're all good and the scope
-                    // can be shared.
                     refCountAndScope.refCount++;
                     _checksumToRefCountedScope[checksum] = refCountAndScope;
                     return refCountAndScope.scope;
