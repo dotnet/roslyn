@@ -601,6 +601,7 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("net6.0-macos")]
         [InlineData("net6.0-maccatalyst")]
         [InlineData("net6.0-tvos")]
+        [InlineData("net7.0")]
 #endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
@@ -659,6 +660,7 @@ class TestClass {
                 "net6.0-macos" => ReferenceAssemblies.Net.Net60MacOS,
                 "net6.0-maccatalyst" => ReferenceAssemblies.Net.Net60MacCatalyst,
                 "net6.0-tvos" => ReferenceAssemblies.Net.Net60TvOS,
+                "net7.0" => ReferenceAssemblies.Net.Net70,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
