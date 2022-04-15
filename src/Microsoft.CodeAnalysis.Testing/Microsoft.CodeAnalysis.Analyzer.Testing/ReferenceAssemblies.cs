@@ -974,6 +974,23 @@ namespace Microsoft.CodeAnalysis.Testing
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-rc.1.1534"))));
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net7.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net7.0' target framework
+                        throw new NotSupportedException("The 'net7.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net7.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "7.0.0-preview.3.22175.4"),
+                        Path.Combine("ref", "net7.0"));
+                });
+
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
             public static ReferenceAssemblies Net60 => _lazyNet60.Value;
@@ -989,6 +1006,8 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net60MacCatalyst => _lazyNet60MacCatalyst.Value;
 
             public static ReferenceAssemblies Net60TvOS => _lazyNet60TvOS.Value;
+
+            public static ReferenceAssemblies Net70 => _lazyNet70.Value;
         }
 
         public static class NetStandard
