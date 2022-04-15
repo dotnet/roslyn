@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // create new snapshot from round tripped solution
             using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None).ConfigureAwait(false);
-            // verify asset created by rount trip solution is good
+            // verify asset created by round trip solution is good
             var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(scope3.SolutionInfo.SolutionChecksum).ConfigureAwait(false);
             await validator.VerifyAssetAsync(solutionObject3).ConfigureAwait(false);
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // create new snapshot from round tripped solution
             using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None).ConfigureAwait(false);
-            // verify asset created by rount trip solution is good
+            // verify asset created by round trip solution is good
             var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(scope3.SolutionInfo.SolutionChecksum).ConfigureAwait(false);
             await validator.VerifyAssetAsync(solutionObject3).ConfigureAwait(false);
 

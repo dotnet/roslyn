@@ -23,6 +23,21 @@ namespace Microsoft.CodeAnalysis.Remote
         private static int s_scopeId = 1;
 
         /// <summary>
+        /// Lock over mutable state in this type.  Note: We could consider making this a SemaphoreSlim if the locking
+        /// proves to be a problem. However, it would greatly complicate the implementation and consumption side due to
+        /// the pattern around <c>await using</c>.
+        /// </summary>
+        private readonly object _gate = new();
+
+        /// <summary>
+        /// Mapping from operation checksum to the scope for the syncing operation that we've created for it.
+        /// Ref-counted so that if we have many concurrent calls going out from the host to the OOP side that we share
+        /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
+        /// if individual calls get canceled.
+        /// </summary>
+        private readonly Dictionary<Checksum, (int refCount, Scope scope)> _checksumToRefCountedScope = new();
+
+        /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
         private readonly ConcurrentDictionary<int, (SolutionState Solution, SolutionReplicationContext ReplicationContext)> _solutionStates = new(concurrencyLevel: 2, capacity: 10);
@@ -45,21 +60,64 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask<Scope> StoreAssetsAsync(Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
-            var solutionChecksum = projectId == null
+            var checksum = projectId == null
                 ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
                 : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
-            var context = SolutionReplicationContext.Create();
 
-            var id = Interlocked.Increment(ref s_scopeId);
-            var solutionInfo = new PinnedSolutionInfo(
-                id,
-                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
-                solutionState.WorkspaceVersion,
-                solutionChecksum);
+            lock (_gate)
+            {
+                if (_checksumToRefCountedScope.TryGetValue(checksum, out var refCountAndScope))
+                {
+                    Contract.ThrowIfTrue(refCountAndScope.refCount <= 0);
 
-            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
+                    refCountAndScope.refCount++;
+                    _checksumToRefCountedScope[checksum] = refCountAndScope;
+                    return refCountAndScope.scope;
+                }
 
-            return new Scope(this, solutionInfo);
+                var scopeId = Interlocked.Increment(ref s_scopeId);
+                var solutionInfo = new PinnedSolutionInfo(
+                    scopeId,
+                    fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                    solutionState.WorkspaceVersion,
+                    checksum);
+
+                Contract.ThrowIfFalse(_solutionStates.TryAdd(scopeId, (solutionState, SolutionReplicationContext.Create())));
+
+                var scope = new Scope(this, checksum, solutionInfo);
+                refCountAndScope = (refCount: 1, scope);
+                _checksumToRefCountedScope[checksum] = refCountAndScope;
+                return scope;
+            }
+        }
+
+        private void DisposeScope(Scope scope)
+        {
+            SolutionReplicationContext replicationContext;
+
+            lock (_gate)
+            {
+                var checksum = scope.Checksum;
+                var (refCount, existingScope) = _checksumToRefCountedScope[checksum];
+                Contract.ThrowIfTrue(existingScope != scope);
+
+                Contract.ThrowIfTrue(refCount <= 0);
+                refCount--;
+
+                // If our refcount is still above 0, then just update the map and return.  Nothing else to do at this point.
+                if (refCount > 0)
+                {
+                    _checksumToRefCountedScope[checksum] = (refCount, scope);
+                    return;
+                }
+
+                // Last ref went away, update our maps while under the lock, then cleanup its context data outside of the lock.
+                _checksumToRefCountedScope.Remove(checksum);
+                Contract.ThrowIfFalse(_solutionStates.TryRemove(scope.SolutionInfo.ScopeId, out var stateAndContext));
+                replicationContext = stateAndContext.ReplicationContext;
+            }
+
+            replicationContext.Dispose();
         }
 
         /// <summary>
