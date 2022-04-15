@@ -349,10 +349,17 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
+#if NETCOREAPP
             CompileAndVerify(source, expectedOutput: @"
 ValueB
 -1
 ");
+#else
+            CompileAndVerify(source, expectedOutput: @"
+ValueE
+-1
+");
+#endif
         }
 
         // Enum used in switch

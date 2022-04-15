@@ -505,10 +505,17 @@ BC30396: 'NotInheritable' is not valid on an Enum declaration.
 </compilation>
 
             VerifyEnumsValue(text, "c1.Suits", 1, 2, 4, 2, 2)
+#If NETCOREAPP Then
             Dim expectedOutput = <![CDATA[
 ValueB
 -1
 ]]>
+#Else
+            Dim expectedOutput = <![CDATA[
+ValueE
+-1
+]]>
+#End If
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(text, TestOptions.ReleaseExe)
             CompileAndVerify(comp, expectedOutput)
         End Sub
