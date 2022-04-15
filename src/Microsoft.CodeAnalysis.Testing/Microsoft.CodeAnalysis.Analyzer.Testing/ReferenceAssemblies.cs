@@ -991,6 +991,12 @@ namespace Microsoft.CodeAnalysis.Testing
                         Path.Combine("ref", "net7.0"));
                 });
 
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet70Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net70.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0-preview.3.22177.1"))));
+
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
             public static ReferenceAssemblies Net60 => _lazyNet60.Value;
@@ -1008,6 +1014,8 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net60TvOS => _lazyNet60TvOS.Value;
 
             public static ReferenceAssemblies Net70 => _lazyNet70.Value;
+
+            public static ReferenceAssemblies Net70Windows => _lazyNet70Windows.Value;
         }
 
         public static class NetStandard
