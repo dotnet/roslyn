@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ConstantValueToStringTest01()
         {
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal("ConstantValueNull(null: Nothing)", cv.ToString());
 
             cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal("ConstantValueNull(null: Nothing)", cv.ToString());
             // Never hit "ConstantValueString(null: Null)"
 
             var strVal = "QC";

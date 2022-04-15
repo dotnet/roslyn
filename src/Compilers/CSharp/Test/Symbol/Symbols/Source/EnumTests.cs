@@ -350,7 +350,7 @@ class c1
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
             CompileAndVerify(source, expectedOutput: @"
-ValueE
+ValueB
 -1
 ");
         }

@@ -5830,7 +5830,7 @@ class A                                                               \
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
 
             var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
-            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral"),
                 assemblyName.ToString());
         }
 
