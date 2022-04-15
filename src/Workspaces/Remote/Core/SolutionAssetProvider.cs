@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (checksums.Length == 1)
             {
-                singleAsset = await SolutionAssetStorage.GetAssetAsync(scope, checksums[0], cancellationToken).ConfigureAwait(false);
+                singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
                 singleAsset ??= SolutionAsset.Null;
             }
             else
             {
-                assetMap = await SolutionAssetStorage.GetAssetsAsync(scope, checksums, cancellationToken).ConfigureAwait(false);
+                assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
             }
 
             // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
