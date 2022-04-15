@@ -5806,7 +5806,8 @@ class A                                                               \
         [Fact]
         public void CscCompile_WithSourceCodeRedirectedViaStandardInput_ProducesLibrary()
         {
-            var name = Guid.NewGuid().ToString() + ".dll";
+            var nameGuid = Guid.NewGuid().ToString();
+            var name = nameGuid + ".dll";
             string tempDir = Temp.CreateDirectory().Path;
             ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 ProcessUtilities.Run("cmd", $@"/C echo  ^
@@ -5830,12 +5831,14 @@ class A                                                               \
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
 
             var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
+
+            Assert.Equal(nameGuid, assemblyName.Name);
+            Assert.Equal("0.0.0.0", assemblyName.Version.ToString());
+            Assert.Equal(string.Empty, assemblyName.CultureName);
 #if NETCOREAPP
-            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral"),
-                assemblyName.ToString());
+            Assert.Null(assemblyName.GetPublicKeyToken());
 #else
-            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                assemblyName.ToString());
+            Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
 #endif
         }
 
@@ -7789,7 +7792,7 @@ public class C
         [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
         public void NoStdLib02()
         {
-            #region "source"
+#region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -7841,9 +7844,9 @@ namespace System.Collections
     }
 }
 ";
-            #endregion
+#endregion
 
-            #region "mslib"
+#region "mslib"
             var mslib = @"
 namespace System
 {
@@ -7908,7 +7911,7 @@ namespace System
     }
 }
 ";
-            #endregion
+#endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
