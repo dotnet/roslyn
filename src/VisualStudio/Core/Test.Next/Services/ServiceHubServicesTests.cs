@@ -355,6 +355,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // reverse project references and incrementally update
             solution = solution.RemoveProjectReference(projectId1, project1ToProject2);
             solution = solution.AddProjectReference(projectId2, project2ToProject1);
+            await workspace.ChangeSolutionAsync(solution);
+            solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
 
             Assert.Equal(
@@ -364,6 +366,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // reverse project references again and incrementally update
             solution = solution.RemoveProjectReference(projectId2, project2ToProject1);
             solution = solution.AddProjectReference(projectId1, project1ToProject2);
+            await workspace.ChangeSolutionAsync(solution);
+            solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
 
             Assert.Equal(
