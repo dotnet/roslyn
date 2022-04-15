@@ -68,20 +68,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     Contract.ThrowIfTrue(refCountAndScope.refCount <= 0);
 
-                    // Found a matching scope for this checksum.  See if we can up the refcount on it (i.e. it didn't
-                    // concurrently drop to 0 just before this on another thread.  If so, we're all good and the scope
-                    // can be shared.
                     refCountAndScope.refCount++;
                     _checksumToRefCountedScope[checksum] = refCountAndScope;
                     return refCountAndScope.scope;
                 }
 
+                Contract.ThrowIfFalse(_solutionStates.TryAdd(checksum, (solutionState, SolutionReplicationContext.Create())));
+
                 var solutionInfo = new PinnedSolutionInfo(
                     checksum,
                     fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                     solutionState.WorkspaceVersion);
-
-                Contract.ThrowIfFalse(_solutionStates.TryAdd(checksum, (solutionState, SolutionReplicationContext.Create())));
 
                 var scope = new Scope(this, checksum, solutionInfo);
                 refCountAndScope = (refCount: 1, scope);
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(refCount <= 0);
                 refCount--;
 
-                // If our refcount is still above 0, then just update the map and return.  NOthing else to do at this point.
+                // If our refcount is still above 0, then just update the map and return.  Nothing else to do at this point.
                 if (refCount > 0)
                 {
                     _checksumToRefCountedScope[checksum] = (refCount, scope);

@@ -188,7 +188,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             map ??= new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
-            var sessionId = 0;
+            var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
@@ -538,14 +538,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         // make sure we always move remote workspace forward
-        private int _solutionVersion = 0;
-
-        private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
+        private static async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            var checksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
+                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, cancellationToken),
                 CancellationToken.None);
         }
 
