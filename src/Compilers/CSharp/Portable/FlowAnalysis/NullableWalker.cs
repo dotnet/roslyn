@@ -886,23 +886,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ImmutableArray<Symbol>.Empty;
                     }
 
-                    bool includeRequiredMembers = true;
+                    bool includeCurrentTypeRequiredMembers = true;
                     bool includeBaseRequiredMembers = true;
                     bool hasThisConstructorInitializer = false;
 
                     if (method is SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: { RawKind: var initializerKind } } })
                     {
+                        // We have multiple ways of entering the nullable walker: we could be just analyzing the initializers, with a BoundStatementList body and _baseOrThisInitializer
+                        // having been provided, or we could be analyzing the body of a constructor, with a BoundConstructorBody body and _baseOrThisInitializer being null.
                         var baseOrThisInitializer = (_baseOrThisInitializer ?? GetConstructorThisOrBaseSymbol(this.methodMainNode));
                         // If there's an error in the base or this initializer, presume that we should set all required members to default.
                         includeBaseRequiredMembers = baseOrThisInitializer?.ShouldCheckRequiredMembers() ?? true;
                         if (initializerKind == (int)SyntaxKind.ThisConstructorInitializer)
                         {
                             hasThisConstructorInitializer = true;
-                            includeRequiredMembers = includeBaseRequiredMembers;
+                            // If we chained to a `this` constructor, a SetsRequiredMembers attribute applies to both the current type's required members and the base type's required members.
+                            includeCurrentTypeRequiredMembers = includeBaseRequiredMembers;
                         }
                         else if (initializerKind == (int)SyntaxKind.BaseConstructorInitializer)
                         {
-                            includeRequiredMembers = true;
+                            // If we chained to a `base` constructor, a SetsRequiredMembers attribute applies to the base type's required members only, and the current type's required members
+                            // are not assumed to be initialized.
+                            includeCurrentTypeRequiredMembers = true;
                         }
                     }
 
@@ -913,37 +918,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                             || method.IsStatic
                             || compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs)))
                     {
-                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true, includeRequiredMembers, includeBaseRequiredMembers);
+                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
                     }
 
                     // We want to presume all required members of the type are uninitialized, and in addition we want to set all fields to
                     // default if we can get to this constructor by doing so (ie, : this() in a value type).
-                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody(), includeRequiredMembers, includeBaseRequiredMembers);
+                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody(), includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
 
-                    static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers, bool includeRequiredMembers, bool includeBaseRequiredMembers)
+                    static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers, bool includeCurrentTypeRequiredMembers, bool includeBaseRequiredMembers)
                     {
-                        return (includeAllMembers, includeRequiredMembers, includeBaseRequiredMembers) switch
+                        return (includeAllMembers, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers) switch
                         {
-                            (includeAllMembers: false, includeRequiredMembers: false, includeBaseRequiredMembers: false)
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: false)
                                 => ImmutableArray<Symbol>.Empty,
 
-                            (includeAllMembers: false, includeRequiredMembers: true, includeBaseRequiredMembers: false)
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectAsArray(predicate: SymbolExtensions.IsRequired, selector: getFieldSymbolToBeInitialized),
 
-                            (includeAllMembers: false, includeRequiredMembers: true, includeBaseRequiredMembers: true)
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => containingType.AllRequiredMembers.SelectAsArray(static kvp => getFieldSymbolToBeInitialized(kvp.Value)),
 
-                            (includeAllMembers: true, includeRequiredMembers: _, includeBaseRequiredMembers: false)
+                            (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
 
-                            (includeAllMembers: true, includeRequiredMembers: true, includeBaseRequiredMembers: true)
-                                => getAllTypeAndRequiredMembers(),
+                            (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
+                                => getAllTypeAndRequiredMembers(containingType),
 
-                            (includeAllMembers: _, includeRequiredMembers: false, includeBaseRequiredMembers: true)
+                            (includeAllMembers: _, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: true)
                                 => throw ExceptionUtilities.Unreachable,
                         };
 
-                        ImmutableArray<Symbol> getAllTypeAndRequiredMembers()
+                        static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
                         {
                             var members = containingType.GetMembersUnordered();
                             var requiredMembers = containingType.BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;

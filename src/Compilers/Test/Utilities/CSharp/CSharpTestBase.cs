@@ -629,7 +629,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class RequiredMemberAttribute : Attribute
+    public sealed class RequiredMemberAttribute : Attribute
     {
         public RequiredMemberAttribute()
         {
@@ -642,7 +642,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
-    public class SetsRequiredMembersAttribute : Attribute
+    public sealed class SetsRequiredMembersAttribute : Attribute
     {
         public SetsRequiredMembersAttribute()
         {
