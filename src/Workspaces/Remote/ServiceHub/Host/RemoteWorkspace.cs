@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
 
         /// <summary>
-        /// Used to make sure we never move remote workspace backward.
-        /// this version is the WorkspaceVersion of primary solution in client (VS) we are
-        /// currently caching.
+        /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
+        /// solution in client (VS) we are currently caching.
         /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
 
@@ -175,8 +174,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
                 // can move the workspace forward to that solution snapshot.
-                (newSolution, _) = await this.TryUpdateWorkspaceAsync(
-                    workspaceVersion, fromPrimaryBranch, newSolution, cancellationToken).ConfigureAwait(false);
+                if (fromPrimaryBranch)
+                    (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
 
                 // Store this around so that if another call comes through, they will see the solution we just computed.
                 await SetLastRequestedSolutionAsync(newSolution).ConfigureAwait(false);
@@ -309,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
         {
-            // The call to SetOptions in TryUpdateWorkspaceAsync will ensure that the options get pushed into
+            // The call to SetOptions in TryUpdateWorkspaceCurrentSolutionAsync will ensure that the options get pushed into
             // the remote IOptionService store.  However, we still update our current solution with the options
             // passed in.  This is due to the fact that the option store will ignore any options it considered
             // unchanged to what it currently knows about.  This will prevent it from actually going and writing
@@ -331,23 +330,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Attempts to update this workspace with the given <paramref name="newSolution"/>.  If this succeeds, <see
         /// langword="true"/> will be returned in the tuple result as well as the actual solution that the workspace is
         /// updated to point at.  If we cannot update this workspace, then <see langword="false"/> will be returned,
-        /// along with the solution passed in.
+        /// along with the solution passed in.  The only time the solution can not be updated is if it would move <see
+        /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
-        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(
+        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(
             int workspaceVersion,
-            bool fromPrimaryBranch,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
-            // the caller.
-            if (!fromPrimaryBranch)
-                return (newSolution, updated: false);
-
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var oldSolution = this.CurrentSolution;
-
                 // Never move workspace backward
                 if (workspaceVersion <= _currentRemoteWorkspaceVersion)
                     return (newSolution, updated: false);
@@ -357,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
+                var oldSolution = this.CurrentSolution;
                 var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
                 if (addingSolution)
                 {
@@ -390,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
                 => _remoteWorkspace.CreateSolutionFromInfoAndOptions(solutionInfo, options);
 
-            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(Solution newSolution, int workspaceVersion)
-                => _remoteWorkspace.TryUpdateWorkspaceAsync(workspaceVersion, fromPrimaryBranch: true, newSolution, CancellationToken.None);
+            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
+                => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, CancellationToken.None);
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
