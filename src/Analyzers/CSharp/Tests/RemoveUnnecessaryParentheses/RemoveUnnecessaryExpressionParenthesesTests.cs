@@ -2806,5 +2806,33 @@ public class C
     }
 }", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestTupleArgumentsBecomeGenericSyntax()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ($$(N < T), (U > (5 + 0)));
+    }
+}");
+            await TestDiagnosticMissingAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ((N < T), $$(U > (5 + 0)));
+    }
+}");
+        }
     }
 }

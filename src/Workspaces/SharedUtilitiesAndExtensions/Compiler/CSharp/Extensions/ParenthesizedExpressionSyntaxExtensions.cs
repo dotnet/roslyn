@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
                 if (nodeParent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
                 {
-                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
                     if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
                         {
@@ -84,6 +84,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 return false;
+            }
+
+            // Check for cases like in https://github.com/dotnet/roslyn/issues/43934
+            if (nodeParent is ArgumentSyntax currentArgument &&
+                nodeParent.Parent is TupleExpressionSyntax tupleExpression &&
+                expression is BinaryExpressionSyntax binaryExpression)
+            {
+                // Check for something like "SomeIdentifier > ...".
+                if (binaryExpression.IsKind(SyntaxKind.GreaterThanExpression) && binaryExpression.Left.IsKind(SyntaxKind.IdentifierName))
+                {
+                    ArgumentSyntax? previousArgument = null;
+
+                    foreach (var tupleArgument in tupleExpression.Arguments)
+                    {
+                        if (tupleArgument == currentArgument)
+                        {
+                            break;
+                        }
+
+                        previousArgument = tupleArgument;
+                    }
+
+                    if (previousArgument is not null)
+                    {
+                        var previousArgumentExpression = previousArgument.Expression;
+
+                        if (previousArgumentExpression is ParenthesizedExpressionSyntax parenthesized)
+                        {
+                            previousArgumentExpression = parenthesized.Expression;
+                        }
+
+                        // Now checking previous tuple argument not to be "... < SomeIdentifier"
+                        if (previousArgumentExpression is not null &&
+                            previousArgumentExpression is BinaryExpressionSyntax previousArgumentAsBynaryExpression &&
+                            previousArgumentAsBynaryExpression.IsKind(SyntaxKind.LessThanExpression) &&
+                            previousArgumentAsBynaryExpression.Right.IsKind(SyntaxKind.IdentifierName))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                // Opposite of the first check: "... < SomeIdentifier"
+                if (binaryExpression.IsKind(SyntaxKind.LessThanExpression) && binaryExpression.Right.IsKind(SyntaxKind.IdentifierName))
+                {
+                    ArgumentSyntax? nextArgument = null;
+                    var nextArgumentFound = false;
+
+                    foreach (var tupleArgument in tupleExpression.Arguments)
+                    {
+                        if (nextArgumentFound)
+                        {
+                            nextArgument = tupleArgument;
+                            break;
+                        }
+
+                        nextArgumentFound = tupleArgument == currentArgument;
+                    }
+
+                    if (nextArgument is not null)
+                    {
+                        var nextArgumentExpression = nextArgument.Expression;
+
+                        if (nextArgumentExpression is ParenthesizedExpressionSyntax parenthesized)
+                        {
+                            nextArgumentExpression = parenthesized.Expression;
+                        }
+
+                        // Now checking next tuple argument not to be "SomeIdentifier > ..."
+                        if (nextArgumentExpression is not null &&
+                            nextArgumentExpression is BinaryExpressionSyntax nextArgumentAsBynaryExpression &&
+                            nextArgumentAsBynaryExpression.IsKind(SyntaxKind.GreaterThanExpression) &&
+                            nextArgumentAsBynaryExpression.Left.IsKind(SyntaxKind.IdentifierName))
+                        {
+                            return false;
+                        }
+                    }
+                }
             }
 
             // (throw ...) -> throw ...
