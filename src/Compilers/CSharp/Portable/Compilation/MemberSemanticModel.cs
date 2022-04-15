@@ -2047,6 +2047,8 @@ done:
             }
             Debug.Assert(node == GetBindableSyntaxNode(node));
 
+            // Note: This nullability analysis can be distracting when debuggging. This can be disabled with a feature flag in parse options:
+            //       `.WithFeature("run-nullable-analysis", "never")` 
             EnsureNullabilityAnalysisPerformedIfNecessary();
 
             // We have one SemanticModel for each method.
