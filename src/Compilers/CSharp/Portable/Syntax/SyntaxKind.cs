@@ -145,6 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         QuestionQuestionEqualsToken = 8284,
         /// <summary>Represents <c>!!</c> token.</summary>
         ExclamationExclamationToken = 8285,
+        /// <summary>Represents <c>&gt;&gt;&gt;</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanToken = 8286,
+        /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanEqualsToken = 8287,
+
+        // When adding punctuation, the following functions must be adapted:
+        // <see cref="SyntaxFacts.IsPunctuation"/>
+        // <see cref="SyntaxFacts.GetPunctuationKinds"/>
 
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
@@ -620,6 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SimpleMemberAccessExpression = 8689,  // dot access:   a.b
         PointerMemberAccessExpression = 8690,  // arrow access:   a->b
         ConditionalAccessExpression = 8691,    // question mark access:   a?.b , a?[1]
+        UnsignedRightShiftExpression = 8692,
 
         // binding expressions
         MemberBindingExpression = 8707,
@@ -638,6 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
         CoalesceAssignmentExpression = 8725,
+        UnsignedRightShiftAssignmentExpression = 8726,
 
         // unary expressions
         UnaryPlusExpression = 8730,

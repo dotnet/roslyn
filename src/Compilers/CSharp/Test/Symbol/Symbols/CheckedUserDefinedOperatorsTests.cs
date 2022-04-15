@@ -2137,6 +2137,7 @@ class C
         [InlineData("^", "op_ExclusiveOr")]
         [InlineData("<<", "op_LeftShift")]
         [InlineData(">>", "op_RightShift")]
+        [InlineData(">>>", "op_UnsignedRightShift")]
         [InlineData("==", "op_Equality")]
         [InlineData("!=", "op_Inequality")]
         [InlineData(">", "op_GreaterThan")]
@@ -2156,11 +2157,25 @@ class C
             {
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: options);
 
-                compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,30): error CS9150: User-defined operator '%' cannot be declared checked
-                    //     public static C operator checked %(C x, int y) => x;
-                    Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 30)
-                    );
+                if (op == ">>>" && options == TestOptions.Regular10)
+                {
+                    compilation1.VerifyDiagnostics(
+                        // (4,30): error CS9023: User-defined operator '>>>' cannot be declared checked
+                        //     public static C operator checked >>>(C x, int y) => x;
+                        Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(">>>").WithLocation(4, 30),
+                        // (4,38): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     public static C operator checked >>>(C x, int y) => x;
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 38)
+                        );
+                }
+                else
+                {
+                    compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                        // (4,30): error CS9150: User-defined operator '%' cannot be declared checked
+                        //     public static C operator checked %(C x, int y) => x;
+                        Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 30)
+                        );
+                }
 
                 var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
                 var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -2179,6 +2194,7 @@ class C
         [InlineData("^", "op_ExclusiveOr")]
         [InlineData("<<", "op_LeftShift")]
         [InlineData(">>", "op_RightShift")]
+        [InlineData(">>>", "op_UnsignedRightShift")]
         [InlineData("==", "op_Equality")]
         [InlineData("!=", "op_Inequality")]
         [InlineData(">", "op_GreaterThan")]
@@ -2224,6 +2240,7 @@ class C
         [InlineData("^")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">")]
@@ -2261,15 +2278,36 @@ class C
             Assert.Null(actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
-                Verify(
-                    // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked %'
-                    // /// See <see cref="operator checked %"/>.
-                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + opForXml).WithArguments("operator checked " + opForXml).WithLocation(3, 20),
+
+            if (op != ">>>")
+            {
+                compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
+                    Verify(
+                        // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked %'
+                        // /// See <see cref="operator checked %"/>.
+                        Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + opForXml).WithArguments("operator checked " + opForXml).WithLocation(3, 20),
+                        // (3,29): warning CS1658: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                        // /// See <see cref="operator checked %"/>.
+                        Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29)
+                        );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked }}}'
+                    // /// See <see cref="operator checked }}}"/>.
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked }}}").WithArguments("operator checked }}}").WithLocation(3, 20),
                     // (3,29): warning CS1658: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                    // /// See <see cref="operator checked %"/>.
-                    Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29)
+                    // /// See <see cref="operator checked }}}"/>.
+                    Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
+                    // (3,37): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                    // /// See <see cref="operator checked }}}"/>.
+                    Diagnostic(ErrorCode.WRN_ErrorOverride, "}}}").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 37),
+                    // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static C operator >>>(C c, int y)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
                     );
+            }
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -2286,7 +2324,7 @@ class C
 
         private static string GetOperatorTokenForXml(string op)
         {
-            return op switch { "&" => "&amp;", "<<" => "{{", ">>" => "}}", ">" => "}", "<" => "{", ">=" => "}=", "<=" => "{=", _ => op };
+            return op switch { "&" => "&amp;", "<<" => "{{", ">>" => "}}", ">>>" => "}}}", ">" => "}", "<" => "{", ">=" => "}=", "<=" => "{=", _ => op };
         }
 
         [Theory]
@@ -2296,6 +2334,7 @@ class C
         [InlineData("^")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("==")]
         [InlineData("!=")]
         [InlineData(">")]
@@ -2333,15 +2372,36 @@ class C
             Assert.Null(actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
-                Verify(
-                    // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked %(C, int)'
-                    // /// See <see cref="operator checked %(C, int)"/>.
-                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + opForXml + "(C, int)").WithArguments("operator checked " + opForXml + "(C, int)").WithLocation(3, 20),
+
+            if (op != ">>>")
+            {
+                compilation.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).
+                    Verify(
+                        // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked %(C, int)'
+                        // /// See <see cref="operator checked %(C, int)"/>.
+                        Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + opForXml + "(C, int)").WithArguments("operator checked " + opForXml + "(C, int)").WithLocation(3, 20),
+                        // (3,29): warning CS1658: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                        // /// See <see cref="operator checked %(C, int)"/>.
+                        Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29)
+                        );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked }}}(C, int)'
+                    // /// See <see cref="operator checked }}}(C, int)"/>.
+                    Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked }}}(C, int)").WithArguments("operator checked }}}(C, int)").WithLocation(3, 20),
                     // (3,29): warning CS1658: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
-                    // /// See <see cref="operator checked %(C, int)"/>.
-                    Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29)
+                    // /// See <see cref="operator checked }}}(C, int)"/>.
+                    Diagnostic(ErrorCode.WRN_ErrorOverride, "checked").WithArguments("The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 29),
+                    // (3,37): warning CS1658: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                    // /// See <see cref="operator checked }}}(C, int)"/>.
+                    Diagnostic(ErrorCode.WRN_ErrorOverride, "}}}").WithArguments("The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 37),
+                    // (7,30): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static C operator >>>(C c, int y)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(7, 30)
                     );
+            }
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
