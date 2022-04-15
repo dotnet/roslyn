@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 nodeParent.Parent is TupleExpressionSyntax tupleExpression &&
                 expression is BinaryExpressionSyntax binaryExpression)
             {
-                // Check for something like "SomeIdentifier > ...".
+                // Check if current expression is something like "SomeIdentifier > ..."
                 if (binaryExpression.IsKind(SyntaxKind.GreaterThanExpression) && binaryExpression.Left.IsKind(SyntaxKind.IdentifierName))
                 {
                     ArgumentSyntax? previousArgument = null;
