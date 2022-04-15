@@ -629,9 +629,22 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class RequiredMemberAttribute : Attribute
+    public sealed class RequiredMemberAttribute : Attribute
     {
         public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+";
+
+        protected const string SetsRequiredMembersAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+    public sealed class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute()
         {
         }
     }

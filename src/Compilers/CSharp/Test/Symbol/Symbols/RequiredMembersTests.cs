@@ -24,10 +24,16 @@ Namespace System.Runtime.CompilerServices
     Public Class RequiredMemberAttribute
         Inherits Attribute
     End Class
+End Namespace
+Namespace System.Diagnostics.CodeAnalysis
+    <AttributeUsage(AttributeTargets.Constructor, Inherited := false, AllowMultiple := false)>
+    Public Class SetsRequiredMembersAttribute
+        Inherits Attribute
+    End Class
 End Namespace";
 
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
+        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
 
     private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
         => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
@@ -1138,7 +1144,6 @@ class C
 }
 ");
 
-        // PROTOTYPE(req): Confirm with LDM whether we want a warning here.
         comp.VerifyDiagnostics();
     }
 
@@ -1153,7 +1158,6 @@ class C
 }
 ");
 
-        // PROTOTYPE(req): Confirm with LDM whether we want an error here.
         comp.VerifyDiagnostics(
             // (5,29): error CS9505: Required member 'C.Prop' must be settable.
             //     public required ref int Prop => ref i;
@@ -1170,17 +1174,21 @@ class C
 {
     public required readonly int Field;
     public required int Prop1 { get; }
+    public required int Prop2 { get; protected set; }
 }
 ");
 
-        // PROTOTYPE(req): Confirm with LDM whether we want an error here.
         comp.VerifyDiagnostics(
             // (5,34): error CS9505: Required member 'C.Field' must be settable.
             //     public required readonly int Field;
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(5, 34),
             // (6,25): error CS9505: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25)
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25),
+            // PROTOTYPE(req): Better error message?
+            // (7,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
+            //     public required int Prop2 { get; protected set; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(7, 25)
         );
     }
 
@@ -1263,6 +1271,33 @@ public class C
         comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
 
         comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_NoInheritance_NoneSet_HasSetsRequiredMembers(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor, [CombinatorialValues("", "method: ")] string target)
+    {
+        var c = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            public class C
+            {
+                public required int Prop { get; set; }
+                public required int Field;
+
+                [{{target}}SetsRequiredMembers]
+                public C() {}
+            }
+            """;
+
+        var creation = $@"C c = new{constructor}();";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
+
+        comp.VerifyDiagnostics();
+
+        var cComp = CreateCompilationWithRequiredMembers(c);
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+
+        comp.VerifyDiagnostics();
     }
 
     [Theory]
@@ -1408,6 +1443,40 @@ c = new C() { Prop1 = 1, Field1 = 1 };
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_Unsettable_HasSetsRequiredMembers()
+    {
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+var c = new C();
+c = new C() { Prop1 = 1, Field1 = 1 };
+
+public class C
+{
+    public required int Prop1 { get; }
+    public required readonly int Field1;
+
+    [SetsRequiredMembers]
+    public C() {}
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics(
+            // (4,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Prop1").WithArguments("C.Prop1").WithLocation(4, 15),
+            // (4,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(4, 26),
+            // (8,25): error CS9505: Required member 'C.Prop1' must be settable.
+            //     public required int Prop1 { get; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(8, 25),
+            // (9,34): error CS9505: Required member 'C.Field1' must be settable.
+            //     public required readonly int Field1;
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field1").WithArguments("C.Field1").WithLocation(9, 34)
+        );
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedObjectInitializer()
     {
         var c = @"
@@ -1432,6 +1501,30 @@ public class D
             // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 2 }").WithArguments("C.D2").WithLocation(2, 49)
         );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedObjectInitializer_HasSetsRequiredMembers()
+    {
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
+
+public class C
+{
+    public required D D1 { get; set; }
+    public required D D2;
+
+    [SetsRequiredMembers]
+    public C() {}
+}
+public class D
+{
+    public int NestedProp { get; set; }
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -1476,6 +1569,27 @@ public class C
             // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 4, 5, 6 }").WithArguments("C.L2").WithLocation(3, 42)
         );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedCollectionInitializer_HasSetsRequiredMember()
+    {
+        var c = @"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
+
+public class C
+{
+    public required List<int> L1 { get; set; }
+    public required List<int> L2;
+
+    [SetsRequiredMembers]
+    public C() {}
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -1541,6 +1655,48 @@ public class Derived : Base
 
         comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Inheritance_NoneSet_HasSetsRequiredMembers(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+}
+";
+
+        var derived = @"
+using System.Diagnostics.CodeAnalysis;
+
+public class Derived : Base
+{
+    public required int Prop2 { get; set; }
+    public required int Field2;
+
+    [SetsRequiredMembers]
+    public Derived() {}
+}
+";
+
+        var code = @"_ = new Derived();";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, code });
+
+        comp.VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+        var baseRef = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+
+        var derivedComp = CreateCompilation(derived, new[] { baseRef });
+        derivedComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { baseRef, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
     }
 
     [Theory]
@@ -1677,6 +1833,52 @@ public class Derived : Base
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_ThroughRetargeting_NoneSet_HasSetsRequiredMembers()
+    {
+        var retargetedCode = @"public class C {}";
+
+        var originalC = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var @base = @"
+public class Base
+{
+    public required C Prop1 { get; set; }
+    public required C Field1;
+}
+";
+
+        var originalCRef = originalC.ToMetadataReference();
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalCRef }, targetFramework: TargetFramework.Standard);
+
+        var derived = @"
+using System.Diagnostics.CodeAnalysis;
+public class Derived : Base
+{
+    public required C Prop2 { get; set; }
+    public required C Field2;
+
+    [SetsRequiredMembers]
+    public Derived() {}
+}
+";
+
+        var baseRef = baseComp.ToMetadataReference();
+        var derivedComp = CreateCompilation(derived, new[] { baseRef, originalCRef }, targetFramework: TargetFramework.Standard);
+
+        var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var code = @"
+_ = new Derived();
+";
+
+        var comp = CreateCompilation(code, new[] { baseRef, derivedComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        comp.VerifyDiagnostics();
+
+        var baseSymbol = comp.GetTypeByMetadataName("Derived");
+        Assert.IsType<RetargetingNamedTypeSymbol>(baseSymbol);
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_ThroughRetargeting_AllSet()
     {
         var retargetedCode = @"public class C {}";
@@ -1747,6 +1949,41 @@ public class Derived : Base
 
         comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Override_NoneSet_HasSetsRequiredMembers(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public virtual required int Prop1 { get; set; }
+}
+";
+
+        var code = @"
+using System.Diagnostics.CodeAnalysis;
+_ = new Derived();
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+
+    [SetsRequiredMembers]
+    public Derived() {}
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+
+        comp.VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
     }
 
     [Theory]
@@ -1934,6 +2171,44 @@ class Derived3 : Derived { }";
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_01_HasSetsRequiredMembers()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    <RequiredMember>
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+_ = new Derived2();
+
+class Derived2 : Derived
+{
+    [SetsRequiredMembers]
+    public Derived2() {}
+    [SetsRequiredMembers]
+    public Derived2(int x) {}
+}";
+
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_02()
     {
         var vb = @"
@@ -2016,6 +2291,187 @@ class Derived3 : Derived { }";
         );
     }
 
+
+    /// <summary>
+    /// This IL is the equivalent of:
+    /// public record Derived : Base
+    /// {
+    ///    public {propertyIsRequired ? required : ""} new int P { get; init; }
+    /// }
+    /// </summary>
+    private static string GetShadowingRecordIl(bool propertyIsRequired)
+    {
+        var propertyAttribute = propertyIsRequired ?
+            """
+            .custom instance void [original]RequiredMemberAttribute::.ctor() = (
+                01 00 00 00
+            )
+            """ : "";
+        return $$"""
+                 .assembly extern original {}
+                 
+                 .class public auto ansi beforefieldinit Derived
+                     extends [original]Base
+                     implements class [mscorlib]System.IEquatable`1<class Derived>
+                 {
+                     .custom instance void [original]RequiredMemberAttribute::.ctor() = (
+                         01 00 00 00
+                     )
+                     // Fields
+                     .field private initonly int32 '<P>k__BackingField'
+                     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                         01 00 00 00
+                     )
+                     .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
+                         01 00 00 00 00 00 00 00
+                     )
+                 
+                     // Methods
+                     .method family hidebysig specialname virtual 
+                         instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+                     {
+                         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                             01 00 00 00
+                         )
+                         ldnull
+                         throw
+                     } // end of method Derived::get_EqualityContract
+                 
+                     .method public hidebysig specialname 
+                         instance int32 get_P () cil managed 
+                     {
+                         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                             01 00 00 00
+                         )
+                         ldnull
+                         throw
+                     } // end of method Derived::get_P
+                 
+                     .method public hidebysig specialname 
+                         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_P (
+                             int32 'value'
+                         ) cil managed 
+                     {
+                         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                             01 00 00 00
+                         )
+                         ldnull
+                         throw
+                     } // end of method Derived::set_P
+                 
+                     .method public hidebysig virtual 
+                         instance string ToString () cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::ToString
+                 
+                     .method family hidebysig virtual 
+                         instance bool PrintMembers (
+                             class [mscorlib]System.Text.StringBuilder builder
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::PrintMembers
+                 
+                     .method public hidebysig specialname static 
+                         bool op_Inequality (
+                             class Derived left,
+                             class Derived right
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::op_Inequality
+                 
+                     .method public hidebysig specialname static 
+                         bool op_Equality (
+                             class Derived left,
+                             class Derived right
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::op_Equality
+                 
+                     .method public hidebysig virtual 
+                         instance int32 GetHashCode () cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::GetHashCode
+                 
+                     .method public hidebysig virtual 
+                         instance bool Equals (
+                             object obj
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::Equals
+                 
+                     .method public final hidebysig virtual 
+                         instance bool Equals (
+                             class [original]Base other
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::Equals
+                 
+                     .method public hidebysig newslot virtual 
+                         instance bool Equals (
+                             class Derived other
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::Equals
+                 
+                     .method public hidebysig newslot virtual 
+                         instance class Derived '<Clone>$' () cil managed 
+                     {
+                         .custom instance void [mscorlib]System.Runtime.CompilerServices.PreserveBaseOverridesAttribute::.ctor() = (
+                             01 00 00 00
+                         )
+                         .override method instance class [original]Base [original]Base::'<Clone>$'()
+                         ldnull
+                         throw
+                     } // end of method Derived::'<Clone>$'
+                 
+                     .method family hidebysig specialname rtspecialname 
+                         instance void .ctor (
+                             class Derived original
+                         ) cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::.ctor
+                 
+                     .method public hidebysig specialname rtspecialname 
+                         instance void .ctor () cil managed 
+                     {
+                         ldnull
+                         throw
+                     } // end of method Derived::.ctor
+                 
+                     // Properties
+                     .property instance class [mscorlib]System.Type EqualityContract()
+                     {
+                         .get instance class [mscorlib]System.Type Derived::get_EqualityContract()
+                     }
+                     .property instance int32 P()
+                     {
+                         {{propertyAttribute}}
+                         .get instance int32 Derived::get_P()
+                         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) Derived::set_P(int32)
+                     }
+                 
+                 } // end of class Derived
+                 """;
+    }
+
     [Fact]
     public void EnforcedRequiredMembers_ShadowedInSource_04()
     {
@@ -2029,174 +2485,7 @@ public record Base
         var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
         CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-        // This IL is the equivalent of:
-        // public record Derived : Base
-        // {
-        //    public new int P { get; init; }
-        // }
-
-        var ilSource = @"
-.assembly extern original {}
-
-.class public auto ansi beforefieldinit Derived
-    extends [original]Base
-    implements class [mscorlib]System.IEquatable`1<class Derived>
-{
-    .custom instance void [original]RequiredMemberAttribute::.ctor() = (
-        01 00 00 00
-    )
-    // Fields
-    .field private initonly int32 '<P>k__BackingField'
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-        01 00 00 00
-    )
-    .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
-        01 00 00 00 00 00 00 00
-    )
-
-    // Methods
-    .method family hidebysig specialname virtual 
-        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::get_EqualityContract
-
-    .method public hidebysig specialname 
-        instance int32 get_P () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::get_P
-
-    .method public hidebysig specialname 
-        instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_P (
-            int32 'value'
-        ) cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::set_P
-
-    .method public hidebysig virtual 
-        instance string ToString () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::ToString
-
-    .method family hidebysig virtual 
-        instance bool PrintMembers (
-            class [mscorlib]System.Text.StringBuilder builder
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::PrintMembers
-
-    .method public hidebysig specialname static 
-        bool op_Inequality (
-            class Derived left,
-            class Derived right
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::op_Inequality
-
-    .method public hidebysig specialname static 
-        bool op_Equality (
-            class Derived left,
-            class Derived right
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::op_Equality
-
-    .method public hidebysig virtual 
-        instance int32 GetHashCode () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::GetHashCode
-
-    .method public hidebysig virtual 
-        instance bool Equals (
-            object obj
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public final hidebysig virtual 
-        instance bool Equals (
-            class [original]Base other
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public hidebysig newslot virtual 
-        instance bool Equals (
-            class Derived other
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public hidebysig newslot virtual 
-        instance class Derived '<Clone>$' () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.PreserveBaseOverridesAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .override method instance class [original]Base [original]Base::'<Clone>$'()
-        ldnull
-        throw
-    } // end of method Derived::'<Clone>$'
-
-    .method family hidebysig specialname rtspecialname 
-        instance void .ctor (
-            class Derived original
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::.ctor
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::.ctor
-
-    // Properties
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type Derived::get_EqualityContract()
-    }
-    .property instance int32 P()
-    {
-        .get instance int32 Derived::get_P()
-        .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) Derived::set_P(int32)
-    }
-
-} // end of class Derived
-";
+        var ilSource = GetShadowingRecordIl(propertyIsRequired: false);
 
         var il = CompileIL(ilSource);
 
@@ -2218,35 +2507,99 @@ record DerivedDerived3() : Derived;
 ";
 
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
-        // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
         comp.VerifyDiagnostics(
-            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived1 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
-            // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived1 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
             // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
             // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
             // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_04_HasSetsRequiredMembers()
+    {
+        var original = @"
+public record Base
+{
+    public required int P { get; init; }
+}
+";
+
+        var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var ilSource = GetShadowingRecordIl(propertyIsRequired: false);
+
+        var il = CompileIL(ilSource);
+
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+
+_ = new DerivedDerived1();
+
+record DerivedDerived1 : Derived
+{
+    [SetsRequiredMembers]
+    public DerivedDerived1()
+    {
+    }
+}
+";
+
+        var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_04_HasSetsRequiredMembers_ManualBaseCall()
+    {
+        var original = @"
+public record Base
+{
+    public required int P { get; init; }
+}
+";
+
+        var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var ilSource = GetShadowingRecordIl(propertyIsRequired: false);
+
+        var il = CompileIL(ilSource);
+
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+
+_ = new DerivedDerived1();
+
+record DerivedDerived1 : Derived
+{
+    [SetsRequiredMembers]
+    public DerivedDerived1()
+    {
+    }
+
+    [SetsRequiredMembers]
+    public DerivedDerived1(int unused) : base(null)
+    {
+    }
+
+    public DerivedDerived1(bool unused) : base(null)
+    {
+    }
+}
+";
+
+        var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (18,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public DerivedDerived1(bool unused) : base(null)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(18, 12)
         );
     }
 
@@ -2263,178 +2616,7 @@ public record Base
         var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
         CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-        // This IL is the equivalent of:
-        // public record Derived : Base
-        // {
-        //    public new required int P { get; init; }
-        // }
-
-        var ilSource = @"
-.assembly extern original {}
-
-.class public auto ansi beforefieldinit Derived
-    extends [original]Base
-    implements class [mscorlib]System.IEquatable`1<class Derived>
-{
-    .custom instance void [original]RequiredMemberAttribute::.ctor() = (
-        01 00 00 00
-    )
-    // Fields
-    .field private initonly int32 '<P>k__BackingField'
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-        01 00 00 00
-    )
-    .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
-        01 00 00 00 00 00 00 00
-    )
-
-    // Methods
-    .method family hidebysig specialname virtual 
-        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::get_EqualityContract
-
-    .method public hidebysig specialname 
-        instance int32 get_P () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::get_P
-
-    .method public hidebysig specialname 
-        instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_P (
-            int32 'value'
-        ) cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        ldnull
-        throw
-    } // end of method Derived::set_P
-
-    .method public hidebysig virtual 
-        instance string ToString () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::ToString
-
-    .method family hidebysig virtual 
-        instance bool PrintMembers (
-            class [mscorlib]System.Text.StringBuilder builder
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::PrintMembers
-
-    .method public hidebysig specialname static 
-        bool op_Inequality (
-            class Derived left,
-            class Derived right
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::op_Inequality
-
-    .method public hidebysig specialname static 
-        bool op_Equality (
-            class Derived left,
-            class Derived right
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::op_Equality
-
-    .method public hidebysig virtual 
-        instance int32 GetHashCode () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::GetHashCode
-
-    .method public hidebysig virtual 
-        instance bool Equals (
-            object obj
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public final hidebysig virtual 
-        instance bool Equals (
-            class [original]Base other
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public hidebysig newslot virtual 
-        instance bool Equals (
-            class Derived other
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::Equals
-
-    .method public hidebysig newslot virtual 
-        instance class Derived '<Clone>$' () cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.PreserveBaseOverridesAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .override method instance class [original]Base [original]Base::'<Clone>$'()
-        ldnull
-        throw
-    } // end of method Derived::'<Clone>$'
-
-    .method family hidebysig specialname rtspecialname 
-        instance void .ctor (
-            class Derived original
-        ) cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::.ctor
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor () cil managed 
-    {
-        ldnull
-        throw
-    } // end of method Derived::.ctor
-
-    // Properties
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type Derived::get_EqualityContract()
-    }
-    .property instance int32 P()
-    {
-        .custom instance void [original]RequiredMemberAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .get instance int32 Derived::get_P()
-        .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) Derived::set_P(int32)
-    }
-
-} // end of class Derived
-";
-
+        var ilSource = GetShadowingRecordIl(propertyIsRequired: true);
         var il = CompileIL(ilSource);
 
         var c = @"
@@ -2455,42 +2637,58 @@ record DerivedDerived3() : Derived;
 ";
 
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
-        // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
         comp.VerifyDiagnostics(
-            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived1 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
-            // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived1 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
             // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
             // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
             // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
         );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_06_HasSetsRequiredMembers()
+    {
+        var original = @"
+public record Base
+{
+    public required int P { get; init; }
+}
+";
+
+        var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        var ilSource = GetShadowingRecordIl(propertyIsRequired: true);
+        var il = CompileIL(ilSource);
+
+        var c = @"
+using System.Diagnostics.CodeAnalysis;
+
+_ = new DerivedDerived1();
+
+record DerivedDerived1 : Derived
+{
+    [SetsRequiredMembers]
+    public DerivedDerived1()
+    {
+    }
+}
+";
+
+        var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
     public void EnforcedRequiredMembers_ShadowedFromMetadata_01()
     {
         var vb = @"
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.CompilerServices
 <RequiredMember>
 Public Class Base
@@ -2503,13 +2701,23 @@ Public Class Derived
     Inherits Base
     <RequiredMember>
     Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
 End Class
 ";
 
         var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
         CompileAndVerify(vbComp).VerifyDiagnostics();
 
-        var c = @"_ = new Derived();";
+        var c = """
+            _ = new Derived();
+            _ = new Derived(1);
+            """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -2522,6 +2730,7 @@ End Class
     public void EnforcedRequiredMembers_ShadowedFromMetadata_02()
     {
         var vb = @"
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.CompilerServices
 <RequiredMember>
 Public Class Base
@@ -2533,13 +2742,23 @@ End Class
 Public Class Derived
     Inherits Base
     Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
 End Class
 ";
 
         var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
         CompileAndVerify(vbComp).VerifyDiagnostics();
 
-        var c = @"_ = new Derived();";
+        var c = """
+            _ = new Derived();
+            _ = new Derived(1);
+            """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -2552,6 +2771,7 @@ End Class
     public void EnforcedRequiredMembers_ShadowedFromMetadata_03()
     {
         var vb = @"
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.CompilerServices
 <RequiredMember>
 Public Class Base
@@ -2562,13 +2782,23 @@ End Class
 Public Class Derived
     Inherits Base
     Public Shadows Property P As Integer
+
+    Public Sub New()
+    End Sub
+
+    <SetsRequiredMembers>
+    Public Sub New(unused As Integer)
+    End Sub
 End Class
 ";
 
         var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
         CompileAndVerify(vbComp).VerifyDiagnostics();
 
-        var c = @"_ = new Derived();";
+        var c = """
+            _ = new Derived();
+            _ = new Derived(1);
+            """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
@@ -2851,6 +3081,42 @@ public class RequiredMemberAttribute : Attribute
         );
     }
 
+    [Fact]
+    public void SetsRequiredMemberInAttribute_Recursive()
+    {
+        var code = @"
+namespace System.Diagnostics.CodeAnalysis;
+
+public class SetsRequiredMembersAttribute : Attribute
+{
+    public required int P { get; set; }
+
+    [SetsRequiredMembers]
+    public SetsRequiredMembersAttribute()
+    {
+    }
+}
+
+public class C
+{
+    public required int Prop { get; set; }
+
+    [SetsRequiredMembers]
+    public C()
+    {
+    }
+
+    static void M()
+    {
+        _ = new C();
+    }
+}
+";
+
+        var comp = CreateCompilation(new[] { code, RequiredMemberAttribute });
+        comp.VerifyDiagnostics();
+    }
+
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_01()
     {
@@ -3020,21 +3286,26 @@ class C
 public class C
 {
     public required string Prop { get; set; }
+    public required string Field;
 
     public C(bool unused) { }
 
     public C() : this(true)
     {
         Prop.ToString();
+        Field.ToString();
     }
 }
 ";
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            // (12,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(11, 9)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field").WithLocation(13, 9)
         );
     }
 
@@ -3046,12 +3317,14 @@ public class C
 public struct C
 {
     public required string Prop { get; set; }
+    public required string Field;
 
     public C(bool unused) { }
 
     public C() : this(true)
     {
         Prop.ToString();
+        Field.ToString();
     }
 }
 ";
@@ -3060,7 +3333,10 @@ public struct C
         comp.VerifyDiagnostics(
             // (11,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(11, 9)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field").WithLocation(13, 9)
         );
     }
 
@@ -3093,29 +3369,36 @@ public struct C
     [InlineData("")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_04(string baseSyntax)
     {
-        var code = $@"
+        var code = $$"""
 #nullable enable
 public class Base
-{{
-    public required string Prop1 {{ get; set; }}
-    public string Prop2 {{ get; set; }} = null!;
-}}
+{
+    public required string Prop1 { get; set; }
+    public string Prop2 { get; set; } = null!;
+    public required string Field1;
+    public string Field2 = null!;
+}
 
 public class Derived : Base
-{{
-    public Derived() {baseSyntax}
-    {{
+{
+    public Derived() {{baseSyntax}}
+    {
         Prop1.ToString();
         Prop2.ToString();
-    }}
-}}
-";
+        Field1.ToString();
+        Field2.ToString();
+    }
+}
+""";
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            // (14,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop1.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(13, 9)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(14, 9),
+            // (16,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field1").WithLocation(16, 9)
         );
     }
 
@@ -3124,37 +3407,51 @@ public class Derived : Base
     [InlineData("")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_05(string baseSyntax)
     {
-        var code = @$"
+        var code = $$"""
 #nullable enable
 public class Base
-{{
-    public required string Prop1 {{ get; set; }}
-    public string Prop2 {{ get; set; }} = null!;
-}}
+{
+    public required string Prop1 { get; set; }
+    public string Prop2 { get; set; } = null!;
+    public required string Field1;
+    public string Field2 = null!;
+}
 
 public class Derived : Base
-{{
-    public required string Prop3 {{ get; set; }}
-    public string Prop4 {{ get; set; }} = null!;
+{
+    public required string Prop3 { get; set; }
+    public string Prop4 { get; set; } = null!;
+    public required string Field3;
+    public string Field4 = null!;
 
-    public Derived() {baseSyntax}
-    {{
+    public Derived() {{baseSyntax}}
+    {
         Prop1.ToString(); // 1
         Prop2.ToString();
         Prop3.ToString(); // 2
         Prop4.ToString();
-    }}
-}}
-";
+        Field1.ToString(); // 1
+        Field2.ToString();
+        Field3.ToString(); // 2
+        Field4.ToString();
+    }
+}
+""";
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (16,9): warning CS8602: Dereference of a possibly null reference.
+            // (19,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop1.ToString(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(16, 9),
-            // (18,9): warning CS8602: Dereference of a possibly null reference.
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(19, 9),
+            // (21,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop3.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(18, 9)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
+            // (23,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field1").WithLocation(23, 9),
+            // (25,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field3.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field3").WithLocation(25, 9)
         );
     }
 
@@ -3237,5 +3534,518 @@ public class Derived : Base
             //         Prop3.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(20, 9)
         );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_08()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                [SetsRequiredMembers]
+                protected Base() {}
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; }
+                public string Prop4 { get; set; }
+            
+                public Derived() : base()
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                    Prop3.ToString(); // 1
+                    Prop4.ToString(); // 2
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : base()
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
+            // (21,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop3.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
+            // (22,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop4.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(22, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+
+                protected Base() {}
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; }
+                public string Prop4 { get; set; }
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                    Prop4 = null!;
+                }
+            
+                public Derived() : this(0)
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                    Prop3.ToString();
+                    Prop4.ToString();
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (22,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_10()
+    {
+        // This IL is equivalent to:
+        // #nullable enable
+        // [constructor: SetsRequiredMembers]
+        // public record Base(bool unused) { public required string Prop { get; init; } }
+        var il = """
+            .assembly extern attr {}
+
+            .class public auto ansi beforefieldinit Base
+                extends [mscorlib]System.Object
+                implements class [mscorlib]System.IEquatable`1<class Base>
+            {
+                .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                    01 00 01 00 00
+                )
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 00 00 00
+                )
+                // Fields
+                .field public string Field1
+                .custom instance void [attr]RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .field public string Field2
+                .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                    01 00 02 00 00
+                )
+                .custom instance void [attr]RequiredMemberAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        bool 'unused'
+                    ) cil managed 
+                {
+                    .custom instance void [attr]System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::.ctor
+            
+                .method family hidebysig specialname newslot virtual 
+                    instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::get_EqualityContract
+            
+                .method public hidebysig specialname 
+                    instance bool get_unused () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::get_unused
+            
+                .method public hidebysig specialname 
+                    instance void modreq([mscorlib]mscorlib.CompilerServices.IsExternalInit) set_unused (
+                        bool 'value'
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::set_unused
+            
+                .method public hidebysig virtual 
+                    instance string ToString () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::ToString
+            
+                .method family hidebysig newslot virtual 
+                    instance bool PrintMembers (
+                        class [mscorlib]System.Text.StringBuilder builder
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::PrintMembers
+            
+                .method public hidebysig specialname static 
+                    bool op_Inequality (
+                        class Base left,
+                        class Base right
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::op_Inequality
+            
+                .method public hidebysig specialname static 
+                    bool op_Equality (
+                        class Base left,
+                        class Base right
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::op_Equality
+            
+                .method public hidebysig virtual 
+                    instance int32 GetHashCode () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::GetHashCode
+            
+                .method public hidebysig virtual 
+                    instance bool Equals (
+                        object obj
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Equals
+            
+                .method public hidebysig newslot virtual 
+                    instance bool Equals (
+                        class Base other
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Equals
+            
+                .method public hidebysig newslot virtual 
+                    instance class Base '<Clone>$' () cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::'<Clone>$'
+            
+                .method family hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        class Base original
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::.ctor
+            
+                .method public hidebysig 
+                    instance void Deconstruct (
+                        [out] bool& 'unused'
+                    ) cil managed 
+                {
+                    .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    ldnull
+                    throw
+                } // end of method Base::Deconstruct
+            
+                // Properties
+                .property instance class [mscorlib]System.Type EqualityContract()
+                {
+                    .get instance class [mscorlib]System.Type Base::get_EqualityContract()
+                }
+                .property instance bool 'unused'()
+                {
+                    .get instance bool Base::get_unused()
+                    .set instance void modreq([mscorlib]mscorlib.CompilerServices.IsExternalInit) Base::set_unused(bool)
+                }
+            } // end of class Base
+
+            .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+                    01 00 84 6b 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field public initonly uint8[] NullableFlags
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8 ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableAttribute::.ctor
+            
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8[] ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableAttribute::.ctor
+            } // end of class mscorlib.CompilerServices.NullableAttribute
+            
+            .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableContextAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+                    01 00 4c 14 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+                    4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+                    72 69 74 65 64 00
+                )
+                // Fields
+                .field public initonly uint8 Flag
+            
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (
+                        uint8 ''
+                    ) cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method NullableContextAttribute::.ctor
+            }
+            .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+                extends [mscorlib]System.Attribute
+            {
+                .custom instance void [mscorlib]mscorlib.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldnull
+                    throw
+                } // end of method EmbeddedAttribute::.ctor
+            } // end of class Microsoft.CodeAnalysis.EmbeddedAttribute
+            """;
+
+        var attrComp = CreateCompilationWithRequiredMembers("", assemblyName: "attr");
+
+        var code = """
+            #nullable enable
+            public record Derived(bool unused) : Base(unused);
+            """;
+
+        var comp = CreateCompilationWithIL(code, ilSource: il, references: new[] { attrComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (2,42): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // public record Derived(bool unused) : Base(unused);
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "(unused)").WithLocation(2, 42)
+        );
+    }
+
+    [Fact]
+    public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType()
+    {
+        var code = """
+            public record C
+            {
+                public required string Prop1 { get; set; }
+                public required int Field1;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+        void validate(ModuleSymbol module)
+        {
+            var c = module.GlobalNamespace.GetTypeMember("C");
+            var copyCtor = c.GetMembers(".ctor").Cast<MethodSymbol>().Single(m => m.ParameterCount == 1);
+
+            if (copyCtor is SynthesizedRecordCopyCtor)
+            {
+                Assert.Empty(copyCtor.GetAttributes());
+            }
+            else
+            {
+                AssertEx.Equal("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor()",
+                               copyCtor.GetAttributes().Single(a => a.AttributeClass!.IsWellKnownSetsRequiredMembersAttribute()).AttributeConstructor.ToTestDisplayString());
+            }
+        }
+    }
+
+    [Fact]
+    public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInType_SetsRequiredMembersMissing()
+    {
+        var code = """
+            public record C
+            {
+                public required string Prop1 { get; set; }
+                public required int Field1;
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor);
+        comp.VerifyDiagnostics(
+            // (1,15): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor'
+            // public record C
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute", ".ctor").WithLocation(1, 15)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_11()
+    {
+        var code = """
+            #nullable enable
+            public class Base
+            {
+                public required string Prop1 { get; set; }
+                public string Prop2 { get; set; } = null!;
+            }
+            
+            public class Derived : Base
+            {
+                public required string Prop3 { get; set; } = Prop1.ToString();
+                public string Prop4 { get; set; } = Prop2.ToString();
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (10,50): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop1'
+            //     public required string Prop3 { get; set; } = Prop1.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop1").WithArguments("Base.Prop1").WithLocation(10, 50),
+            // (11,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'Base.Prop2'
+            //     public string Prop4 { get; set; } = Prop2.ToString();
+            Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Prop2").WithArguments("Base.Prop2").WithLocation(11, 41)
+        );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void SetsRequiredMembersAppliedToRecordCopyConstructor_DeclaredInBase(bool useMetadataReference)
+    {
+        var @base = """
+            public record Base 
+            {
+                public required string Prop1 { get; set; }
+                public required int Field1;
+            }
+            """;
+
+        var code = """
+            public record Derived : Base;
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        CompileAndVerify(baseComp).VerifyDiagnostics();
+
+        comp = CreateCompilation(code, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+        void validate(ModuleSymbol module)
+        {
+            var c = module.GlobalNamespace.GetTypeMember("Derived");
+            var copyCtor = c.GetMembers(".ctor").Cast<MethodSymbol>().Single(m => m.ParameterCount == 1);
+
+            if (copyCtor is SynthesizedRecordCopyCtor)
+            {
+                Assert.Empty(copyCtor.GetAttributes());
+            }
+            else
+            {
+                AssertEx.Equal("System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute..ctor()",
+                               copyCtor.GetAttributes().Single(a => a.AttributeClass!.IsWellKnownSetsRequiredMembersAttribute()).AttributeConstructor.ToTestDisplayString());
+            }
+        }
     }
 }

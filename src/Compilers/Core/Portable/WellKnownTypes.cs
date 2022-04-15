@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis
         System_ArgumentNullException,
 
         System_Runtime_CompilerServices_RequiredMemberAttribute,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
         System_MemoryExtensions,
 
         NextAvailable,
@@ -630,6 +631,7 @@ namespace Microsoft.CodeAnalysis
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",
+            "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
             "System.MemoryExtensions",
         };
 

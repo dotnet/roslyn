@@ -316,5 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // overridden in a derived class to add extra statements to the body of the generated constructor
         }
 
+        protected override bool HasSetsRequiredMembersImpl => false;
     }
 }

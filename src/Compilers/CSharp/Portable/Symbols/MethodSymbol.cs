@@ -580,6 +580,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this is a constructor attributed with HasSetsRequiredMembers
+        /// </summary>
+        internal bool HasSetsRequiredMembers => MethodKind == MethodKind.Constructor && HasSetsRequiredMembersImpl;
+
+        protected abstract bool HasSetsRequiredMembersImpl { get; }
+
+        /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>
         internal static bool CanOverrideOrHide(MethodKind kind)
