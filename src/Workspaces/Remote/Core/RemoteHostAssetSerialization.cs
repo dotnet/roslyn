@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum[] checksums,
             CancellationToken cancellationToken)
         {
+            // This information is not actually needed on the receiving end.  However, we still send it so that the
+            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
+            // breaks have occurred.
             solutionChecksum.WriteTo(writer);
 
             // special case
@@ -156,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
+            // Ensure that no invariants were broken and that both sides of the communication channel are talking about
+            // the same pinned solution.
             var responseSolutionChecksum = Checksum.ReadFrom(reader);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
