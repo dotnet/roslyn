@@ -86,8 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might cause them to be
-            // reinterpreted as generic syntax. See https://github.com/dotnet/roslyn/issues/43934 for examples.
+            // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might
+            // pair with the opposite form, causing them to be reinterpreted as generic syntax. See
+            // https://github.com/dotnet/roslyn/issues/43934 for examples.
             if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
                 nodeParent is ArgumentSyntax)
             {
