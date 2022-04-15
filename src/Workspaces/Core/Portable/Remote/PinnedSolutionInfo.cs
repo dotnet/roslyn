@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class PinnedSolutionInfo
     {
         /// <summary>
-        /// Unique ID for this pinned solution
-        /// 
-        /// This later used to find matching solution between VS and remote host
+        /// Checksum for the pinned solution. Ensures that OOP synchronization requests can unique identify which
+        /// in-flight solution-snapshots they correspond to.
         /// </summary>
         [DataMember(Order = 0)]
         public readonly Checksum SolutionChecksum;
