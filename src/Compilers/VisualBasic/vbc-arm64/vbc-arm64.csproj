@@ -3,7 +3,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
+    <PlatformTarget>ARM64</PlatformTarget>
+    <AssemblyName>vbc</AssemblyName>
+    <DisableNullableWarnings>true</DisableNullableWarnings>
   </PropertyGroup>
   <Import Project="..\CommandLine\VbcCommandLine.projitems" Label="Shared" />
 </Project>

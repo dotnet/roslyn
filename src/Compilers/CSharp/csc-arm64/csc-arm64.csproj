@@ -3,7 +3,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <AssemblyName>csc</AssemblyName>
+    <PlatformTarget>ARM64</PlatformTarget>
+    <TargetFramework>net472</TargetFramework>
+    <DisableNullableWarnings>true</DisableNullableWarnings>
   </PropertyGroup>
-  <Import Project="..\CommandLine\VbcCommandLine.projitems" Label="Shared" />
+  <Import Project="..\CommandLine\CscCommandLine.projitems" Label="Shared" />
 </Project>
