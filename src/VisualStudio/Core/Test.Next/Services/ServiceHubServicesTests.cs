@@ -299,6 +299,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = Populate(workspace.CurrentSolution);
 
             // verify initial setup
+            await workspace.ChangeSolutionAsync(solution);
+            solution = workspace.CurrentSolution;
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
 
@@ -309,14 +311,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
             // incrementally update
-            solution = await VerifyIncrementalUpdatesAsync(remoteWorkspace, client, solution, applyInBatch, csAddition: " ", vbAddition: " ");
+            solution = await VerifyIncrementalUpdatesAsync(
+                workspace, remoteWorkspace, client, solution, applyInBatch, csAddition: " ", vbAddition: " ");
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
             // incrementally update
-            solution = await VerifyIncrementalUpdatesAsync(remoteWorkspace, client, solution, applyInBatch, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
+            solution = await VerifyIncrementalUpdatesAsync(
+                workspace, remoteWorkspace, client, solution, applyInBatch, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -409,7 +413,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotNull(solution);
         }
 
-        private async Task<Solution> VerifyIncrementalUpdatesAsync(Workspace remoteWorkspace, RemoteHostClient client, Solution solution, bool applyInBatch, string csAddition, string vbAddition)
+        private static async Task<Solution> VerifyIncrementalUpdatesAsync(
+            TestWorkspace localWorkspace,
+            Workspace remoteWorkspace,
+            RemoteHostClient client,
+            Solution solution,
+            bool applyInBatch,
+            string csAddition,
+            string vbAddition)
         {
             var remoteSolution = remoteWorkspace.CurrentSolution;
             var projectIds = solution.ProjectIds;
@@ -446,6 +457,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     var documentNames = changedDocuments.ToImmutableArray();
                     changedDocuments.Clear();
 
+                    await localWorkspace.ChangeSolutionAsync(solution);
+                    solution = localWorkspace.CurrentSolution;
                     await UpdatePrimaryWorkspace(client, solution);
 
                     var currentRemoteSolution = remoteWorkspace.CurrentSolution;
