@@ -131,6 +131,13 @@ namespace Microsoft.CodeAnalysis
             if (set == null)
                 return;
 
+            // if set grew too big, don't put it back to pool
+            if (set.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(set);
+                return;
+            }
+
             set.Clear();
             pool.Free(set);
         }
