@@ -86,17 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            // Check for cases like in https://github.com/dotnet/roslyn/issues/43934
+            // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might cause them to be
+            // reinterpreted as generic syntax. See https://github.com/dotnet/roslyn/issues/43934 for examples.
             if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
-                nodeParent.Parent is TupleExpressionSyntax tupleExpression &&
-                tupleExpression.Arguments.Any(a => a.Expression is ParenthesizedExpressionSyntax parenthesizedExpression
-                    ? parenthesizedExpression.Expression.IsKind(SyntaxKind.GreaterThanExpression)
-                    : a.Expression.IsKind(SyntaxKind.GreaterThanExpression)) &&
-                tupleExpression.Arguments.Any(a => a.Expression is ParenthesizedExpressionSyntax parenthesizedExpression
-                    ? parenthesizedExpression.Expression.IsKind(SyntaxKind.LessThanExpression)
-                    : a.Expression.IsKind(SyntaxKind.LessThanExpression)))
+                nodeParent is ArgumentSyntax)
             {
-                return false;
+                var opposite = expression.IsKind(SyntaxKind.GreaterThanExpression) ? SyntaxKind.LessThanExpression : SyntaxKind.GreaterThanExpression;
+                if (nodeParent.GetRequiredParent().ChildNodes().OfType<ArgumentSyntax>().Any(a => a.Expression.IsKind(opposite)))
+                    return false;
             }
 
             // (throw ...) -> throw ...
