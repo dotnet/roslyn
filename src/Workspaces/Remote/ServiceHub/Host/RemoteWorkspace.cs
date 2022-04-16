@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
 
         /// <summary>
-        /// Used to make sure we never move remote workspace backward.
-        /// this version is the WorkspaceVersion of primary solution in client (VS) we are
-        /// currently caching.
+        /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
+        /// solution in client (VS) we are currently caching.
         /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
 
@@ -165,22 +164,27 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
             // need for us to force the same computation to happen ourselves.
+            var currentSolution = this.CurrentSolution;
             var lazySolution = await GetLazySolutionAndIncrementRefCountAsync().ConfigureAwait(false);
 
             try
             {
                 // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
-                var solution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var newSolution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
+                // can move the workspace forward to that solution snapshot.
+                if (fromPrimaryBranch)
+                    (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
 
                 // Store this around so that if another call comes through, they will see the solution we just computed.
-                await SetLastRequestedSolutionAsync(solution).ConfigureAwait(false);
+                await SetLastRequestedSolutionAsync(newSolution).ConfigureAwait(false);
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
-                var result = await doWorkAsync(solution).ConfigureAwait(false);
+                var result = await doWorkAsync(newSolution).ConfigureAwait(false);
 
-                return (solution, result);
-
+                return (newSolution, result);
             }
             finally
             {
@@ -206,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                         // refcount of 1 (for 'us').
                         tuple = (refCount: 1, AsyncLazy.Create(
-                            c => ComputeSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, c), cacheResult: true));
+                            c => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, c), cacheResult: true));
                         _solutionChecksumToRefCountAndLazySolution.Add(solutionChecksum, tuple);
                     }
 
@@ -275,34 +279,26 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> ComputeSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            int workspaceVersion,
-            bool fromPrimaryBranch,
+            Solution currentSolution,
             CancellationToken cancellationToken)
         {
             try
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution, cancellationToken);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution, cancellationToken);
 
                 // check whether solution is update to the given base solution
-                Solution solution;
                 if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
                 {
                     // create updated solution off the baseSolution
-                    solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
-                }
-                else
-                {
-                    // we need new solution. bulk sync all asset for the solution first.
-                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                    // get new solution info and options
-                    var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                    solution = CreateSolutionFromInfoAndOptions(solutionInfo, options);
+                    return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
                 }
 
-                var (newSolution, _) = await TryUpdateWorkspaceAsync(
-                    workspaceVersion, fromPrimaryBranch, solution, cancellationToken).ConfigureAwait(false);
-                return newSolution;
+                // we need new solution. bulk sync all asset for the solution first.
+                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                // get new solution info and options
+                var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                return CreateSolutionFromInfoAndOptions(solutionInfo, options);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -312,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
         {
-            // The call to SetOptions in TryUpdateWorkspaceAsync will ensure that the options get pushed into
+            // The call to SetOptions in TryUpdateWorkspaceCurrentSolutionAsync will ensure that the options get pushed into
             // the remote IOptionService store.  However, we still update our current solution with the options
             // passed in.  This is due to the fact that the option store will ignore any options it considered
             // unchanged to what it currently knows about.  This will prevent it from actually going and writing
@@ -334,23 +330,18 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Attempts to update this workspace with the given <paramref name="newSolution"/>.  If this succeeds, <see
         /// langword="true"/> will be returned in the tuple result as well as the actual solution that the workspace is
         /// updated to point at.  If we cannot update this workspace, then <see langword="false"/> will be returned,
-        /// along with the solution passed in.
+        /// along with the solution passed in.  The only time the solution can not be updated is if it would move <see
+        /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
-        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(
+        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(
             int workspaceVersion,
-            bool fromPrimaryBranch,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var oldSolution = this.CurrentSolution;
-
-                // if this wasn't from the primary branch, then we have nothing to do.  Just return the solution back for
-                // the caller.
-                //
-                // we never move workspace backward
-                if (!fromPrimaryBranch || workspaceVersion <= _currentRemoteWorkspaceVersion)
+                // Never move workspace backward
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
                     return (newSolution, updated: false);
 
                 _currentRemoteWorkspaceVersion = workspaceVersion;
@@ -358,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
+                var oldSolution = this.CurrentSolution;
                 var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
                 if (addingSolution)
                 {
@@ -391,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public Solution CreateSolutionFromInfoAndOptions(SolutionInfo solutionInfo, SerializableOptionSet options)
                 => _remoteWorkspace.CreateSolutionFromInfoAndOptions(solutionInfo, options);
 
-            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceAsync(Solution newSolution, int workspaceVersion)
-                => _remoteWorkspace.TryUpdateWorkspaceAsync(workspaceVersion, fromPrimaryBranch: true, newSolution, CancellationToken.None);
+            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
+                => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, CancellationToken.None);
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
