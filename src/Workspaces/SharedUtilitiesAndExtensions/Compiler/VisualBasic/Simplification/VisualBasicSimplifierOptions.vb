@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Inherits SimplifierOptions
 
         Public Sub New(
-            qualifyFieldAccess As CodeStyleOption2(Of Boolean),
-            qualifyPropertyAccess As CodeStyleOption2(Of Boolean),
-            qualifyMethodAccess As CodeStyleOption2(Of Boolean),
-            qualifyEventAccess As CodeStyleOption2(Of Boolean),
-            preferPredefinedTypeKeywordInMemberAccess As CodeStyleOption2(Of Boolean),
-            preferPredefinedTypeKeywordInDeclaration As CodeStyleOption2(Of Boolean))
+            Optional qualifyFieldAccess As CodeStyleOption2(Of Boolean) = Nothing,
+            Optional qualifyPropertyAccess As CodeStyleOption2(Of Boolean) = Nothing,
+            Optional qualifyMethodAccess As CodeStyleOption2(Of Boolean) = Nothing,
+            Optional qualifyEventAccess As CodeStyleOption2(Of Boolean) = Nothing,
+            Optional preferPredefinedTypeKeywordInMemberAccess As CodeStyleOption2(Of Boolean) = Nothing,
+            Optional preferPredefinedTypeKeywordInDeclaration As CodeStyleOption2(Of Boolean) = Nothing)
 
             MyBase.New(
                 qualifyFieldAccess,
@@ -29,13 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 preferPredefinedTypeKeywordInDeclaration)
         End Sub
 
-        Public Shared ReadOnly [Default] As New VisualBasicSimplifierOptions(
-            qualifyFieldAccess:=CodeStyleOptions2.QualifyFieldAccess.DefaultValue,
-            qualifyPropertyAccess:=CodeStyleOptions2.QualifyPropertyAccess.DefaultValue,
-            qualifyMethodAccess:=CodeStyleOptions2.QualifyMethodAccess.DefaultValue,
-            qualifyEventAccess:=CodeStyleOptions2.QualifyEventAccess.DefaultValue,
-            preferPredefinedTypeKeywordInMemberAccess:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.DefaultValue,
-            preferPredefinedTypeKeywordInDeclaration:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.DefaultValue)
+        Public Shared ReadOnly [Default] As New VisualBasicSimplifierOptions()
 
         Friend Overloads Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
             fallbackOptions = If(fallbackOptions, VisualBasicSimplifierOptions.Default)

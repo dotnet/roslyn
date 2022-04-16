@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
@@ -48,19 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarForBuiltInTypes),
-            defaultValue: CodeStyleOption2<bool>.Default,
+            CSharpSimplifierOptions.Default.VarForBuiltInTypes,
             "csharp_style_var_for_built_in_types",
             "TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes");
 
         public static readonly Option2<CodeStyleOption2<bool>> VarWhenTypeIsApparent = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarWhenTypeIsApparent),
-            defaultValue: CodeStyleOption2<bool>.Default,
+            CSharpSimplifierOptions.Default.VarWhenTypeIsApparent,
             "csharp_style_var_when_type_is_apparent",
             "TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent");
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarElsewhere),
-            defaultValue: CodeStyleOption2<bool>.Default,
+            CSharpSimplifierOptions.Default.VarElsewhere,
             "csharp_style_var_elsewhere",
             "TextEditor.CSharp.Specific.UseImplicitTypeWherePossible");
 
@@ -151,9 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly CodeStyleOption2<ExpressionBodyPreference> WhenOnSingleLineWithSilentEnforcement =
             new(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Silent);
 
-        public static readonly CodeStyleOption2<PreferBracesPreference> UseBracesWithSilentEnforcement =
-            new(PreferBracesPreference.Always, NotificationOption2.Silent);
-
         private static Option2<CodeStyleOption2<ExpressionBodyPreference>> CreatePreferExpressionBodyOption(
             string optionName,
             CodeStyleOption2<ExpressionBodyPreference> defaultValue,
@@ -205,13 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{optionName}"));
 
         public static readonly Option2<CodeStyleOption2<PreferBracesPreference>> PreferBraces = CreatePreferBracesOption(
-            nameof(PreferBraces), defaultValue: UseBracesWithSilentEnforcement, "csharp_prefer_braces");
+            nameof(PreferBraces), CSharpSimplifierOptions.Default.PreferBraces, "csharp_prefer_braces");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferSimpleDefaultExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimpleDefaultExpression),
-            defaultValue: s_trueWithSuggestionEnforcement,
+            CSharpSimplifierOptions.Default.PreferSimpleDefaultExpression,
             "csharp_prefer_simple_default_expression",
-            $"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefaultExpression)}");
+            "TextEditor.CSharp.Specific.PreferSimpleDefaultExpression");
 
         private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
             SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,

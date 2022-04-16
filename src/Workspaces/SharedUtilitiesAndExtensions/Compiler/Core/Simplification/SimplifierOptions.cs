@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal abstract class SimplifierOptions
     {
+        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2<bool>.Default;
+        public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = CodeStyleOptions2.TrueWithSilentEnforcement;
+
         [DataMember(Order = 0)]
         public readonly CodeStyleOption2<bool> QualifyFieldAccess;
 
@@ -40,19 +43,19 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected const int BaseMemberCount = 6;
 
         protected SimplifierOptions(
-            CodeStyleOption2<bool> qualifyFieldAccess,
-            CodeStyleOption2<bool> qualifyPropertyAccess,
-            CodeStyleOption2<bool> qualifyMethodAccess,
-            CodeStyleOption2<bool> qualifyEventAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInMemberAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInDeclaration)
+            CodeStyleOption2<bool>? qualifyFieldAccess,
+            CodeStyleOption2<bool>? qualifyPropertyAccess,
+            CodeStyleOption2<bool>? qualifyMethodAccess,
+            CodeStyleOption2<bool>? qualifyEventAccess,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration)
         {
-            QualifyFieldAccess = qualifyFieldAccess;
-            QualifyPropertyAccess = qualifyPropertyAccess;
-            QualifyMethodAccess = qualifyMethodAccess;
-            QualifyEventAccess = qualifyEventAccess;
-            PreferPredefinedTypeKeywordInMemberAccess = preferPredefinedTypeKeywordInMemberAccess;
-            PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration;
+            QualifyFieldAccess = qualifyFieldAccess ?? DefaultQualifyAccess;
+            QualifyPropertyAccess = qualifyPropertyAccess ?? DefaultQualifyAccess;
+            QualifyMethodAccess = qualifyMethodAccess ?? DefaultQualifyAccess;
+            QualifyEventAccess = qualifyEventAccess ?? DefaultQualifyAccess;
+            PreferPredefinedTypeKeywordInMemberAccess = preferPredefinedTypeKeywordInMemberAccess ?? CodeStyleOptions2.TrueWithSilentEnforcement;
+            PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration ?? CodeStyleOptions2.TrueWithSilentEnforcement;
         }
 
         public CodeStyleOption2<bool> QualifyMemberAccess(SymbolKind symbolKind)
