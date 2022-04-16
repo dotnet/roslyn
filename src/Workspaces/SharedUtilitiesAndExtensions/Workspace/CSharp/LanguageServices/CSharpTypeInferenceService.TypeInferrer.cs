@@ -2331,14 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInRelationalPattern(RelationalPatternSyntax relationalPattern)
-            {
-                if (relationalPattern.Parent is IsPatternExpressionSyntax isPatternExpression)
-                {
-                    return InferTypeInIsPatternExpression(isPatternExpression, relationalPattern);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
+                => InferTypes(relationalPattern);
         }
     }
 }
