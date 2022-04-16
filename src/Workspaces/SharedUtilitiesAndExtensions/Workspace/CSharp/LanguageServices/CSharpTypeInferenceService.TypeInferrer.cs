@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
+                    RelationalPatternSyntax relationalPattern => InferTypeInRelationalPattern(relationalPattern),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
@@ -2332,6 +2333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return CreateResult(SpecialType.System_Boolean);
             }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInRelationalPattern(RelationalPatternSyntax relationalPattern)
+                => InferTypes(relationalPattern);
         }
     }
 }
