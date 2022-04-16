@@ -374,8 +374,8 @@ public class MyAttribute : System.Attribute
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory, CombinatorialData]
-        public void TestFieldInLocalFunction_ShadowedByConstant([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        [Fact]
+        public void TestFieldInLocalFunction_ShadowedByConstant()
         {
             var comp = CreateCompilation(@"
 System.Console.WriteLine(new C().P);
@@ -403,7 +403,7 @@ public class MyAttribute : System.Attribute
 {
     public MyAttribute(int i) { }
 }
-", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
@@ -1107,7 +1107,9 @@ System.Console.WriteLine(new C().P);
 
 public class C
 {{
+#pragma warning disable CS0649 // Field 'C.field' is never assigned to, and will always have its default value 0
     {member}
+#pragma warning restore CS0649
 
     public string P
     {{
@@ -1120,18 +1122,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            if (member == "private int field;")
-            {
-                comp.VerifyDiagnostics(
-                    // (6,17): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
-                    //     private int field;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(6, 17)
-                    );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "field");
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1237,13 +1228,8 @@ public class C
     }
 
     public int P { }
-
-    public static void Main()
-    {
-        System.Console.WriteLine(new C().P);
-    }
 }
-", options: TestOptions.DebugExe);
+");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1254,10 +1240,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 9),
                 // (9,16): error CS0548: 'C.P': property or indexer must have at least one accessor
                 //     public int P { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(9, 16),
-                // (13,34): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
-                //         System.Console.WriteLine(new C().P);
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C().P").WithArguments("C.P").WithLocation(13, 34)
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(9, 16)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -1288,9 +1271,11 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            var expectedCtorIL = callsSynthesizedSetter switch
+            string expectedCtorIL;
+            if (callsSynthesizedSetter)
             {
-                true => @"
+
+                expectedCtorIL = @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1304,8 +1289,11 @@ public class C
   IL_000f:  nop
   IL_0010:  ret
 }
-",
-                false => @"
+";
+            }
+            else
+            {
+                expectedCtorIL = @"
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -1318,8 +1306,9 @@ public class C
   IL_000a:  stfld      ""int C.<P>k__BackingField""
   IL_000f:  ret
 }
-",
-            };
+";
+            }
+
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C.P.get", @"
 {
@@ -1373,7 +1362,7 @@ public class C
   IL_000d:  ret
 }
 ");
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -1423,7 +1412,7 @@ public class C
   IL_0010:  ret
 }
 ");
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory(Skip = "PROTOTYPE(semi-auto-props): Not supported yet.")]
@@ -1512,7 +1501,7 @@ public class C
   IL_0010:  ret
 }
 ");
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         // PROTOTYPE(semi-auto-props): All success scenarios should be executed, expected runtime behavior should be observed.
@@ -3024,7 +3013,7 @@ public class Point
             comp.TestOnlyCompilationData = data;
             Assert.Empty(comp.GetTypeByMetadataName("Point").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics();
-            Assert.Equal(2, data.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, data.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3124,9 +3113,9 @@ public class C1
         }
 
         [Theory, CombinatorialData]
-        public void InStruct([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void InStruct([CombinatorialValues("always", "never")] string runNullableAnalysis, bool structTreeFirst)
         {
-            var comp = CreateCompilation(@"
+            var source1 = @"
 struct S_WithAutoProperty
 {
     public int P { get; set; }
@@ -3141,7 +3130,9 @@ struct S_WithSemiAutoProperty
 {
     public int P { get => field; set => field = value; }
 }
+";
 
+            var source2 = @"
 class C
 {
     void M1()
@@ -3162,20 +3153,43 @@ class C
         S_WithSemiAutoProperty s2 = s1;
     }
 }
-", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Equal("System.Int32 S_WithAutoProperty.<P>k__BackingField", comp.GetTypeByMetadataName("S_WithAutoProperty").GetMembers().OfType<FieldSymbol>().Single().ToTestDisplayString());
             Assert.Empty(comp.GetTypeByMetadataName("S_WithManualProperty").GetMembers().OfType<FieldSymbol>());
             Assert.Empty(comp.GetTypeByMetadataName("S_WithSemiAutoProperty").GetMembers().OfType<FieldSymbol>());
-            comp.VerifyDiagnostics(
-                // (22,33): error CS0165: Use of unassigned local variable 's1'
+
+            if (structTreeFirst)
+            {
+                comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify();
+            }
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (7,33): error CS0165: Use of unassigned local variable 's1'
                 //         S_WithAutoProperty s2 = s1;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(22, 33),
-                // (34,37): error CS0165: Use of unassigned local variable 's1'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(7, 33),
+                // (19,37): error CS0165: Use of unassigned local variable 's1'
                 //         S_WithSemiAutoProperty s2 = s1;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(34, 37)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(19, 37)
             );
+
+            if (!structTreeFirst)
+            {
+                comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify();
+            }
+
+            comp.VerifyDiagnostics(
+                // (7,33): error CS0165: Use of unassigned local variable 's1'
+                //         S_WithAutoProperty s2 = s1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(7, 33),
+                // (19,37): error CS0165: Use of unassigned local variable 's1'
+                //         S_WithSemiAutoProperty s2 = s1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(19, 37)
+            );
+
+            Assert.Equal(structTreeFirst ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]

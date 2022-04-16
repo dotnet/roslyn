@@ -219,10 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Backing field for semi auto props are not included in GetMembers.
                     if (member is SourcePropertySymbol property)
                     {
-                        // PROTOTYPE(semi-auto-props): property.BackingField be 'IsCreatedForFieldKeyword' only when it has initializer.
-                        // Add a test for that when initializers are supported.
-                        var backingField = property.BackingField ?? property.FieldKeywordBackingField;
-                        if (backingField is { IsCreatedForFieldKeyword: true })
+                        // PROTOTYPE(semi-auto-props): Add definite assignment tests involving initializer, including error scenarios where a FieldKeywordBackingField is still created.
+                        if (property.FieldKeywordBackingField is { } backingField)
                         {
                             return backingField;
                         }

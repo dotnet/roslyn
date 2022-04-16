@@ -301,10 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
-                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor || (
-                        autoProp.SetMethod is null or SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
-                        (autoProp.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } || autoProp.FieldKeywordBackingField is not null)
-                    ),
+                Debug.Assert(autoProp.SetMethod is null &&
+                        (autoProp.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } || autoProp.FieldKeywordBackingField is not null),
                     "only autoproperties can be assignable without having setters");
                 Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
