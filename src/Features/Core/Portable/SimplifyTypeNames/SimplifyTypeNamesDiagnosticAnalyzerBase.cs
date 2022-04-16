@@ -88,16 +88,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-        public bool OpenFileOnly(OptionSet options)
-        {
-            var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
-            var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
-
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
-        }
+        public bool OpenFileOnly(SimplifierOptions options)
+            => !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
 
         public sealed override void Initialize(AnalysisContext context)
         {

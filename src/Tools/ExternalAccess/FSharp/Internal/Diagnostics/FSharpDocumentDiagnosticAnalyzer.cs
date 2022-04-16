@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
 
-        public bool OpenFileOnly(OptionSet options)
+        public bool OpenFileOnly(SimplifierOptions options)
         {
             return true;
         }

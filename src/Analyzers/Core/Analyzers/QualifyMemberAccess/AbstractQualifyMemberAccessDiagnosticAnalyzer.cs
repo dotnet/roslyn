@@ -36,18 +36,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(OptionSet options)
-        {
-            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions2.QualifyEventAccess, GetLanguageName()).Notification;
-
-            return !(qualifyFieldAccessOption == NotificationOption2.Warning || qualifyFieldAccessOption == NotificationOption2.Error ||
-                     qualifyPropertyAccessOption == NotificationOption2.Warning || qualifyPropertyAccessOption == NotificationOption2.Error ||
-                     qualifyMethodAccessOption == NotificationOption2.Warning || qualifyMethodAccessOption == NotificationOption2.Error ||
-                     qualifyEventAccessOption == NotificationOption2.Warning || qualifyEventAccessOption == NotificationOption2.Error);
-        }
+        public override bool OpenFileOnly(SimplifierOptions options)
+            => !(options.QualifyFieldAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyPropertyAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyMethodAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
 
         protected abstract string GetLanguageName();
 

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
@@ -35,15 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(OptionSet options)
+        public override bool OpenFileOnly(SimplifierOptions options)
         {
-            var forIntrinsicTypesOption = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
-            var whereApparentOption = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
-            var wherePossibleOption = options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
-
-            return !(forIntrinsicTypesOption == NotificationOption2.Warning || forIntrinsicTypesOption == NotificationOption2.Error ||
-                     whereApparentOption == NotificationOption2.Warning || whereApparentOption == NotificationOption2.Error ||
-                     wherePossibleOption == NotificationOption2.Warning || wherePossibleOption == NotificationOption2.Error);
+            var csOptions = (CSharpSimplifierOptions)options;
+            return !(csOptions.VarForBuiltInTypes.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                     csOptions.VarWhenTypeIsApparent.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                     csOptions.VarElsewhere.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
         protected override void InitializeWorker(AnalysisContext context)
