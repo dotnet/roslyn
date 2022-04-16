@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             {
                 case TNamespaceDeclarationSyntax namespaceNode:
                     var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container, cancellationToken);
-                    return containerSymbol.GetMembers().SelectAsArray(m => (ISymbol)m);
+                    return containerSymbol.GetMembers().Where(el => el.IsFromSource()).SelectAsArray(m => (ISymbol)m);
 
                 case TCompilationUnitSyntax compilationUnit:
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
