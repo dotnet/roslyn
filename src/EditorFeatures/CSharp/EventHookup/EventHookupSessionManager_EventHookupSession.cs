@@ -265,6 +265,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return lhsMemberAccessExpression.Name.ToString();
                     }
 
+                    if (lhs is GenericNameSyntax lhsGenericNameSyntax)
+                    {
+                        // For generic we must exclude type variables
+                        return lhsGenericNameSyntax.Identifier.Text;
+                    }
+
                     if (lhs is NameSyntax lhsNameSyntax)
                     {
                         // Even easier -- the LHS of the dot is the name itself

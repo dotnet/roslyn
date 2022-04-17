@@ -1080,6 +1080,31 @@ void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEv
             testState.AssertCodeIs(expectedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WorkItem(59935, "https://github.com/dotnet/roslyn/issues/59935")]
+        public async Task HandlerName_EventInGenericClass()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        Generic&lt;int&gt;.MyEvent +$$
+    }
+}
+
+class Generic&lt;T&gt;
+{
+    public static event EventHandler MyEvent;
+}";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Generic_MyEvent");
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
