@@ -237,11 +237,6 @@ public struct C
 ", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics(
-                // (10,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
-                //         System.Console.WriteLine("In C..ctor: " + P);
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 51)
-                );
             CompileAndVerify(comp, expectedOutput: @"In C..ctor: 0
 In C..ctor: 0").VerifyIL("C..ctor", @"
 {
@@ -261,7 +256,11 @@ In C..ctor: 0").VerifyIL("C..ctor", @"
     IL_001f:  call       ""void System.Console.WriteLine(string)""
     IL_0024:  ret
 }
-");
+").VerifyDiagnostics(
+    // (10,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    //         System.Console.WriteLine("In C..ctor: " + P);
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 51)
+    );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -288,11 +287,6 @@ public struct C
 ", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics(
-                // (10,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
-                //         System.Console.WriteLine("In C..ctor before assignment: " + P);
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 69)
-                );
             CompileAndVerify(comp, expectedOutput: @"In C..ctor before assignment: 0
 In C..ctor after assignment: 5
 In C..ctor before assignment: 0
@@ -325,7 +319,11 @@ In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
   IL_0043:  call       ""void System.Console.WriteLine(string)""
   IL_0048:  ret
 }
-");
+").VerifyDiagnostics(
+    // (10,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    //         System.Console.WriteLine("In C..ctor before assignment: " + P);
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 69)
+    );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -406,13 +404,12 @@ public class MyAttribute : System.Attribute
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "10").VerifyDiagnostics(
                 // Looks like an incorrect diagnostic. Tracked by https://github.com/dotnet/roslyn/issues/60645
                 // (10,23): warning CS0219: The variable 'field' is assigned but its value is never used
                 //             const int field = 5;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "field").WithArguments("field").WithLocation(10, 23)
                 );
-            CompileAndVerify(comp, expectedOutput: "10");
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -565,8 +562,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5");
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -654,8 +650,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5");
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -884,8 +879,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5");
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -1037,8 +1031,7 @@ public class C
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5");
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -1122,9 +1115,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "field");
+            CompileAndVerify(comp, expectedOutput: "field").VerifyDiagnostics();
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -1151,9 +1142,7 @@ public class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5");
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
@@ -1309,8 +1298,7 @@ public class C
 ";
             }
 
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C.P.get", @"
+            CompileAndVerify(comp, expectedOutput: "5").VerifyDiagnostics().VerifyIL("C.P.get", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1338,8 +1326,7 @@ public class C
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp).VerifyIL("C.P.set", @"
+            CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.P.set", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
@@ -1388,8 +1375,7 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "10").VerifyIL("C.P.get", @"
+            CompileAndVerify(comp, expectedOutput: "10").VerifyDiagnostics().VerifyIL("C.P.get", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1439,8 +1425,7 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0").VerifyIL("C.P.get", @"
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics().VerifyIL("C.P.get", @"
 ").VerifyIL("C..ctor", @"
 ");
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1469,8 +1454,7 @@ public class C
 ", options: TestOptions.DebugExe);
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0").VerifyIL("C.P.get", @"
+            CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics().VerifyIL("C.P.get", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -2516,8 +2500,7 @@ class Test
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("Test").GetMembers().OfType<FieldSymbol>());
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3");
+            CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
             VerifyTypeIL(comp, "Test", @"
 .class private auto ansi beforefieldinit Test
     extends [mscorlib]System.Object
