@@ -6311,6 +6311,26 @@ class A : Attribute { }
         }
 
         [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
+
+        [Fact]
         public void ParameterScope_NotInMethodAttributeNameOf()
         {
             var comp = CreateCompilation(@"

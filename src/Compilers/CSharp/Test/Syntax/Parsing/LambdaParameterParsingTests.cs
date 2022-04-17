@@ -3035,5 +3035,385 @@ class C {
             }
             EOF();
         }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_01(LanguageVersion languageVersion)
+        {
+            string source = "int =>";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1041: Identifier expected; 'int' is a keyword
+                // int =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 1),
+                // (1,7): error CS1733: Expected expression
+                // int =>
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 7));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_02(LanguageVersion languageVersion)
+        {
+            string source = "ref => { }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1041: Identifier expected; 'ref' is a keyword
+                // ref => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_03(LanguageVersion languageVersion)
+        {
+            string source = "ref int => { }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1525: Invalid expression term 'ref'
+                // ref int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int => { }").WithArguments("ref").WithLocation(1, 1),
+                // (1,5): error CS1041: Identifier expected; 'int' is a keyword
+                // ref int => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 5));
+
+            N(SyntaxKind.RefExpression);
+            {
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.SimpleLambdaExpression);
+                {
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [Fact]
+        public void KeywordParameterName_04()
+        {
+            string source = "delegate => { }";
+            UsingExpression(source,
+                // (1,1): error CS1041: Identifier expected; 'delegate' is a keyword
+                // delegate => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [Fact]
+        public void KeywordParameterName_05()
+        {
+            string source = "int !! =>";
+            UsingExpression(source,
+                // (1,1): error CS1041: Identifier expected; 'int' is a keyword
+                // int =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 1),
+                // (1,7): error CS1733: Expected expression
+                // int =>
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 7));
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_06()
+        {
+            string source = "static => { }";
+            UsingExpression(source,
+                // (1,8): error CS1001: Identifier expected
+                // static => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 8));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.StaticKeyword);
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_07()
+        {
+            string source = "static int => { }";
+            UsingExpression(source,
+                // (1,1): error CS1525: Invalid expression term 'static'
+                // static int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 1),
+                // (1,1): error CS1073: Unexpected token 'static'
+                // static int => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("static").WithLocation(1, 1));
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_08()
+        {
+            string source = "f = [A] int => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'int'
+                // f = [A] int => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "f = [A]").WithArguments("int").WithLocation(1, 1),
+                // (1,5): error CS1525: Invalid expression term '['
+                // f = [A] int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5));
+
+            N(SyntaxKind.SimpleAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "f");
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_09()
+        {
+            string source = "var => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_10()
+        {
+            string source = "async => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "async");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_01()
+        {
+            string source = "=> { }";
+            UsingExpression(source,
+                // (1,1): error CS1001: Identifier expected
+                // => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_02()
+        {
+            string source = "[ => { }";
+            UsingExpression(source,
+                // (1,3): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,3): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,9): error CS1003: Syntax error, ']' expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 9),
+                // (1,9): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1003: Syntax error, '=>' expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>", "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    M(SyntaxKind.Attribute);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBracketToken);
+                }
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_03()
+        {
+            string source = "( => { }";
+            UsingExpression(source,
+                // (1,3): error CS1001: Identifier expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,9): error CS1026: ) expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1003: Syntax error, '=>' expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>", "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
     }
 }
