@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyExplicitInterfaceImplementations = ImmutableArray<PropertySymbol>.Empty;
             }
 
-            bool isIndexer = IsIndexer;
-            isAutoProperty = isAutoProperty && !(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer;
+            isAutoProperty = isAutoProperty && CanHaveBackingField();
 
             if (isAutoProperty)
             {
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsInitOnly;
             }
 
-            if (isIndexer)
+            if (IsIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
                 {
@@ -216,8 +215,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
         }
 
+        private bool CanHaveBackingField()
+        {
+            return !(_containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !IsIndexer;
+        }
+
         internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword()
         {
+            Debug.Assert(!IsIndexer);
+            if (!CanHaveBackingField())
+            {
+                MarkBackingFieldAsCalculated();
+                return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
+            }
+
             return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
         }
 

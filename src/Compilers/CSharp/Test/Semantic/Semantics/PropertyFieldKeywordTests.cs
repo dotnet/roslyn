@@ -82,6 +82,121 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
+        // PROTOTYPE(semi-auto-props): Add test for static property in interface (it can have a backing field).
+        // Also test for abstract/extern properties (we shouldn't create a backing field for them)
+        [Fact]
+        public void TestInInterface()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public int P { get => field; }
+}
+", targetFramework: TargetFramework.NetCoreApp); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0103: The name 'field' does not exist in the current context
+                //     public int P { get => field; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 27)
+                );
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            Assert.Empty(@interface.GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestStaticInInterface()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public static int P { get => field; }
+}
+", targetFramework: TargetFramework.NetCoreApp); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "I", @"
+.class interface public auto ansi abstract I
+{
+    // Fields
+    .field private static initonly int32 '<P>k__BackingField'
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname static 
+    	int32 get_P () cil managed 
+    {
+    	// Method begins at RVA 0x2050
+    	// Code size 6 (0x6)
+    	.maxstack 8
+    	IL_0000: ldsfld int32 I::'<P>k__BackingField'
+    	IL_0005: ret
+    } // end of method I::get_P
+    // Properties
+    .property int32 P()
+    {
+    	.get int32 I::get_P()
+    }
+} // end of class I
+");
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestAbstract()
+        {
+            var comp = CreateCompilation(@"
+public abstract class C
+{
+    public abstract int P { get => field; }
+}
+"); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
+                //     public abstract int P { get => field; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("C.P.get").WithLocation(4, 29)
+                );
+            var @class = comp.GetTypeByMetadataName("C");
+            Assert.Empty(@class.GetMembers().OfType<FieldSymbol>());
+            Assert.Empty(@class.GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestExtern()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public extern int P { get => field; }
+}
+");
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0179: 'C.P.get' cannot be extern and declare a body
+                //     public extern int P { get => field; }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("C.P.get").WithLocation(4, 27)
+                );
+            var @class = comp.GetTypeByMetadataName("C");
+            Assert.Empty(@class.GetMembers().OfType<FieldSymbol>());
+            Assert.Empty(@class.GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
         [Fact]
         public void TestNameOfFieldInAttribute()
         {
