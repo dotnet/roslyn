@@ -1310,20 +1310,54 @@ public class C
             Assert.Equal(bindingCount, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void TestAssigningFromConstructorThroughSetterWithFieldKeyword_NoGetter()
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void TestAssigningFromConstructorThroughSetterWithFieldKeyword_NoGetter(string type)
         {
-            var comp = CreateCompilation(@"
-public class C
-{
+            var comp = CreateCompilation($@"
+public {type} C
+{{
     public C()
-    {
+    {{
         P = 5;
-    }
+    }}
 
-    public int P { set => field = value * 2; }
-}
+    public int P {{ set => field = value * 2; }}
+}}
 ");
+            string ctorExpectedIL;
+            if (type == "struct")
+            {
+                ctorExpectedIL = @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.5
+  IL_0009:  call       ""void C.P.set""
+  IL_000e:  ret
+}
+";
+            }
+            else
+            {
+                ctorExpectedIL = @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldc.i4.5
+  IL_0008:  call       ""void C.P.set""
+  IL_000d:  ret
+}
+";
+            }
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.P.set", @"
@@ -1337,18 +1371,7 @@ public class C
   IL_0004:  stfld      ""int C.<P>k__BackingField""
   IL_0009:  ret
 }
-").VerifyIL("C..ctor", @"
-{
-  // Code size       14 (0xe)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldc.i4.5
-  IL_0008:  call       ""void C.P.set""
-  IL_000d:  ret
-}
-");
+").VerifyIL("C..ctor", ctorExpectedIL);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
