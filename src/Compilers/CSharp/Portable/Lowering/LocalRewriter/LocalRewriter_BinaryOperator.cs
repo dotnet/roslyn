@@ -364,12 +364,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UIntLeftShift:
                     case BinaryOperatorKind.IntRightShift:
                     case BinaryOperatorKind.UIntRightShift:
+                    case BinaryOperatorKind.IntUnsignedRightShift:
+                    case BinaryOperatorKind.UIntUnsignedRightShift:
                         return RewriteBuiltInShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type, 0x1F);
 
                     case BinaryOperatorKind.LongLeftShift:
                     case BinaryOperatorKind.ULongLeftShift:
                     case BinaryOperatorKind.LongRightShift:
                     case BinaryOperatorKind.ULongRightShift:
+                    case BinaryOperatorKind.LongUnsignedRightShift:
+                    case BinaryOperatorKind.ULongUnsignedRightShift:
                         return RewriteBuiltInShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type, 0x3F);
 
                     case BinaryOperatorKind.DecimalAddition:

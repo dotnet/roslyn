@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
@@ -45,11 +46,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
                 Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
                 document = document.WithSolutionOptions(options)
 
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
+                    LineFormattingOptions.Default,
+                    separateImportDirectiveGroups:=separateImportGroups)
+
                 Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
-                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)
+                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())

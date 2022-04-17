@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
             Contract.ThrowIfNull(data.Value);
 
-            using var context = SolutionReplicationContext.Create();
+            using var context = new SolutionReplicationContext();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {

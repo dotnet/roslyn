@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -87,11 +88,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 context,
                 cancellationToken).ConfigureAwait(false);
 
+            var newCleanupOptions = await CodeCleanupOptions.FromDocumentAsync(newTypeDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
             var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
             {
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
-                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
+                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, newCleanupOptions, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -104,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
-            var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var simplified = await Simplifier.ReduceAsync(newTypeDocument, newCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified, newCleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             return (formattedDocument, typeAnnotation);
         }

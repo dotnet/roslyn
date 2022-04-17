@@ -306,5 +306,65 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C", Glyph.ClassInternal, children:={
                     Item("M(string? s, IEnumerable<string?> e)", Glyph.MethodPrivate)}))
         End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        Public Async Function TestCheckedBinaryOperator(host As TestHost) As Task
+            Await AssertSelectedItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class C
+{
+    public static C operator +(C x, C y) => throw new System.Exception();
+
+    public static C operator checked +(C x, C y) => throw new System.Exception();$$
+}
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal), False,
+                Item("operator checked +(C x, C y)", Glyph.Operator), False)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        Public Async Function TestCheckedUnaryOperator(host As TestHost) As Task
+            Await AssertSelectedItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class C
+{
+    public static C operator -(C x) => throw new System.Exception();
+
+    public static C operator checked -(C x) => throw new System.Exception();$$
+}
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal), False,
+                Item("operator checked -(C x)", Glyph.Operator), False)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        Public Async Function TestCheckedCastOperator(host As TestHost) As Task
+            Await AssertSelectedItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class C
+{
+    public static explicit operator string(C x) => throw new System.Exception();
+
+    public static explicit operator checked string(C x) => throw new System.Exception();$$
+}
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal), False,
+                Item("explicit operator checked string(C x)", Glyph.Operator), False)
+        End Function
     End Class
 End Namespace

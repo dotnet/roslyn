@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
             => _values = values;
 
         private protected override object? GetOptionCore(OptionKey optionKey)
-            => _values.TryGetValue(optionKey, out var value) ? value : null;
+            => _values.TryGetValue(optionKey, out var value) ? value : optionKey.Option.DefaultValue;
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
             => new OptionValueSet(_values.SetItem(optionAndLanguage, value));

@@ -1083,13 +1083,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = _threadingContext.JoinableTaskFactory.Run(() =>
-                    Simplifier.ReduceAsync(
-                        document,
-                        annotation,
-                        optionSet: null,
-                        cancellationToken: cancellationToken)
-                );
+                document = _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                    return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                });
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

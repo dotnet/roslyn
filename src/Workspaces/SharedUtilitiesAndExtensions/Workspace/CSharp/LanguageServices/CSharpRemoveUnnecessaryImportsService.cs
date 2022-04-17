@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
             Func<SyntaxNode, bool> predicate,
+            SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
             predicate ??= Functions<SyntaxNode>.True;
@@ -69,14 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
                 var provider = GetSyntaxFormatting();
-                var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
 #else
                 var provider = document.Project.Solution.Workspace.Services;
-                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
                 var spans = new List<TextSpan>();
                 AddFormattingSpans(newRoot, spans, cancellationToken);
-                var formattedRoot = Formatter.Format(newRoot, spans, provider, options, rules: null, cancellationToken);
+                var formattedRoot = Formatter.Format(newRoot, spans, provider, formattingOptions, rules: null, cancellationToken);
 
                 return document.WithSyntaxRoot(formattedRoot);
             }

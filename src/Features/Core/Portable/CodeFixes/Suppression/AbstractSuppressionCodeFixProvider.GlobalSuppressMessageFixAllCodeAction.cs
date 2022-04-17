@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var services = suppressionsDoc.Project.Solution.Workspace.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
-                var options = await SyntaxFormattingOptions.FromDocumentAsync(suppressionsDoc, cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(suppressionsDoc, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
                 {
@@ -133,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
                         suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
                             suppressionsRoot, targetSymbol, _suppressMessageAttribute, diagnostic,
-                            services, options, addImportsService, cancellationToken);
+                            services, cleanupOptions.FormattingOptions, addImportsService, cancellationToken);
                     }
                 }
 
                 var result = suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
-                var final = await CleanupDocumentAsync(result, cancellationToken).ConfigureAwait(false);
+                var final = await CleanupDocumentAsync(result, cleanupOptions, cancellationToken).ConfigureAwait(false);
                 return final;
             }
 

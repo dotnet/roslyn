@@ -158,8 +158,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     if (replacementTextValid)
                     {
-                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                        var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                        document = await Formatter.FormatAsync(document, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Simplification may have removed escaping and formatted whitespace.  We need to update

@@ -141,11 +141,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
             {
-                var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-
                 await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
-                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
+                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
