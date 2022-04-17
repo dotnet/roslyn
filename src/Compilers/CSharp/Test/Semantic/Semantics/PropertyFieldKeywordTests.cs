@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /* PROTOTYPE(semi-auto-props):
      * Add tests for field attribute target, specially for setter-only
-     * nameof(field) should be disallowed.
      * nullability tests, ie, make sure we get null dereference warnings when needed.
      */
 
