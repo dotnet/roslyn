@@ -1372,7 +1372,7 @@ public {type} C
   IL_0009:  ret
 }
 ").VerifyIL("C..ctor", ctorExpectedIL);
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(type == "struct" ? 1 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
