@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
@@ -21,6 +22,13 @@ internal static class SolutionCrawlerOptionsStorage
     /// </summary>
     public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
         "SolutionCrawlerOptionsStorage", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
+
+    /// <summary>
+    /// Option to configure compiler diagnostics scope for the current user.
+    /// </summary>
+    public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
+        "SolutionCrawlerOptionsStorage", "CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles,
+        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption"));
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
         "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
@@ -47,5 +55,37 @@ internal static class SolutionCrawlerOptionsStorage
 
         return globalOptions.GetOption(SolutionBackgroundAnalysisScopeOption) ??
                globalOptions.GetOption(BackgroundAnalysisScopeOption, language);
+    }
+
+    public static bool IsFullSolutionAnalysisEnabled(this DiagnosticAnalyzer analyzer, IGlobalOptionService globalOptions, string language)
+    {
+        if (analyzer.IsCompilerAnalyzer())
+        {
+            return globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+        }
+
+        return GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
+    }
+
+    public static bool IsFullSolutionAnalysisEnabled(
+        this IGlobalOptionService globalOptions,
+        string language,
+        out bool compilerFullSolutionAnalysisEnabled,
+        out bool analyzersFullSolutionAnalysisEnabled)
+    {
+        compilerFullSolutionAnalysisEnabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.FullSolution;
+        analyzersFullSolutionAnalysisEnabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
+        return compilerFullSolutionAnalysisEnabled || analyzersFullSolutionAnalysisEnabled;
+    }
+
+    public static bool IsAnalysisDisabled(
+        this IGlobalOptionService globalOptions,
+        string language,
+        out bool compilerDiagnosticsDisabled,
+        out bool analyzersDisabled)
+    {
+        compilerDiagnosticsDisabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.None;
+        analyzersDisabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.None;
+        return compilerDiagnosticsDisabled && analyzersDisabled;
     }
 }

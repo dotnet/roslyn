@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
+                var compilerDiagnosticsScope = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, document.Project.Language);
+
+                // TODO: Switch to a more reliable service to determine visible documents.
+                //       DocumentTrackingService is known be unreliable at times.
+                var isVisibleDocument = _documentTrackingService.GetVisibleDocuments().Contains(document.Id);
 
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
@@ -66,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
-                        backgroundAnalysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument, cancellationToken);
+                        backgroundAnalysisScope, compilerDiagnosticsScope, isActiveDocument, isVisibleDocument,
+                        isOpenDocument, isGeneratedRazorDocument, cancellationToken);
                     if (data.HasValue)
                     {
                         // We need to persist and raise diagnostics for suppressed analyzer.
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
+            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false, out _, out _))
             {
                 return;
             }
@@ -249,7 +255,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
             if (!documentHadDiagnostics ||
-                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled) &&
+                compilerFullAnalysisEnabled &&
+                analyzersFullAnalysisEnabled)
             {
                 // this is Perf to reduce raising events unnecessarily.
                 return;
@@ -368,9 +376,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            if (GlobalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
+            _ = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
+            if (!compilerFullSolutionAnalysisEnabled)
             {
-                stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
+                stateSets = stateSets.Where(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
+            }
+
+            if (!analyzersFullSolutionAnalysisEnabled)
+            {
+                stateSets = stateSets.Where(s => s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
             }
 
             // Compute analyzer config options for computing effective severity.

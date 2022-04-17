@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    if (globalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
+                    if (!globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var _, out var _))
                     {
                         context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;

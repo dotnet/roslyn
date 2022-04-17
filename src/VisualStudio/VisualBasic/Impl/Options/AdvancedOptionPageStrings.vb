@@ -43,6 +43,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.FullSolution
 
+        Public ReadOnly Property Option_Show_compiler_errors_and_warnings_for As String =
+            ServicesVSResources.Show_compiler_errors_and_warnings_for_colon
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_None As String =
+            ServicesVSResources.None
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files As String =
+            ServicesVSResources.Visible_documents
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files As String =
+            ServicesVSResources.Open_documents
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution As String =
+            ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_None_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.None
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.VisibleFiles
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.OpenFiles
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.FullSolution
+
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 

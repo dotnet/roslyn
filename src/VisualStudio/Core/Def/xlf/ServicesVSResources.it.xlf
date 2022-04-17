@@ -1267,6 +1267,11 @@
         <target state="translated">Mostra il comando "Rimuovi riferimenti inutilizzati" in Esplora soluzioni (sperimentale)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostra l'elenco di completamento</target>
@@ -1500,6 +1505,11 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">Valore da inserire nei siti di chiamata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visible_documents">
+        <source>Visible documents</source>
+        <target state="new">Visible documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">

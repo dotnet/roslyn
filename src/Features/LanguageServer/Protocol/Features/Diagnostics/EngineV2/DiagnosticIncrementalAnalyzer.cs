@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
                    e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-                   e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
+                   e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
+                   e.Option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)

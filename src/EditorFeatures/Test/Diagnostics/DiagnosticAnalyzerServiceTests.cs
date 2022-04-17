@@ -874,6 +874,9 @@ class A
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
+            var compilerDiagnosticsScope = analysisScope.ToEquivalentCompilerDiagnosticsScope();
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp), compilerDiagnosticsScope);
+
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();

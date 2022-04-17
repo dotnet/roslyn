@@ -80,6 +80,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
             SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
             SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
+
+            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
         }
 
         public void SetFileScopedNamespaces(bool value)

@@ -306,7 +306,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var analysisScope = project != null ? _globalOptions.GetBackgroundAnalysisScope(project.Language) : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue;
+            var isAnalysisDisabled = project != null
+                ? _globalOptions.IsAnalysisDisabled(project.Language, out _, out _)
+                : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue == BackgroundAnalysisScope.None &&
+                  SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption.DefaultValue == CompilerDiagnosticsScope.None;
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
@@ -349,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
 
                 // Now compute the new host diagostics for all projects with disabled analysis.
-                var projectsWithDisabledAnalysis = analysisScope == BackgroundAnalysisScope.None
+                var projectsWithDisabledAnalysis = isAnalysisDisabled
                     ? projects.ToImmutableArray()
                     : projects.Where(p => !p.State.RunAnalyzers).ToImmutableArrayOrEmpty();
                 if (!projectsWithDisabledAnalysis.IsEmpty)
