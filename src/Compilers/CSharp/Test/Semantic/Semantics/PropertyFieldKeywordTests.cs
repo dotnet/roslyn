@@ -82,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
-        // PROTOTYPE(semi-auto-props): Add test for static property in interface (it can have a backing field).
-        // Also test for abstract/extern properties (we shouldn't create a backing field for them)
         [Fact]
         public void TestInInterface()
         {
