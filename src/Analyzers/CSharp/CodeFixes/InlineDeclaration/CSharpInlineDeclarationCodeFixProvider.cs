@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -57,11 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var optionSet = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
-#else
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
+            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(CSharpSimplification.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Gather all statements to be removed
             // We need this to find the statements we can safely attach trivia to
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (_1, _2, _3) => true,
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        optionSet, semanticModel, currentRoot, t.declarator,
+                        simplifierOptions, semanticModel, currentRoot, t.declarator,
                         t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
                         cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -116,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
-            OptionSet options, SemanticModel semanticModel,
+            CSharpSimplifierOptions options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
             HashSet<StatementSyntax> declarationsToRemove,
@@ -261,9 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         public static TypeSyntax GenerateTypeSyntaxOrVar(
-           ITypeSymbol symbol, OptionSet options)
+           ITypeSymbol type, CSharpSimplifierOptions options)
         {
-            var useVar = IsVarDesired(symbol, options);
+            var useVar = (type.IsSpecialType() == true) ? options.VarForBuiltInTypes.Value : options.VarElsewhere.Value;
 
             // Note: we cannot use ".GenerateTypeSyntax()" only here.  that's because we're
             // actually creating a DeclarationExpression and currently the Simplifier cannot
@@ -271,19 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // and how those don't handle new declarations well.
             return useVar
                 ? SyntaxFactory.IdentifierName("var")
-                : symbol.GenerateTypeSyntax();
-        }
-
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options)
-        {
-            // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type.IsSpecialType() == true)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
-            }
-
-            // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
+                : type.GenerateTypeSyntax();
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

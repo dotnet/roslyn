@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -50,8 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var statement = context.Node;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferBraces, statement.SyntaxTree, cancellationToken);
-            if (option.Value == PreferBracesPreference.None)
+            var simplifierOptions = (CSharpSimplifierOptions)context.Options.GetSimplifierOptions(statement.SyntaxTree, CSharpSimplification.Instance);
+            var preference = simplifierOptions.PreferBraces;
+            if (preference.Value == PreferBracesPreference.None)
             {
                 return;
             }
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     break;
             }
 
-            if (option.Value == PreferBracesPreference.WhenMultiline
+            if (preference.Value == PreferBracesPreference.WhenMultiline
                 && !IsConsideredMultiLine(statement, embeddedStatement)
                 && !RequiresBracesToMatchContext(statement))
             {
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 firstToken.GetLocation(),
-                option.Notification.Severity,
+                preference.Notification.Severity,
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));

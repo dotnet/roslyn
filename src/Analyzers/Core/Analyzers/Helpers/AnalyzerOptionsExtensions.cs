@@ -76,6 +76,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return formatting.GetFormattingOptions(options.AnalyzerConfigOptionsProvider.GetOptions(tree), fallbackOptions);
         }
 
+        public static SimplifierOptions GetSimplifierOptions(this AnalyzerOptions options, SyntaxTree tree, ISimplification simplification)
+        {
+#if CODE_STYLE
+            var fallbackOptions = (SimplifierOptions?)null;
+#else
+            var fallbackOptions = options.GetIdeOptions().CleanupOptions?.SimplifierOptions;
+#endif
+            return simplification.GetSimplifierOptions(options.AnalyzerConfigOptionsProvider.GetOptions(tree), fallbackOptions);
+        }
+
         public static T GetOption<T>(this SemanticModelAnalysisContext context, Option2<T> option)
         {
             var analyzerOptions = context.Options;

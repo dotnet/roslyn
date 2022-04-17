@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -55,7 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var preferSimpleDefaultExpression = document.Project.AnalyzerOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, tree, cancellationToken).Value;
+
+            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(CSharpSimplification.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = simplifierOptions.PreferSimpleDefaultExpression.Value;
 
             var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;

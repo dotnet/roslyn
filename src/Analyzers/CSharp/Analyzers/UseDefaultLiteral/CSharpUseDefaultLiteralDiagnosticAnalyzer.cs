@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -35,11 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Node.SyntaxTree;
-            var preference = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, syntaxTree, cancellationToken);
+
+            var simplifierOptions = (CSharpSimplifierOptions)context.Options.GetSimplifierOptions(syntaxTree, CSharpSimplification.Instance);
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, simplifierOptions.PreferSimpleDefaultExpression.Value, context.SemanticModel, cancellationToken))
                 return;
 
             var fadeSpan = TextSpan.FromBounds(defaultExpression.OpenParenToken.SpanStart, defaultExpression.CloseParenToken.Span.End);
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    preference.Notification.Severity,
+                    simplifierOptions.PreferSimpleDefaultExpression.Notification.Severity,
                     additionalLocations: ImmutableArray<Location>.Empty,
                     additionalUnnecessaryLocations: ImmutableArray.Create(defaultExpression.SyntaxTree.GetLocation(fadeSpan))));
         }
