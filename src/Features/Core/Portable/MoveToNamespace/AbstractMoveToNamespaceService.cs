@@ -186,20 +186,19 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             switch (container)
             {
                 case TNamespaceDeclarationSyntax namespaceNode:
-                    var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container, cancellationToken);
-                    return containerSymbol.GetMembers().SelectAsArray(m => (ISymbol)m);
-
+                    var namespaceMembers = syntaxFacts.GetMembersOfBaseNamespaceDeclaration(namespaceNode);
+                    return namespaceMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
                 case TCompilationUnitSyntax compilationUnit:
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    var members = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
+                    var compilationUnitMembers = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
                     // We are trying to move a selected type from global namespace to the target namespace.
                     // This is supported if the selected type is the only member declared in the global namespace in this document.
                     // (See `TryAnalyzeNamedTypeAsync`)
-                    Debug.Assert(members.Count == 1);
-                    return members.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
+                    Debug.Assert(compilationUnitMembers.Count == 1);
+                    return compilationUnitMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(container);

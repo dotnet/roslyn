@@ -1343,5 +1343,29 @@ namespace B
                 Assert.Equal(expected, actualText);
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(35507, "https://github.com/dotnet/roslyn/issues/35507")]
+        public Task MoveToNamespace_MoveTypeFromSystemNamespace()
+            => TestMoveToNamespaceAsync(
+@"namespace System
+{
+    [||]class A
+    {
+
+    }
+}",
+expectedMarkup: @"namespace {|Warning:Test|}
+{
+    [||]class A
+    {
+
+    }
+}",
+targetNamespace: "Test",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"System.A", "Test.A" }
+});
     }
 }
