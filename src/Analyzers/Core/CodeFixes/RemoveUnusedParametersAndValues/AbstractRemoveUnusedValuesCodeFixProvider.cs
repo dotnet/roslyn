@@ -162,6 +162,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
 
+                        // Also we want to show "Remove redundant assignment" title in pattern matching, e.g.
+                        // if (obj is SomeType someType) <-- "someType" will be fully removed here
+                        if (syntaxFacts.IsDeclarationPattern(node.Parent))
+                        {
+                            title = CodeFixesResources.Remove_redundant_assignment;
+                        }
+
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
