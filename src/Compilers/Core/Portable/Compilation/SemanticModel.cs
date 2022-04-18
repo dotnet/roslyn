@@ -775,7 +775,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportScope"/>s at that
-        /// point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest.s
+        /// point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest. See
+        /// <see cref="IImportScope"/> for a deeper description of what information is available for each scope.
         /// </summary>
         public ImmutableArray<IImportScope> GetImportScopes(int position, CancellationToken cancellationToken = default)
             => GetImportScopesCore(position, cancellationToken);
