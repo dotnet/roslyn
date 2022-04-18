@@ -3470,17 +3470,14 @@ _Default:
                 xmlNamespaceImports As XmlNamespaceImportsBinder,
                 scopes As ArrayBuilder(Of IImportScope))
 
-            ' If we hit none of these binders, then we have no node to add to the chain. Note: these binders are only
-            ' created as long as they are non-empty.  So once we hit one we know we must have data for a chain node.
-            If typesOfImportedNamespacesMembers Is Nothing AndAlso importAliases Is Nothing AndAlso xmlNamespaceImports Is Nothing Then
+            Dim aliases = If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty)
+            Dim [imports] = If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of ImportedNamespaceOrType).Empty)
+            Dim xmlNamespaces = If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of ImportedXmlNamespace).Empty)
+            If aliases.Length = 0 AndAlso [imports].Length = 0 AndAlso xmlNamespaces.Length = 0 Then
                 Return
             End If
 
-            scopes.Add(New SimpleImportScope(
-                If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty),
-                ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty,
-                If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of ImportedNamespaceOrType).Empty),
-                If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of ImportedXmlNamespace).Empty)))
+            scopes.Add(New SimpleImportScope(aliases, ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty, [imports], xmlNamespaces))
         End Sub
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
