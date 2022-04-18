@@ -369,6 +369,193 @@ end namespace
 
 #End Region
 
+        ' Imports <xmlns:r1="http://roslyn">
+
+
+#Region "xml namespace"
+
+        <Fact>
+        Public Sub TestBeforeXmlNamespae()
+            Dim Text = "'pos
+Imports <xmlns:r1=""http://roslyn"">"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterXmlNamespaceNoContent()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterXmlNamespaceBeforeMemberDeclaration()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+'pos
+class C
+end class
+"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterMultipleXmlNamespacesNoContent()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+Imports <xmlns:r2=""http://roslyn2"">
+'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Equal(2, scopes.Single().XmlNamespaces.Length)
+
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.First().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.First().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.First().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Equal("http://roslyn2", scopes.Single().XmlNamespaces.Last().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Last().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r2=""http://roslyn2"">", scopes.Single().XmlNamespaces.Last().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestXmlNamespaceNestedNamespaceOuterPosition()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+
+class C
+    'pos
+end class
+
+namespace N
+    class D
+    end class
+end namespace
+"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestXmlNamespaceNestedNamespaceInnerPosition()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+
+namespace N
+    class C
+        'pos
+    end class
+end namespace
+"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+        <Fact>
+        Public Sub TestXmlNamespaceNestedNamespaceInnerPositionIntermediaryEmptyNamespace()
+            Dim Text = "
+Imports <xmlns:r1=""http://roslyn"">
+
+namespace Outer
+    namespace N
+        class C
+            'pos
+        end class
+    end namespace
+end namespace
+"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
+            Assert.Empty(scopes.Single().Aliases)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().Imports)
+        End Sub
+
+#End Region
+
 #Region "global imports"
 
         Public Shared Function GetGlobalImportsOptions(ParamArray values As String()) As VisualBasicCompilationOptions
@@ -381,7 +568,7 @@ end namespace
             Dim Text = "
 'pos"
             Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft", "<xmlns:r1=""http://roslyn"">"))
             Dim model = comp.GetSemanticModel(tree)
             Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
 
@@ -395,8 +582,11 @@ end namespace
             Assert.True(IsNamespaceWithName(scopes.Single().Imports.Single().NamespaceOrType, "System"))
             Assert.Null(scopes.Single().Imports.Single.DeclaringSyntaxReference)
 
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.Null(scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference)
+
             Assert.Empty(scopes.Single().ExternAliases)
-            Assert.Empty(scopes.Single().XmlNamespaces)
         End Sub
 
         <Fact>
@@ -406,7 +596,7 @@ class C
     'pos
 end class"
             Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft", "<xmlns:r1=""http://roslyn"">"))
             Dim model = comp.GetSemanticModel(tree)
             Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
             Assert.Single(scopes)
@@ -419,8 +609,11 @@ end class"
             Assert.True(IsNamespaceWithName(scopes.Single().Imports.Single().NamespaceOrType, "System"))
             Assert.Null(scopes.Single().Imports.Single.DeclaringSyntaxReference)
 
+            Assert.Single(scopes.Single().XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.Single().XmlNamespace)
+            Assert.Null(scopes.Single().XmlNamespaces.Single().DeclaringSyntaxReference)
+
             Assert.Empty(scopes.Single().ExternAliases)
-            Assert.Empty(scopes.Single().XmlNamespaces)
         End Sub
 
         <Fact>
@@ -428,13 +621,14 @@ end class"
             Dim text = "
 imports System.IO
 imports T = System.Threading
+imports <xmlns:r2=""http://roslyn2"">
 
 class C
     'pos
 end class
 "
             Dim tree = Parse(text)
-            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft", "<xmlns:r1=""http://roslyn"">"))
             Dim model = comp.GetSemanticModel(tree)
             dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
 
@@ -451,6 +645,11 @@ end class
             Assert.True(TypeOf syntax.Parent Is SimpleImportsClauseSyntax)
             Assert.Equal("System.IO", syntax.ToString())
 
+            Assert.Single(scopes(0).XmlNamespaces)
+            Assert.Equal("http://roslyn2", scopes(0).XmlNamespaces.Single().XmlNamespace)
+            Assert.True(TypeOf scopes(0).XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
+            Assert.Equal("<xmlns:r2=""http://roslyn2"">", scopes(0).XmlNamespaces.Single().DeclaringSyntaxReference.GetSyntax().ToString())
+
             Assert.Single(scopes(1).Aliases)
             Assert.True(IsAliasWithName(scopes(1).Aliases.Single(), "M", "Microsoft", inGlobalNamespace:=True))
             Assert.Empty(scopes(1).Aliases().Single().DeclaringSyntaxReferences)
@@ -459,10 +658,12 @@ end class
             Assert.True(IsNamespaceWithName(scopes(1).Imports.Single().NamespaceOrType, "System"))
             Assert.Null(scopes(1).Imports.Single.DeclaringSyntaxReference)
 
+            Assert.Single(scopes(1).XmlNamespaces)
+            Assert.Equal("http://roslyn", scopes(1).XmlNamespaces.Single().XmlNamespace)
+            Assert.Null(scopes(1).XmlNamespaces.Single().DeclaringSyntaxReference)
+
             Assert.Empty(scopes(0).ExternAliases)
-            Assert.Empty(scopes(0).XmlNamespaces)
             Assert.Empty(scopes(1).ExternAliases)
-            Assert.Empty(scopes(1).XmlNamespaces)
         End Sub
 
 #End Region
