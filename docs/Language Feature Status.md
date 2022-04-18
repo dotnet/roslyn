@@ -32,6 +32,7 @@ efforts behind them.
 | [ref fields](https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md) | [ref-fields](https://github.com/dotnet/roslyn/tree/features/ref-fields) | [In Progress](https://github.com/dotnet/roslyn/issues/59194) | [cston](https://github.com/cston) | [RikkiGibson](https://github.com/RikkiGibson), [AlekseyTs](https://github.com/AlekseyTs) | [jaredpar](https://github.com/jaredpar) | 
 | [Unsigned Right Shift](https://github.com/dotnet/csharplang/issues/4682) | [UnsignedRightShift](https://github.com/dotnet/roslyn/tree/features/UnsignedRightShift) | [In Progress](https://github.com/dotnet/roslyn/issues/60433) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv)  | [AlekseyTs](https://github.com/AlekseyTs) | 
 | Numeric IntPtr | [numeric-intptr](https://github.com/dotnet/roslyn/tree/features/numeric-intptr) | [In Progress](https://github.com/dotnet/roslyn/issues/60578) | [jcouv](https://github.com/jcouv) | TBD  | [jcouv](https://github.com/jcouv) | 
+| [File-scoped types](https://github.com/dotnet/csharplang/issues/6011) | [file-scoped-types](https://github.com/dotnet/roslyn/tree/features/file-scoped-types) | [In Progress](https://github.com/dotnet/roslyn/issues/60819) | [RikkiGibson](https://github.com/RikkiGibson) | TBD  | [stephentoub](https://github.com/stephentoub) | 
   
 # C# 10.0
 
