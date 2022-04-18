@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 generateMethodBodies: false,
                 generateMembers: false);
 
-            var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var codeGenerationOptions = await CodeGenerationContextInfo.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
             var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, codeGenerationOptions, cancellationToken);
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             DocumentEditor editor,
             SyntaxNode memberDeclaration,
             ISymbol member,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo options,
             CancellationToken cancellationToken)
         {
             var modifiers = DeclarationModifiers.From(member).WithIsStatic(false);
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             IEventSymbol eventSymbol,
             SyntaxNode eventDeclaration,
             DeclarationModifiers modifiers,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo options,
             CancellationToken cancellationToken)
         {
             var declaration = editor.Generator.GetDeclaration(eventDeclaration);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
 
             // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
-            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var codeGenOptions = await CodeGenerationContextInfo.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
             var formattingOptions = await destinationEditor.OriginalDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             var importsPlacementOptions = await destinationEditor.OriginalDocument.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 

@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
             {
                 var codeGenerationService = _originalDocument.GetRequiredLanguageService<ICodeGenerationService>();
-                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _originalDocument, cancellationToken).ConfigureAwait(false);
+                var codeGenOptions = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, _originalDocument, cancellationToken).ConfigureAwait(false);
 
                 var newMethod = isTrampoline
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)

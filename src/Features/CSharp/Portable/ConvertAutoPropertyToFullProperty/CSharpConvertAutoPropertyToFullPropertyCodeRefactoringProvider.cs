@@ -25,7 +25,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
-    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationPreferences>
+    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationOptions>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            CSharpCodeGenerationPreferences preferences, SyntaxNode property,
+            CSharpCodeGenerationOptions preferences, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
             // C# might have trivia with the accessors that needs to be preserved.  
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
                                                                  a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
-        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationPreferences preferences,
+        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationOptions preferences,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
-            CSharpCodeGenerationPreferences preferences, SyntaxNode property)
+            CSharpCodeGenerationOptions preferences, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
 

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
                 // fallback options: https://github.com/dotnet/roslyn/issues/60794
-                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+                var codeGenOptions = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
                 var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, codeGenOptions, cancellationToken);

@@ -14,27 +14,27 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// <summary>
     /// Context and preferences.
     /// </summary>
-    internal abstract class CodeGenerationOptions
+    internal abstract class CodeGenerationContextInfo
     {
         public readonly CodeGenerationContext Context;
 
-        protected CodeGenerationOptions(CodeGenerationContext context)
+        protected CodeGenerationContextInfo(CodeGenerationContext context)
         {
             Context = context;
         }
 
-        public static async ValueTask<CodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
+        public static async ValueTask<CodeGenerationContextInfo> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
         {
-            var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return preferences.GetOptions(context);
+            var preferences = await CodeGenerationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return preferences.GetInfo(context);
         }
 
-        public CodeGenerationOptions WithContext(CodeGenerationContext value)
+        public CodeGenerationContextInfo WithContext(CodeGenerationContext value)
             => WithContextImpl(value);
 
-        public CodeGenerationPreferences Preferences => PreferencesImpl;
+        public CodeGenerationOptions Options => OptionsImpl;
 
-        protected abstract CodeGenerationPreferences PreferencesImpl { get; }
-        protected abstract CodeGenerationOptions WithContextImpl(CodeGenerationContext value);
+        protected abstract CodeGenerationOptions OptionsImpl { get; }
+        protected abstract CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value);
     }
 }

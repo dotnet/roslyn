@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
     internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode, TCodeGenerationPreferences> : CodeRefactoringProvider
         where TPropertyDeclarationNode : SyntaxNode
         where TTypeDeclarationNode : SyntaxNode
-        where TCodeGenerationPreferences : CodeGenerationPreferences
+        where TCodeGenerationPreferences : CodeGenerationOptions
     {
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var services = document.Project.Solution.Workspace.Services;
 
-            var preferences = (TCodeGenerationPreferences)await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var preferences = (TCodeGenerationPreferences)await CodeGenerationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
 
-            var codeGenOptions = preferences.GetOptions(CodeGenerationContext.Default);
+            var codeGenOptions = preferences.GetInfo(CodeGenerationContext.Default);
             var typeDeclaration = propertySymbol.ContainingType.DeclaringSyntaxReferences;
             foreach (var td in typeDeclaration)
             {

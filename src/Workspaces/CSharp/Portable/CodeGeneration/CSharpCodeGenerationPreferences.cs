@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal sealed class CSharpCodeGenerationPreferences : CodeGenerationPreferences
+    internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
     {
         public readonly ExpressionBodyPreference PreferExpressionBodiedMethods;
         public readonly ExpressionBodyPreference PreferExpressionBodiedAccessors;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public readonly AddImportPlacement PreferredUsingDirectivePlacement;
         public readonly LanguageVersion LanguageVersion;
 
-        public CSharpCodeGenerationPreferences(
+        public CSharpCodeGenerationOptions(
             bool placeSystemNamespaceFirst,
             ExpressionBodyPreference preferExpressionBodiedMethods,
             ExpressionBodyPreference preferExpressionBodiedAccessors,
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override bool PlaceImportsInsideNamespaces
             => PreferredUsingDirectivePlacement == AddImportPlacement.InsideNamespace;
 
-        public override CodeGenerationOptions GetOptions(CodeGenerationContext context)
-            => new CSharpCodeGenerationOptions(context, this);
+        public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context)
+            => new CSharpCodeGenerationContextInfo(context, this);
 
-        public static CSharpCodeGenerationPreferences Create(CSharpParseOptions parseOptions, OptionSet documentOptions)
+        public static CSharpCodeGenerationOptions Create(CSharpParseOptions parseOptions, OptionSet documentOptions)
             => new(
                 placeSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp),
                 preferExpressionBodiedMethods: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 preferredUsingDirectivePlacement: documentOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value,
                 languageVersion: parseOptions.LanguageVersion);
 
-        public static new async Task<CSharpCodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static new async Task<CSharpCodeGenerationOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var parseOptions = (CSharpParseOptions?)document.Project.ParseOptions;
             Contract.ThrowIfNull(parseOptions);

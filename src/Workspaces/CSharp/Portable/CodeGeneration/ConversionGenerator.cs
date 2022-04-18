@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConversionTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo options,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo options,
             CancellationToken cancellationToken)
         {
             var declaration = GenerateConversionDeclarationWorker(method, destination, options);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
             CodeGenerationDestination destination,
-            CSharpCodeGenerationOptions options)
+            CSharpCodeGenerationContextInfo options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern;
 
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ConversionOperatorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationOptions options, ConversionOperatorDeclarationSyntax declaration)
+            CSharpCodeGenerationContextInfo options, ConversionOperatorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedOperators,
+                    declaration.Kind(), options.Options.LanguageVersion, options.Options.PreferExpressionBodiedOperators,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)

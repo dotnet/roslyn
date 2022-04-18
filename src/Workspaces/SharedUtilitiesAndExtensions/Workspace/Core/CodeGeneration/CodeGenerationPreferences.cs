@@ -19,20 +19,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// <summary>
     /// Document-specific options for controlling the code produced by code generation.
     /// </summary>
-    internal abstract class CodeGenerationPreferences
+    internal abstract class CodeGenerationOptions
     {
         public abstract bool PlaceImportsInsideNamespaces { get; }
         public bool PlaceSystemNamespaceFirst { get; }
 
-        public CodeGenerationPreferences(bool placeSystemNamespaceFirst)
+        public CodeGenerationOptions(bool placeSystemNamespaceFirst)
         {
             PlaceSystemNamespaceFirst = placeSystemNamespaceFirst;
         }
 
 #if !CODE_STYLE
-        public abstract CodeGenerationOptions GetOptions(CodeGenerationContext context);
+        public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context);
 
-        public static async Task<CodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<CodeGenerationOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var parseOptions = document.Project.ParseOptions;
             Contract.ThrowIfNull(parseOptions);

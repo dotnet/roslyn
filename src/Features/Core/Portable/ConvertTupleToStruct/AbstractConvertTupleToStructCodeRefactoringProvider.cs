@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 sortMembers: false,
                 autoInsertionLocation: false);
 
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
 
             // Then, actually insert the new class in the appropriate container.
             editor.ReplaceNode(container, (currentContainer, _) =>

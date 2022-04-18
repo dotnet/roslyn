@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static void GetNameAndInnermostNamespace(
             INamespaceSymbol @namespace,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo options,
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return node.WithLeadingTrivia(leadingTrivia);
         }
 
-        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo options)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static int GetInsertionIndex<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo options,
             IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,

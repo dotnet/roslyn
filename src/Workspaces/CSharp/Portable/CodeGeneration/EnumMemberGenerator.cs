@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class EnumMemberGenerator
     {
-        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
+        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CSharpCodeGenerationContextInfo options, CancellationToken cancellationToken)
         {
             var members = new List<SyntaxNodeOrToken>();
             members.AddRange(destination.Members.GetWithSeparators());
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(
             IFieldSymbol enumMember,
             EnumDeclarationSyntax? destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo options,
             CancellationToken cancellationToken)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<EnumMemberDeclarationSyntax>(enumMember, options);

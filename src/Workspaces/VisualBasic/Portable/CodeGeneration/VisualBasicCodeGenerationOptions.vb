@@ -5,30 +5,30 @@
 Imports Microsoft.CodeAnalysis.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend NotInheritable Class VisualBasicCodeGenerationOptions
-        Inherits CodeGenerationOptions
+    Friend NotInheritable Class VisualBasicCodeGenerationContextInfo
+        Inherits CodeGenerationContextInfo
 
-        Private ReadOnly _preferences As VisualBasicCodeGenerationPreferences
+        Private ReadOnly _options As VisualBasicCodeGenerationOptions
 
-        Public Sub New(context As CodeGenerationContext, preferences As VisualBasicCodeGenerationPreferences)
+        Public Sub New(context As CodeGenerationContext, options As VisualBasicCodeGenerationOptions)
             MyBase.New(context)
-            _preferences = preferences
+            _options = options
         End Sub
 
-        Public Shadows ReadOnly Property Preferences As VisualBasicCodeGenerationPreferences
+        Public Shadows ReadOnly Property Options As VisualBasicCodeGenerationOptions
             Get
-                Return _preferences
+                Return _options
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property PreferencesImpl As CodeGenerationPreferences
+        Protected Overrides ReadOnly Property OptionsImpl As CodeGenerationOptions
             Get
-                Return _preferences
+                Return _options
             End Get
         End Property
 
-        Protected Overrides Function WithContextImpl(value As CodeGenerationContext) As CodeGenerationOptions
-            Return New VisualBasicCodeGenerationOptions(value, Preferences)
+        Protected Overrides Function WithContextImpl(value As CodeGenerationContext) As CodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(value, Options)
         End Function
     End Class
 End Namespace

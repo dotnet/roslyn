@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     public partial class AbstractCodeModelObject
     {
-        private CodeGenerationOptions GetCodeGenerationOptions(
+        private CodeGenerationContextInfo GetCodeGenerationOptions(
             SyntaxNode containerNode,
             OptionSet? options = null,
             EnvDTE.vsCMAccess access = EnvDTE.vsCMAccess.vsCMAccessDefault,

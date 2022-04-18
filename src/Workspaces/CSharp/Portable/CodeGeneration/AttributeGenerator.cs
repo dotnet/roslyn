@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public static SyntaxList<AttributeListSyntax> GenerateAttributeLists(
             ImmutableArray<AttributeData> attributes,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo options,
             SyntaxToken? target = null)
         {
             if (options.Context.MergeAttributes)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static AttributeListSyntax? TryGenerateAttributeDeclaration(
-            AttributeData attribute, SyntaxToken? target, CSharpCodeGenerationOptions options)
+            AttributeData attribute, SyntaxToken? target, CSharpCodeGenerationContextInfo options)
         {
             var attributeSyntax = TryGenerateAttribute(attribute, options);
             return attributeSyntax == null
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.SingletonSeparatedList(attributeSyntax));
         }
 
-        private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationOptions options)
+        private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationContextInfo options)
         {
             if (IsCompilerInternalAttribute(attribute))
                 return null;

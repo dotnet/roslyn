@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+                var codeGenerationOptions = await CodeGenerationContextInfo.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
 
                 var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,

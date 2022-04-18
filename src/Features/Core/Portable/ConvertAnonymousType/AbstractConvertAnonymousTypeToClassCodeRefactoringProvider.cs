@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 autoInsertionLocation: false);
 
             // fallback options: https://github.com/dotnet/roslyn/issues/60794
-            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var codeGenOptions = await CodeGenerationContextInfo.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();

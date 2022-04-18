@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 sortMembers: groupMembers);
 
             var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
 
             var updatedClassNode = codeGenerator.AddMembers(
                 classNodeToAddMembersTo,

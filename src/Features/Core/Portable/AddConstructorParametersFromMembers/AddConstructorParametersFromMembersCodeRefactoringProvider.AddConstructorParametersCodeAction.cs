@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+                var options = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
 
                 var newConstructor = constructor;
                 newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, options, cancellationToken);

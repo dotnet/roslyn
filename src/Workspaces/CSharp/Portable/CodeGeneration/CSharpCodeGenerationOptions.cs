@@ -8,29 +8,29 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
-    internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
+    internal sealed class CSharpCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        private readonly CSharpCodeGenerationPreferences _preferences;
+        private readonly CSharpCodeGenerationOptions _options;
 
-        public CSharpCodeGenerationOptions(CodeGenerationContext Context, CSharpCodeGenerationPreferences Preferences)
+        public CSharpCodeGenerationContextInfo(CodeGenerationContext Context, CSharpCodeGenerationOptions Options)
             : base(Context)
         {
-            _preferences = Preferences;
+            _options = Options;
         }
 
-        public new CSharpCodeGenerationPreferences Preferences
-            => _preferences;
+        public new CSharpCodeGenerationOptions Options
+            => _options;
 
-        protected override CodeGenerationPreferences PreferencesImpl
-            => _preferences;
+        protected override CodeGenerationOptions OptionsImpl
+            => _options;
 
-        public new CSharpCodeGenerationOptions WithContext(CodeGenerationContext value)
-            => (Context == value) ? this : new(value, Preferences);
+        public new CSharpCodeGenerationContextInfo WithContext(CodeGenerationContext value)
+            => (Context == value) ? this : new(value, Options);
 
-        protected override CodeGenerationOptions WithContextImpl(CodeGenerationContext value)
+        protected override CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value)
             => WithContext(value);
 
-        public static new async ValueTask<CSharpCodeGenerationOptions> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
-            => new(context, await CSharpCodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
+        public static new async ValueTask<CSharpCodeGenerationContextInfo> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
+            => new(context, await CSharpCodeGenerationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
     }
 }

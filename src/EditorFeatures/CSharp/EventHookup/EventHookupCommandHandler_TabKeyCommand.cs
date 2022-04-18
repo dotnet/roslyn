@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var documentWithNameAndAnnotationsAdded = AddMethodNameAndAnnotationsToSolution(document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken);
             var semanticDocument = SemanticDocument.CreateAsync(documentWithNameAndAnnotationsAdded, cancellationToken).WaitAndGetResult(cancellationToken);
-            var preferences = CSharpCodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var preferences = CSharpCodeGenerationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, preferences, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
             if (updatedRoot == null)
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         private static SyntaxNode AddGeneratedHandlerMethodToSolution(
             SemanticDocument document,
-            CSharpCodeGenerationPreferences preferences,
+            CSharpCodeGenerationOptions preferences,
             string eventHandlerMethodName,
             SyntaxAnnotation plusEqualsTokenAnnotation,
             CancellationToken cancellationToken)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var codeGenerator = document.Document.GetRequiredLanguageService<ICodeGenerationService>();
 
-            var codeGenOptions = preferences.GetOptions(
+            var codeGenOptions = preferences.GetInfo(
                 new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()));
 
             var newContainer = codeGenerator.AddMethod(container, generatedMethodSymbol, codeGenOptions, cancellationToken);

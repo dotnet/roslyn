@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
             else
             {
-                var options = await CodeGenerationOptions.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
+                var options = await CodeGenerationContextInfo.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
                 var newRoot = testContext.Service.AddField(await testContext.Document.GetSyntaxRootAsync(), field, options, CancellationToken.None);
                 testContext.Result = testContext.Document.WithSyntaxRoot(newRoot);
             }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using var testContext = await TestContext.CreateAsync(initial, expected);
             var parsedStatements = testContext.ParseStatements(statements);
             var oldSyntax = testContext.GetSelectedSyntax<SyntaxNode>(true);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
             var newSyntax = testContext.Service.AddStatements(oldSyntax, parsedStatements, options, CancellationToken.None);
             testContext.Result = testContext.Document.WithSyntaxRoot((await testContext.Document.GetSyntaxRootAsync()).ReplaceNode(oldSyntax, newSyntax));
         }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using var testContext = await TestContext.CreateAsync(initial, expected);
             var parameterSymbols = GetParameterSymbols(parameters, testContext);
             var oldMemberSyntax = testContext.GetSelectedSyntax<SyntaxNode>(true);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(context ?? CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
 
             var newMemberSyntax = testContext.Service.AddParameters(oldMemberSyntax, parameterSymbols, options, CancellationToken.None);
             testContext.Result = testContext.Document.WithSyntaxRoot((await testContext.Document.GetSyntaxRootAsync()).ReplaceNode(oldMemberSyntax, newMemberSyntax));
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(testContext.SemanticModel));
             var oldNode = testContext.GetDestinationNode();
             var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
             var newNode = codeGenerator.AddAttributes(oldNode, new[] { attr }, target, options, CancellationToken.None)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
             testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
             var declarationNode = taggedNode.FirstAncestorOrSelf<T>();
             var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, testContext.Document, CancellationToken.None);
             var newNode = codeGenerator.RemoveAttribute(declarationNode, attribute, options, CancellationToken.None)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
             testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(declarationNode, newNode));
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var updatedDeclarationNode = declarationNode;
 
             var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(new CodeGenerationContext(reuseSyntax: true), testContext.Document, CancellationToken.None);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(new CodeGenerationContext(reuseSyntax: true), testContext.Document, CancellationToken.None);
             if (accessibility.HasValue)
             {
                 updatedDeclarationNode = codeGenerator.UpdateDeclarationAccessibility(declarationNode, accessibility.Value, options, CancellationToken.None);

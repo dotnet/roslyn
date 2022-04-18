@@ -8,8 +8,8 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend NotInheritable Class VisualBasicCodeGenerationPreferences
-        Inherits CodeGenerationPreferences
+    Friend NotInheritable Class VisualBasicCodeGenerationOptions
+        Inherits CodeGenerationOptions
 
         Public Sub New(placeSystemNamespaceFirst As Boolean)
             MyBase.New(placeSystemNamespaceFirst)
@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Get
         End Property
 
-        Public Overrides Function GetOptions(context As CodeGenerationContext) As CodeGenerationOptions
-            Return New VisualBasicCodeGenerationOptions(context, Me)
+        Public Overrides Function GetInfo(context As CodeGenerationContext) As CodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(context, Me)
         End Function
 
-        Public Shared Function Create(documentOptions As OptionSet) As VisualBasicCodeGenerationPreferences
-            Return New VisualBasicCodeGenerationPreferences(
+        Public Shared Function Create(documentOptions As OptionSet) As VisualBasicCodeGenerationOptions
+            Return New VisualBasicCodeGenerationOptions(
                 placeSystemNamespaceFirst:=documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic))
         End Function
 
-        Public Shared Shadows Async Function FromDocumentAsync(document As Document, cancellationToken As CancellationToken) As Task(Of VisualBasicCodeGenerationPreferences)
+        Public Shared Shadows Async Function FromDocumentAsync(document As Document, cancellationToken As CancellationToken) As Task(Of VisualBasicCodeGenerationOptions)
             Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return Create(documentOptions)
         End Function

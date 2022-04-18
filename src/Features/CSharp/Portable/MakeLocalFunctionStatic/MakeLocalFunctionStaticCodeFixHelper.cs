@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, document, cancellationToken).ConfigureAwait(false);
 
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(

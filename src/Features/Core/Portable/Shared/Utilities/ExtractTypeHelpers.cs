@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var options = await CodeGenerationContextInfo.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
 
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
             var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, options, cancellationToken)
