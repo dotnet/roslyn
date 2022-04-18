@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, TextSpan selection, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(Checksum solutionChecksum, TextSpan selection, DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 if (solution is null)
                 {
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, SerializableValueTrackedItem previousTrackedItem, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(Checksum solutionChecksum, SerializableValueTrackedItem previousTrackedItem, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 if (solution is null)
                 {

@@ -36201,6 +36201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.LogicalOrExpression:
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
@@ -36229,6 +36230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarBarToken:
                 case SyntaxKind.AmpersandAmpersandToken:
                 case SyntaxKind.BarToken:
@@ -36276,6 +36278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
@@ -36295,6 +36298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionQuestionEqualsToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
@@ -39268,6 +39272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -39781,6 +39786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -41254,6 +41260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.LogicalOrExpression:
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
@@ -41282,6 +41289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarBarToken:
                 case SyntaxKind.AmpersandAmpersandToken:
                 case SyntaxKind.BarToken:
@@ -41329,6 +41337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
@@ -41348,6 +41357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionQuestionEqualsToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
@@ -44321,6 +44331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -44834,6 +44845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:

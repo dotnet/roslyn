@@ -3370,6 +3370,7 @@ class C
         var q = new() && new();
         var r = new() || new();
         var s = new() ?? new();
+        var t = new() >>> new();
     }
 }
 ";
@@ -3438,7 +3439,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 26),
                 // (24,17): error CS8754: There is no target type for 'new()'
                 //         var s = new() ?? new();
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         var t = new() >>> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >>> new()").WithArguments(">>>", "new()").WithLocation(25, 17)
                 );
         }
 
@@ -3469,6 +3473,7 @@ class C
         _ = new() && 1;
         _ = new() || 1;
         _ = new() ?? 1;
+        _ = new() >>> 1;
     }
 }
 ";
@@ -3531,7 +3536,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 13),
                 // (24,13): error CS8754: There is no target type for 'new()'
                 //         _ = new() ?? 1;
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(24, 13),
+                // (25,13): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         _ = new() >>> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() >>> 1").WithArguments(">>>", "new()").WithLocation(25, 13)
                 );
         }
 
@@ -3562,6 +3570,7 @@ class C
         _ = 1 && new();
         _ = 1 || new();
         _ = 1 ?? new();
+        _ = 1 >>> new();
     }
 }
 ";
@@ -3624,7 +3633,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(23, 18),
                 // (24,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new()'
                 //         _ = 1 ?? new();
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new()").WithLocation(24, 13),
+                // (25,13): error CS8310: Operator '>>>' cannot be applied to operand 'new()'
+                //         _ = 1 >>> new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >>> new()").WithArguments(">>>", "new()").WithLocation(25, 13)
                 );
         }
 

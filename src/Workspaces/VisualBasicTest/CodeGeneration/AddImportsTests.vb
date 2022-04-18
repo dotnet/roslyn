@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -88,6 +89,7 @@ End NameSpace"
                 AllowInHiddenRegions:=False)
 
             Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
+            Dim simplifierOptions = VisualBasicSimplifierOptions.Default
 
             Dim imported = If(
                     useSymbolAnnotations,
@@ -101,7 +103,7 @@ End NameSpace"
             End If
 
             If simplifiedText IsNot Nothing Then
-                Dim reduced = Await Simplifier.ReduceAsync(imported)
+                Dim reduced = Await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None)
                 Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(simplifiedText, actualText)

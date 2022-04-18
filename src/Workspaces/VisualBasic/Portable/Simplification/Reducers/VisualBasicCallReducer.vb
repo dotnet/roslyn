@@ -15,16 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Shared ReadOnly s_pool As ObjectPool(Of IReductionRewriter) =
             New ObjectPool(Of IReductionRewriter)(Function() New Rewriter(s_pool))
 
+        Private Shared ReadOnly s_simplifyCallStatement As Func(Of CallStatementSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyCallStatement
+
         Public Sub New()
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyCallStatement As Func(Of CallStatementSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCallStatement
+        Public Overrides Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
+            Return True
+        End Function
 
         Private Shared Function SimplifyCallStatement(
             callStatement As CallStatementSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExecutableStatementSyntax
 

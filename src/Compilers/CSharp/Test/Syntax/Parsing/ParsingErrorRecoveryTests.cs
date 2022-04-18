@@ -6901,6 +6901,10 @@ class C {}");
             AssertEqualRoundtrip(
 @"/// <see cref=""operator}}=""/>
 class C {}");
+
+            AssertEqualRoundtrip(
+@"/// <see cref=""operator}}}=""/>
+class C {}");
         }
 
         private void AssertEqualRoundtrip(string source)

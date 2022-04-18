@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-        protected readonly IGlobalOptionService GlobalOptions;
+        internal readonly IGlobalOptionService GlobalOptions;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
