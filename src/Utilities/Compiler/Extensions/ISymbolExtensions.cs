@@ -107,10 +107,24 @@ namespace Analyzer.Utilities.Extensions
             return (symbol as IPropertySymbol)?.IsIndexer == true;
         }
 
-        public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
         {
-            return symbol is IPropertySymbol propertySymbol &&
-                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && Equals(f.AssociatedSymbol, symbol));
+            if (symbol is IPropertySymbol propertySymbol)
+            {
+                foreach (ISymbol member in propertySymbol.ContainingType.GetMembers())
+                {
+                    if (member is IFieldSymbol associated &&
+                        associated.IsImplicitlyDeclared &&
+                        Equals(associated.AssociatedSymbol, propertySymbol))
+                    {
+                        backingField = associated;
+                        return true;
+                    }
+                }
+            }
+
+            backingField = null;
+            return false;
         }
 
         /// <summary>

@@ -137,13 +137,13 @@ namespace Analyzer.Utilities
 
             if (balance == -2)
             {
-                rotated = currentNode.Right!.Balance < 0 ?
+                rotated = currentNode.Right!.Balance <= 0 ?
                     LeftSimple(currentNode) :
                     LeftComplex(currentNode);
             }
             else if (balance == 2)
             {
-                rotated = currentNode.Left!.Balance > 0 ?
+                rotated = currentNode.Left!.Balance >= 0 ?
                     RightSimple(currentNode) :
                     RightComplex(currentNode);
             }
