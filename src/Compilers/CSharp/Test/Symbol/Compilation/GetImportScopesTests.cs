@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -409,6 +410,212 @@ namespace N
             Assert.True(scopes[0].Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(Microsoft) } });
             Assert.True(scopes[1].Aliases.Single() is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
             Assert.True(scopes[1].Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(System) } });
+        }
+
+        #endregion
+
+        #region extern aliases
+
+        private static CSharpCompilation CreateCompilationWithExternAlias(SyntaxTree tree, params string[] aliases)
+        {
+            if (aliases.Length == 0)
+                aliases = new[] { "CORE" };
+
+            var comp = CreateCompilation(tree);
+            var reference = comp.References.First(r => r.Display!.StartsWith("System.Core"));
+            return comp.ReplaceReference(reference, reference.WithAliases(ImmutableArray.CreateRange(aliases)));
+        }
+
+        [Fact]
+        public void TestBeforeExternAlias()
+        {
+            var text = @"/*pos*/
+extern alias CORE;";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE" });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestAfterExternAliasNoContent()
+        {
+            var text = @"
+extern alias CORE;
+/*pos*/";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestAfterExternAliasBeforeMemberDeclaration()
+        {
+            var text = @"
+extern alias CORE;
+/*pos*/
+class C
+{
+}";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestBeforeExternAliasTopLevelStatements()
+        {
+            var text = @"
+/*pos*/
+extern alias CORE;
+
+return;";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestAfterExternAliasTopLevelStatements1()
+        {
+            var text = @"
+extern alias CORE;
+/*pos*/
+return;";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+        }
+
+        [Fact]
+        public void TestAfterExternAliasTopLevelStatements2()
+        {
+            var text = @"
+extern alias CORE;
+
+return /*pos*/;";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax);
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestAfterMultipleExternAliasesNoContent()
+        {
+            var text = @"
+extern alias CORE1;
+extern alias CORE2;
+/*pos*/";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree, "CORE1", "CORE2");
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Equal(2, scopes.Single().ExternAliases.Length);
+            Assert.True(scopes.Single().ExternAliases.Any(a => a is { Name: "CORE1", Target: INamespaceSymbol { IsGlobalNamespace: true } }));
+            Assert.True(scopes.Single().ExternAliases.Any(a => a is { Name: "CORE2", Target: INamespaceSymbol { IsGlobalNamespace: true } }));
+            Assert.True(scopes.Single().ExternAliases.Any(a => a.DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax { Identifier.Text: "CORE1" }));
+            Assert.True(scopes.Single().ExternAliases.Any(a => a.DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax { Identifier.Text: "CORE2" }));
+            Assert.Empty(scopes.Single().Imports);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestExternAliasNestedNamespaceOuterPosition()
+        {
+            var text = @"
+extern alias CORE1;
+
+class C
+{
+    /*pos*/
+}
+
+namespace N
+{
+    extern alias CORE2;
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree, "CORE1", "CORE2");
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().ExternAliases);
+            Assert.True(scopes.Single().ExternAliases.Single() is { Name: "CORE1", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes.Single().ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax { Identifier.Text: "CORE1" });
+        }
+
+        [Fact]
+        public void TestExternAliasNestedNamespaceInnerPosition()
+        {
+            var text = @"
+extern alias CORE1;
+
+namespace N
+{
+    extern alias CORE2;
+    class C
+    {
+        /*pos*/
+    }
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithExternAlias(tree, "CORE1", "CORE2");
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Equal(2, scopes.Length);
+            Assert.Single(scopes[0].ExternAliases);
+            Assert.Single(scopes[1].ExternAliases);
+            Assert.True(scopes[0].ExternAliases.Single() is { Name: "CORE2", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes[0].ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax { Identifier.Text: "CORE2" });
+            Assert.True(scopes[1].ExternAliases.Single() is { Name: "CORE1", Target: INamespaceSymbol { IsGlobalNamespace: true } });
+            Assert.True(scopes[1].ExternAliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is ExternAliasDirectiveSyntax { Identifier.Text: "CORE1" });
         }
 
         #endregion
