@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
-            _middleLayer = middleLayer ?? null;
+            _middleLayer = middleLayer;
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
