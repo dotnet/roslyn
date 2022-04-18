@@ -348,6 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
+                // PROTOTYPE(ft): it seems strange that we don't need this for any of the tests so far to pass.
+                // case SyntaxKind.FileKeyword:
                 case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
@@ -1163,6 +1165,8 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+                        case SyntaxKind.FileKeyword:
+                            return DeclarationModifiers.File;
                     }
 
                     goto default;
@@ -1240,6 +1244,36 @@ tryAgain:
                             {
                                 return;
                             }
+                            break;
+                        }
+
+                    case DeclarationModifiers.File:
+                        // 'file' is only a modifier if it is followed by an optional sequence of modifiers and then by a type keyword.
+                        {
+                            for (int i = 1; ; i++)
+                            {
+                                var kind = PeekToken(i).ContextualKind;
+                                if (kind is SyntaxKind.ClassKeyword
+                                        or SyntaxKind.StructKeyword
+                                        or SyntaxKind.InterfaceKeyword
+                                        or SyntaxKind.RecordKeyword
+                                        or SyntaxKind.EnumKeyword
+                                        or SyntaxKind.DelegateKeyword)
+                                {
+                                    // this is a file modifier.
+                                    modTok = ConvertToKeyword(EatToken());
+                                    modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureFileTypes);
+                                    break;
+                                }
+
+                                if (SyntaxFacts.IsKeywordKind(kind))
+                                {
+                                    continue;
+                                }
+
+                                return;
+                            }
+
                             break;
                         }
 

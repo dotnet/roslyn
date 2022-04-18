@@ -405,6 +405,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="unmanaged"/>.</summary>
         UnmanagedKeyword = 8446,
 
+        /// <summary>Represents <see langword="file"/>.</summary>
+        FileKeyword = 8447,
+
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
