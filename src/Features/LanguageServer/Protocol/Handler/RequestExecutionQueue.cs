@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-
                     // First attempt to de-queue the work item in its own try-catch.
                     // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
                     (IQueueItem work, CancellationToken cancellationToken) queueItem;

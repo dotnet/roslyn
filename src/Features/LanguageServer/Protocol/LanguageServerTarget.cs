@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class LanguageServerTarget : ILanguageServerTarget
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
+
         private readonly JsonRpc _jsonRpc;
         private readonly RequestDispatcher _requestDispatcher;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             _capabilitiesProvider = capabilitiesProvider;
             _logger = logger;
+
             _jsonRpc = jsonRpc;
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.Disconnected += JsonRpc_Disconnected;

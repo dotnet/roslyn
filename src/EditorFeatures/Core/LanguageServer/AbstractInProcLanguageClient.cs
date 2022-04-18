@@ -45,6 +45,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public string Name => ServerKind.ToUserVisibleString();
 
         /// <summary>
+        /// Gets the optional middle layer object that can intercept outgoing requests and responses.
+        /// </summary>
+        /// <remarks>
+        /// Currently utilized by Razor to intercept Roslyn's workspace/semanticTokens/refresh requests.
+        /// </remarks>
+        public object? MiddleLayer => _middleLayer;
+
+        /// <summary>
+        /// Unusued, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
+        /// </summary>
+        public object? CustomMessageTarget => null;
+
+        /// <summary>
         /// An enum representing this server instance.
         /// </summary>
         public abstract WellKnownLspServerKinds ServerKind { get; }
@@ -66,6 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// We do not provide any additional initialization options.
         /// </summary>
         public object? InitializationOptions { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether a notification bubble show be shown when the language server fails to initialize.
+        /// </summary>
+        public abstract bool ShowNotificationOnInitializeFailed { get; }
 
         /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
@@ -230,15 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
-        public Task AttachForCustomMessageAsync(JsonRpc rpc)
-        {
-            return Task.CompletedTask;
-        }
-
-        public abstract bool ShowNotificationOnInitializeFailed { get; }
-
-        public object? MiddleLayer => _middleLayer;
-
-        public object? CustomMessageTarget => null;
+        public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
     }
 }

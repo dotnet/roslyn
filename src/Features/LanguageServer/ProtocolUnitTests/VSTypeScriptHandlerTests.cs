@@ -101,7 +101,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
             globalOptions,
             listenerProvider,
-            middleLayer: null,
             NoOpLspLogger.Instance,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);

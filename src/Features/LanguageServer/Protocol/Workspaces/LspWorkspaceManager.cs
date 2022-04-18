@@ -154,7 +154,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             if (IsDocumentTrackedByLsp(e.DocumentId, e.NewSolution, trackedDocuments))
             {
                 // We're tracking the document already, no need to fork the workspace to get the changes, LSP will have sent them to us.
-                LspWorkspaceChanged?.Invoke(sender, e);
                 return;
             }
         }
@@ -166,6 +165,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             _workspaceToLspSolution[workspace] = null;
         }
 
+        // Send a workspace changed notification to anyone subscribed. For example, this is important for semantic tokens refresh.
         LspWorkspaceChanged?.Invoke(sender, e);
 
         bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, ImmutableDictionary<Uri, SourceText> trackedDocuments)

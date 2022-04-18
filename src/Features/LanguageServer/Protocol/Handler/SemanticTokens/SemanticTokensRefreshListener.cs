@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _lspWorkspaceManager = lspWorkspaceManager;
             _jsonRpc = jsonRpc;
             _lspWorkspaceManager.LspWorkspaceChanged += OnLspWorkspaceChanged;
+
+            // Only send a refresh notification to the client every 2s (if needed)
+            // in order to avoid sending too many notifications at once.
             _workQueue = new AsyncBatchingWorkQueue(
                 delay: TimeSpan.FromMilliseconds(2000),
                 processBatchAsync: SendSemanticTokensRefreshNotificationAsync,
