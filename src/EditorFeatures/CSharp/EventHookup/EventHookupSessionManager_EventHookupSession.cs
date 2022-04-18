@@ -257,13 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     // This is expected -- it means the last thing is(probably) the event name. We 
                     // already have that in eventSymbol. What we need is the LHS of that dot.
 
-                    var lhs = memberAccessExpression.Expression;
-
-                    if (lhs is MemberAccessExpressionSyntax lhsMemberAccessExpression)
-                    {
-                        // Okay, cool.  The name we're after is in the RHS of this dot.
-                        return lhsMemberAccessExpression.Name.ToString();
-                    }
+                    var lhs = memberAccessExpression.Expression.GetRightmostName();
 
                     if (lhs is GenericNameSyntax lhsGenericNameSyntax)
                     {
@@ -271,11 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return lhsGenericNameSyntax.Identifier.Text;
                     }
 
-                    if (lhs is NameSyntax lhsNameSyntax)
-                    {
-                        // Even easier -- the LHS of the dot is the name itself
-                        return lhsNameSyntax.ToString();
-                    }
+                    return lhs.ToString();
                 }
 
                 // If we didn't find an object name above, then the object name is the name of this class.

@@ -1105,6 +1105,71 @@ class Generic&lt;T&gt;
             testState.AssertShowing("Generic_MyEvent");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task HandlerName_GlobalAlias01()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        global::D.MyEvent +$$
+    }
+}
+
+class D
+{
+    public static event EventHandler MyEvent;
+}";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("D_MyEvent");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task HandlerName_GlobalAlias02()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        global::Generic&lt;int&gt;.MyEvent +$$
+    }
+}
+
+class Generic&lt;T&gt;
+{
+    public static event EventHandler MyEvent;
+}";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Generic_MyEvent");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task HandlerName_GlobalAlias03()
+        {
+            var markup = @"
+class Program
+{
+    void Main(string[] args)
+    {
+        global::System.Console.CancelKeyPress +$$
+    }
+}";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("Console_CancelKeyPress");
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
