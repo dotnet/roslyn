@@ -891,6 +891,59 @@ class Program
         }
 
         [Fact]
+        public void FieldInitializers_None_WithEmptyParameterlessConstructor()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+struct S0
+{
+    object X;
+    object Y;
+    public S0() { }
+    public override string ToString() => (X, Y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S0());
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S0() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S0").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 12),
+                // (7,12): error CS0171: Field 'S0.Y' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                //     public S0() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S0").WithArguments("S0.Y", "preview").WithLocation(7, 12),
+                // (7,12): error CS0171: Field 'S0.X' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                //     public S0() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S0").WithArguments("S0.X", "preview").WithLocation(7, 12));
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "(, )");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S0..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""object S0.X""
+  IL_0007:  ldarg.0
+  IL_0008:  ldnull
+  IL_0009:  stfld      ""object S0.Y""
+  // sequence point: }
+  IL_000e:  ret
+}
+", sequencePoints: "S0..ctor", source: source);
+        }
+
+        [Fact]
         public void FieldInitializers_01()
         {
             var source =

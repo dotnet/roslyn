@@ -1142,10 +1142,5 @@ struct Test
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
-
-        // warning CS8880: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
-        // warning CS8881: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
-        // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
-
     }
 }
