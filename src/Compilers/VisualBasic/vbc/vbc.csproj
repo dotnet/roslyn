@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   <Import Project="..\CommandLine\VbcCommandLine.projitems" Label="Shared" />
 </Project>
