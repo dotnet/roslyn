@@ -109,9 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // Do not check constraints right after dot token, as it is probably member access.
+            // Check constraints only if target token is the last in the TypeParameterConstraintSyntax node.
+            // Otherwise we can be in incomplete constraint and "where" keyword will not be valid suggestion.
             // See https://github.com/dotnet/roslyn/issues/30785 for example
-            if (!token.IsKind(SyntaxKind.DotToken))
+            if (token.IsLastTokenOfNode<TypeParameterConstraintSyntax>())
             {
                 // class C<T> where T : IGoo |
                 // delegate void D<T> where T : IGoo |

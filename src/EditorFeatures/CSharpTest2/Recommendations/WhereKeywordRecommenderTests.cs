@@ -320,5 +320,131 @@ $$");
 {
 }");
         }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGlobal1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : global::$$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGlobal2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : global::$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGenericConstraintStart1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : List<$$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGenericConstraintStart2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : List<$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGenericConstraintStartSecondParameter1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : Dictionary<int, $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGenericConstraintStartSecondParameter2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : Dictionary<int, $$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDoubleUnclosedGenericConstraint1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : List<List<int>$$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDoubleUnclosedGenericConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : List<List<int>$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTupleInsideGenericConstraintStart1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : List<(int, $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTupleInsideGenericConstraintStart2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : List<(int, $$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTupleClosedInsideGenericConstraintStart1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : List<(int, string)$$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTupleClosedInsideGenericConstraintStart2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : List<(int, string)$$
+{
+}");
+        }
     }
 }
