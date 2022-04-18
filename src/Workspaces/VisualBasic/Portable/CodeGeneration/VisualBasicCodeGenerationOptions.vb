@@ -2,33 +2,38 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend NotInheritable Class VisualBasicCodeGenerationContextInfo
-        Inherits CodeGenerationContextInfo
+    Friend NotInheritable Class VisualBasicCodeGenerationOptions
+        Inherits CodeGenerationOptions
 
-        Private ReadOnly _options As VisualBasicCodeGenerationOptions
-
-        Public Sub New(context As CodeGenerationContext, options As VisualBasicCodeGenerationOptions)
-            MyBase.New(context)
-            _options = options
+        Public Sub New(placeSystemNamespaceFirst As Boolean)
+            MyBase.New(placeSystemNamespaceFirst)
         End Sub
 
-        Public Shadows ReadOnly Property Options As VisualBasicCodeGenerationOptions
+        Public Overrides ReadOnly Property PlaceImportsInsideNamespaces As Boolean
             Get
-                Return _options
+                ' Visual Basic doesn't support imports inside namespaces
+                Return False
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property OptionsImpl As CodeGenerationOptions
-            Get
-                Return _options
-            End Get
-        End Property
+        Public Overrides Function GetInfo(context As CodeGenerationContext) As CodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(context, Me)
+        End Function
 
-        Protected Overrides Function WithContextImpl(value As CodeGenerationContext) As CodeGenerationContextInfo
-            Return New VisualBasicCodeGenerationContextInfo(value, Options)
+        Public Shared Function Create(documentOptions As OptionSet) As VisualBasicCodeGenerationOptions
+            Return New VisualBasicCodeGenerationOptions(
+                placeSystemNamespaceFirst:=documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic))
+        End Function
+
+        Public Shared Shadows Async Function FromDocumentAsync(document As Document, cancellationToken As CancellationToken) As Task(Of VisualBasicCodeGenerationOptions)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Return Create(documentOptions)
         End Function
     End Class
 End Namespace
