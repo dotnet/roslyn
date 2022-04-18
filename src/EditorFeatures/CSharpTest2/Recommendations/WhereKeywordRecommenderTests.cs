@@ -299,5 +299,26 @@ $$");
 {
 }");
         }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDot1()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    void M<T> where T : System.$$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDot2()
+        {
+            await VerifyAbsenceAsync(
+@"public class C<T> where T : System.$$
+{
+}");
+        }
     }
 }

@@ -109,13 +109,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // class C<T> where T : IGoo |
-            // delegate void D<T> where T : IGoo |
-            var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
-
-            if (constraintClause != null)
+            // Do not check constraints right after dot token, as it is probably member access.
+            // See https://github.com/dotnet/roslyn/issues/30785 for example
+            if (!token.IsKind(SyntaxKind.DotToken))
             {
-                if (constraintClause.Constraints.Any(c => token == c.GetLastToken(includeSkipped: true)))
+                // class C<T> where T : IGoo |
+                // delegate void D<T> where T : IGoo |
+                var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
+
+                if (constraintClause is not null &&
+                    constraintClause.Constraints.Any(c => token == c.GetLastToken(includeSkipped: true)))
                 {
                     return true;
                 }
