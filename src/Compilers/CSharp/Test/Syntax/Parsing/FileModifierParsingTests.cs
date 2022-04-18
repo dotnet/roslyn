@@ -331,13 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileModifier_13()
         {
-            UsingNode("""
+            // note: LangVersion error is given during binding here
+            var tree = UsingNode("""
                 file class C { }
-                """, options: TestOptions.Regular10,
-                    // (1,1): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // file class C { }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "file").WithArguments("file types").WithLocation(1, 1));
-
+                """, options: TestOptions.Regular10);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

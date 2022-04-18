@@ -1262,7 +1262,6 @@ tryAgain:
                                 {
                                     // this is a file modifier.
                                     modTok = ConvertToKeyword(EatToken());
-                                    modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureFileTypes);
                                     break;
                                 }
 
