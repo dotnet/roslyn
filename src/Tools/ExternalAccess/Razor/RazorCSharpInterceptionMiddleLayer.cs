@@ -6,14 +6,14 @@ using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [Export(typeof(IInterceptionMiddleLayer))]
+    [Export(typeof(ILanguageClientMiddleLayer))]
     [Shared]
-    internal class RazorCSharpInterceptionMiddleLayerWrapper : IInterceptionMiddleLayer
+    internal class RazorCSharpInterceptionMiddleLayerWrapper : ILanguageClientMiddleLayer
     {
         private readonly IRazorCSharpInterceptionMiddleLayer _razorCSharpInterceptionMiddleLayer;
 

@@ -22,10 +22,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IInterceptionMiddleLayer? _middleLayer;
+        private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            IInterceptionMiddleLayer? middleLayer = null)
+            ILanguageClientMiddleLayer? middleLayer = null)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
-            _middleLayer = middleLayer;
+            _middleLayer = middleLayer ?? null;
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
@@ -215,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 lspMiscellaneousFilesWorkspace: null,
                 GlobalOptions,
                 _listenerProvider,
-                _middleLayer,
                 logger,
                 SupportedLanguages,
                 ServerKind);
@@ -231,6 +230,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
+        public Task AttachForCustomMessageAsync(JsonRpc rpc)
+        {
+            return Task.CompletedTask;
+        }
+
         public abstract bool ShowNotificationOnInitializeFailed { get; }
+
+        public object? MiddleLayer => _middleLayer;
+
+        public object? CustomMessageTarget => null;
     }
 }

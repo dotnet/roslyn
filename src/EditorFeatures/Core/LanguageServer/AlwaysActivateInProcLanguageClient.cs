@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            IInterceptionMiddleLayer middleLayer)
+            ILanguageClientMiddleLayer middleLayer)
             : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, middleLayer)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;

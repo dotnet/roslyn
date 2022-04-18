@@ -577,7 +577,6 @@ namespace Roslyn.Test.Utilities
                     new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
                     globalOptions,
                     listenerProvider,
-                    middleLayer: null,
                     NoOpLspLogger.Instance,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);

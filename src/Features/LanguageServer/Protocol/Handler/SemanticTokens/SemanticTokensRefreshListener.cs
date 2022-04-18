@@ -3,54 +3,57 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     /// <summary>
-    /// Sends a notification from server->client indicating something has changed in the LSP workspace
-    /// and thus semantic tokens should be re-requested. The client will then send a request to the
-    /// server for refreshed tokens.
+    /// Sends a notification from server->client indicating something has changed in the LSP workspace.
+    /// The client will then send a request to the server for refreshed tokens.
     /// </summary>
     internal class SemanticTokensRefreshListener : IDisposable
     {
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly JsonRpc _jsonRpc;
-        private readonly IInterceptionMiddleLayer? _interceptionMiddleLayer;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
         public SemanticTokensRefreshListener(
             LspWorkspaceManager lspWorkspaceManager,
             JsonRpc jsonRpc,
-            IInterceptionMiddleLayer? interceptionMiddleLayer)
+            IAsynchronousOperationListener listener,
+            CancellationToken cancellationToken)
         {
             _lspWorkspaceManager = lspWorkspaceManager;
             _jsonRpc = jsonRpc;
-            _interceptionMiddleLayer = interceptionMiddleLayer;
-
             _lspWorkspaceManager.LspWorkspaceChanged += OnLspWorkspaceChanged;
+            _workQueue = new AsyncBatchingWorkQueue(
+                delay: TimeSpan.FromMilliseconds(2000),
+                processBatchAsync: SendSemanticTokensRefreshNotificationAsync,
+                asyncListener: listener,
+                cancellationToken);
         }
 
         private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            // TO-DO: Replace hardcoded string with const once LSP side is merged.
-            _ = _jsonRpc.NotifyWithParameterObjectAsync("workspace/semanticTokens/refresh");
-
-            if (_interceptionMiddleLayer is not null && _interceptionMiddleLayer.CanHandle("workspace/semanticTokens/refresh"))
-            {
-                _ = _interceptionMiddleLayer.HandleNotificationAsync(
-                    methodName: "workspace/semanticTokens/refresh",
-                    methodParam: JToken.Parse("{}"),
-                    sendNotification: SendNotification);
-            }
-
-            static Task SendNotification(JToken token) => Task.CompletedTask;
+            _workQueue.AddWork();
         }
 
         public void Dispose()
         {
             _lspWorkspaceManager.LspWorkspaceChanged -= OnLspWorkspaceChanged;
+        }
+
+        private ValueTask SendSemanticTokensRefreshNotificationAsync(CancellationToken cancellationToken)
+        {
+            // TO-DO: Replace hardcoded string with const once LSP side is merged.
+            _ = _jsonRpc.NotifyAsync("workspace/semanticTokens/refresh");
+            return new ValueTask();
         }
     }
 }
