@@ -28,4 +28,10 @@
 
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true' and '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Immutable" Version="$(SourceBuildLiftedSystemCollectionsImmutableVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SourceBuildLiftedSystemReflectionMetadataVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SourceBuildLiftedSystemTextEncodingCodePagesVersion)" PrivateAssets="all" />
+   </ItemGroup>
 </Project>
