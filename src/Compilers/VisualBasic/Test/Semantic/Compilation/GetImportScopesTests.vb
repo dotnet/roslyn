@@ -215,5 +215,184 @@ end namespace
 
 #End Region
 
+#Region "aliases"
+
+        <Fact>
+        Public Sub TestBeforeAlias()
+            dim Text = "'pos
+using S = System"
+            dim tree = Parse(Text)
+            dim comp = CreateCompilation(tree)
+            dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Single(scopes.Single().Aliases)
+            'Assert.True(scopes.Single().Aliases.Single() Is {Name:  "S", Target: INamespaceSymbol {ContainingNamespace.IsGlobalNamespace:  true, Name: NameOf(System) } })
+            'Assert.True(scopes.Single().Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax)
+            Assert.Empty(scopes.Single().Imports)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterAliasNoContent()
+            Dim Text = "
+using S = System
+'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Single(scopes.Single().Aliases)
+            'Assert.True(scopes.Single().Aliases.Single() Is {Name:  "S", Target: { ContainingNamespace.IsGlobalNamespace: true, Name: NameOf(System) } })
+            'Assert.True(scopes.Single().Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax)
+            Assert.Empty(scopes.Single().Imports)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterAliasBeforeMemberDeclaration()
+            Dim Text = "
+using S = System
+'pos
+class C
+{
+}"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Empty(scopes)
+        End Sub
+
+        <Fact>
+        Public Sub TestBeforeAliasTopLevelStatements()
+            Dim Text = "
+'pos
+using S = System
+
+return"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Single(scopes.Single().Aliases)
+            'Assert.True(scopes.Single().Aliases.Single() Is {Name:  "S", Target: INamespaceSymbol {ContainingNamespace.IsGlobalNamespace:  true, Name: NameOf(System) } })
+            'Assert.True(scopes.Single().Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax)
+            Assert.Empty(scopes.Single().Imports)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterAliasTopLevelStatements1()
+            Dim Text = "
+using S = System
+'pos
+return"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Empty(scopes)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterAliasTopLevelStatements2()
+            Dim Text = "
+using S = System
+
+return 'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Single(scopes.Single().Aliases)
+            'Assert.True(scopes.Single().Aliases.Single() Is {Name:  "S", Target: { ContainingNamespace.IsGlobalNamespace: true, Name: NameOf(System) } })
+            'Assert.True(scopes.Single().Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax)
+            Assert.Empty(scopes.Single().Imports)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestAfterMultipleAliasesNoContent()
+            Dim Text = "
+using S = System
+using M = Microsoft
+'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Equal(2, scopes.Single().Aliases.Length)
+            'Assert.True(scopes.Single().Aliases.Any(a >= a Is {Name:  "S", Target: INamespaceSymbol {ContainingNamespace.IsGlobalNamespace:  true, Name: NameOf(System) } }))
+            'Assert.True(scopes.Single().Aliases.Any(a >= a Is {Name:  "M", Target: INamespaceSymbol {ContainingNamespace.IsGlobalNamespace:  true, Name: NameOf(Microsoft) } }))
+            'Assert.True(scopes.Single().Aliases.Any(a >= a.DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax { Name: IdentifierNameSyntax {Identifier.Text:  NameOf(System) } }))
+            'Assert.True(scopes.Single().Aliases.Any(a >= a.DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax { Name: IdentifierNameSyntax {Identifier.Text:  NameOf(Microsoft) } }))
+            Assert.Empty(scopes.Single().Imports)
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestAliasNestedNamespaceOuterPosition()
+            dim Text = "
+using S = System
+
+class C
+{
+    'pos
+}
+
+namespace N
+{
+    using M = Microsoft
+}
+"
+            dim tree = Parse(Text)
+            dim comp = CreateCompilation(tree)
+            dim model = comp.GetSemanticModel(tree)
+            dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+            Assert.Single(scopes.Single().Aliases)
+            'Assert.True(scopes.Single().Aliases.Single() Is {Name:  "S", Target: INamespaceSymbol {ContainingNamespace.IsGlobalNamespace:  true, Name: NameOf(System) } })
+            'Assert.True(scopes.Single().Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() Is UsingDirectiveSyntax { Name: IdentifierNameSyntax {Identifier.Text:  NameOf(System) } })
+        End Sub
+
+        <Fact>
+        Public Sub TestAliasNestedNamespaceInnerPosition()
+            dim text = "
+using S = System
+
+namespace N
+{
+    using M = Microsoft
+    class C
+    {
+        'pos
+    }
+}
+"
+            dim tree = Parse(text)
+            dim comp = CreateCompilation(tree)
+            dim model = comp.GetSemanticModel(tree)
+            dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Equal(2, scopes.Length)
+            'Assert.Single(scopes[0].Aliases)
+            'Assert.Single(scopes[1].Aliases)
+            'Assert.True(scopes[0].Aliases.Single() is { Name: "M", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(Microsoft) } })
+            'Assert.True(scopes[0].Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(Microsoft) } })
+            'Assert.True(scopes[1].Aliases.Single() is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } })
+            'Assert.True(scopes[1].Aliases.Single().DeclaringSyntaxReferences.Single().GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(System) } })
+        End Sub
+
+#End Region
+
     End Class
 End Namespace
