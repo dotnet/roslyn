@@ -369,5 +369,103 @@ end namespace
 
 #End Region
 
+#Region "global imports"
+
+        Public Shared Function GetGlobalImportsOptions(ParamArray values As String()) As VisualBasicCompilationOptions
+            Return TestOptions.ReleaseDll.WithGlobalImports(
+                values.Select(Function(v) GlobalImport.Parse(v)))
+        End Function
+
+        <Fact>
+        Public Sub TestEmptyFile_WithGlobalImports()
+            Dim Text = "
+'pos"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().Aliases)
+            Assert.True(IsAliasWithName(scopes.Single().Aliases.Single(), "M", "Microsoft", inGlobalNamespace:=True))
+            Assert.Empty(scopes.Single.Aliases().Single().DeclaringSyntaxReferences)
+
+            Assert.Single(scopes.Single().Imports)
+            Assert.True(IsNamespaceWithName(scopes.Single().Imports.Single().NamespaceOrType, "System"))
+            Assert.Null(scopes.Single().Imports.Single.DeclaringSyntaxReference)
+
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestInsideDeclaration_WithGlobalImports()
+            Dim Text = "
+class C
+    'pos
+end class"
+            Dim tree = Parse(Text)
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim model = comp.GetSemanticModel(tree)
+            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Assert.Single(scopes)
+
+            Assert.Single(scopes.Single().Aliases)
+            Assert.True(IsAliasWithName(scopes.Single().Aliases.Single(), "M", "Microsoft", inGlobalNamespace:=True))
+            Assert.Empty(scopes.Single.Aliases().Single().DeclaringSyntaxReferences)
+
+            Assert.Single(scopes.Single().Imports)
+            Assert.True(IsNamespaceWithName(scopes.Single().Imports.Single().NamespaceOrType, "System"))
+            Assert.Null(scopes.Single().Imports.Single.DeclaringSyntaxReference)
+
+            Assert.Empty(scopes.Single().ExternAliases)
+            Assert.Empty(scopes.Single().XmlNamespaces)
+        End Sub
+
+        <Fact>
+        Public Sub TestGlobalImportsAndFileImports()
+            Dim text = "
+imports System.IO
+imports T = System.Threading
+
+class C
+    'pos
+end class
+"
+            Dim tree = Parse(text)
+            Dim comp = CreateCompilation(tree, options:=GetGlobalImportsOptions("System", "M = Microsoft"))
+            Dim model = comp.GetSemanticModel(tree)
+            dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+
+            Assert.Equal(2, scopes.Length)
+
+            Assert.Single(scopes(0).Aliases)
+            Assert.True(IsAliasWithName(scopes(0).Aliases.Single(), "T", "Threading", inGlobalNamespace:=False))
+            Assert.True(IsAliasImportsClauseWithName(scopes(0).Aliases().Single(), "T"))
+
+            Assert.Single(scopes(0).Imports)
+            Assert.True(IsNamespaceWithName(scopes(0).Imports.Single().NamespaceOrType, "IO"))
+            Dim syntax = scopes(0).Imports.Single.DeclaringSyntaxReference.GetSyntax()
+            Assert.True(TypeOf syntax Is QualifiedNameSyntax)
+            Assert.True(TypeOf syntax.Parent Is SimpleImportsClauseSyntax)
+            Assert.Equal("System.IO", syntax.ToString())
+
+            Assert.Single(scopes(1).Aliases)
+            Assert.True(IsAliasWithName(scopes(1).Aliases.Single(), "M", "Microsoft", inGlobalNamespace:=True))
+            Assert.Empty(scopes(1).Aliases().Single().DeclaringSyntaxReferences)
+
+            Assert.Single(scopes(1).Imports)
+            Assert.True(IsNamespaceWithName(scopes(1).Imports.Single().NamespaceOrType, "System"))
+            Assert.Null(scopes(1).Imports.Single.DeclaringSyntaxReference)
+
+            Assert.Empty(scopes(0).ExternAliases)
+            Assert.Empty(scopes(0).XmlNamespaces)
+            Assert.Empty(scopes(1).ExternAliases)
+            Assert.Empty(scopes(1).XmlNamespaces)
+        End Sub
+
+#End Region
+
     End Class
 End Namespace

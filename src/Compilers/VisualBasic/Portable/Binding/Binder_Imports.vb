@@ -206,7 +206,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
+                            ' Do not expose any locations for project level imports.  This matches the effective logic
+                            ' we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                            ' DeclaringSyntaxReference).
+                            Dim reference = If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration,
+                                Nothing,
+                                binder.GetSyntaxReference(importsName))
+                            data.AddMember(reference, importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
                         End If
                     End If
                 End If
@@ -237,8 +243,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' "XML namespace prefix '{0}' is already declared."
                         Binder.ReportDiagnostic(diagBag, syntax, ERRID.ERR_DuplicatePrefix, prefix)
                     Else
+                        ' Do not expose any locations for project level xml namespaces.  This matches the effective
+                        ' logic we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                        ' DeclaringSyntaxReference).
+                        Dim reference = If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration,
+                            Nothing,
+                            binder.GetSyntaxReference(syntax))
                         data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(
-                            namespaceName, syntax.SpanStart, binder.GetSyntaxReference(syntax)))
+                            namespaceName, syntax.SpanStart, reference))
                     End If
                 End If
 #If DEBUG Then
