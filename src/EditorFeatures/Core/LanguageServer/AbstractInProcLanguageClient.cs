@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public object? MiddleLayer => _middleLayer;
 
         /// <summary>
-        /// Unusued, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
         /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
         /// </summary>
         public object? CustomMessageTarget => null;
@@ -249,6 +249,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// This method is called after the language server has been activated, but connection has not been established.
+        /// </summary>
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
     }
 }
