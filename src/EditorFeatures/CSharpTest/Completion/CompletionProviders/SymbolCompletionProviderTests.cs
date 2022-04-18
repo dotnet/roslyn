@@ -12025,7 +12025,7 @@ class C
     void M(int parameter) { }
 }
 ";
-            // An invocation may not be considered a 'nameof' operator unless it has one argument
+            // Tracked by https://github.com/dotnet/roslyn/issues/60812
             await VerifyItemIsAbsentAsync(MakeMarkup(source), "parameter");
         }
 
