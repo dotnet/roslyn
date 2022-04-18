@@ -41,6 +41,50 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task NestedGenericUnterminatedWithAmbiguousShift()
+        {
+            var markup = @"
+class G<T> { };
+
+class C
+{
+    void Goo()
+    {
+        var x = G<G<G<int>>$$>
+
+        x = x;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task NestedGenericUnterminatedWithAmbiguousUnsignedShift()
+        {
+            var markup = @"
+class G<T> { };
+
+class C
+{
+    void Goo()
+    {
+        var x = G<G<G<G<int>>>$$>
+
+        x = x;
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [WorkItem(544088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task DeclaringGenericTypeWith1ParameterUnterminated()
