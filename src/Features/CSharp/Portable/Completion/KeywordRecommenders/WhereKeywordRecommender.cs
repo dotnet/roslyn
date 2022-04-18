@@ -109,20 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 }
             }
 
-            // Check constraints only if target token is the last in the TypeParameterConstraintSyntax node.
-            // Otherwise we can be in incomplete constraint and "where" keyword will not be valid suggestion.
-            // See https://github.com/dotnet/roslyn/issues/30785 for example
+            // class C<T> where T : IGoo |
+            // delegate void D<T> where T : IGoo |
             if (token.IsLastTokenOfNode<TypeParameterConstraintSyntax>())
             {
-                // class C<T> where T : IGoo |
-                // delegate void D<T> where T : IGoo |
-                var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
-
-                if (constraintClause is not null &&
-                    constraintClause.Constraints.Any(c => token == c.GetLastToken(includeSkipped: true)))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;

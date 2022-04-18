@@ -323,6 +323,27 @@ $$");
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidConstraint1()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : System.Exception $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : System.Exception $$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobal1()
         {
             await VerifyAbsenceAsync(
@@ -338,6 +359,27 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"public class C<T> where T : global::$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidConstraint3()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : global::System.Exception $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidConstraint4()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : global::System.Exception $$
 {
 }");
         }
@@ -365,6 +407,27 @@ $$");
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint1()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : List<int> $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : List<int> $$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGenericConstraintStartSecondParameter1()
         {
             await VerifyAbsenceAsync(
@@ -386,6 +449,27 @@ $$");
 
         [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint3()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : Dictionary<int, string> $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint4()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : Dictionary<int, string> $$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDoubleUnclosedGenericConstraint1()
         {
             await VerifyAbsenceAsync(
@@ -401,6 +485,27 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"public class C<T> where T : List<List<int>$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint5()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : List<List<int>> $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraint6()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : List<List<int>> $$
 {
 }");
         }
@@ -443,6 +548,27 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"public class C<T> where T : List<(int, string)$$
+{
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraintWithTuple1()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    void M<T> where T : List<(int, string)> $$
+}");
+        }
+
+        [WorkItem(30785, "https://github.com/dotnet/roslyn/issues/30785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterValidGenericConstraintWithTuple2()
+        {
+            await VerifyKeywordAsync(
+@"public class C<T> where T : List<(int, string)> $$
 {
 }");
         }
