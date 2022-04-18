@@ -32,6 +32,7 @@ efforts behind them.
 | [nameof accessing instance members](https://github.com/dotnet/roslyn/issues/40229) | main | [In Progress](https://github.com/dotnet/roslyn/pull/48754) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs)  | [333fred](https://github.com/333fred) |
 | [ref fields](https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md) | [ref-fields](https://github.com/dotnet/roslyn/tree/features/ref-fields) | [In Progress](https://github.com/dotnet/roslyn/issues/59194) | [cston](https://github.com/cston) | [RikkiGibson](https://github.com/RikkiGibson), [AlekseyTs](https://github.com/AlekseyTs) | [jaredpar](https://github.com/jaredpar) | 
 | Numeric IntPtr | [numeric-intptr](https://github.com/dotnet/roslyn/tree/features/numeric-intptr) | [In Progress](https://github.com/dotnet/roslyn/issues/60578) | [jcouv](https://github.com/jcouv) | TBD  | [jcouv](https://github.com/jcouv) | 
+| [File types](https://github.com/dotnet/csharplang/issues/6011) | [file-types](https://github.com/dotnet/roslyn/tree/features/file-types) | [In Progress](https://github.com/dotnet/roslyn/issues/60819) | [RikkiGibson](https://github.com/RikkiGibson) | [333fred](https://github.com/333fred), [cston](https://github.com/cston)  | [stephentoub](https://github.com/stephentoub) | 
   
 # C# 10.0
 
