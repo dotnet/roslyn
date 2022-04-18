@@ -50,6 +50,9 @@ using System;";
             Assert.Single(scopes.Single().Imports);
             Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
             Assert.True(scopes.Single().Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().ExternAliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
         }
 
         [Fact]
@@ -66,6 +69,9 @@ using System;
             Assert.Single(scopes.Single().Imports);
             Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
             Assert.True(scopes.Single().Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().ExternAliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
         }
 
         [Fact]
@@ -100,6 +106,9 @@ return;";
             Assert.Single(scopes.Single().Imports);
             Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
             Assert.True(scopes.Single().Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().ExternAliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
         }
 
         [Fact]
@@ -131,6 +140,85 @@ return /*pos*/;";
             Assert.Single(scopes.Single().Imports);
             Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
             Assert.True(scopes.Single().Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax);
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().ExternAliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestAfterMultipleImportsNoContent()
+        {
+            var text = @"
+using System;
+using Microsoft;
+/*pos*/";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Equal(2, scopes.Single().Imports.Length);
+            Assert.True(scopes.Single().Imports.First().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
+            Assert.True(scopes.Single().Imports.Last().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(Microsoft) });
+            Assert.True(scopes.Single().Imports.First().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(System) } });
+            Assert.True(scopes.Single().Imports.Last().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(Microsoft) } });
+            Assert.Empty(scopes.Single().Aliases);
+            Assert.Empty(scopes.Single().ExternAliases);
+            Assert.Empty(scopes.Single().XmlNamespaces);
+        }
+
+        [Fact]
+        public void TestNestedNamespaceOuterPosition()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    /*pos*/
+}
+
+namespace N
+{
+    using Microsoft;
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Single(scopes);
+            Assert.Single(scopes.Single().Imports);
+            Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
+            Assert.True(scopes.Single().Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(System) } });
+        }
+
+        [Fact]
+        public void TestNestedNamespaceInnerPosition()
+        {
+            var text = @"
+using System;
+
+namespace N
+{
+    using Microsoft;
+    class C
+    {
+        /*pos*/
+    }
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var scopes = model.GetImportScopes(GetPositionForBinding(text));
+            Assert.Equal(2, scopes.Length);
+            Assert.Single(scopes[0].Imports);
+            Assert.Single(scopes[1].Imports);
+            Assert.True(scopes[0].Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(Microsoft) });
+            Assert.True(scopes[0].Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(Microsoft) } });
+            Assert.True(scopes[1].Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
+            Assert.True(scopes[1].Imports.Single().DeclaringSyntaxReference!.GetSyntax() is UsingDirectiveSyntax { Name: IdentifierNameSyntax { Identifier.Text: nameof(System) } });
         }
     }
 }
