@@ -3428,7 +3428,7 @@ _Default:
             '
             ' a. XmlNamespaceImportsBinder. Optional.  Present if source file has xml imports present.
             ' b. ImportAliasesBinder. Optional.  Present if source file has import aliases present.
-            ' c. TypesOfImportedNamespacesMembersBinder.  Optional.  Present if source file has member imports present.
+            ' c. TypesOfImportedNamespacesMembersBinder.  Optional.  Present if source file has type or namespace imports present.
             '
             ' As such, we can walk upwards looking for any of these binders if present until we hit the end of the
             ' binder chain.  We know which set we're in depending on if we've seen the SourceFileBinder or not.
