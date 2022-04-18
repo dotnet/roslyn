@@ -3,6 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+
+    <!-- This project file effectively retargets our exe for .NET Framework ARM64.  -->
     <AssemblyName>csc</AssemblyName>
     <PlatformTarget>ARM64</PlatformTarget>
     <TargetFramework>net472</TargetFramework>

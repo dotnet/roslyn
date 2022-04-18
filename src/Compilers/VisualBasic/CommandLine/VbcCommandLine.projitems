@@ -7,6 +7,7 @@
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>810b02ad-2ea5-4422-88ac-b71b8ab0df0b</SharedGUID>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
+    <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
     <ServerGarbageCollection>true</ServerGarbageCollection>

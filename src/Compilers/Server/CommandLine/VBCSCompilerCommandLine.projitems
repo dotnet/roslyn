@@ -7,6 +7,7 @@
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>d8ef0777-9d65-4849-a7d6-ac81e58e2317</SharedGUID>
     <LargeAddressAware>true</LargeAddressAware>
+    <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
