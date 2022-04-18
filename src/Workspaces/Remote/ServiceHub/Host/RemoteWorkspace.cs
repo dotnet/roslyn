@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
         }
 
-        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
+        public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.SolutionChecksum, assetCache, assetSource, serializerService);
+            return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
         /// <summary>
@@ -110,7 +110,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>.
         /// </para>
         /// </summary>
-        public async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+
+        public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            Func<Solution, ValueTask<T>> implementation,
+            CancellationToken cancellationToken)
+        {
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, fromPrimaryBranch: false, implementation, cancellationToken);
+        }
+
+        private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,

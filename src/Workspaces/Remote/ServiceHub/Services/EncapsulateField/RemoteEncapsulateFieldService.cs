@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
             EncapsulateFieldOptions fallbackOptions,
             bool updateReferences,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
 

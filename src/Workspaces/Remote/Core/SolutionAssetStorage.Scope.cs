@@ -19,8 +19,7 @@ internal partial class SolutionAssetStorage
     {
         private readonly SolutionAssetStorage _storage;
 
-        public readonly Checksum Checksum;
-        public readonly PinnedSolutionInfo SolutionInfo;
+        public readonly Checksum SolutionChecksum;
         public readonly SolutionState Solution;
 
         /// <summary>
@@ -36,13 +35,11 @@ internal partial class SolutionAssetStorage
 
         public Scope(
             SolutionAssetStorage storage,
-            Checksum checksum,
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SolutionState solution)
         {
             _storage = storage;
-            Checksum = checksum;
-            SolutionInfo = solutionInfo;
+            SolutionChecksum = solutionChecksum;
             Solution = solution;
         }
 

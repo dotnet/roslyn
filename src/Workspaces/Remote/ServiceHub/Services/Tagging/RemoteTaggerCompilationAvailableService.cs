@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask ComputeCompilationAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
 
