@@ -1621,29 +1621,33 @@ S3 { X = , Y = 3 }
 {
   // Code size       20 (0x14)
   .maxstack  2
+  // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""object S1.Y""
+  // sequence point: public object X = 1;
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.1
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S1.X""
   IL_0013:  ret
-}");
+}", sequencePoints: "S1..ctor", source: source);
 
             verifier.VerifyIL("S2..ctor", @"
 {
   // Code size       20 (0x14)
   .maxstack  2
+  // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""object S2.<Y>k__BackingField""
+  // sequence point: 2
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.2
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S2.<X>k__BackingField""
   IL_0013:  ret
-}");
+}", sequencePoints: "S2..ctor", source: source);
 
             verifier.VerifyIL("S3..ctor", @"
 {
@@ -1657,7 +1661,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S3.<Y>k__BackingField""
   IL_0013:  ret
-}");
+}", sequencePoints: "S3..ctor", source: source);
         }
 
         [Fact]
@@ -2633,10 +2637,10 @@ public struct S
 {
   // Code size       11 (0xb)
   .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int S.x""
-  IL_0007:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stfld      ""int S.x""
   IL_0008:  br.s       IL_000a
   IL_000a:  ret
 }
@@ -2679,10 +2683,10 @@ public struct S
 {
   // Code size       27 (0x1b)
   .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  stfld      ""System.Action S.E""
-  IL_0007:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldnull
+  IL_0003:  stfld      ""System.Action S.E""
   IL_0008:  ldarg.0
   IL_0009:  ldfld      ""System.Action S.E""
   IL_000e:  dup
@@ -2822,10 +2826,10 @@ public struct S2
 {
   // Code size       27 (0x1b)
   .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""S1 S2.S1""
-  IL_0006:  initobj    ""S1""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""S1 S2.S1""
+  IL_0007:  initobj    ""S1""
   IL_000d:  ldarg.0
   IL_000e:  ldflda     ""S1 S2.S1""
   IL_0013:  ldc.i4.s   42
@@ -2863,10 +2867,10 @@ public struct S
   // Code size       24 (0x18)
   .maxstack  2
   .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int S.X""
-  IL_0007:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stfld      ""int S.X""
   IL_0008:  ldarg.1
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
@@ -2913,10 +2917,10 @@ public struct S2
   // Code size       28 (0x1c)
   .maxstack  1
   .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""S1 S2.S1""
-  IL_0006:  initobj    ""S1""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""S1 S2.S1""
+  IL_0007:  initobj    ""S1""
   IL_000d:  ldarg.1
   IL_000e:  stloc.0
   IL_000f:  ldloc.0
@@ -2957,20 +2961,61 @@ public struct S
 
             verifier.VerifyIL("S..ctor", @"
 {
-    // Code size       21 (0x15)
-    .maxstack  2
-    // sequence point: {
-    IL_0000:  nop
-    IL_0001:  ldarg.0
-    IL_0002:  ldc.i4.0
-    IL_0003:  stfld      ""int S.X""
-    // sequence point: X.ToString();
-    IL_0008:  ldarg.0
-    IL_0009:  ldflda     ""int S.X""
-    IL_000e:  call       ""string int.ToString()""
-    IL_0013:  pop
-    // sequence point: }
-    IL_0014:  ret
+  // Code size       21 (0x15)
+  .maxstack  2
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: <hidden>
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stfld      ""int S.X""
+  // sequence point: X.ToString();
+  IL_0008:  ldarg.0
+  IL_0009:  ldflda     ""int S.X""
+  IL_000e:  call       ""string int.ToString()""
+  IL_0013:  pop
+  // sequence point: }
+  IL_0014:  ret
+}
+",
+                sequencePoints: "S..ctor",
+                source: source);
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_SequencePoints_ExpressionBody()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+
+    public S()
+        => X.ToString();
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics(
+                // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //     public S()
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12),
+                // (7,12): warning CS9019: Field 'X' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                //         => X.ToString();
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "X").WithArguments("X").WithLocation(7, 12));
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.X""
+  // sequence point: X.ToString()
+  IL_0007:  ldarg.0
+  IL_0008:  ldflda     ""int S.X""
+  IL_000d:  call       ""string int.ToString()""
+  IL_0012:  pop
+  IL_0013:  ret
 }
 ",
                 sequencePoints: "S..ctor",
@@ -3115,16 +3160,16 @@ public struct S<T>
 {
   // Code size       33 (0x21)
   .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  stfld      ""string S<T>.<AutoProp>k__BackingField""
-  IL_0007:  ldarg.0
-  IL_0008:  ldflda     ""T S<T>.TField""
-  IL_000d:  initobj    ""T""
-  IL_0013:  ldarg.0
-  IL_0014:  ldflda     ""SParameterless S<T>.Parameterless""
-  IL_0019:  initobj    ""SParameterless""
-  IL_001f:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldnull
+  IL_0003:  stfld      ""string S<T>.<AutoProp>k__BackingField""
+  IL_0008:  ldarg.0
+  IL_0009:  ldflda     ""T S<T>.TField""
+  IL_000e:  initobj    ""T""
+  IL_0014:  ldarg.0
+  IL_0015:  ldflda     ""SParameterless S<T>.Parameterless""
+  IL_001a:  initobj    ""SParameterless""
   IL_0020:  ret
 }
 ");

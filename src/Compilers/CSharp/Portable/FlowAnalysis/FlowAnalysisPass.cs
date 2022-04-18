@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
 
-            var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length + body.Statements.Length);
+            var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length);
             foreach (var field in implicitlyInitializedFields)
             {
                 builder.Add(
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Field(F.This(), field),
                             F.Default(field.Type))));
             }
-            builder.AddRange(body.Statements);
+            var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
-            return body.Update(body.Locals, body.LocalFunctions, builder.ToImmutableAndFree());
+            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(index: 0, initializations));
         }
 
         private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, bool originalBodyNested)
