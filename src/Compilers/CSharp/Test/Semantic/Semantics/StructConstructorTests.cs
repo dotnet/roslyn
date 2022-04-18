@@ -1653,9 +1653,11 @@ S3 { X = , Y = 3 }
 {
   // Code size       20 (0x14)
   .maxstack  2
+  // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""object S3.<X>k__BackingField""
+  // sequence point: 3
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.3
   IL_0009:  box        ""int""
