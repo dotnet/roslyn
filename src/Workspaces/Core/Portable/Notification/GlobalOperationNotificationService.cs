@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private readonly TaskQueue _eventQueue;
 
+        public event EventHandler? Started;
+        public event EventHandler? Stopped;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalOperationNotificationService(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
         }
-
-        public event EventHandler? Started;
-        public event EventHandler? Stopped;
 
         private void RaiseGlobalOperationStarted()
         {
