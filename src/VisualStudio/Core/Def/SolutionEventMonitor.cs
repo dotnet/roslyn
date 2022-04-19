@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private readonly UIContext _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         private readonly IGlobalOperationNotificationService _notificationService;
-        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
+        private readonly Dictionary<string, IDisposable> _operations = new();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (_operations.TryGetValue(operation, out var globalOperation))
             {
-                globalOperation.Done();
+                // globalOperation.Done();
                 globalOperation.Dispose();
 
                 _operations.Remove(operation);

@@ -1,18 +1,23 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//// Licensed to the .NET Foundation under one or more agreements.
+//// The .NET Foundation licenses this file to you under the MIT license.
+//// See the LICENSE file in the project root for more information.
 
-using System;
+//using System;
 
-namespace Microsoft.CodeAnalysis.Notification
-{
-    internal abstract class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
-    {
-        public abstract event EventHandler? Started;
-        public abstract event EventHandler? Stopped;
+//namespace Microsoft.CodeAnalysis.Notification
+//{
+//    internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
+//    {
+//        public abstract event EventHandler? Started;
+//        public abstract event EventHandler? Stopped;
 
-        public abstract GlobalOperationRegistration Start(string reason);
+//        protected abstract void Done(GlobalOperationRegistration registration);
+//        protected abstract void StartWorker(string reason);
 
-        public abstract void Done(GlobalOperationRegistration registration);
-    }
-}
+//        public IDisposable Start(string operation)
+//        {
+//            StartWorker(reason);
+//            return new GlobalOperationRegistration(this, operation);
+//        }
+//    }
+//}

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         {
         }
 
-        public GlobalOperationRegistration Start(string operation)
+        public IDisposable Start(string operation)
         {
             // Currently not supported for anything on the remote side to start a global
             // operation.
