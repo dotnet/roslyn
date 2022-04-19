@@ -92,8 +92,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
-            while (!CancellationToken.IsCancellationRequested)
+            while (true)
             {
+                this.CancellationToken.ThrowIfCancellationRequested();
 
                 // If we're not paused, and enough time has elapsed, then we're done.  Otherwise, ensure we wait at
                 // least s_minimumDelay and check again in the future.
@@ -116,6 +117,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
+        /// <summary>
+        /// Whether or not the system is in a state such that we should wait till the next idle period to process work.
+        /// </summary>
+        /// <returns></returns>
         protected bool ShouldWaitForIdle()
         {
             var diff = _timeSinceLastAccess.Elapsed;
