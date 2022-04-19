@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Whether or not the system is in a state such that we should wait till the next idle period to process work.
         /// </summary>
-        /// <returns></returns>
         protected bool ShouldWaitForIdle()
         {
             var diff = _timeSinceLastAccess.Elapsed;
