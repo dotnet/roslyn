@@ -7088,4 +7088,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF8 string conversion or literal.</value>
   </data>
+  <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
+    <value>unsigned right shift</value>
+  </data>
 </root>

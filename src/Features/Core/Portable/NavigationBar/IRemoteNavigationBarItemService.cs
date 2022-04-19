@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     internal interface IRemoteNavigationBarItemService
     {
         ValueTask<ImmutableArray<SerializableNavigationBarItem>> GetItemsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken);
+            Checksum solutionChecksum, DocumentId documentId, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken);
     }
 
     [DataContract]

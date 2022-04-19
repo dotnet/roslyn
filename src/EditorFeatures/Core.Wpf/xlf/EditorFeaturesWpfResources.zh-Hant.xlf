@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview">
         <source>Enter to rename, Shift+Enter to preview</source>
-        <target state="new">Enter to rename, Shift+Enter to preview</target>
+        <target state="translated">Enter 鍵以重新命名，Shift+Enter 以預覽</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_performing_rename_0">

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -16,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="document">The document to format.</param>
         /// <param name="hintDocument">An optional additional document that can be used to inform the formatting operation.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken);
+        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
     }
 }

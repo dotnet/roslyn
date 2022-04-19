@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal interface IRemoteInheritanceMarginService
     {
         ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
-            PinnedSolutionInfo pinnedSolutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken);

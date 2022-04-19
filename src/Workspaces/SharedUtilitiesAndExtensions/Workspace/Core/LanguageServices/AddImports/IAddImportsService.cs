@@ -22,10 +22,17 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     [DataContract]
     internal record struct AddImportPlacementOptions(
-        [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst,
-        [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces,
-        [property: DataMember(Order = 2)] bool AllowInHiddenRegions)
+        [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst = true,
+        [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces = false,
+        [property: DataMember(Order = 2)] bool AllowInHiddenRegions = false)
     {
+        public AddImportPlacementOptions()
+            : this(PlaceSystemNamespaceFirst: true)
+        {
+        }
+
+        public static readonly AddImportPlacementOptions Default = new();
+
         public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
 #if CODE_STYLE

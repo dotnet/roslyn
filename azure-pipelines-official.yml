@@ -7,7 +7,6 @@ trigger:
     - release/dev17.*
     exclude:
     - release/dev17.0
-    - release/dev17.1
 pr: none
 
 resources:

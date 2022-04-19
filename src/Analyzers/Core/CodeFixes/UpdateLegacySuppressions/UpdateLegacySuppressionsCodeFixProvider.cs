@@ -37,17 +37,12 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions
                 if (diagnostic.Properties?.ContainsKey(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.DocCommentIdKey) == true &&
                     root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) != null)
                 {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            CodeFixesResources.Update_suppression_format,
-                            c => FixAsync(context.Document, diagnostic, c),
-                            nameof(CodeFixesResources.Update_suppression_format)),
-                        diagnostic);
+                    RegisterCodeFix(context, CodeFixesResources.Update_suppression_format, nameof(CodeFixesResources.Update_suppression_format));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {

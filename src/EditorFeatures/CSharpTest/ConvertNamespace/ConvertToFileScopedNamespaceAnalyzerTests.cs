@@ -678,6 +678,102 @@ class C
         }
 
         [Fact]
+        public async Task TestConvertToFileScopedWithMultiLineRawString()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """""");
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """""");
+    }
+}
+",
+                LanguageVersion = LanguageVersion.Preview,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestConvertToFileScopedWithUTF8MultiLineRawString()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+[|namespace N|]
+{
+    class C
+    {
+        void M()
+        {
+            System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """"""u8);
+        }
+    }
+}
+",
+                FixedCode = @"
+namespace $$N;
+
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(""""""
+    a
+        b
+            c
+                d
+                    e
+    """"""u8);
+    }
+}
+",
+                LanguageVersion = LanguageVersion.Preview,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestConvertToFileScopedSingleLineNamespace1()
         {
             await new VerifyCS.Test

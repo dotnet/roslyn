@@ -36,18 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Simplify_property_pattern,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(CSharpAnalyzersResources.Simplify_property_pattern)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_property_pattern, nameof(CSharpAnalyzersResources.Simplify_property_pattern));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // Process subpatterns in reverse order so we rewrite from inside-to-outside with nested
             // patterns.

@@ -84,6 +84,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await SelectItemWorkerAsync(cancellationToken).ConfigureAwait(true);
+
+            // Once we've computed and selected the latest navbar items, pause ourselves if we're no longer visible.
+            // That way we don't consume any machine resources that the user won't even notice.
+            if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
+                Pause();
+        }
+
+        private async ValueTask SelectItemWorkerAsync(CancellationToken cancellationToken)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var currentView = _presenter.TryGetCurrentView();
             var caretPosition = currentView?.GetCaretPoint(_subjectBuffer);

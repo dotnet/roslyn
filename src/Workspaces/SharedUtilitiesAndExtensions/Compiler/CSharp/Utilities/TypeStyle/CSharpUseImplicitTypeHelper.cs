@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public override TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
             {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             return base.AnalyzeTypeName(
-                typeName, semanticModel, optionSet, cancellationToken);
+                typeName, semanticModel, options, cancellationToken);
         }
 
         public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.StripRefIfNeeded().IsVar, "'var' special case should have prevented analysis of this variable.");
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, initializer,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return true;
                 }
@@ -274,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var expression = GetInitializerExpression(initializer);

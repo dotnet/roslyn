@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Storage
             var workspaceConfiguration = services.GetService<IWorkspaceConfigurationService>();
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            return workspaceConfiguration?.Options.CacheStorage switch
+            var cacheStorage = workspaceConfiguration?.Options.CacheStorage;
+            return cacheStorage switch
             {
 #if !DOTNET_BUILD_FROM_SOURCE
                 StorageDatabase.SQLite

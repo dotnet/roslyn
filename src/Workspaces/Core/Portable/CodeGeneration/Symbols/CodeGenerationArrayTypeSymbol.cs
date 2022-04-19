@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TResult : default
             => visitor.VisitArrayType(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitArrayType(this, argument);
+
         public ImmutableArray<CustomModifier> CustomModifiers
         {
             get
