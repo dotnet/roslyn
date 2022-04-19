@@ -471,6 +471,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var members = containingType.GetMembers();
+
+            // We first compile the accessors to avoid extra bindings for 'field' keyword.
+            for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
+            {
+                var member = members[memberOrdinal];
+
+                //When a filter is supplied, limit the compilation of members passing the filter.
+                if (!PassesFilter(_filterOpt, member) ||
+                    member is not SourcePropertyAccessorSymbol accessor)
+                {
+                    continue;
+                }
+
+                Debug.Assert(member.Kind == SymbolKind.Method);
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+            }
+
+            // Then we compile everything, excluding the accessors we already compiled in the loop above.
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -490,6 +509,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Method:
                         {
                             MethodSymbol method = (MethodSymbol)member;
+                            if (method is SourcePropertyAccessorSymbol)
+                            {
+                                // The loop for compiling accessors was written with these valid assumptions.
+                                // If this requirement has changed, the loop above may need to be modified (e.g, if partial accessors was allowed in future)
+                                Debug.Assert(!method.IsScriptConstructor);
+                                Debug.Assert((object)method != scriptEntryPoint);
+                                Debug.Assert(!IsFieldLikeEventAccessor(method));
+                                Debug.Assert(!method.IsPartialDefinition());
+                                continue;
+                            }
+
                             if (method.IsScriptConstructor)
                             {
                                 Debug.Assert(scriptCtorOrdinal == -1);
