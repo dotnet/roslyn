@@ -124,14 +124,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // wait for next item available
                     await WaitAsync(CancellationToken).ConfigureAwait(false);
+                    if (CancellationToken.IsCancellationRequested)
+                        return;
 
                     using (Listener.BeginAsyncOperation("ProcessAsync"))
                     {
                         // we have items but workspace is busy. wait for idle.
                         await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                        if (CancellationToken.IsCancellationRequested)
+                            return;
 
-                        if (!CancellationToken.IsCancellationRequested)
-                            await ExecuteAsync().ConfigureAwait(false);
+                        await ExecuteAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
