@@ -69,30 +69,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected async Task WaitForHigherPriorityOperationsAsync()
                     {
+                        CancellationToken.ThrowIfCancellationRequested();
+
                         using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, CancellationToken))
                         {
                             do
                             {
-                                // Host is shutting down
-                                if (CancellationToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
-
                                 // we wait for global operation and higher queue operation if there is anything going on
                                 await HigherQueueOperationTask.ConfigureAwait(false);
 
-                                // if there are no more work left for higher queue, then it is our time to go ahead
-                                if (!HigherQueueHasWorkItem)
-                                {
+                                // if there are no more work left for higher queue, and we are not paused. Then it is
+                                // our time to go ahead
+                                if (!Paused && !HigherQueueHasWorkItem)
                                     return;
-                                }
 
-                                // back off and wait for next time slot.
+                                // back off and wait for next time slot or for us to become unpaused.
                                 UpdateLastAccessTime();
                                 await WaitForIdleAsync(Listener).ConfigureAwait(false);
                             }
-                            while (true);
+                            while (!CancellationToken.IsCancellationRequested);
                         }
                     }
 
