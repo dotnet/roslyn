@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../VSCommandTable.vsct">
+    <body>
+      <trans-unit id="AddEditorConfigFileAnyCodeCommand|ButtonText">
+        <source>New EditorConfig</source>
+        <target state="new">New EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddEditorConfigFileAnyCodeCommand|LocCanonicalName">
+        <source>EditorConfig.AddFileToFolderView</source>
+        <target state="new">EditorConfig.AddFileToFolderView</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddEditorConfigFileCommand|ButtonText">
+        <source>New EditorConfig</source>
+        <target state="new">New EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddEditorConfigFileCommand|LocCanonicalName">
+        <source>EditorConfig.AddFile</source>
+        <target state="new">EditorConfig.AddFile</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -6,6 +6,7 @@ using System.IO;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard;
 using Microsoft.VisualStudio.TemplateWizard;
 using Templates.EditorConfig.FileGenerator;
 
@@ -31,13 +32,11 @@ public partial class EditorconfigTemplateWizard : IWizard
                 return;
             }
 
-            var generator = new EditorConfigFileGenerator(dte);
-
             bool isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
-            (bool success, string fileName) = generator.TryGenerateFile(isDotnet);
+            (bool success, string fileName) = EditorConfigFileGenerator.TryAddFileToSolution(isDotnet);
             if (success)
             {
-                generator.OpenFile(fileName);
+                VSHelpers.OpenFile(fileName);
             }
         }
     }

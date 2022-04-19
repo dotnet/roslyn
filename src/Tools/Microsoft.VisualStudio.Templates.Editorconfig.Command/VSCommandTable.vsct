@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Include href="KnownImageIds.vsct"/>
+
+  <Commands package="AddEditorConfig">
+    <Groups>
+      <Group guid="AddEditorConfigCmdSet" id="AddGroup" priority="0x0002" />
+      <Group guid="AddEditorConfigCmdSet" id="AddGroupAnyCode" priority="0x0002" />
+    </Groups>
+
+    <!--This section defines the elements the user can interact with, like a menu command or a button
+        or combo box in a toolbar. -->
+    <Buttons>
+      <Button guid="AddEditorConfigCmdSet" id="AddEditorConfigFileCommand" priority="0x0500" type="Button">
+        <Icon guid="ImageCatalogGuid" id="3843" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>New EditorConfig</ButtonText>
+          <LocCanonicalName>EditorConfig.AddFile</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="AddEditorConfigCmdSet" id="AddEditorConfigFileAnyCodeCommand" priority="0x0500" type="Button">
+        <Icon guid="ImageCatalogGuid" id="3843" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>New EditorConfig</ButtonText>
+          <LocCanonicalName>EditorConfig.AddFileToFolderView</LocCanonicalName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+
+  <CommandPlacements>
+    <!-- IVsHierarchy -->
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddEditorConfigFileCommand" priority="0x0100">
+      <Parent guid="AddEditorConfigCmdSet" id="AddGroup" />
+    </CommandPlacement>
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddGroup" priority="0x0500">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_SOLUTION_ADD" />
+    </CommandPlacement>
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddGroup" priority="0x0500">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_PROJECT_ADD" />
+    </CommandPlacement>
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddGroup" priority="0x0500">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_SLNFLDR_ADD" />
+    </CommandPlacement>
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddGroup" priority="0x0500">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CSCD_CV_ITEMADD" />
+    </CommandPlacement>
+
+    <!-- AnyCode -->
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddEditorConfigFileAnyCodeCommand" priority="0x0100">
+      <Parent guid="AddEditorConfigCmdSet" id="AddGroupAnyCode" />
+    </CommandPlacement>
+    <CommandPlacement guid="AddEditorConfigCmdSet" id="AddGroupAnyCode" priority="0x1500">
+      <Parent guid="guidWorkspaceExplorerToolWindowPackageCmdSet" id="idmAddNew" />
+    </CommandPlacement>
+  </CommandPlacements>
+  
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="AddEditorConfig" value="{57a6a527-1255-45c4-bcdb-6a4f50b73b3e}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="AddEditorConfigCmdSet" value="{713dfda7-0c2f-41ee-8326-54895666044a}" >
+      <IDSymbol name="AddGroup" value="0x0001" />
+      <IDSymbol name="AddGroupAnyCode" value="0x0002" />
+      <IDSymbol name="AddEditorConfigFileCommand" value="0x0200" />
+      <IDSymbol name="AddEditorConfigFileAnyCodeCommand" value="0x0201" />
+    </GuidSymbol>
+
+    <!-- The AnyCode AddNewItem menu -->
+    <GuidSymbol name="guidWorkspaceExplorerToolWindowPackageCmdSet" value="{cfb400f1-5c60-4f3c-856e-180d28def0b7}">
+      <IDSymbol name="idmAddNew" value="0x2200"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
