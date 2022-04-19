@@ -3817,7 +3817,8 @@ ReadOnlySpan<int> r = stackalloc int[512];
                 // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
                 // ReadOnlySpan<int> r = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(3, 1));
-=======
+        }
+        
         [Fact]
         public void ImplicitlyInitializedField_Simple()
         {
