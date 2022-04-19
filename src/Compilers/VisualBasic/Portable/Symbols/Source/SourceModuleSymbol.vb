@@ -439,8 +439,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _dependencies = dependencies
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, syntaxRef, ImmutableArray(Of AssemblySymbol).Empty)
+            Public Overrides Sub AddMember(
+                    syntaxRef As SyntaxReference,
+                    member As NamespaceOrTypeSymbol,
+                    importsClausePosition As Integer,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol),
+                    isPrjectImportDeclaration As Boolean)
+                ' Do not expose any locations for project level imports.  This matches the effective logic
+                ' we have for aliases, which are given NoLocation.Singleton (which never translates to a
+                ' DeclaringSyntaxReference).
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(
+                    member, importsClausePosition, If(isPrjectImportDeclaration, Nothing, syntaxRef), ImmutableArray(Of AssemblySymbol).Empty)
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersInfoBuilder.Add(New GlobalImportInfo(_globalImport, syntaxRef))

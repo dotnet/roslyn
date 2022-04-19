@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Aliases As Dictionary(Of String, AliasAndImportsClausePosition)
         Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol), isProjectImportsDeclaration As Boolean)
         Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
     End Class
 
@@ -206,13 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            ' Do not expose any locations for project level imports.  This matches the effective logic
-                            ' we have for aliases, which are given NoLocation.Singleton (which never translates to a
-                            ' DeclaringSyntaxReference).
-                            Dim reference = If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration,
-                                Nothing,
-                                binder.GetSyntaxReference(importsName))
-                            data.AddMember(reference, importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
+                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag, binder.BindingLocation = BindingLocation.ProjectImportsDeclaration)
                         End If
                     End If
                 End If
