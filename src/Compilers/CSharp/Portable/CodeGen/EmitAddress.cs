@@ -544,7 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //NOTE: we are not propagating AddressKind.Constrained here.
             //      the reason is that while Constrained permits calls, it does not permit 
             //      taking field addresses, so we have to turn Constrained into writeable.
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
+            var tempOpt = EmitReceiverRef(
+                fieldAccess.ReceiverOpt,
+                field.RefKind == RefKind.None ?
+                    (addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind) :
+                    (addressKind != AddressKind.ReadOnlyStrict ? AddressKind.ReadOnly : addressKind));
 
             _builder.EmitOpCode(field.RefKind == RefKind.None ? ILOpCode.Ldflda : ILOpCode.Ldfld);
             EmitSymbolToken(field, fieldAccess.Syntax);

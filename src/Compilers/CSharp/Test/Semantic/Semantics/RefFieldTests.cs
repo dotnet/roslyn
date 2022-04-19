@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -340,9 +342,7 @@ class B
             CompileAndVerify(comp);
 
             var field = (SubstitutedFieldSymbol)comp.GetMember<FieldSymbol>("B.A").Type.GetMember("F");
-            Assert.Equal(RefKind.Ref, field.RefKind);
-            Assert.Equal(new[] { "System.SByte", "System.Object" }, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
-            Assert.Equal("ref modopt(System.SByte) modopt(System.Object) System.Int32 A<System.Int32>.F", field.ToTestDisplayString());
+            VerifyFieldSymbol(field, "ref modopt(System.SByte) modopt(System.Object) System.Int32 A<System.Int32>.F", RefKind.Ref, new[] { "System.SByte", "System.Object" });
         }
 
         [Fact]
@@ -368,11 +368,81 @@ ref struct B
             CompileAndVerify(comp, verify: Verification.Skipped);
 
             var field = (RetargetingFieldSymbol)comp.GetMember<FieldSymbol>("B.A").Type.GetMember("F");
-            Assert.Equal(RefKind.RefReadOnly, field.RefKind);
             // Currently, source symbols cannot declare RefCustomModifiers. If that
             // changes, update this test to verify retargeting of RefCutomModifiers.
-            Assert.Empty(field.RefCustomModifiers);
-            Assert.Equal("ref readonly System.Int32 A.F", field.ToTestDisplayString());
+            VerifyFieldSymbol(field, "ref readonly System.Int32 A.F", RefKind.RefReadOnly, new string[0]);
+        }
+
+        [Fact]
+        public void TupleField()
+        {
+            var sourceA =
+@".class public sealed System.ValueTuple`2<T1, T2> extends [mscorlib]System.ValueType
+{
+  .field public !T1& Item1
+  .field public !T2& modopt(int8) modopt(object) Item2
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class B
+{
+    static (int, object) F() => default;
+}";
+            var comp = CreateCompilation(sourceB, targetFramework: TargetFramework.Mscorlib40, references: new[] { refA });
+            comp.VerifyEmitDiagnostics();
+
+            var tupleType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("B.F").ReturnType;
+            VerifyFieldSymbol(tupleType.GetField("Item1"), "ref System.Int32 (System.Int32, System.Object).Item1", RefKind.Ref, new string[0] { });
+            VerifyFieldSymbol(tupleType.GetField("Item2"), "ref modopt(System.Object) modopt(System.SByte) System.Object (System.Int32, System.Object).Item2", RefKind.Ref, new[] { "System.Object", "System.SByte" });
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        public void EmbeddedField()
+        {
+            var sourceA =
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly A
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = {string('_.dll')}
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = {string('EE8A431D-7D0C-4E13-80C7-52B9C93B9B76')}
+}
+.class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public int32& modopt(object) modopt(int32) F
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, embedInteropTypes: true);
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        F(new S());
+    }
+    static void F(object o)
+    {
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA, CSharpRef });
+            var refB = comp.EmitToImageReference();
+
+            comp = CreateCompilation("", new[] { refB });
+            var module = (PEModuleSymbol)comp.GetReferencedAssemblySymbol(refB).Modules[0];
+            // Read from metadata directly to inspect the embedded type.
+            var decoder = new MetadataDecoder(module);
+            var reader = module.Module.MetadataReader;
+            var fieldHandle = reader.FieldDefinitions.Single(handle => reader.GetString(reader.GetFieldDefinition(handle).Name) == "F");
+            var fieldInfo = decoder.DecodeFieldSignature(fieldHandle);
+            Assert.True(fieldInfo.IsByRef);
+            Assert.Equal(new[] { "System.Int32", "System.Object" }, fieldInfo.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
+        }
+
+        private static void VerifyFieldSymbol(FieldSymbol field, string expectedDisplayString, RefKind expectedRefKind, string[] expectedRefCustomModifiers)
+        {
+            Assert.Equal(expectedRefKind, field.RefKind);
+            Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
+            Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
         }
 
         [Fact]
@@ -677,7 +747,7 @@ class Program
             var source =
 @"ref struct S<T>
 {
-    public ref readonly T F;
+    public readonly ref readonly T F;
     public S(T tValue, ref T tRef, out T tOut, in T tIn)
     {
         tOut = default;
@@ -748,6 +818,18 @@ class Program
                 // (25,13): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //             F = GetRefReadonly();
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(25, 13),
+                // (37,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tValue;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(37, 9),
+                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tRef;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(38, 9),
+                // (39,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tOut;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(39, 9),
+                // (40,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         s.F =  ref tIn;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.F").WithLocation(40, 9),
                 // (41,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         s.F =  tValue;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(41, 9),
@@ -796,9 +878,6 @@ class Program
                 // (9,39): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
                 //     static ref T F3<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(9, 39),
-                // (12,42): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
-                //     static ref T F6<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
                 //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
@@ -886,9 +965,6 @@ class Program
                 // (9,39): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
                 //     static ref T F3<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(9, 39),
-                // (12,42): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
-                //     static ref T F6<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(12, 42),
                 // (13,48): error CS8167: Cannot return by reference a member of parameter 's' because it is not a ref or out parameter
                 //     static ref readonly T F7<T>(S<T> s) => ref s.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "s").WithArguments("s").WithLocation(13, 48));
@@ -1238,15 +1314,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,9): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //         s.F1 = t;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s.F1").WithArguments("variable", "in S<T>").WithLocation(12, 9),
                 // (13,9): error CS8331: Cannot assign to field 'S<T>.F2' because it is a readonly variable
                 //         s.F2 = t;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 9),
-                // (14,9): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //         s.F3 = t;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "s.F3").WithArguments("variable", "in S<T>").WithLocation(14, 9),
                 // (15,9): error CS8331: Cannot assign to field 'S<T>.F4' because it is a readonly variable
                 //         s.F4 = t;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 9));
@@ -1282,15 +1352,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,24): error CS8330: Members of variable 'in S<T>' cannot be used as a ref or out value because it is a readonly variable
-                //         ref T t1 = ref s1.F1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "s1.F1").WithArguments("variable", "in S<T>").WithLocation(12, 24),
                 // (13,24): error CS8329: Cannot use field 'S<T>.F2' as a ref or out value because it is a readonly variable
                 //         ref T t2 = ref s1.F2;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F2").WithArguments("field", "S<T>.F2").WithLocation(13, 24),
-                // (14,24): error CS8330: Members of variable 'in S<T>' cannot be used as a ref or out value because it is a readonly variable
-                //         ref T t3 = ref s1.F3;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "s1.F3").WithArguments("variable", "in S<T>").WithLocation(14, 24),
                 // (15,24): error CS8329: Cannot use field 'S<T>.F4' as a ref or out value because it is a readonly variable
                 //         ref T t4 = ref s1.F4;
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s1.F4").WithArguments("field", "S<T>.F4").WithLocation(15, 24));
@@ -1436,9 +1500,9 @@ class Program
     {
         return r2.R1.F;
     }
-    static T ReadIn<T>(in R2<T> r2)
+    static T ReadIn<T>(in R2<T> r2In)
     {
-        return r2.R1.F;
+        return r2In.R1.F;
     }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
@@ -1448,14 +1512,13 @@ class Program
 "));
             verifier.VerifyIL("Program.Read<T>",
 @"{
-  // Code size       22 (0x16)
+  // Code size       18 (0x12)
   .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""ref R1<T> R2<T>.R1""
-  IL_0006:  ldobj      ""R1<T>""
-  IL_000b:  ldfld      ""ref T R1<T>.F""
-  IL_0010:  ldobj      ""T""
-  IL_0015:  ret
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldfld      ""ref R1<T> R2<T>.R1""
+  IL_0007:  ldfld      ""ref T R1<T>.F""
+  IL_000c:  ldobj      ""T""
+  IL_0011:  ret
 }");
             verifier.VerifyIL("Program.ReadIn<T>",
 @"{
@@ -1693,11 +1756,17 @@ class Program
     static ref T RefReturn<T>(in S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (17,49): error CS8334: Members of variable 'in S<T>' cannot be returned by writable reference because it is a readonly variable
-                //     static ref T RefReturn<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "s.F").WithArguments("variable", "in S<T>").WithLocation(17, 49));
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
+            var expectedIL =
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ret
+}";
+            verifier.VerifyIL("Program.RefReturn<T>", expectedIL);
+            verifier.VerifyIL("Program.RefReadonlyReturn<T>", expectedIL);
         }
 
         [Fact]

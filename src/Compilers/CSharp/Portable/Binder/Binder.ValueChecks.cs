@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefKind.None:
                         break;
                     case RefKind.Ref:
-                        return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+                        return true;
                     case RefKind.RefReadOnly:
                         ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
                         return false;

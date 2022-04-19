@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override RefKind RefKind => RefKind.None;
+        public sealed override RefKind RefKind => _underlyingField.RefKind;
 
-        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => _underlyingField.RefCustomModifiers;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {

@@ -1180,7 +1180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)receiver;
-                    if (fieldAccess.FieldSymbol.IsStatic)
+                    var field = fieldAccess.FieldSymbol;
+
+                    if (field.IsStatic || field.RefKind != RefKind.None)
                     {
                         return true;
                     }

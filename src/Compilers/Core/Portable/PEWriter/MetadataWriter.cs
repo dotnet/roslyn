@@ -3336,13 +3336,17 @@ namespace Microsoft.Cci
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
         {
+            Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
+
             var typeEncoder = new BlobEncoder(builder).FieldSignature();
+            SerializeCustomModifiers(typeEncoder.CustomModifiers(), fieldReference.RefCustomModifiers);
+
             // PROTOTYPE: Add 'bool isByRef' parameter to BlobEncoder.FieldSignature().
-            // PROTOTYPE: What about RefCustomModifiers?
             if (fieldReference.IsByReference)
             {
                 typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
             }
+
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
