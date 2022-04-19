@@ -17,14 +17,10 @@ namespace Microsoft.CodeAnalysis.Notification
     [ExportWorkspaceService(typeof(IGlobalOperationNotificationService)), Shared]
     internal partial class GlobalOperationNotificationService : IGlobalOperationNotificationService
     {
-        private const string GlobalOperationStarted = nameof(GlobalOperationStarted);
-        private const string GlobalOperationStopped = nameof(GlobalOperationStopped);
-
         private readonly object _gate = new();
 
         private readonly HashSet<IDisposable> _registrations = new();
         private readonly HashSet<string> _operations = new();
-        private readonly EventMap _eventMap = new();
 
         private readonly TaskQueue _eventQueue;
 
@@ -35,34 +31,21 @@ namespace Microsoft.CodeAnalysis.Notification
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
         }
 
-        public event EventHandler Started
-        {
-            // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-            // that one.
-            add => _eventMap.AddEventHandler(GlobalOperationStarted, value);
-            remove => _eventMap.RemoveEventHandler(GlobalOperationStarted, value);
-        }
-
-        public event EventHandler Stopped
-        {
-            // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-            // that one.
-            add => _eventMap.AddEventHandler(GlobalOperationStopped, value);
-            remove => _eventMap.RemoveEventHandler(GlobalOperationStopped, value);
-        }
+        public event EventHandler? Started;
+        public event EventHandler? Stopped;
 
         private void RaiseGlobalOperationStarted()
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStarted);
-            if (ev.HasHandlers)
-                _eventQueue.ScheduleTask(GlobalOperationStarted, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+            var started = this.Started;
+            if (started != null)
+                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStarted), () => this.Started?.Invoke(this, EventArgs.Empty), CancellationToken.None);
         }
 
         private void RaiseGlobalOperationStopped()
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStopped);
-            if (ev.HasHandlers)
-                _eventQueue.ScheduleTask(GlobalOperationStopped, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+            var stopped = this.Stopped;
+            if (stopped != null)
+                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
         }
 
         public IGlobalOperationRegistration Start(string operation)
