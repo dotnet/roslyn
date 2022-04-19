@@ -3155,28 +3155,8 @@ class C {
             EOF();
         }
 
-        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
         [Fact]
         public void KeywordParameterName_05()
-        {
-            string source = "int !! =>";
-            UsingExpression(source,
-                // (1,1): error CS1041: Identifier expected; 'int' is a keyword
-                // int =>
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 1),
-                // (1,7): error CS1733: Expected expression
-                // int =>
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 7));
-
-            M(SyntaxKind.IdentifierName);
-            {
-                M(SyntaxKind.IdentifierToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void KeywordParameterName_06()
         {
             string source = "static => { }";
             UsingExpression(source,
@@ -3202,7 +3182,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_07()
+        public void KeywordParameterName_06()
         {
             string source = "static int => { }";
             UsingExpression(source,
@@ -3221,7 +3201,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_08()
+        public void KeywordParameterName_07()
         {
             string source = "f = [A] int => { }";
             UsingExpression(source,
@@ -3263,7 +3243,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_09()
+        public void KeywordParameterName_08()
         {
             string source = "var => { }";
             UsingExpression(source);
@@ -3285,7 +3265,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_10()
+        public void KeywordParameterName_09()
         {
             string source = "async => { }";
             UsingExpression(source);
