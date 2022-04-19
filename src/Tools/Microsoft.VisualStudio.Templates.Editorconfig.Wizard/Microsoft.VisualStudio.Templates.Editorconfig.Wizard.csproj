@@ -8,31 +8,13 @@
 
   <!-- Package References -->
   <ItemGroup>
-    <PackageReference Include="EnvDTE" />
-    <PackageReference Include="EnvDTE80" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI" />
-    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
     <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="VSLangProj" />
     <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
     <PackageReference Include="StreamJsonRpc" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WizardResource.Designer.cs">
