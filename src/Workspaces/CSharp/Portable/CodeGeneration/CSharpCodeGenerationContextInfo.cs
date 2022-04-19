@@ -10,27 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal sealed class CSharpCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        private readonly CSharpCodeGenerationOptions _options;
+        public readonly LanguageVersion LanguageVersion;
 
-        public CSharpCodeGenerationContextInfo(CodeGenerationContext Context, CSharpCodeGenerationOptions Options)
-            : base(Context)
+        public CSharpCodeGenerationContextInfo(CodeGenerationContext context, CSharpCodeGenerationOptions options, LanguageVersion languageVersion)
+            : base(context)
         {
-            _options = Options;
+            Options = options;
+            LanguageVersion = languageVersion;
         }
 
-        public new CSharpCodeGenerationOptions Options
-            => _options;
+        public new CSharpCodeGenerationOptions Options { get; }
 
         protected override CodeGenerationOptions OptionsImpl
-            => _options;
+            => Options;
 
         public new CSharpCodeGenerationContextInfo WithContext(CodeGenerationContext value)
-            => (Context == value) ? this : new(value, Options);
+            => (Context == value) ? this : new(value, Options, LanguageVersion);
 
         protected override CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value)
             => WithContext(value);
-
-        public static new async ValueTask<CSharpCodeGenerationContextInfo> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
-            => new(context, await CSharpCodeGenerationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
     }
 }

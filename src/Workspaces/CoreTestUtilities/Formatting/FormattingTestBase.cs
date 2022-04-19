@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
                 }
 
                 var root = await syntaxTree.GetRootAsync();
-                var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, fallbackOptions: null, root.Language);
+                var options = SyntaxFormattingOptions.Create(optionSet, fallbackOptions: null, document.Project.LanguageServices);
 
                 await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), options, await document.GetTextAsync());
 

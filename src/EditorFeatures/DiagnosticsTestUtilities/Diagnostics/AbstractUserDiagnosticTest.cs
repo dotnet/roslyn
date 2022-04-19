@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                                      .ToImmutableArray();
 
             var fixes = new List<CodeFix>();
+            var fallbackOptions = options?.CreateProvider() ?? CodeActionOptions.DefaultProvider;
 
             foreach (var diagnostic in intersectingDiagnostics)
             {
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    _ => options,
+                    fallbackOptions,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var fixAllState = GetFixAllState(
                 fixAllProvider, diagnostics, fixer, testDriver, document,
-                scope.Value, equivalenceKey, _ => options);
+                scope.Value, equivalenceKey, fallbackOptions);
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
             var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
+            CodeActionOptions codeActionOptions = null,
             IdeAnalyzerOptions ideAnalyzerOptions = null,
             object fixProviderData = null)
         {

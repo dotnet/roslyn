@@ -97,8 +97,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, OptionSet options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var cleanupService = services.GetLanguageServices(root.Language).GetRequiredService<ICodeCleanerService>();
-            var formattingOptions = SyntaxFormattingOptions.Create(options, services, fallbackOptions: null, root.Language);
+            var languageServices = services.GetLanguageServices(root.Language);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, fallbackOptions: null, languageServices);
+
+            var cleanupService = languageServices.GetRequiredService<ICodeCleanerService>();
             return cleanupService.CleanupAsync(root, spans, formattingOptions, services, providers, cancellationToken);
         }
     }

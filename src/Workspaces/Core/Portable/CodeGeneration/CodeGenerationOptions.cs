@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Context = context;
         }
 
-        public static async ValueTask<CodeGenerationContextInfo> FromDocumentAsync(CodeGenerationContext context, Document document, CancellationToken cancellationToken)
-        {
-            var preferences = await CodeGenerationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return preferences.GetInfo(context);
-        }
-
         public CodeGenerationContextInfo WithContext(CodeGenerationContext value)
             => WithContextImpl(value);
 

@@ -34,12 +34,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateEqualsAndGetHashCodeAction(
                 Document document,
                 SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool generateEquals,
                 bool generateGetHashCode,
                 bool implementIEquatable,
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
+                _fallbackOptions = fallbackOptions;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
                 _implementIEquatable = implementIEquatable;
@@ -85,11 +88,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
 
-                // fallback options: https://github.com/dotnet/roslyn/issues/60794
-                var codeGenOptions = await CodeGenerationContextInfo.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
-                var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var codeGenOptions = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, codeGenOptions, cancellationToken);
+                var info = codeGenOptions.GetInfo(CodeGenerationContext.Default, _document.Project);
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {

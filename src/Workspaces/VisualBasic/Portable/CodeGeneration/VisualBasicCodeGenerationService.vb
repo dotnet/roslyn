@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -25,8 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
         End Sub
 
-        Public Overrides Function GetPreferences(parseOptions As ParseOptions, documentOptions As OptionSet) As CodeGenerationOptions
-            Return VisualBasicCodeGenerationOptions.Create(documentOptions)
+        Public Overrides ReadOnly Property DefaultOptions As CodeGenerationOptions
+            Get
+                Return VisualBasicCodeGenerationOptions.Default
+            End Get
+        End Property
+
+        Public Overrides Function GetCodeGenerationOptions(options As AnalyzerConfigOptions, fallbackOptions As CodeGenerationOptions) As CodeGenerationOptions
+            Return VisualBasicCodeGenerationOptions.Default
         End Function
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination

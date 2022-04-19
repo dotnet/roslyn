@@ -32,11 +32,12 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Options;
 
-#if CODE_STYLE
 using System.Diagnostics;
 using System.IO;
-#else
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 #endif
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public sealed class TestParameters
         {
-            internal readonly CodeActionOptions codeActionOptions;
+            internal readonly CodeActionOptions? codeActionOptions;
             internal readonly IdeAnalyzerOptions ideAnalyzerOptions;
             internal readonly OptionsCollection options;
             internal readonly TestHost testHost;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ParseOptions parseOptions = null,
                 CompilationOptions compilationOptions = null,
                 OptionsCollection options = null,
-                CodeActionOptions? codeActionOptions = null,
+                CodeActionOptions codeActionOptions = null,
                 IdeAnalyzerOptions ideAnalyzerOptions = null,
                 object fixProviderData = null,
                 int index = 0,
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
                 this.options = options;
-                this.codeActionOptions = codeActionOptions ?? CodeActionOptions.Default;
+                this.codeActionOptions = codeActionOptions;
                 this.ideAnalyzerOptions = ideAnalyzerOptions ?? IdeAnalyzerOptions.CodeStyleDefault;
                 this.fixProviderData = fixProviderData;
                 this.index = index;
@@ -180,7 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             // to apply the options as workspace options are not available in CodeStyle layer.
             // Otherwise, we apply the options directly to the workspace.
 
-#if CODE_STYLE
             // We need to ensure that our projects/documents are rooted for
             // execution from CodeStyle layer as we will be adding a rooted .editorconfig to each project
             // to apply the options.
@@ -189,7 +189,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 MakeProjectsAndDocumentsRooted(workspace);
                 AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
             }
-#else
+
+#if !CODE_STYLE
             workspace.ApplyOptions(parameters.options);
 #endif
             // we need to set global options since the tests are going thru incremental diagnostic analyzer that reads them from there:
@@ -197,7 +198,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return workspace;
         }
 
-#if CODE_STYLE
         private static void MakeProjectsAndDocumentsRooted(TestWorkspace workspace)
         {
             const string defaultRootFilePath = @"z:\";
@@ -269,7 +269,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return textBuilder.ToString();
             }
         }
-#endif
 
         private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
+            CodeActionOptions codeActionOptions = null,
             IdeAnalyzerOptions ideAnalyzerOptions = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
@@ -429,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             int index = 0,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
+            CodeActionOptions codeActionOptions = null,
             IdeAnalyzerOptions ideAnalyzerOptions = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null,

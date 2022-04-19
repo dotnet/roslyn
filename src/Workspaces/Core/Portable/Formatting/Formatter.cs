@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
-            var formattingOptions = SyntaxFormattingOptions.Create(options, services, fallbackOptions: null, document.Project.Language);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, fallbackOptions: null, document.Project.LanguageServices);
             return await formattingService.FormatAsync(document, spans, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
@@ -250,7 +249,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
+            var languageServices = workspace.Services.GetLanguageServices(node.Language);
+            var languageFormatter = languageServices.GetService<ISyntaxFormattingService>();
             if (languageFormatter == null)
             {
                 return null;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             options ??= workspace.Options;
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            var formattingOptions = SyntaxFormattingOptions.Create(options, workspace.Services, fallbackOptions: null, node.Language);
+            var formattingOptions = SyntaxFormattingOptions.Create(options, fallbackOptions: null, languageServices);
             return languageFormatter.GetFormattingResult(node, spans, formattingOptions, rules, cancellationToken);
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static async Task<SyntaxFormattingOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             return (optionSet != null) ?
-                SyntaxFormattingOptions.Create(optionSet, document.Project.Solution.Workspace.Services, fallbackOptions: null, document.Project.Language) :
+                SyntaxFormattingOptions.Create(optionSet, fallbackOptions: null, document.Project.LanguageServices) :
                 await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         }
 

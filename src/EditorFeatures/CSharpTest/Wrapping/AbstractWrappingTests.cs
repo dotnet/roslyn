@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             => FlattenActions(actions);
 
         private protected static CodeActionOptions GetIndentionColumn(int column)
-            => new(SymbolSearchOptions.Default,
-                   ImplementTypeOptions.Default,
-                   ExtractMethodOptions.Default,
-                   WrappingColumn: column);
+            => new(WrappingColumn: column);
 
         protected Task TestAllWrappingCasesAsync(
             string input,

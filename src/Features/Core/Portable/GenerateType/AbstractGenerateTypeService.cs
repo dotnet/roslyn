@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var actions = GetActions(semanticDocument, node, state, cancellationToken);
+                    var actions = GetActions(semanticDocument, node, state, fallbackOptions, cancellationToken);
                     if (actions.Length > 1)
                     {
                         // Wrap the generate type actions into a single top level suggestion
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
-                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));
                 }
 
                 // If they just are generating "Goo" then we want to offer to generate it into the
@@ -126,15 +128,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if ((isSimpleName || generateIntoContaining) &&
                     CanGenerateIntoContainingNamespace(document, node, cancellationToken))
                 {
-                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: false));
                 }
             }
 
             if (state.TypeToGenerateInOpt != null)
-                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
+                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: false, inNewFile: false));
 
             if (generateNewTypeInDialog)
-                result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
+                result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state, fallbackOptions));
 
             return result.ToImmutable();
         }

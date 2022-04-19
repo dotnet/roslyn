@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ImplementType
@@ -12,6 +14,10 @@ namespace Microsoft.CodeAnalysis.ImplementType
           => new(
               InsertionBehavior: globalOptions.GetOption(InsertionBehavior, language),
               PropertyGenerationBehavior: globalOptions.GetOption(PropertyGenerationBehavior, language));
+
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+          => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
+                 globalOptions.CreateProvider());
 
         private const string FeatureName = "ImplementTypeOptions";
 

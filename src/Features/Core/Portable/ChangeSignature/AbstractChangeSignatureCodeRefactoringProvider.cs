@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (span.IsEmpty)
             {
                 var service = document.GetLanguageService<AbstractChangeSignatureService>();
-                var actions = await service.GetChangeSignatureCodeActionAsync(document, span, CodeCleanupOptions.CreateProvider(context.Options), cancellationToken).ConfigureAwait(false);
+                var actions = await service.GetChangeSignatureCodeActionAsync(document, span, context.Options, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(actions);
             }
         }

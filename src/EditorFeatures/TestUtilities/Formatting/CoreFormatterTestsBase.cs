@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             }
 
             var root = await syntaxTree.GetRootAsync();
-            var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, fallbackOptions: null, root.Language);
+            var options = SyntaxFormattingOptions.Create(optionSet, fallbackOptions: null, document.Project.LanguageServices);
 
             document = workspace.CurrentSolution.GetDocument(syntaxTree);
             var rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document));
