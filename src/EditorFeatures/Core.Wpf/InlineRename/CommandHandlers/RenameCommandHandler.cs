@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Windows;
 
 #if !COCOA
 using System.Linq;
@@ -41,39 +43,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
 #if !COCOA
-        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetDashboard(textView) is { } dashboard && dashboard.ShouldReceiveKeyboardNavigation;
+        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
+            => GetAdornment(textView) is Dashboard dashboard
+            ? dashboard.ShouldReceiveKeyboardNavigation
+            : true; // Always receive keyboard navigation for the inline adornment
 
         protected override void SetFocusToTextView(ITextView textView)
         {
             (textView as IWpfTextView)?.VisualElement.Focus();
         }
 
-        protected override void SetFocusToDashboard(ITextView textView)
+        protected override void SetFocusToAdornment(ITextView textView)
         {
-            if (GetDashboard(textView) is { } dashboard)
+            if (GetAdornment(textView) is UIElement adornment)
             {
-                dashboard.Focus();
+                adornment.Focus();
             }
         }
 
-        protected override void SetDashboardFocusToNextElement(ITextView textView)
+        protected override void SetAdornmentFocusToNextElement(ITextView textView)
         {
-            if (GetDashboard(textView) is { } dashboard)
-            {
-                dashboard.FocusNextElement();
-            }
-        }
-
-        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
-        {
-            if (GetDashboard(textView) is { } dashboard)
+            if (GetAdornment(textView) is Dashboard dashboard)
             {
                 dashboard.FocusNextElement();
             }
         }
 
-        private static Dashboard? GetDashboard(ITextView textView)
+        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
+        {
+            if (GetAdornment(textView) is Dashboard dashboard)
+            {
+                dashboard.FocusNextElement();
+            }
+        }
+
+        private static UIElement? GetAdornment(ITextView textView)
         {
             // If our adornment layer somehow didn't get composed, GetAdornmentLayer will throw.
             // Don't crash if that happens.
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var adornment = ((IWpfTextView)textView).GetAdornmentLayer("RoslynRenameDashboard");
                 return adornment.Elements.Any()
-                    ? adornment.Elements[0].Adornment as Dashboard
+                    ? adornment.Elements[0].Adornment
                     : null;
             }
             catch (ArgumentOutOfRangeException)
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 #else
-        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
+        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => false;
 
         protected override void SetFocusToTextView(ITextView textView)
@@ -132,17 +136,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // No action taken for Cocoa
         }
 
-        protected override void SetFocusToDashboard(ITextView textView)
+        protected override void SetFocusToAdornment(ITextView textView)
         {
             // No action taken for Cocoa
         }
 
-        protected override void SetDashboardFocusToNextElement(ITextView textView)
+        protected override void SetAdornmentFocusToNextElement(ITextView textView)
         {
             // No action taken for Cocoa
         }
 
-        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
+        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
         {
             // No action taken for Cocoa
         }

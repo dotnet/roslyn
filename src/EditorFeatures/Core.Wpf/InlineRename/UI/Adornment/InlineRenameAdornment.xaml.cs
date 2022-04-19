@@ -29,8 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             _textView.LostAggregateFocus += TextView_LostFocus;
             _textView.Caret.PositionChanged += TextView_CursorChanged;
 
-            // On initialization focus the first tab target
-            Initialized += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            // On load focus the first tab target
+            Loaded += (s, e) =>
+            {
+                Focus();
+                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            };
 
             InitializeComponent();
             PositionAdornment();
