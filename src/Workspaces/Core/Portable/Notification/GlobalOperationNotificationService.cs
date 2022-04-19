@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Notification
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
+        public GlobalOperationNotificationService(IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _eventQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
         }
 
         public event EventHandler Started
