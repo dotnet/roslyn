@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // If we're not paused, and enough time has elapsed, then we're done.  Otherwise, ensure we wait at
                 // least s_minimumDelay and check again in the future.
                 var diff = _timeSinceLastAccess.Elapsed;
-                if (!Paused && diff >= BackOffTimeSpan)
+                if (!ShouldWaitForIdle())
                     return;
 
                 var timeLeft = BackOffTimeSpan - diff;
@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
             }
+        }
+
+        protected bool ShouldWaitForIdle()
+        {
+            var diff = _timeSinceLastAccess.Elapsed;
+            return Paused || diff < BackOffTimeSpan;
         }
 
         private async Task ProcessAsync()

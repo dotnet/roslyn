@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // we wait for global operation and higher queue operation if there is anything going on
                                 await HigherQueueOperationTask.ConfigureAwait(false);
 
-                                // if there are no more work left for higher queue, and we are not paused. Then it is
-                                // our time to go ahead
-                                if (!Paused && !HigherQueueHasWorkItem)
+                                // if there are no more work left for higher queue, and we didn't enter a state where we
+                                // should wait for idle again, then our time to go ahead.
+                                if (!HigherQueueHasWorkItem && !ShouldWaitForIdle())
                                     return;
 
                                 // back off and wait for next time slot or for us to become unpaused.
