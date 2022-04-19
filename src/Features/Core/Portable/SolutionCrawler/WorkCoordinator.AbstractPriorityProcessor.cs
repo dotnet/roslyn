@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
+                    protected override void OnPaused()
                         => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
 
                                 // we wait for global operation and higher queue operation if there is anything going on
-                                if (!GlobalOperationTask.IsCompleted || !HigherQueueOperationTask.IsCompleted)
-                                {
-                                    await Task.WhenAll(GlobalOperationTask, HigherQueueOperationTask).ConfigureAwait(false);
-                                }
+                                await HigherQueueOperationTask.ConfigureAwait(false);
 
                                 // if there are no more work left for higher queue, then it is our time to go ahead
                                 if (!HigherQueueHasWorkItem)

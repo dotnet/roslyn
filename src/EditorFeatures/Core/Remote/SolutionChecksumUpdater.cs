@@ -62,14 +62,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 _currentToken = null;
             }
 
-            // wait for global operation to finish
-            await GlobalOperationTask.ConfigureAwait(false);
-
             // update primary solution in remote host
             await SynchronizePrimaryWorkspaceAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
         }
 
-        protected override void PauseOnGlobalOperation()
+        protected override void OnPaused()
         {
             var previousCancellationSource = _globalOperationCancellationSource;
 
