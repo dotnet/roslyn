@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
             var lspSnippetService = allChangesDocument.GetRequiredLanguageService<ConvertToLSPSnippetService>();
             var lspSnippet = lspSnippetService.GenerateLSPSnippet(change, snippet.Placeholders);
-            return CompletionChange.CreateSpecialLSPSnippetChange(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true, lspSnippet);
+            return CompletionChange.Create(change, allTextChanges.AsImmutable(), lspSnippet, newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;

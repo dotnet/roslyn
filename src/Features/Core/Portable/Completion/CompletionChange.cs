@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter);
         }
 
-        internal static CompletionChange CreateSpecialLSPSnippetChange(
+        internal static CompletionChange Create(
             TextChange textChange,
             ImmutableArray<TextChange> textChanges,
+            string? lspSnippet,
             int? newPosition = null,
-            bool includesCommitCharacter = false,
-            string? lspSnippet = null)
+            bool includesCommitCharacter = false)
         {
             return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter, lspSnippet);
         }

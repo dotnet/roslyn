@@ -33,7 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
 
             var expectedLSPSnippet =
-@"Console.WriteLine($0);";
+@"using System;
+
+class Program
+{
+    public void Method()
+    {
+        Console.WriteLine($0);";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, FeaturesResources.Write_to_the_console, expectedLSPSnippet);
         }
@@ -51,9 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
 
             var expectedLSPSnippet =
-@"if ({1:true}) 
-{$0
-};";
+@"if (${1:true})
+        {$0
+        }";
+
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, FeaturesResources.Insert_an_if_statement, expectedLSPSnippet);
         }
     }

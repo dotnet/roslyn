@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
     [UseExportProvider]
     public abstract class AbstractCSharpLSPSnippetTests : AbstractCSharpCompletionProviderTests
     {
-        protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, string expectedLSPSnippet, int position, string itemToCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
+        protected override async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedLSPSnippet, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
             var workspace = workspaceFixture.Target.GetWorkspace();
@@ -26,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
             workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
 
             var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
-            await VerifyCustomCommitProviderLSPSnippetAsync(document1, expectedLSPSnippet, position, itemToCommit, commitChar);
+            await VerifyCustomCommitProviderLSPSnippetAsync(document1, position, itemToCommit, expectedLSPSnippet, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
-                await VerifyCustomCommitProviderLSPSnippetAsync(document2, expectedLSPSnippet, position, itemToCommit, commitChar);
+                await VerifyCustomCommitProviderLSPSnippetAsync(document2, position, itemToCommit, expectedLSPSnippet, commitChar);
             }
         }
 
-        private async Task VerifyCustomCommitProviderLSPSnippetAsync(Document document, string expectedLSPSnippet, int position, string itemToCommit, char? commitChar = null)
+        private async Task VerifyCustomCommitProviderLSPSnippetAsync(Document document, int position, string itemToCommit, string expectedLSPSnippet, char? commitChar = null)
         {
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
