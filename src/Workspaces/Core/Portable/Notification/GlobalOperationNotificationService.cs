@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Notification
     [ExportWorkspaceService(typeof(IGlobalOperationNotificationService)), Shared]
     internal partial class GlobalOperationNotificationService : IGlobalOperationNotificationService
     {
-        private const string GlobalOperationStartedEventName = "GlobalOperationStarted";
-        private const string GlobalOperationStoppedEventName = "GlobalOperationStopped";
+        private const string GlobalOperationStarted = nameof(GlobalOperationStarted);
+        private const string GlobalOperationStopped = nameof(GlobalOperationStopped);
 
         private readonly object _gate = new();
 
@@ -37,46 +37,32 @@ namespace Microsoft.CodeAnalysis.Notification
 
         public event EventHandler Started
         {
-            add
-            {
-                // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-                // that one.
-                _eventMap.AddEventHandler(GlobalOperationStartedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(GlobalOperationStartedEventName, value);
-            }
+            // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
+            // that one.
+            add => _eventMap.AddEventHandler(GlobalOperationStarted, value);
+            remove => _eventMap.RemoveEventHandler(GlobalOperationStarted, value);
         }
 
         public event EventHandler Stopped
         {
-            add
-            {
-                // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-                // that one.
-                _eventMap.AddEventHandler(GlobalOperationStoppedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(GlobalOperationStoppedEventName, value);
-            }
+            // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
+            // that one.
+            add => _eventMap.AddEventHandler(GlobalOperationStopped, value);
+            remove => _eventMap.RemoveEventHandler(GlobalOperationStopped, value);
         }
 
         private void RaiseGlobalOperationStarted()
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStarted);
             if (ev.HasHandlers)
-                _eventQueue.ScheduleTask(GlobalOperationStartedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+                _eventQueue.ScheduleTask(GlobalOperationStarted, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
         }
 
         private void RaiseGlobalOperationStopped()
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStoppedEventName);
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStopped);
             if (ev.HasHandlers)
-                _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+                _eventQueue.ScheduleTask(GlobalOperationStopped, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
         }
 
         public IGlobalOperationRegistration Start(string operation)
