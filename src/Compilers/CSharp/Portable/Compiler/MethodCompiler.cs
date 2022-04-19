@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var members = containingType.GetMembers();
+            var members = containingType.GetMembersUnordered();
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
