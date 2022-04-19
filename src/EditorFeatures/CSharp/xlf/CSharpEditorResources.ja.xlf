@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
-        <target state="new">Grow raw string</target>
+        <target state="translated">生文字列の拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
-        <target state="new">Split raw string</target>
+        <target state="translated">生文字列の分割</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

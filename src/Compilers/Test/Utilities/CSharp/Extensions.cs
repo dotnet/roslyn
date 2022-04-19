@@ -847,7 +847,7 @@ internal static class Extensions
     public static Conversion ClassifyConversionFromType(this ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
-        Conversion result = conversions.ClassifyConversionFromType(source, destination, ref useSiteInfo, forCast);
+        Conversion result = conversions.ClassifyConversionFromType(source, destination, isChecked: false, ref useSiteInfo, forCast);
         AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
         return result;
     }
@@ -867,10 +867,10 @@ internal static class Extensions
         }
     }
 
-    public static Conversion ClassifyConversionFromExpression(this ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
+    public static Conversion ClassifyConversionFromExpression(this Conversions conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
-        Conversion result = conversions.ClassifyConversionFromExpression(sourceExpression, destination, ref useSiteInfo, forCast);
+        Conversion result = conversions.ClassifyConversionFromExpression(sourceExpression, destination, isChecked: false, ref useSiteInfo, forCast);
         AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
         return result;
     }

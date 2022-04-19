@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -31,7 +32,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
+    internal sealed class CommitManager : IAsyncCompletionCommitManager
     {
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new(isHandled: false, AsyncCompletionData.CommitBehavior.None);
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
         private readonly object _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
@@ -57,10 +59,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext, object languageServerSnippetExpander)
-            : base(threadingContext)
+        internal CommitManager(
+            ITextView textView,
+            RecentItemsManager recentItemsManager,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext,
+            bool languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
             _languageServerSnippetExpander = languageServerSnippetExpander;
@@ -96,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -189,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             string filterText,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             bool includesCommitCharacter;
             if (!subjectBuffer.CheckEditAccess())

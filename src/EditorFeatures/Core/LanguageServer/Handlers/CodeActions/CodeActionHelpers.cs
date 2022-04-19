@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionParams request,
             CodeActionsCache codeActionsCache,
             Document document,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             CodeActionsCache codeActionsCache,
             Document document,
             LSP.Range selection,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             CancellationToken cancellationToken)
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             Document document,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,

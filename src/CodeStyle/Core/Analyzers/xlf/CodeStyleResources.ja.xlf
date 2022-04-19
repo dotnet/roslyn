@@ -27,16 +27,6 @@
         <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">エラー</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">書式設定を修正</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">インデントと間隔</target>
@@ -47,24 +37,9 @@
         <target state="translated">改行設定</target>
         <note />
       </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">なし</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">リファクタリングのみ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">ストリームが長すぎます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">提案事項</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
@@ -75,11 +50,6 @@
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">値が大きすぎるため、30 ビットの符号なし整数として表すことができません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">警告</target>
         <note />
       </trans-unit>
     </body>

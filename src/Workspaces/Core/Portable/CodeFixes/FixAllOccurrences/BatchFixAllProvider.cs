@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
+        public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
+                FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
                 FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
@@ -50,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // done with it.  The only information we need to preserve is the data we store in docIdToTextMerger
             foreach (var fixAllContext in fixAllContexts)
             {
-                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
+                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or
+                    FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
                 await FixSingleContextAsync(fixAllContext, progressTracker, docIdToTextMerger).ConfigureAwait(false);
             }
 
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = fixAllContext.State.CodeActionOptionsProvider(document.Project.Language) with { IsBlocking = false };
+                var options = new CodeActionOptionsProvider(language => fixAllContext.State.CodeActionOptionsProvider(language) with { IsBlocking = false });
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>

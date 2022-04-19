@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
             ClassificationType type,
@@ -29,9 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 

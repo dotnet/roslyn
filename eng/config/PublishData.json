@@ -229,20 +229,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.2.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.2.*",
+      "version": "4.3.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",

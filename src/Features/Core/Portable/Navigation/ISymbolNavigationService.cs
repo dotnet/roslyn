@@ -18,10 +18,8 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="project">A project context with which to generate source for symbol
         /// if it has no source locations</param>
         /// <param name="symbol">The symbol to navigate to</param>
-        /// <param name="options">A set of options. If these options are not supplied the
-        /// current set of options from the project's workspace will be used.</param>
         /// <param name="cancellationToken">The token to check for cancellation</param>
-        Task<bool> TryNavigateToSymbolAsync(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetNavigableLocationAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>

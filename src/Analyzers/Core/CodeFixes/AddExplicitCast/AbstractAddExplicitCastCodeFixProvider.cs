@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     {
         /// <summary>
         /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix,
-        /// but logs telemetry 
+        /// but logs telemetry
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected abstract CommonConversion ClassifyConversion(SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
         /// <summary>
-        /// Output the current type information of the target node and the conversion type(s) that the target node is 
+        /// Output the current type information of the target node and the conversion type(s) that the target node is
         /// going to be cast by.
         /// Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation, Attribute
         /// <para/>
         /// For example:
-        /// Base b; Derived d = [||]b;       
+        /// Base b; Derived d = [||]b;
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by
         /// is {Derived}
         /// </summary>
@@ -79,10 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             if (potentialConversionTypes.Length == 1)
             {
-                context.RegisterCodeFix(new MyCodeAction(
-                    CodeFixesResources.Add_explicit_cast,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, CodeFixesResources.Add_explicit_cast, nameof(CodeFixesResources.Add_explicit_cast));
                 return;
             }
 
@@ -93,14 +90,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             {
                 var targetNode = potentialConversionTypes[i].node;
                 var conversionType = potentialConversionTypes[i].type;
-                actions.Add(new MyCodeAction(
-                    GetSubItemName(semanticModel, targetNode.SpanStart, conversionType),
-                    _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType)))));
+                var title = GetSubItemName(semanticModel, targetNode.SpanStart, conversionType);
+
+                actions.Add(CodeAction.Create(title, _ => Task.FromResult(document.WithSyntaxRoot(ApplyFix(root, targetNode, conversionType))), title));
             }
 
-            context.RegisterCodeFix(CodeAction.Create(
-                CodeFixesResources.Add_explicit_cast,
-                actions.ToImmutable(), isInlinable: false),
+            context.RegisterCodeFix(
+                CodeAction.Create(CodeFixesResources.Add_explicit_cast, actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);
         }
 
@@ -153,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var spanNodes = diagnostics.SelectAsArray(
@@ -176,14 +172,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     return currentRoot;
                 },
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
         }
     }
 }

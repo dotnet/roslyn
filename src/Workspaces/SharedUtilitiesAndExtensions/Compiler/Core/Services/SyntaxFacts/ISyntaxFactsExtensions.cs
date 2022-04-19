@@ -464,25 +464,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         /// <summary>
-        /// Gets the statement container node for the statement <paramref name="node"/>.
-        /// </summary>
-        /// <param name="syntaxFacts">The <see cref="ISyntaxFacts"/> implementation.</param>
-        /// <param name="node">The statement.</param>
-        /// <returns>The statement container for <paramref name="node"/>.</returns>
-        public static SyntaxNode? GetStatementContainer(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            for (var current = node; current is object; current = current.Parent)
-            {
-                if (syntaxFacts.IsStatementContainer(current.Parent))
-                {
-                    return current.Parent;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Similar to <see cref="ISyntaxFacts.GetStandaloneExpression(SyntaxNode)"/>, this gets the containing
         /// expression that is actually a language expression and not just typed as an ExpressionSyntax for convenience.
         /// However, this goes beyond that that method in that if this expression is the RHS of a conditional access
