@@ -65,11 +65,10 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private Task RaiseGlobalOperationStoppedAsync(ImmutableArray<string> operations)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStoppedEventName);
             if (ev.HasHandlers)
             {
-                var args = new GlobalOperationEventArgs(operations);
-                return _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
+                return _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
             }
 
             return Task.CompletedTask;
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
-        public override event EventHandler<GlobalOperationEventArgs> Stopped
+        public override event EventHandler Stopped
         {
             add
             {

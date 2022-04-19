@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             PauseOnGlobalOperation();
         }
 
-        private void OnGlobalOperationStopped(object? sender, GlobalOperationEventArgs e)
+        private void OnGlobalOperationStopped(object? sender, EventArgs e)
         {
             if (_globalOperation == null)
             {

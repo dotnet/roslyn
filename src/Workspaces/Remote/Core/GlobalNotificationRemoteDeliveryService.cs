@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return GlobalNotificationState.Started;
         }
 
-        private void OnGlobalOperationStopped(object? sender, GlobalOperationEventArgs e)
+        private void OnGlobalOperationStopped(object? sender, EventArgs e)
         {
             lock (_globalNotificationsGate)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<GlobalNotificationState> SendStoppedNotificationAsync(Task<GlobalNotificationState> previousTask, GlobalOperationEventArgs e)
+        private async Task<GlobalNotificationState> SendStoppedNotificationAsync(Task<GlobalNotificationState> previousTask, EventArgs e)
         {
             // Can only transition from Started->NotStarted.  If we hear about
             // anything else, do nothing.
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
-                (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(e.Operations, cancellationToken),
+                (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(cancellationToken),
                 _cancellationToken).ConfigureAwait(false);
 
             // Mark that we're stopped now.
