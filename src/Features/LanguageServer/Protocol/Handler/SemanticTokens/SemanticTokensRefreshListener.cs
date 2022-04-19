@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Sends a notification from server->client indicating something has changed in the LSP workspace.
     /// The client will then send a request to the server for refreshed tokens.
     /// </summary>
-    internal class SemanticTokensRefreshListener : IDisposable
+    internal class SemanticTokensRefreshListener : IRefreshListener
     {
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly JsonRpc _jsonRpc;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // in order to avoid sending too many notifications at once.
             _workQueue = new AsyncBatchingWorkQueue(
                 delay: TimeSpan.FromMilliseconds(2000),
-                processBatchAsync: SendSemanticTokensRefreshNotificationAsync,
+                processBatchAsync: SendRefreshNotificationAsync,
                 asyncListener: listener,
                 cancellationToken);
         }
@@ -47,16 +47,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _workQueue.AddWork();
         }
 
-        public void Dispose()
-        {
-            _lspWorkspaceManager.LspWorkspaceChanged -= OnLspWorkspaceChanged;
-        }
-
-        private ValueTask SendSemanticTokensRefreshNotificationAsync(CancellationToken cancellationToken)
+        public ValueTask SendRefreshNotificationAsync(CancellationToken cancellationToken)
         {
             // TO-DO: Replace hardcoded string with const once LSP side is merged.
             _ = _jsonRpc.NotifyAsync("workspace/semanticTokens/refresh");
             return new ValueTask();
+        }
+
+        public void Dispose()
+        {
+            _lspWorkspaceManager.LspWorkspaceChanged -= OnLspWorkspaceChanged;
         }
     }
 }

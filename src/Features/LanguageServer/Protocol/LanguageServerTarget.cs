@@ -143,9 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
                 _clientCapabilities = initializeParams.Capabilities;
 
-                // TO-DO: Add client capability check below once LSP side is merged
-                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _jsonRpc, _listener, cancellationToken);
-
                 return Task.FromResult(new InitializeResult
                 {
                     Capabilities = _capabilitiesProvider.GetCapabilities(_clientCapabilities),
@@ -158,8 +155,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public virtual Task InitializedAsync()
+        public virtual Task InitializedAsync(CancellationToken cancellationToken)
         {
+            // TO-DO: Add client capability check below once LSP side is merged
+            _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _jsonRpc, _listener, cancellationToken);
+
             return Task.CompletedTask;
         }
 

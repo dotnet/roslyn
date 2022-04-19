@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
