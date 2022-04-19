@@ -246,7 +246,7 @@ namespace BuildBoss
             // root as well. That copy is unnecessary.
             coreClrAssets.RemoveAll(asset =>
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.amd64.dll", asset.FileRelativeName) ||
-                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm.dll", asset.FileRelativeName) ||
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm64.dll", asset.FileRelativeName) ||
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.x86.dll", asset.FileRelativeName));
 
             // Move all of the assets into bincore as that is where the non-MSBuild task assets will go

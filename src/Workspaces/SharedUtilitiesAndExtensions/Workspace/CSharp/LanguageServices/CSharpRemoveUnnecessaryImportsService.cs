@@ -48,10 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
-            Func<SyntaxNode, bool> predicate,
-            SyntaxFormattingOptions formattingOptions,
+            Func<SyntaxNode, bool>? predicate,
+            SyntaxFormattingOptions? formattingOptions,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(formattingOptions);
+
             predicate ??= Functions<SyntaxNode>.True;
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
