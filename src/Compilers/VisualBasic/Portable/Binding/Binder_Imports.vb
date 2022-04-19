@@ -243,8 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim reference = If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration,
                             Nothing,
                             binder.GetSyntaxReference(syntax))
-                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(
-                            namespaceName, syntax.SpanStart, reference))
+                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(namespaceName, syntax.SpanStart, reference))
                     End If
                 End If
 #If DEBUG Then
