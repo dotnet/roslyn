@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            bool languageServerSnippetExpander)
+            object languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
@@ -320,8 +320,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                             var changes = formattingService.GetFormattingChangesAsync(
-                                currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                            currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
+                                currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                            currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                         }
                     }
                 }
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
                 {
-                    _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                    _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                     {
                         // Make sure the notification isn't sent on UI thread.
                         await TaskScheduler.Default;

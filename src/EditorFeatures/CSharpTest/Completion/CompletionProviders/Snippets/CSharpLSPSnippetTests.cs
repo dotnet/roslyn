@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var expectedLSPSnippet =
 @"Console.WriteLine($0);";
+
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, FeaturesResources.Write_to_the_console, expectedLSPSnippet);
         }
 
