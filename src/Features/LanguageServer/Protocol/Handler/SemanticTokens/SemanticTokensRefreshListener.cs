@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Sends a notification from server->client indicating something has changed in the LSP workspace.
     /// The client will then send a request to the server for refreshed tokens.
     /// </summary>
-    internal class SemanticTokensRefreshListener : IRefreshListener
+    internal class SemanticTokensRefreshListener
     {
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly JsonRpc _jsonRpc;
