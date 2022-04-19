@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -48,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
 
+        /// <summary>
+        /// Every SnippetProvider will need a method to retrieve the "main" snippet syntax once it has been inserted as a TextChange.
+        /// </summary>
         protected abstract SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts);
 
         /// <summary>
@@ -79,15 +83,33 @@ namespace Microsoft.CodeAnalysis.Snippets
         public async Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            // Generates the snippet as a list of textchanges
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+            // Applies the snippet textchanges to the document 
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
+
+            // Finds the inserted snippet and replaces the node in the document with a node that has added trivia
+            // since all trivia is removed when converted to a TextChange.
             var snippetWithTriviaDocument = await GetDocumentWithSnippetAndTriviaAsync(snippetDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+
+            // Adds annotations to inserted snippet to be formatted, simplified, add imports if needed, etc.
             var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetWithTriviaDocument, position, cancellationToken).ConfigureAwait(false);
+
+            // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
+
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).SingleOrDefault();
+
+            // All the TextChanges from the original document. Will include any imports (if necessary) and all snippet associated
+            // changes after having been formatted.
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Gets a listing of the identifiers that need to be found in the snippet TextChange
+            // and their associated TextSpan so they can later be converted into an LSP snippet format.
             var placeholders = GetRenameLocationsMap(mainChangeNode, syntaxFacts, cancellationToken);
             var changesArray = changes.ToImmutableArray();
             return new SnippetChange(
@@ -96,6 +118,9 @@ namespace Microsoft.CodeAnalysis.Snippets
                 placeholders: placeholders);
         }
 
+        /// <summary>
+        /// Descends into the inserted snippet to add back trivia on every token.
+        /// </summary>
         protected static SyntaxNode? GenerateElasticTriviaForSyntax(ISyntaxFacts syntaxFacts, SyntaxNode? node)
         {
             if (node is null)
@@ -120,23 +145,27 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             if (document.SupportsSyntaxTree)
             {
-                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, _findSnippetAnnotation, addImportOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, _findSnippetAnnotation, options.AddImportOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, options.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, options.FormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return document;
         }
 
+        /// <summary>
+        /// Locates the snippet that was inserted. Generates trivia for every token in that syntaxnode.
+        /// Replaces the SyntaxNodes and gets back the new document.
+        /// </summary>
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await snippetDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
