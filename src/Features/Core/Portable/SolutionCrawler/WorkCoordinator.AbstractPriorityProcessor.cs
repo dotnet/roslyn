@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected async Task WaitForHigherPriorityOperationsAsync()
                     {
-                        CancellationToken.ThrowIfCancellationRequested();
-
                         using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, CancellationToken))
                         {
-                            do
+                            while (true)
                             {
+                                CancellationToken.ThrowIfCancellationRequested();
+
                                 // we wait for global operation and higher queue operation if there is anything going on
                                 await HigherQueueOperationTask.ConfigureAwait(false);
 
@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 UpdateLastAccessTime();
                                 await WaitForIdleAsync(Listener).ConfigureAwait(false);
                             }
-                            while (!CancellationToken.IsCancellationRequested);
                         }
                     }
 
