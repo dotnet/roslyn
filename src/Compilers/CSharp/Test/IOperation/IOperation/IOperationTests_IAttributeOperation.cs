@@ -625,7 +625,6 @@ class A : CodeAccessSecurityAttribute
                 // class A : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
             };
-            // Can we get this to produce IInvalidOperation?
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A')
   IObjectCreationOperation (Constructor: A..ctor([System.Security.Permissions.SecurityAction a = (System.Security.Permissions.SecurityAction)0])) (OperationKind.ObjectCreation, Type: A, IsInvalid, IsImplicit) (Syntax: 'A')

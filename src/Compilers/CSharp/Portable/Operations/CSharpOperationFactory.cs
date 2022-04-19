@@ -495,6 +495,15 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var namedArguments = CreateFromArray<BoundAssignmentOperator, IOperation>(boundAttribute.NamedArguments);
                 initializer = new ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), isImplicit: true);
+#if DEBUG
+                foreach (var operation in initializer.Initializers)
+                {
+                    if (operation is not ISimpleAssignmentOperation)
+                    {
+                        throw new InvalidOperationException($"Unexpected operation '{operation.Kind}'. Attribute syntax: '{boundAttribute.Syntax}'.");
+                    }
+                }
+#endif
             }
 
             var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
