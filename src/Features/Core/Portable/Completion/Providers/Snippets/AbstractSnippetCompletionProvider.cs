@@ -37,32 +37,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            var lspSnippet = GenerateLSPSnippet(change, snippet.Placeholders);
+            var lspSnippetService = allChangesDocument.GetRequiredLanguageService<ConvertToLSPSnippetService>();
+            var lspSnippet = lspSnippetService.GenerateLSPSnippet(change, snippet.Placeholders);
             return CompletionChange.CreateSpecialLSPSnippetChange(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true, lspSnippet);
         }
-
-        private static string? GenerateLSPSnippet(TextChange textChange, List<(string, List<TextSpan>)> placeholders)
-        {
-            var textChangeText = textChange.NewText!;
-
-            for (var i = 0; i < placeholders.Count; i++)
-            {
-                var (identifier, placeholderList) = placeholders[i];
-                if (identifier.Length != 0)
-                {
-                    var newStr = $"${{{i}:{identifier}}}";
-                    textChangeText = textChangeText.Replace(identifier, newStr);
-                }
-                else
-                {
-                    var location = placeholderList[0];
-                    textChangeText = textChangeText.Insert(location.Start - textChange.Span.Start, $"$0");
-                }
-            }
-
-            return textChangeText;
-        }
-
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;

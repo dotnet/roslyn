@@ -109,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             SyntaxToken AddAnnotations(SyntaxToken oldToken, SyntaxToken newToken)
             {
-                return oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation).WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker).WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+                return oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                    .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
+                    .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
             }
         }
 
