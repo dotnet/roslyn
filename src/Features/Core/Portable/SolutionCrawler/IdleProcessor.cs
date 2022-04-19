@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         // there is one thread that writes to it and one thread reads from it
         private SharedStopwatch _timeSinceLastAccess;
 
+        /// <summary>
+        /// Whether or not this processor is paused.  As long as it is paused, it will not start executing new work,
+        /// even if <see cref="BackOffTimeSpan"/> has been met.
+        /// </summary>
         private bool _paused_doNotAccessDirectly;
 
         public IdleProcessor(
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
 
                 // If we're not paused, and enough time has elapsed, then we're done.  Otherwise, ensure we wait at
-                // least s_minimumDelay.
+                // least s_minimumDelay and check again in the future.
                 var diff = _timeSinceLastAccess.Elapsed;
                 if (!Paused && diff >= BackOffTimeSpan)
                     return;
