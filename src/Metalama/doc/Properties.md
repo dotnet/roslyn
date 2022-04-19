@@ -2,7 +2,7 @@
 
 The Metalama compiler can be configured by several custom MSBuild properties from the csproj file of a user project:
 
-* `MetalamaEmitCompilerTransformedFiles`: Set to `true` to write transformed files to disk to the `obj/Debug` or `obj/Release` directory. The default is `true` if `MetalamaDebugTransformedCode` is enabled and `false` otherwise.
+* `MetalamaEmitCompilerTransformedFiles`: Set to `true` to write transformed files to disk to the `obj/Debug/metalama` or `obj/Release/metalama` directory. The default is `true` if `MetalamaDebugTransformedCode` is enabled and `false` otherwise.
 * `MetalamaCompilerTransformedFilesOutputPath`: Can be used to set the directory where transformed files are written instead of `obj/Debug`.
 * `MetalamaCompilerTransformerOrder`: A semicolon-separated list of namespace-qualified names of transformers. This is necessary to set the execution order of transformers, if the order has not been fully specified by the transformers using [`[TransformerOrder]`](API.md#TransformerOrderAttribute).
 * `MetalamaDebugTransformedCode`: Set to `true` to produce diagnostics and PDB sequence points in transformed code. Otherwise, locations are attempted to be mapped to original user code. The default is `false`.

@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.Common;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -27,6 +29,27 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
             return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
+
+        // <Metalama> -- GetRecommendedSymbolsAtPosition requires the SyntaxTree to be a part of Workspace.CurrentSolution, but this assumption is not met in Metalama.Try
+        public static async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+            Document document,
+            int position,
+            OptionSet? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var solution = document.Project.Solution;
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel == null)
+            {
+                return Enumerable.Empty<ISymbol>();
+            }
+
+            options ??= solution.Options;
+            var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
+            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position,
+                RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+        }
+        // </Metalama>
 
         [Obsolete("Use GetRecommendedSymbolsAtPosition")]
         public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
