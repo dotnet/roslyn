@@ -1634,6 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ModuloExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LeftShiftExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.RightShiftExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnsignedRightShiftExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LogicalOrExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LogicalAndExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.BitwiseOrExpression"/></description></item>
@@ -1720,6 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.OrAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.LeftShiftAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.RightShiftAssignmentExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UnsignedRightShiftAssignmentExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CoalesceAssignmentExpression"/></description></item>
     /// </list>
     /// </remarks>
@@ -1947,6 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.ArgListExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
+    /// <item><description><see cref="SyntaxKind.UTF8StringLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
     /// <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
@@ -11860,14 +11863,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the "operator" keyword.</summary>
         public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
+        /// <summary>Gets the "checked" keyword.</summary>
+        public SyntaxToken CheckedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).checkedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
+            }
+        }
+
         /// <summary>Gets the operator token.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(5), GetChildIndex(5));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).operatorToken, GetChildPosition(6), GetChildIndex(6));
 
-        public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 6)!;
+        public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 7)!;
 
-        public override BlockSyntax? Body => GetRed(ref this.body, 7);
+        public override BlockSyntax? Body => GetRed(ref this.body, 8);
 
-        public override ArrowExpressionClauseSyntax? ExpressionBody => GetRed(ref this.expressionBody, 8);
+        public override ArrowExpressionClauseSyntax? ExpressionBody => GetRed(ref this.expressionBody, 9);
 
         /// <summary>Gets the optional semicolon token.</summary>
         public override SyntaxToken SemicolonToken
@@ -11875,7 +11888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             get
             {
                 var slot = ((Syntax.InternalSyntax.OperatorDeclarationSyntax)this.Green).semicolonToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
             }
         }
 
@@ -11885,9 +11898,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.returnType, 2)!,
                 3 => GetRed(ref this.explicitInterfaceSpecifier, 3),
-                6 => GetRed(ref this.parameterList, 6)!,
-                7 => GetRed(ref this.body, 7),
-                8 => GetRed(ref this.expressionBody, 8),
+                7 => GetRed(ref this.parameterList, 7)!,
+                8 => GetRed(ref this.body, 8),
+                9 => GetRed(ref this.expressionBody, 9),
                 _ => null,
             };
 
@@ -11897,20 +11910,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 0 => this.attributeLists,
                 2 => this.returnType,
                 3 => this.explicitInterfaceSpecifier,
-                6 => this.parameterList,
-                7 => this.body,
-                8 => this.expressionBody,
+                7 => this.parameterList,
+                8 => this.body,
+                9 => this.expressionBody,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorDeclaration(this);
 
-        public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
+        public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
+                var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -11919,21 +11932,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new OperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new OperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new OperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public OperatorDeclarationSyntax WithReturnType(TypeSyntax returnType) => Update(this.AttributeLists, this.Modifiers, returnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public OperatorDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, explicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public OperatorDeclarationSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, operatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public OperatorDeclarationSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, operatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new OperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public OperatorDeclarationSyntax WithReturnType(TypeSyntax returnType) => Update(this.AttributeLists, this.Modifiers, returnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public OperatorDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, explicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public OperatorDeclarationSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, operatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public OperatorDeclarationSyntax WithCheckedKeyword(SyntaxToken checkedKeyword) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, checkedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public OperatorDeclarationSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, operatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
-        public new OperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new OperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax? body) => WithBody(body);
-        public new OperatorDeclarationSyntax WithBody(BlockSyntax? body) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
+        public new OperatorDeclarationSyntax WithBody(BlockSyntax? body) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new OperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
+        public new OperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
-        public new OperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
+        public new OperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
 
         internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new OperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -11995,14 +12009,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the "operator" token.</summary>
         public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).operatorKeyword, GetChildPosition(4), GetChildIndex(4));
 
+        /// <summary>Gets the "checked" keyword.</summary>
+        public SyntaxToken CheckedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).checkedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
+            }
+        }
+
         /// <summary>Gets the type.</summary>
-        public TypeSyntax Type => GetRed(ref this.type, 5)!;
+        public TypeSyntax Type => GetRed(ref this.type, 6)!;
 
-        public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 6)!;
+        public override ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 7)!;
 
-        public override BlockSyntax? Body => GetRed(ref this.body, 7);
+        public override BlockSyntax? Body => GetRed(ref this.body, 8);
 
-        public override ArrowExpressionClauseSyntax? ExpressionBody => GetRed(ref this.expressionBody, 8);
+        public override ArrowExpressionClauseSyntax? ExpressionBody => GetRed(ref this.expressionBody, 9);
 
         /// <summary>Gets the optional semicolon token.</summary>
         public override SyntaxToken SemicolonToken
@@ -12010,7 +12034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             get
             {
                 var slot = ((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)this.Green).semicolonToken;
-                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
             }
         }
 
@@ -12019,10 +12043,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 3 => GetRed(ref this.explicitInterfaceSpecifier, 3),
-                5 => GetRed(ref this.type, 5)!,
-                6 => GetRed(ref this.parameterList, 6)!,
-                7 => GetRed(ref this.body, 7),
-                8 => GetRed(ref this.expressionBody, 8),
+                6 => GetRed(ref this.type, 6)!,
+                7 => GetRed(ref this.parameterList, 7)!,
+                8 => GetRed(ref this.body, 8),
+                9 => GetRed(ref this.expressionBody, 9),
                 _ => null,
             };
 
@@ -12031,21 +12055,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.attributeLists,
                 3 => this.explicitInterfaceSpecifier,
-                5 => this.type,
-                6 => this.parameterList,
-                7 => this.body,
-                8 => this.expressionBody,
+                6 => this.type,
+                7 => this.parameterList,
+                8 => this.body,
+                9 => this.expressionBody,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorDeclaration(this);
 
-        public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
+        public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
+                var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, operatorKeyword, checkedKeyword, type, parameterList, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -12054,21 +12078,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ConversionOperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ConversionOperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public ConversionOperatorDeclarationSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(this.AttributeLists, this.Modifiers, implicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public ConversionOperatorDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, explicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public ConversionOperatorDeclarationSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, operatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
-        public ConversionOperatorDeclarationSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public ConversionOperatorDeclarationSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(this.AttributeLists, this.Modifiers, implicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public ConversionOperatorDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, explicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public ConversionOperatorDeclarationSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, operatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public ConversionOperatorDeclarationSyntax WithCheckedKeyword(SyntaxToken checkedKeyword) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, checkedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public ConversionOperatorDeclarationSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
-        public new ConversionOperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax? body) => WithBody(body);
-        public new ConversionOperatorDeclarationSyntax WithBody(BlockSyntax? body) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithBody(BlockSyntax? body) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new ConversionOperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
-        public new ConversionOperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
+        public new ConversionOperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.ExplicitInterfaceSpecifier, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
 
         internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ConversionOperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -13746,23 +13771,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorKeyword, Position, 0);
 
+        public SyntaxToken CheckedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).checkedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
         /// <summary>Gets the operator token.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.OperatorMemberCrefSyntax)this.Green).operatorToken, GetChildPosition(2), GetChildIndex(2));
 
-        public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 2);
+        public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 3);
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.parameters, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.parameters, 3) : null;
 
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.parameters : null;
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 3 ? this.parameters : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorMemberCref(this);
 
-        public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
-            if (operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
+            if (operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
             {
-                var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
+                var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -13770,9 +13804,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public OperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(operatorKeyword, this.OperatorToken, this.Parameters);
-        public OperatorMemberCrefSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.OperatorKeyword, operatorToken, this.Parameters);
-        public OperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax? parameters) => Update(this.OperatorKeyword, this.OperatorToken, parameters);
+        public OperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(operatorKeyword, this.CheckedKeyword, this.OperatorToken, this.Parameters);
+        public OperatorMemberCrefSyntax WithCheckedKeyword(SyntaxToken checkedKeyword) => Update(this.OperatorKeyword, checkedKeyword, this.OperatorToken, this.Parameters);
+        public OperatorMemberCrefSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.OperatorKeyword, this.CheckedKeyword, operatorToken, this.Parameters);
+        public OperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax? parameters) => Update(this.OperatorKeyword, this.CheckedKeyword, this.OperatorToken, parameters);
 
         public OperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
         {
@@ -13805,34 +13840,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken OperatorKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).operatorKeyword, GetChildPosition(1), GetChildIndex(1));
 
-        public TypeSyntax Type => GetRed(ref this.type, 2)!;
+        public SyntaxToken CheckedKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax)this.Green).checkedKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(2), GetChildIndex(2)) : default;
+            }
+        }
 
-        public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 3);
+        public TypeSyntax Type => GetRed(ref this.type, 3)!;
+
+        public CrefParameterListSyntax? Parameters => GetRed(ref this.parameters, 4);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.type, 2)!,
-                3 => GetRed(ref this.parameters, 3),
+                3 => GetRed(ref this.type, 3)!,
+                4 => GetRed(ref this.parameters, 4),
                 _ => null,
             };
 
         internal override SyntaxNode? GetCachedSlot(int index)
             => index switch
             {
-                2 => this.type,
-                3 => this.parameters,
+                3 => this.type,
+                4 => this.parameters,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorMemberCref(this);
 
-        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
-            if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameters != this.Parameters)
+            if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || checkedKeyword != this.CheckedKeyword || type != this.Type || parameters != this.Parameters)
             {
-                var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
+                var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, checkedKeyword, type, parameters);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -13840,10 +13884,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public ConversionOperatorMemberCrefSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(implicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.Parameters);
-        public ConversionOperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.ImplicitOrExplicitKeyword, operatorKeyword, this.Type, this.Parameters);
-        public ConversionOperatorMemberCrefSyntax WithType(TypeSyntax type) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, type, this.Parameters);
-        public ConversionOperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax? parameters) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, parameters);
+        public ConversionOperatorMemberCrefSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword) => Update(implicitOrExplicitKeyword, this.OperatorKeyword, this.CheckedKeyword, this.Type, this.Parameters);
+        public ConversionOperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.ImplicitOrExplicitKeyword, operatorKeyword, this.CheckedKeyword, this.Type, this.Parameters);
+        public ConversionOperatorMemberCrefSyntax WithCheckedKeyword(SyntaxToken checkedKeyword) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, checkedKeyword, this.Type, this.Parameters);
+        public ConversionOperatorMemberCrefSyntax WithType(TypeSyntax type) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.CheckedKeyword, type, this.Parameters);
+        public ConversionOperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax? parameters) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.CheckedKeyword, this.Type, parameters);
 
         public ConversionOperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
         {

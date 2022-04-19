@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -89,18 +90,24 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="newDocumentName">The new name for the document. Pass null or the same name to keep unchanged.</param>
         /// <param name="options">Options used to configure rename of a type contained in the document that matches the document's name.</param>
         /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
-        public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
-            Document document,
+        public static Task<RenameDocumentActionSet> RenameDocumentAsync(
+            Document document!!,
             DocumentRenameOptions options,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders = null,
             CancellationToken cancellationToken = default)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            return RenameDocumentAsync(document, options, ChangeNamespaceOptions.GetDefault, newDocumentName, newDocumentFolders, cancellationToken);
+        }
 
+        internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
+            Document document,
+            DocumentRenameOptions options,
+            ChangeNamespaceOptionsProvider changeNamespaceOptions,
+            string? newDocumentName,
+            IReadOnlyList<string>? newDocumentFolders,
+            CancellationToken cancellationToken)
+        {
             if (document.Services.GetService<ISpanMappingService>() != null)
             {
                 // Don't advertise that we can file rename generated documents that map to a different file.
@@ -117,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
             {
-                var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, cancellationToken);
+                var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, changeNamespaceOptions);
                 actions.AddIfNotNull(action);
             }
 

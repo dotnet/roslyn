@@ -60,20 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static string BinaryOperatorNameFromSyntaxKind(SyntaxKind kind)
+        public static string BinaryOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
         {
-            return BinaryOperatorNameFromSyntaxKindIfAny(kind) ??
-                WellKnownMemberNames.AdditionOperatorName; // This can occur in the presence of syntax errors.
+            return BinaryOperatorNameFromSyntaxKindIfAny(kind, isChecked) ??
+                (isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName); // This can occur in the presence of syntax errors.
         }
 
-        internal static string BinaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind)
+        internal static string BinaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind, bool isChecked)
         {
             switch (kind)
             {
-                case SyntaxKind.PlusToken: return WellKnownMemberNames.AdditionOperatorName;
-                case SyntaxKind.MinusToken: return WellKnownMemberNames.SubtractionOperatorName;
-                case SyntaxKind.AsteriskToken: return WellKnownMemberNames.MultiplyOperatorName;
-                case SyntaxKind.SlashToken: return WellKnownMemberNames.DivisionOperatorName;
+                case SyntaxKind.PlusToken: return isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName;
+                case SyntaxKind.MinusToken: return isChecked ? WellKnownMemberNames.CheckedSubtractionOperatorName : WellKnownMemberNames.SubtractionOperatorName;
+                case SyntaxKind.AsteriskToken: return isChecked ? WellKnownMemberNames.CheckedMultiplyOperatorName : WellKnownMemberNames.MultiplyOperatorName;
+                case SyntaxKind.SlashToken: return isChecked ? WellKnownMemberNames.CheckedDivisionOperatorName : WellKnownMemberNames.DivisionOperatorName;
                 case SyntaxKind.PercentToken: return WellKnownMemberNames.ModulusOperatorName;
                 case SyntaxKind.CaretToken: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 case SyntaxKind.AmpersandToken: return WellKnownMemberNames.BitwiseAndOperatorName;
@@ -85,28 +85,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GreaterThanToken: return WellKnownMemberNames.GreaterThanOperatorName;
                 case SyntaxKind.GreaterThanEqualsToken: return WellKnownMemberNames.GreaterThanOrEqualOperatorName;
                 case SyntaxKind.GreaterThanGreaterThanToken: return WellKnownMemberNames.RightShiftOperatorName;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: return WellKnownMemberNames.UnsignedRightShiftOperatorName;
                 case SyntaxKind.ExclamationEqualsToken: return WellKnownMemberNames.InequalityOperatorName;
                 default:
                     return null;
             }
         }
 
-        public static string UnaryOperatorNameFromSyntaxKind(SyntaxKind kind)
+        public static string UnaryOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
         {
-            return UnaryOperatorNameFromSyntaxKindIfAny(kind) ??
+            return UnaryOperatorNameFromSyntaxKindIfAny(kind, isChecked) ??
                 WellKnownMemberNames.UnaryPlusOperatorName; // This can occur in the presence of syntax errors.
         }
 
-        internal static string UnaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind)
+        internal static string UnaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind, bool isChecked)
         {
             switch (kind)
             {
                 case SyntaxKind.PlusToken: return WellKnownMemberNames.UnaryPlusOperatorName;
-                case SyntaxKind.MinusToken: return WellKnownMemberNames.UnaryNegationOperatorName;
+                case SyntaxKind.MinusToken: return isChecked ? WellKnownMemberNames.CheckedUnaryNegationOperatorName : WellKnownMemberNames.UnaryNegationOperatorName;
                 case SyntaxKind.TildeToken: return WellKnownMemberNames.OnesComplementOperatorName;
                 case SyntaxKind.ExclamationToken: return WellKnownMemberNames.LogicalNotOperatorName;
-                case SyntaxKind.PlusPlusToken: return WellKnownMemberNames.IncrementOperatorName;
-                case SyntaxKind.MinusMinusToken: return WellKnownMemberNames.DecrementOperatorName;
+                case SyntaxKind.PlusPlusToken: return isChecked ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.IncrementOperatorName;
+                case SyntaxKind.MinusMinusToken: return isChecked ? WellKnownMemberNames.CheckedDecrementOperatorName : WellKnownMemberNames.DecrementOperatorName;
                 case SyntaxKind.TrueKeyword: return WellKnownMemberNames.TrueOperatorName;
                 case SyntaxKind.FalseKeyword: return WellKnownMemberNames.FalseOperatorName;
                 default:
@@ -122,21 +123,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
             var opTokenKind = declaration.OperatorToken.Kind;
+            bool isChecked = declaration.CheckedKeyword?.Kind == SyntaxKind.CheckedKeyword;
 
             if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {
                 // Some tokens may be either unary or binary operators (e.g. +, -).
-                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
+                if (opTokenKind != SyntaxKind.AsteriskToken && // IsPrefixUnaryExpressionOperatorToken treats it as pointer dereference operator
+                    SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
                     declaration.ParameterList.Parameters.Count == 1)
                 {
-                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
+                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
                 }
 
-                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind);
+                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
             }
             else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opTokenKind))
             {
-                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
+                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
             }
             else
             {
@@ -157,22 +160,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ImplicitKeyword:
                     return WellKnownMemberNames.ImplicitConversionName;
                 default:
-                    return WellKnownMemberNames.ExplicitConversionName;
+                    return declaration.CheckedKeyword?.Kind == SyntaxKind.CheckedKeyword ?
+                                WellKnownMemberNames.CheckedExplicitConversionName :
+                                WellKnownMemberNames.ExplicitConversionName;
             }
         }
 
-        public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind)
+        public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind, bool isChecked)
         {
             switch (kind & UnaryOperatorKind.OpMask)
             {
                 case UnaryOperatorKind.UnaryPlus: return WellKnownMemberNames.UnaryPlusOperatorName;
-                case UnaryOperatorKind.UnaryMinus: return WellKnownMemberNames.UnaryNegationOperatorName;
+                case UnaryOperatorKind.UnaryMinus: return isChecked ? WellKnownMemberNames.CheckedUnaryNegationOperatorName : WellKnownMemberNames.UnaryNegationOperatorName;
                 case UnaryOperatorKind.BitwiseComplement: return WellKnownMemberNames.OnesComplementOperatorName;
                 case UnaryOperatorKind.LogicalNegation: return WellKnownMemberNames.LogicalNotOperatorName;
                 case UnaryOperatorKind.PostfixIncrement:
-                case UnaryOperatorKind.PrefixIncrement: return WellKnownMemberNames.IncrementOperatorName;
+                case UnaryOperatorKind.PrefixIncrement: return isChecked ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.IncrementOperatorName;
                 case UnaryOperatorKind.PostfixDecrement:
-                case UnaryOperatorKind.PrefixDecrement: return WellKnownMemberNames.DecrementOperatorName;
+                case UnaryOperatorKind.PrefixDecrement: return isChecked ? WellKnownMemberNames.CheckedDecrementOperatorName : WellKnownMemberNames.DecrementOperatorName;
                 case UnaryOperatorKind.True: return WellKnownMemberNames.TrueOperatorName;
                 case UnaryOperatorKind.False: return WellKnownMemberNames.FalseOperatorName;
                 default:
@@ -180,25 +185,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static string BinaryOperatorNameFromOperatorKind(BinaryOperatorKind kind)
+        public static string BinaryOperatorNameFromOperatorKind(BinaryOperatorKind kind, bool isChecked)
         {
             switch (kind & BinaryOperatorKind.OpMask)
             {
-                case BinaryOperatorKind.Addition: return WellKnownMemberNames.AdditionOperatorName;
+                case BinaryOperatorKind.Addition: return isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName;
                 case BinaryOperatorKind.And: return WellKnownMemberNames.BitwiseAndOperatorName;
-                case BinaryOperatorKind.Division: return WellKnownMemberNames.DivisionOperatorName;
+                case BinaryOperatorKind.Division: return isChecked ? WellKnownMemberNames.CheckedDivisionOperatorName : WellKnownMemberNames.DivisionOperatorName;
                 case BinaryOperatorKind.Equal: return WellKnownMemberNames.EqualityOperatorName;
                 case BinaryOperatorKind.GreaterThan: return WellKnownMemberNames.GreaterThanOperatorName;
                 case BinaryOperatorKind.GreaterThanOrEqual: return WellKnownMemberNames.GreaterThanOrEqualOperatorName;
                 case BinaryOperatorKind.LeftShift: return WellKnownMemberNames.LeftShiftOperatorName;
                 case BinaryOperatorKind.LessThan: return WellKnownMemberNames.LessThanOperatorName;
                 case BinaryOperatorKind.LessThanOrEqual: return WellKnownMemberNames.LessThanOrEqualOperatorName;
-                case BinaryOperatorKind.Multiplication: return WellKnownMemberNames.MultiplyOperatorName;
+                case BinaryOperatorKind.Multiplication: return isChecked ? WellKnownMemberNames.CheckedMultiplyOperatorName : WellKnownMemberNames.MultiplyOperatorName;
                 case BinaryOperatorKind.Or: return WellKnownMemberNames.BitwiseOrOperatorName;
                 case BinaryOperatorKind.NotEqual: return WellKnownMemberNames.InequalityOperatorName;
                 case BinaryOperatorKind.Remainder: return WellKnownMemberNames.ModulusOperatorName;
                 case BinaryOperatorKind.RightShift: return WellKnownMemberNames.RightShiftOperatorName;
-                case BinaryOperatorKind.Subtraction: return WellKnownMemberNames.SubtractionOperatorName;
+                case BinaryOperatorKind.UnsignedRightShift: return WellKnownMemberNames.UnsignedRightShiftOperatorName;
+                case BinaryOperatorKind.Subtraction: return isChecked ? WellKnownMemberNames.CheckedSubtractionOperatorName : WellKnownMemberNames.SubtractionOperatorName;
                 case BinaryOperatorKind.Xor: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind & BinaryOperatorKind.OpMask);

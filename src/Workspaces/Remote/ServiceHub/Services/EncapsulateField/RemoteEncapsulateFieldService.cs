@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             ImmutableArray<string> fieldSymbolKeys,
+            EncapsulateFieldOptions fallbackOptions,
             bool updateReferences,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
 
                 using var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
                 var newSolution = await service.EncapsulateFieldsAsync(
-                    document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);
+                    document, fields.ToImmutable(), fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
                 return await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, newSolution, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

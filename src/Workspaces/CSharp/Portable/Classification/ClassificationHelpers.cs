@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                return GetClassificationForIdentifier(token);
+                return GetSyntacticClassificationForIdentifier(token);
             }
             else if (IsStringToken(token))
             {
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private static bool IsStringToken(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.StringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8StringLiteralToken)
                 || token.IsKind(SyntaxKind.CharacterLiteralToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
@@ -150,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 || token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
                 || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken);
+                || token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken);
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        private static string? GetClassificationForIdentifier(SyntaxToken token)
+        public static string? GetSyntacticClassificationForIdentifier(SyntaxToken token)
         {
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
@@ -442,7 +445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.SlashEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
                 case SyntaxKind.BarEqualsToken:

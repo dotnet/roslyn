@@ -6,49 +6,69 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
+
 namespace Microsoft.CodeAnalysis.AddImport
 {
     [DataContract]
     internal record struct AddImportPlacementOptions(
-        [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst,
-        [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces,
-        [property: DataMember(Order = 2)] bool AllowInHiddenRegions)
+        [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst = true,
+        [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces = false,
+        [property: DataMember(Order = 2)] bool AllowInHiddenRegions = false)
     {
-#if !CODE_STYLE
-        public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-            => FromDocument(document, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
-
-        public static AddImportPlacementOptions FromDocument(Document document, Options.OptionSet documentOptions)
+        public AddImportPlacementOptions()
+            : this(PlaceSystemNamespaceFirst: true)
         {
-            var service = document.GetRequiredLanguageService<IAddImportsService>();
+        }
 
-            return new(
-                PlaceSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language),
-                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(documentOptions),
-                AllowInHiddenRegions: CanAddImportsInHiddenRegions(document));
+        public static readonly AddImportPlacementOptions Default = new();
+
+        public static async Task<AddImportPlacementOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+            return FromDocument(document, options);
         }
 
         private static bool CanAddImportsInHiddenRegions(Document document)
         {
+#if CODE_STYLE
+            return false;
+#else
             // Normally we don't allow generation into a hidden region in the file.  However, if we have a
             // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
             // our edit to their domain appropriate.
             var spanMapper = document.Services.GetService<ISpanMappingService>();
             return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
-        }
 #endif
+        }
+
+        public static AddImportPlacementOptions FromDocument(Document document, OptionSet documentOptions)
+        {
+            var service = document.GetRequiredLanguageService<IAddImportsService>();
+            return new(
+                PlaceSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language),
+                PlaceImportsInsideNamespaces: service.PlaceImportsInsideNamespaces(documentOptions),
+                AllowInHiddenRegions: CanAddImportsInHiddenRegions(document));
+        }
     }
 
     internal interface IAddImportsService : ILanguageService
     {
-#if !CODE_STYLE
-        bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
-#endif
+        bool PlaceImportsInsideNamespaces(OptionSet optionSet);
 
         /// <summary>
         /// Returns true if the tree already has an existing import syntactically equivalent to

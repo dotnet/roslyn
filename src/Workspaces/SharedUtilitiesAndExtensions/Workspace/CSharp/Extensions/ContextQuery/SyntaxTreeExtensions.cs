@@ -1389,6 +1389,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e is > $$
+            // e is >= $$
+            // e is < $$
+            // e is <= $$
+            if (leftToken.IsKind(SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken) &&
+                leftToken.Parent.IsKind(SyntaxKind.RelationalPattern))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -1883,33 +1893,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return syntaxTree.IsPreProcessorDirectiveContext(position, leftToken, cancellationToken);
         }
 
-        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return IsPreProcessorKeywordContext(
-                syntaxTree, position,
-                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
-        }
-
-        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
-        {
-            // cases:
-            //  #|
-            //  #d|
-            //  # |
-            //  # d|
-
-            // note: comments are not allowed between the # and item.
-            var token = preProcessorTokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
-            if (token.IsKind(SyntaxKind.HashToken))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static bool IsStatementContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
 #if false
@@ -2173,6 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // q |= |
             // q <<= |
             // q >>= |
+            // q >>>= |
             // q ??= |
             if (token.IsKind(SyntaxKind.EqualsToken) ||
                 token.IsKind(SyntaxKind.MinusEqualsToken) ||
@@ -2186,6 +2170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.IsKind(SyntaxKind.PercentEqualsToken) ||
                 token.IsKind(SyntaxKind.LessThanLessThanEqualsToken) ||
                 token.IsKind(SyntaxKind.GreaterThanGreaterThanEqualsToken) ||
+                token.IsKind(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken) ||
                 token.IsKind(SyntaxKind.QuestionQuestionEqualsToken))
             {
                 return true;

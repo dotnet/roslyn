@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 operationContext, _threadingContext);
             if (document != null)
             {
-                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var formattingOptions = document.SupportsSyntaxTree ? SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken) : null;
+                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
                 newDocument = Formatter.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {

@@ -25,10 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(MaxCompletionListSize)));
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly Option2<bool> LspCompletionFeatureFlag = new(FeatureName, nameof(LspCompletionFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.LSP.Completion"));
-
-        // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspEditorFeatureFlag = new(FeatureName, nameof(LspEditorFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.Editor"));
 
@@ -38,7 +34,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             MaxCompletionListSize,
-            LspCompletionFeatureFlag,
             LspEditorFeatureFlag);
 
         [ImportingConstructor]

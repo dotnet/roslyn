@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -78,21 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                 PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
                 AllowInHiddenRegions: false);
 
+            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+
+            var simplifierOptions = CSharpSimplifierOptions.Default;
+
             var imported = useSymbolAnnotations
                 ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
                 : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
 
             if (importsAddedText != null)
             {
-                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation);
+                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(importsAddedText, actualText);
             }
 
             if (simplifiedText != null)
             {
-                var reduced = await Simplifier.ReduceAsync(imported);
-                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation);
+                var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
+                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
 
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(simplifiedText, actualText);
@@ -780,8 +786,6 @@ class C
             project = project.AddDocument("duplicate.cs", externalCode).Project;
             var document = project.AddDocument("test.cs", code);
 
-            var options = document.Project.Solution.Workspace.Options;
-
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
             Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
@@ -799,13 +803,14 @@ class C
             var documentWithAttribute = editor.GetChangedDocument();
 
             var addImportOptions = new AddImportPlacementOptions();
+            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 
             // Add namespace import.
             var imported = useSymbolAnnotations
                 ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
                 : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
 
-            var formatted = await Formatter.FormatAsync(imported, options);
+            var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
             var actualText = (await formatted.GetTextAsync()).ToString();
 
             Assert.Equal(@"using System;

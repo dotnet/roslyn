@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                    && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }
