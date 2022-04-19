@@ -5,13 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
+    [ExportWorkspaceService(typeof(IGlobalOperationNotificationService)), Shared]
     internal partial class GlobalOperationNotificationService : IGlobalOperationNotificationService
     {
         private const string GlobalOperationStartedEventName = "GlobalOperationStarted";
@@ -25,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Notification
 
         private readonly TaskQueue _eventQueue;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
         {
             _eventQueue = new TaskQueue(listener, TaskScheduler.Default);
@@ -60,6 +65,20 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
+        private void RaiseGlobalOperationStarted()
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
+            if (ev.HasHandlers)
+                _eventQueue.ScheduleTask(GlobalOperationStartedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+        }
+
+        private void RaiseGlobalOperationStopped()
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStoppedEventName);
+            if (ev.HasHandlers)
+                _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
+        }
+
         public IGlobalOperationRegistration Start(string operation)
         {
             lock (_gate)
@@ -75,33 +94,11 @@ namespace Microsoft.CodeAnalysis.Notification
                 if (_registrations.Count == 1)
                 {
                     Contract.ThrowIfFalse(_operations.Count == 1);
-                    RaiseGlobalOperationStartedAsync();
+                    RaiseGlobalOperationStarted();
                 }
 
                 return registration;
             }
-        }
-
-        private Task RaiseGlobalOperationStartedAsync()
-        {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-            if (ev.HasHandlers)
-            {
-                return _eventQueue.ScheduleTask(GlobalOperationStartedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private Task RaiseGlobalOperationStoppedAsync()
-        {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStoppedEventName);
-            if (ev.HasHandlers)
-            {
-                return _eventQueue.ScheduleTask(GlobalOperationStoppedEventName, () => ev.RaiseEvent(handler => handler(this, EventArgs.Empty)), CancellationToken.None);
-            }
-
-            return Task.CompletedTask;
         }
 
         private void Done(GlobalOperationRegistration registration)
@@ -114,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Notification
                 if (_registrations.Count == 0)
                 {
                     _operations.Clear();
-
-                    RaiseGlobalOperationStoppedAsync();
+                    RaiseGlobalOperationStopped();
                 }
             }
         }

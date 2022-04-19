@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Start();
         }
 
-        private CancellationToken ShutdownCancellationToken => CancellationToken;
-
         protected override async Task ExecuteAsync()
         {
             lock (_gate)
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var previousCancellationSource = _globalOperationCancellationSource;
 
             // create new cancellation token source linked with given shutdown cancellation token
-            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(ShutdownCancellationToken);
+            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(this.CancellationToken);
 
             CancelAndDispose(previousCancellationSource);
         }

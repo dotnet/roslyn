@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         // we have items but workspace is busy. wait for idle.
                         await WaitForIdleAsync(Listener).ConfigureAwait(false);
-
                         await ExecuteAsync().ConfigureAwait(false);
                     }
                 }
