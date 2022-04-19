@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 serviceProviderBuilder.AddMinimalBackstageServices(dotNetSdkDirectory);
             }
 
-            void reportException(Exception e)
+            void ReportException(Exception e, bool throwReporterExceptions)
             {
                 if (this.RequiresMetalamaSupportServices)
                 {
@@ -511,9 +511,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var reporter = services.GetRequiredService<IExceptionReporter>();
                         reporter.ReportException(e);
                     }
-                    catch (Exception reportingException)
+                    catch (Exception reporterException)
                     {
-                        throw new AggregateException(e, reportingException);
+                        if (throwReporterExceptions)
+                        {
+                            throw new AggregateException(e, reporterException);
+                        }
                     }
                 }
             }
@@ -579,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (Exception e)
             {
-                reportException(e);
+                ReportException(e, true);
 
                 throw;
             }
@@ -598,7 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (Exception e)
                 {
-                    reportException(e);
+                    ReportException(e, false);
+
+                    // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
                 }
             }
 
