@@ -33,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 formattingOptions As SyntaxFormattingOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
+            Contract.ThrowIfNull(formattingOptions)
+
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
 

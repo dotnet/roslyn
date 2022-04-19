@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <summary>
     /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
+#pragma warning disable CS0612 // Type or member is obsolete
     public readonly struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
+#pragma warning restore
     {
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
@@ -29,8 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal readonly CodeActionOptions Options;
-        bool ITypeScriptCodeRefactoringContext.IsBlocking => Options.IsBlocking;
+        internal readonly CodeActionOptionsProvider Options;
+
+        [Obsolete]
+        bool ITypeScriptCodeRefactoringContext.IsBlocking
+            => Options(Document.Project.LanguageServices).IsBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.Default, cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), _ => CodeActionOptions.Default, cancellationToken)
         { }
 
         /// <summary>
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`
@@ -99,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
     }
 
+    [Obsolete]
     internal interface ITypeScriptCodeRefactoringContext
     {
         bool IsBlocking { get; }

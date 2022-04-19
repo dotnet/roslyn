@@ -196,7 +196,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #endif
             // we need to set global options since the tests are going thru incremental diagnostic analyzer that reads them from there:
             workspace.GlobalOptions.SetIdeAnalyzerOptions(GetLanguage(), parameters.ideAnalyzerOptions);
-
             return workspace;
         }
 

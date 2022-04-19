@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return syntaxRoot.FindNode(textSpan);
         }
 
-        public async ValueTask<ReferenceCount?> GetReferenceCountAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
+        public async ValueTask<ReferenceCount?> GetReferenceCountAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
             {
-                return await RunServiceAsync(solutionInfo, async solution =>
+                return await RunServiceAsync(solutionChecksum, async solution =>
                     {
                         var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                         if (syntaxNode == null)
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
             {
-                return await RunServiceAsync(solutionInfo, async solution =>
+                return await RunServiceAsync(solutionChecksum, async solution =>
                 {
                     var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                     if (syntaxNode == null)
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
             {
-                return await RunServiceAsync(solutionInfo, async solution =>
+                return await RunServiceAsync(solutionChecksum, async solution =>
                 {
                     var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                     if (syntaxNode == null)
@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask<string?> GetFullyQualifiedNameAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public ValueTask<string?> GetFullyQualifiedNameAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    return await RunServiceAsync(solutionInfo, async solution =>
+                    return await RunServiceAsync(solutionChecksum, async solution =>
                     {
                         var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                         if (syntaxNode == null)

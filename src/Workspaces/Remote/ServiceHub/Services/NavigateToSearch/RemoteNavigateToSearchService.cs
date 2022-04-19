@@ -38,24 +38,24 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // All we need to do is request the solution.  This will ensure that all assets are
             // pulled over from the host side to the remote side.  Once this completes, the next
             // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
             // quick as very little will need to by sync'ed over.
-            return RunServiceAsync(solutionInfo, solution => ValueTaskFactory.CompletedTask, cancellationToken);
+            return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
         public ValueTask SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask SearchGeneratedDocumentsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
