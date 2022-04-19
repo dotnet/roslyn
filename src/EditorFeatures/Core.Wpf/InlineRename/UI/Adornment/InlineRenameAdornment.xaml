@@ -28,14 +28,12 @@
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
-            <SolidColorBrush x:Key="ForegroundText" Color="{DynamicResource {x:Static rename:InlineRenameColors.SystemCaptionTextColorKey}}"/>
-
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.CheckBoxTextBrushKey}}"/>
             </Style>
 
             <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static rename:InlineRenameColors.CheckBoxTextBrushKey}}"/>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -113,7 +111,12 @@
                     Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
             </StackPanel>
 
-            <TextBlock Text="{Binding ElementName=control, Path=SubmitText}" Foreground="LightGray" Margin="5, 5, 0, 0" FontStyle="Italic" />
+            <TextBlock 
+                Text="{Binding ElementName=control, Path=SubmitText}" 
+                Margin="5, 5, 0, 0" 
+                FontStyle="Italic"
+                Foreground="{DynamicResource {x:Static rename:InlineRenameColors.GrayTextKey}}"
+                />
     </StackPanel>
     </Border>
 </UserControl>
