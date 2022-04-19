@@ -23,8 +23,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
-        public RazorLanguageServerFactoryWrapper(ILanguageServerFactory languageServerFactory!!)
+        public RazorLanguageServerFactoryWrapper(ILanguageServerFactory languageServerFactory)
         {
+            if (languageServerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFactory));
+            }
+
             _languageServerFactory = languageServerFactory;
         }
 

@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // Set on first LSP initialize request.
         private ClientCapabilities? _clientCapabilities;
+
+        // Set on initialized.
         private SemanticTokensRefreshListener? _semanticTokensRefreshListener;
 
         // Fields used during shutdown.

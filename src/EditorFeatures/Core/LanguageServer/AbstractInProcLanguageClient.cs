@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            ILanguageClientMiddleLayer? middleLayer = null)
+            AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;

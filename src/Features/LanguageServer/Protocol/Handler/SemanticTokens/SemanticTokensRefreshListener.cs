@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             _lspWorkspaceManager = lspWorkspaceManager;
             _jsonRpc = jsonRpc;
-            _lspWorkspaceManager.LspWorkspaceChanged += OnLspWorkspaceChanged;
+            _lspWorkspaceManager.LspSolutionChanged += OnLspWorkspaceChanged;
 
             // Only send a refresh notification to the client every 2s (if needed)
             // in order to avoid sending too many notifications at once.
@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 cancellationToken);
         }
 
-        private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-        {
-            _workQueue.AddWork();
-        }
+        private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e) => _workQueue.AddWork();
 
         public ValueTask SendRefreshNotificationAsync(CancellationToken cancellationToken)
         {
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public void Dispose()
         {
-            _lspWorkspaceManager.LspWorkspaceChanged -= OnLspWorkspaceChanged;
+            _lspWorkspaceManager.LspSolutionChanged -= OnLspWorkspaceChanged;
         }
     }
 }
