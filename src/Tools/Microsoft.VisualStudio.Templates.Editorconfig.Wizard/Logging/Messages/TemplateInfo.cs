@@ -21,10 +21,10 @@ internal class TemplateInfo : ILogMessage<MessageData>
     public ImmutableArray<MessageData> GetMessageData()
     {
         var builder = ImmutableArray.CreateBuilder<MessageData>();
-        builder.Add(new MessageData(() => "WizardRunKind", () => Enum.GetName(runKind.GetType(), runKind)));
+        builder.Add(new MessageData("WizardRunKind", () => Enum.GetName(runKind.GetType(), runKind)));
         foreach (var kvp in replacementsDictionary)
         {
-            builder.Add(new MessageData(() => $"ReplacementsDictionary:{kvp.Key}", () => kvp.Value));
+            builder.Add(new MessageData("ReplacementsDictionaryValue", () => kvp.Value));
         }
         return builder.ToImmutable();
     }

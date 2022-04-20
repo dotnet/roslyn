@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging
                 var message = messageData.GetMessage();
                 if (!string.IsNullOrWhiteSpace(message))
                 {
-                    var propertyName = GetPropertyName(eventId, messageData.GetName());
+                    var propertyName = GetPropertyName(eventId, messageData.Name);
                     if (seenNames.Add(propertyName))
                     {
                         telemetryEvent.Properties.Add(propertyName, message);
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging
                 var message = messageData.GetMessage();
                 if (!string.IsNullOrWhiteSpace(message))
                 {
-                    var propertyName = GetPropertyName(operationId, messageData.GetName());
+                    var propertyName = GetPropertyName(operationId, messageData.Name);
                     if (seenNames.Add(propertyName))
                     {
                         telemetryEvent.Properties.Add(propertyName, message);
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging
                 var message = messageData.GetMessage();
                 if (!string.IsNullOrWhiteSpace(message))
                 {
-                    var propertyName = GetPropertyName(operationId, messageData.GetName());
+                    var propertyName = GetPropertyName(operationId, messageData.Name);
                     if (seenNames.Add(propertyName))
                     {
                         telemetryEvent.Properties.Add(propertyName, message);

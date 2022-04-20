@@ -4,7 +4,8 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
 
 public interface ILogMessageData
 {
-    string GetName();
+    string Name { get; }
+
     string GetMessage();
 }
 

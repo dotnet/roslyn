@@ -2,12 +2,15 @@
 
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Messages;
 
-internal class OptionsInfo : ILogMessage<MessageData>
+internal class OptionsInfo : IEnumerable<ILogMessage<MessageData>>
 {
     private readonly ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedOptions;
     private readonly OptionSet _optionSet;
@@ -18,18 +21,38 @@ internal class OptionsInfo : ILogMessage<MessageData>
         _optionSet = optionSet;
     }
 
-    public ImmutableArray<MessageData> GetMessageData()
+    public IEnumerator<ILogMessage<MessageData>> GetEnumerator()
     {
-        var builder = ImmutableArray.CreateBuilder<MessageData>();
         foreach (var option in _groupedOptions.SelectMany(x => x.options))
         {
-            if(RoslynEditorConfigFileGenerator.CanGetEditorConfigString(option))
+            if (RoslynEditorConfigFileGenerator.CanGetEditorConfigString(option))
             {
-                builder.Add(new MessageData(
-                    getName: () => RoslynEditorConfigFileGenerator.GetEditorConfigOptionString(option, _optionSet),
-                    getMessage: () => RoslynEditorConfigFileGenerator.GetEditorConfigValueString(option, _optionSet)));
+                yield return new OptionInfo(() =>
+                {
+                    var optionMessage = new MessageData(
+                        "option", getMessage: () => RoslynEditorConfigFileGenerator.GetEditorConfigOptionString(option, _optionSet));
+                    var valueMessage = new MessageData(
+                        "value", getMessage: () => RoslynEditorConfigFileGenerator.GetEditorConfigValueString(option, _optionSet));
+                    return ImmutableArray.Create(optionMessage, valueMessage);
+                });
             }
         }
-        return builder.ToImmutable();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private class OptionInfo : ILogMessage<MessageData>
+    {
+        private readonly Func<ImmutableArray<MessageData>> _generateMessageData;
+
+        public OptionInfo(Func<ImmutableArray<MessageData>> generateMessageData)
+        {
+            _generateMessageData = generateMessageData;
+        }
+
+        public ImmutableArray<MessageData> GetMessageData()
+        {
+            return _generateMessageData();
+        }
     }
 }

@@ -106,17 +106,11 @@ public partial class Logger
     {
         if (_session.IsOptedIn)
         {
-            var baseEventName = GetEventName(eventId);
-            foreach (var message in messages.GetMessageData())
+            foreach (var message in messages)
             {
-                string name = message.GetName();
-                var eventName = baseEventName + "/" + name;
-                var telemetryEvent = new TelemetryEvent(eventName);
-                var propertyName = GetPropertyName(eventId, "value");
-                var value = message.GetMessage();
-                telemetryEvent.Properties.Add(propertyName, value);
+                var telemetryEvent = new TelemetryEvent(GetEventName(eventId));
+                SetProperties(telemetryEvent, eventId, message);
                 _session.PostEvent(telemetryEvent);
-
             }
         }
     }
