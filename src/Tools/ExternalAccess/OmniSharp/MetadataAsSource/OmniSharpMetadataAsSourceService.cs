@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.MetadataAsSource
 {
@@ -28,8 +29,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.MetadataAsSource
         public static async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IMetadataAsSourceService>();
+
             var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return await service.AddSourceToAsync(document, symbolCompilation, symbol, formattingOptions, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+            return await service.AddSourceToAsync(document, symbolCompilation, symbol, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.MetadataAsSource
         public static Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, OmniSharpSyntaxFormattingOptionsWrapper formattingOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IMetadataAsSourceService>();
-            return service.AddSourceToAsync(document, symbolCompilation, symbol, formattingOptions.UnderlyingObject, cancellationToken);
+            return service.AddSourceToAsync(document, symbolCompilation, symbol, formattingOptions.FormattingOptions, formattingOptions.SimplifierOptions, cancellationToken);
         }
     }
 }

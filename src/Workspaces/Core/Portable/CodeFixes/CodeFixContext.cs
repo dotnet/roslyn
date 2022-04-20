@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
+#pragma warning disable CS0612 // Type or member is obsolete
     public readonly struct CodeFixContext : ITypeScriptCodeFixContext
+#pragma warning restore
     {
         private readonly Document _document;
         private readonly TextSpan _span;
@@ -45,8 +47,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        internal readonly CodeActionOptions Options;
-        bool ITypeScriptCodeFixContext.IsBlocking => Options.IsBlocking;
+        /// <summary>
+        /// IDE supplied options to use for settings not specified in the corresponding editorconfig file.
+        /// </summary>
+        /// <remarks>
+        /// Provider to allow code fix to update documents across multiple projects that differ in language (and hence language specific options).
+        /// </remarks>
+        internal readonly CodeActionOptionsProvider Options;
+
+        [Obsolete]
+        bool ITypeScriptCodeFixContext.IsBlocking
+            => Options(Document.Project.LanguageServices).IsBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -75,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    span,
                    VerifyDiagnosticsArgument(diagnostics, span),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   CodeActionOptions.Default,
+                   _ => CodeActionOptions.Default,
                    cancellationToken)
         {
         }
@@ -100,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
                    ImmutableArray.Create(diagnostic),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   CodeActionOptions.Default,
+                   _ => CodeActionOptions.Default,
                    cancellationToken)
         {
         }
@@ -110,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
@@ -201,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
     }
 
+    [Obsolete]
     internal interface ITypeScriptCodeFixContext
     {
         bool IsBlocking { get; }

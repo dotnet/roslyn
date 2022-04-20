@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -32,6 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
             => ImmutableArray.Create(CS0104);
 
         protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol)
-            => $"using { alias } = { typeSymbol.ToNameDisplayString() };";
+            => $"using {alias} = {typeSymbol.ToNameDisplayString()};";
     }
 }
