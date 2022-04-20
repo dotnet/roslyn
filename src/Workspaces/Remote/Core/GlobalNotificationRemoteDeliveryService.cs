@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Once that happens there is not point in sending more notifications to the remote service.
 
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
-                    previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    previous => SendStoppedNotificationAsync(previous), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
         }
 
-        private async Task<GlobalNotificationState> SendStoppedNotificationAsync(Task<GlobalNotificationState> previousTask, EventArgs e)
+        private async Task<GlobalNotificationState> SendStoppedNotificationAsync(Task<GlobalNotificationState> previousTask)
         {
             // Can only transition from Started->NotStarted.  If we hear about
             // anything else, do nothing.
