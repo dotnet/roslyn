@@ -7,13 +7,12 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Metalama.Compiler.UnitTests
 {
-    public class SourceTransformersTests : CommandLineTestBase
+    public partial class SourceTransformersTests : CommandLineTestBase
     {
         private static Assembly LoadCompiledAssembly(string path)
         {
@@ -286,38 +285,6 @@ build_property.MetalamaCompilerTransformedFilesOutputPath = {transformedDir.Path
             Assert.Equal("B", string.Join(", ", refAssembly.GetManifestResourceNames().OrderBy(n => n)));
 
             CleanupAllGeneratedFiles(src.Path);
-        }
-        
-        
-        
-        class AddResourceTransformer : ISourceTransformer
-        {
-           private readonly ManagedResource[] _resources;
-
-           public AddResourceTransformer(ManagedResource[] resources)
-           {
-               _resources = resources;
-           }
-
-           public void Execute(TransformerContext context)
-            {
-                context.AddResources(this._resources);
-            }
-        }
-
-        class DoSomethingTransformer : ISourceTransformer
-        {
-            public void Execute(TransformerContext context)
-            {
-                var compilation = context.Compilation;
-
-                foreach (var tree in compilation.SyntaxTrees)
-                {
-                    context.ReplaceSyntaxTree(tree, tree.WithInsertAt(0, "/* comment */"));
-                }
-
-                context.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
-            }
         }
     }
 }
