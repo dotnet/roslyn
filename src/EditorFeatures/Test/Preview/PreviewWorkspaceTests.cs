@@ -233,8 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             using var rightDisposable = rightTagger as IDisposable;
             // wait for diagnostics and taggers
-            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
-                workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.SolutionCrawler);
+            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
 
             // check left buffer
             var leftSnapshot = leftBuffer.CurrentSnapshot;
