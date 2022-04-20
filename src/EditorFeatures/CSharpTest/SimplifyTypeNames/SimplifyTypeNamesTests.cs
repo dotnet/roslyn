@@ -124,6 +124,63 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseGlobalAlias00()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}",
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseGlobalAlias01()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"">
+        <Document>
+global using MyType = System.IO.File;
+        </Document>
+        <Document>
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}
+</Document>
+    </Project>
+</Workspace>",
+@"
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias00_FileScopedNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -3465,7 +3522,7 @@ class M
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyNamesWhenThereAreParseErrors()
+        public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
 @"
@@ -3601,7 +3658,7 @@ namespace C
 
         [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontUseAlias1()
+        public async Task DoNotUseAlias1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -3950,7 +4007,7 @@ class Program
 
         [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyTypeNameBrokenCode()
+        public async Task DoNotSimplifyTypeNameBrokenCode()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -3970,7 +4027,7 @@ class Program
 
         [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAliases()
+        public async Task DoNotSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using Goo = System.Int32;
@@ -4008,7 +4065,7 @@ namespace A
 
         [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAttributeNameWithJustAttribute()
+        public async Task DoNotSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[[|Attribute|]]
@@ -4801,7 +4858,7 @@ namespace Root
         [InlineData("UInt64")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUseAliasDirective(string typeName)
         {
             await TestInRegularAndScriptAsync(
                 $"using My{typeName} = [|global::System.{typeName}|];",
@@ -4869,7 +4926,7 @@ class Base
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUseAliasDirectiveWithinNamespace(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
@@ -4889,7 +4946,7 @@ namespace N
         [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUseAliasDirectiveWithinNamespace_UnboundName(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
@@ -5239,7 +5296,7 @@ namespace A.B.C
         [InlineData("UInt64")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        public async Task TestDoesNotSimplifyUseAliasDirectiveToPrimitiveType(string typeName)
         {
             await TestMissingAsync(
 $@"using System;
@@ -5259,7 +5316,7 @@ namespace N
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        public async Task TestSimplifyUseAliasDirectiveToQualifiedBuiltInType(string typeName)
         {
             await TestInRegularAndScript1Async(
 $@"using System;
@@ -5279,7 +5336,7 @@ namespace N
         [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
+        public async Task TestDoesNotSimplifyUseAliasWithUnboundTypes(string typeName)
         {
             await TestMissingInRegularAndScriptAsync(
 $@"using System;
@@ -5909,7 +5966,7 @@ class Goo
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
+        public async Task TestDoesNotSimplifyUseAliasDirectiveToBuiltInType(string typeName)
         {
             await TestInRegularAndScript1Async(
 $@"using System;

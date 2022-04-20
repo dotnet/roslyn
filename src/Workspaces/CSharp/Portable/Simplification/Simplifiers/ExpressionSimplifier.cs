@@ -24,32 +24,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     internal class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
     {
-        public static readonly ExpressionSimplifier Instance = new();
+        private readonly NameSimplifier _nameSimplifier;
 
-        private ExpressionSimplifier()
+        public ExpressionSimplifier(SemanticModel semanticModel)
+            : base(semanticModel)
         {
+            _nameSimplifier = new NameSimplifier(semanticModel);
         }
 
         public override bool TrySimplify(
             ExpressionSyntax expression,
-            SemanticModel semanticModel,
             CSharpSimplifierOptions options,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, options, cancellationToken))
+            if (TryReduceExplicitName(expression, out var replacementTypeNode, out issueSpan, options, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
                 return true;
             }
 
-            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan, cancellationToken);
+            return TrySimplify(expression, out replacementNode, out issueSpan, cancellationToken);
         }
 
-        private static bool TryReduceExplicitName(
+        private bool TryReduceExplicitName(
             ExpressionSyntax expression,
-            SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
             CSharpSimplifierOptions options,
@@ -62,17 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
-                return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, options, cancellationToken);
+                return TryReduceMemberAccessExpression(memberAccess, out replacementNode, out issueSpan, options, cancellationToken);
 
             if (expression is NameSyntax name)
-                return NameSimplifier.Instance.TrySimplify(name, semanticModel, options, out replacementNode, out issueSpan, cancellationToken);
+                return _nameSimplifier.TrySimplify(name, options, out replacementNode, out issueSpan, cancellationToken);
 
             return false;
         }
 
-        private static bool TryReduceMemberAccessExpression(
+        private bool TryReduceMemberAccessExpression(
             MemberAccessExpressionSyntax memberAccess,
-            SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
             CSharpSimplifierOptions options,
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // sort of problems.  We could potentially relax this in the future.  However, we would
             // need to be very careful about the implications of us offering to fixup 'broken' code 
             // in a manner that might end up making things worse or confusing the user.
-            var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess);
+            var symbol = SimplificationHelpers.GetOriginalSymbolInfo(this.SemanticModel, memberAccess);
             if (symbol == null)
                 return false;
 
@@ -118,8 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 // Check if we need to replace this syntax with an alias identifier
                 if (TryReplaceExpressionWithAlias(
-                        memberAccess, semanticModel, symbol,
-                        cancellationToken, out var aliasReplacement))
+                        memberAccess, symbol, cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -155,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
 
                 // Check if the Expression can be replaced by Predefined Type keyword
-                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options, semanticModel))
+                if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options))
                 {
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
                     {
@@ -181,7 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
                 GetReplacementCandidates(
-                    semanticModel,
                     memberAccess,
                     symbol,
                     out var speculativeSymbols,
@@ -196,12 +193,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
-            return CanReplaceWithReducedName(
-                memberAccess, replacementNode, semanticModel, symbol, cancellationToken);
+            return CanReplaceWithReducedName(memberAccess, replacementNode, symbol, cancellationToken);
         }
 
-        private static void GetReplacementCandidates(
-            SemanticModel semanticModel,
+        private void GetReplacementCandidates(
             MemberAccessExpressionSyntax memberAccess,
             ISymbol actualSymbol,
             out ImmutableArray<ISymbol> speculativeSymbols,
@@ -211,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var containsOtherSymbol = !containsNamespaceOrTypeSymbol;
 
             speculativeSymbols = containsOtherSymbol
-                ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                ? this.SemanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
                 : ImmutableArray<ISymbol>.Empty;
             speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
-                ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
+                ? this.SemanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
                 : ImmutableArray<ISymbol>.Empty;
         }
 
@@ -263,9 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 => obj?.OriginalDefinition.GetHashCode() ?? 0;
         }
 
-        private static bool TrySimplify(
+        private bool TrySimplify(
             ExpressionSyntax expression,
-            SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -278,19 +272,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
+                        if (IsNonRemovablePartOfDynamicMethodInvocation(memberAccess, cancellationToken))
                         {
                             return false;
                         }
 
-                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
                                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
                             // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
+                            return !ReplacementChangesSemantics(memberAccess, replacementNode);
                         }
 
                         return false;
@@ -299,14 +293,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 case SyntaxKind.QualifiedName:
                     {
                         var qualifiedName = (QualifiedNameSyntax)expression;
-                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
                                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
                             // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
+                            return !ReplacementChangesSemantics(qualifiedName, replacementNode);
                         }
 
                         return false;
@@ -316,43 +310,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool CanReplaceWithReducedName(
+        private bool CanReplaceWithReducedName(
             MemberAccessExpressionSyntax memberAccess,
             ExpressionSyntax reducedName,
-            SemanticModel semanticModel,
             ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            if (!IsThisOrTypeOrNamespace(memberAccess, semanticModel))
+            if (!IsThisOrTypeOrNamespace(memberAccess))
             {
                 return false;
             }
 
-            var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, reducedName, semanticModel, cancellationToken);
+            var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, reducedName, this.SemanticModel, cancellationToken);
             if (!speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() ||
                 speculationAnalyzer.ReplacementChangesSemantics())
             {
                 return false;
             }
 
-            if (WillConflictWithExistingLocal(memberAccess, reducedName, semanticModel))
+            if (WillConflictWithExistingLocal(memberAccess, reducedName))
             {
                 return false;
             }
 
-            if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
+            if (IsNonRemovablePartOfDynamicMethodInvocation(memberAccess, cancellationToken))
             {
                 return false;
             }
 
-            if (AccessMethodWithDynamicArgumentInsideStructConstructor(memberAccess, semanticModel))
+            if (AccessMethodWithDynamicArgumentInsideStructConstructor(memberAccess))
             {
                 return false;
             }
 
             if (memberAccess.Expression.Kind() == SyntaxKind.BaseExpression)
             {
-                var enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
+                var enclosingNamedType = this.SemanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
                 if (enclosingNamedType != null &&
                     !enclosingNamedType.IsSealed &&
                     symbol != null &&
@@ -373,16 +366,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         /// portion. The namespace part is not encoded into the IL, but the specific types in
         /// <c>T1.T2</c> and cannot be removed.
         /// </summary>
-        private static bool IsNonRemovablePartOfDynamicMethodInvocation(
-            SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, CancellationToken cancellationToken)
+        private bool IsNonRemovablePartOfDynamicMethodInvocation(
+            MemberAccessExpressionSyntax memberAccess, CancellationToken cancellationToken)
         {
             var ancestorInvocation = memberAccess.FirstAncestorOrSelf<InvocationExpressionSyntax>();
             if (ancestorInvocation?.SpanStart == memberAccess.SpanStart)
             {
-                var leftSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+                var leftSymbol = this.SemanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
                 if (leftSymbol is INamedTypeSymbol)
                 {
-                    var type = semanticModel.GetTypeInfo(memberAccess.Parent, cancellationToken).Type;
+                    var type = this.SemanticModel.GetTypeInfo(memberAccess.Parent, cancellationToken).Type;
                     if (type?.Kind == SymbolKind.DynamicType)
                     {
                         return true;
@@ -398,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
          * since the check for initialization of all member variable is a lot of work for this simplification we don't simplify
          * even if all the member variables are initialized
          */
-        private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private bool AccessMethodWithDynamicArgumentInsideStructConstructor(MemberAccessExpressionSyntax memberAccess)
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
@@ -407,14 +400,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
             }
 
-            return semanticModel.GetSymbolInfo(memberAccess.Name).CandidateReason == CandidateReason.LateBound;
+            return this.SemanticModel.GetSymbolInfo(memberAccess.Name).CandidateReason == CandidateReason.LateBound;
         }
 
         // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
-        private static bool TrySimplifyMemberAccessOrQualifiedName(
+        private bool TrySimplifyMemberAccessOrQualifiedName(
             ExpressionSyntax left,
             ExpressionSyntax right,
-            SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan)
         {
@@ -423,16 +415,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (left != null && right != null)
             {
-                var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, left);
+                var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(this.SemanticModel, left);
                 if (leftSymbol != null && leftSymbol.Kind == SymbolKind.NamedType)
                 {
-                    var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, right);
+                    var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(this.SemanticModel, right);
                     if (rightSymbol != null && (rightSymbol.IsStatic || rightSymbol.Kind == SymbolKind.NamedType))
                     {
                         // Static member access or nested type member access.
                         var containingType = rightSymbol.ContainingType;
 
-                        var enclosingSymbol = semanticModel.GetEnclosingSymbol(left.SpanStart);
+                        var enclosingSymbol = this.SemanticModel.GetEnclosingSymbol(left.SpanStart);
                         var enclosingTypeParametersInsideOut = new List<ISymbol>();
 
                         while (enclosingSymbol != null)
@@ -479,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsThisOrTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private bool IsThisOrTypeOrNamespace(MemberAccessExpressionSyntax memberAccess)
         {
             if (memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
             {
                 var previousToken = memberAccess.Expression.GetFirstToken().GetPreviousToken();
 
-                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
+                var symbol = this.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
                 if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
                     previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
@@ -499,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return true;
             }
 
-            var expressionInfo = semanticModel.GetSymbolInfo(memberAccess.Expression);
+            var expressionInfo = this.SemanticModel.GetSymbolInfo(memberAccess.Expression);
             if (SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol))
             {
                 if (expressionInfo.Symbol is INamespaceOrTypeSymbol)
@@ -562,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return node.IsKind(SyntaxKind.IdentifierName);
         }
 
-        protected static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
+        protected bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression)
         {
-            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
+            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, this.SemanticModel, CancellationToken.None);
             return speculationAnalyzer.ReplacementChangesSemantics();
         }
     }

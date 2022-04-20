@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
             customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.PreferBuiltInOrFrameworkType.ToCustomTag()).ToArray());
 
-        internal abstract bool IsCandidate(SyntaxNode node);
-        internal abstract bool CanSimplifyTypeNameExpression(
+        protected abstract bool IsCandidate(SyntaxNode node);
+        protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, SyntaxNode node, TSimplifierOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken);

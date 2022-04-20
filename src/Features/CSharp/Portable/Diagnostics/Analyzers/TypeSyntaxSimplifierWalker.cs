@@ -82,14 +82,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _cancellationToken = cancellationToken;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            _aliasedNames = GetAliasedNames(root as CompilationUnitSyntax);
+            _aliasedNames = GetAliasedNames((CompilationUnitSyntax)root);
         }
 
-        private static ImmutableHashSet<string> GetAliasedNames(CompilationUnitSyntax? compilationUnit)
+        private ImmutableHashSet<string> GetAliasedNames(CompilationUnitSyntax compilationUnit)
         {
             var aliasedNames = s_emptyAliasedNames;
-            if (compilationUnit is null)
-                return aliasedNames;
+
+            var scopes = _semanticModel.GetImportScopes(0, _cancellationToken);
+            foreach (var scope in scopes)
+            {
+                foreach (var alias in scope.Aliases)
+                {
+                    var name = alias.Target.Name;
+                    if (!string.IsNullOrEmpty(name))
+                        aliasedNames = aliasedNames.Add(name);
+                }
+            }
 
             foreach (var usingDirective in compilationUnit.Usings)
                 AddAliasedName(usingDirective);
@@ -104,16 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             void AddAliasedName(UsingDirectiveSyntax usingDirective)
             {
-                if (usingDirective.Alias is object)
+                if (usingDirective.Alias is not null &&
+                    usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
                 {
-                    if (usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
-                    {
-                        var identifierAlias = identifierName.Identifier.ValueText;
-                        if (!RoslynString.IsNullOrEmpty(identifierAlias))
-                        {
-                            aliasedNames = aliasedNames.Add(identifierAlias);
-                        }
-                    }
+                    var identifierAlias = identifierName.Identifier.ValueText;
+                    if (!string.IsNullOrEmpty(identifierAlias))
+                        aliasedNames = aliasedNames.Add(identifierAlias);
                 }
             }
 
