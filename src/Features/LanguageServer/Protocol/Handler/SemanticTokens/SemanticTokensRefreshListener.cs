@@ -20,36 +20,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensRefreshListener
     {
         private readonly LspWorkspaceManager _lspWorkspaceManager;
-        private readonly JsonRpc _jsonRpc;
+        private readonly ILanguageServerNotificationManager _languageServerNotificationManager;
         private readonly AsyncBatchingWorkQueue _workQueue;
 
         public SemanticTokensRefreshListener(
             LspWorkspaceManager lspWorkspaceManager,
-            JsonRpc jsonRpc,
+            ILanguageServerNotificationManager languageServerNotificationManager,
             IAsynchronousOperationListener listener,
             CancellationToken cancellationToken)
         {
             _lspWorkspaceManager = lspWorkspaceManager;
-            _jsonRpc = jsonRpc;
+            _languageServerNotificationManager = languageServerNotificationManager;
             _lspWorkspaceManager.LspSolutionChanged += OnLspWorkspaceChanged;
 
             // Only send a refresh notification to the client every 2s (if needed)
             // in order to avoid sending too many notifications at once.
             _workQueue = new AsyncBatchingWorkQueue(
                 delay: TimeSpan.FromMilliseconds(2000),
-                processBatchAsync: SendRefreshNotificationAsync,
+                processBatchAsync: SendSemanticTokensNotificationAsync,
                 asyncListener: listener,
                 cancellationToken);
         }
 
         private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e) => _workQueue.AddWork();
 
-        public ValueTask SendRefreshNotificationAsync(CancellationToken cancellationToken)
-        {
-            // TO-DO: Replace hardcoded string with const once LSP side is merged.
-            _ = _jsonRpc.NotifyAsync("workspace/semanticTokens/refresh");
-            return new ValueTask();
-        }
+        // TO-DO: Replace hardcoded string with const once LSP side is merged.
+        public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
+            => _languageServerNotificationManager.SendNotificationAsync("workspace/semanticTokens/refresh", cancellationToken);
 
         public void Dispose()
         {

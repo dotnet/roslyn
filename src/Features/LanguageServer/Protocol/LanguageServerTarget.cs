@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly RequestDispatcher _requestDispatcher;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly RequestExecutionQueue _queue;
+        private readonly LanguageServerNotificationManager _notificationManager;
         private readonly IAsynchronousOperationListener _listener;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly ILspLogger _logger;
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
+            _notificationManager = new LanguageServerNotificationManager(_jsonRpc);
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public virtual Task InitializedAsync(CancellationToken cancellationToken)
         {
             // TO-DO: Add client capability check below once LSP side is merged
-            _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _jsonRpc, _listener, cancellationToken);
+            _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _notificationManager, _listener, cancellationToken);
 
             return Task.CompletedTask;
         }
