@@ -134,4 +134,26 @@
 
     <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
   </Target>
+
+  <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
+       project, and hands the resulting list of <Compile> items to the language service. It then does an
+       execution pass executing CoreCompile passing SkipCompilerExecution=true and ProvideCommandLineArgs=true,
+       that resulting command line string is where we get our compiler switches. The execution pass is much
+       slower than the evaluation pass, so there's a window of time where we have a list of files, but not
+       any options yet.
+
+       Because there's a gap, that means there's a time where we are parsing source files with the default
+       parse options. We'll then have to reparse them a second time which isn't great. It also means any
+       cache lookups we do won't have the right options either, so the cache lookups might miss.
+
+       To help this, we'll have a property for the evaluation pass which is an "approximation" of the
+       options that would come out of CoreCompile, but only the ones that matter for parsing. It's acceptable
+       for this to be imperfect: once the execution pass is complete we'll use those options instead,
+       so any behaviors here that don't match the real command line generation will only be temporary, and
+       probably won't be any worse than having no options at all. -->
+       
+  <PropertyGroup>
+    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(FinalDefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(FinalDefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+  </PropertyGroup>
 </Project>
