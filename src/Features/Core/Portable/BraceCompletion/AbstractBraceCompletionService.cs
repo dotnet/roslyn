@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
             if (NeedsSemantics)
             {
-                var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(document, token, openingPoint, cancellationToken).ConfigureAwait(false);
+                // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
+                // operation.  We don't want to wait on things like source generators to figure things out.
+                var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(
+                     document.WithFrozenPartialSemantics(cancellationToken), token, openingPoint, cancellationToken).ConfigureAwait(false);
                 if (!validOpeningPoint)
                     return null;
             }
