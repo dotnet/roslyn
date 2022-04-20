@@ -3203,6 +3203,25 @@ class C {
         [Fact]
         public void KeywordParameterName_07()
         {
+            string source = "public => { }";
+            UsingExpression(source,
+                // (1,1): error CS1525: Invalid expression term 'public'
+                // public => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 1),
+                // (1,1): error CS1073: Unexpected token 'public'
+                // public => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("public").WithLocation(1, 1));
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_08()
+        {
             string source = "f = [A] int => { }";
             UsingExpression(source,
                 // (1,1): error CS1073: Unexpected token 'int'
@@ -3243,7 +3262,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_08()
+        public void KeywordParameterName_09()
         {
             string source = "var => { }";
             UsingExpression(source);
@@ -3265,7 +3284,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_09()
+        public void KeywordParameterName_10()
         {
             string source = "async => { }";
             UsingExpression(source);
