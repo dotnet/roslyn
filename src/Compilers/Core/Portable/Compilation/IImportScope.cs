@@ -46,12 +46,14 @@ namespace Microsoft.CodeAnalysis
         /// <c>Imports X = TypeOrNamespace</c> in Visual Basic.  This will include global aliases if present for both
         /// languages.
         /// </summary>
+        /// <remarks>May be <see cref="ImmutableArray{T}.Empty"/>, will never be <see cref="ImmutableArray{T}.IsDefault"/>.</remarks>
         ImmutableArray<IAliasSymbol> Aliases { get; }
 
         /// <summary>
         /// Extern aliases defined at this level of the chain.  This corresponds to <c>extern alias X;</c> in C#.  It
         /// will be empty in Visual Basic.
         /// </summary>
+        /// <remarks>May be <see cref="ImmutableArray{T}.Empty"/>, will never be <see cref="ImmutableArray{T}.IsDefault"/>.</remarks>
         ImmutableArray<IAliasSymbol> ExternAliases { get; }
 
         /// <summary>
@@ -59,12 +61,14 @@ namespace Microsoft.CodeAnalysis
         /// <c>using static Type;</c> in C#, or <c>Imports TypeOrNamespace</c> in Visual Basic.  This will include
         /// global namespace or type imports for both languages.
         /// </summary>
+        /// <remarks>May be <see cref="ImmutableArray{T}.Empty"/>, will never be <see cref="ImmutableArray{T}.IsDefault"/>.</remarks>
         ImmutableArray<ImportedNamespaceOrType> Imports { get; }
 
         /// <summary>
         /// Xml namespaces imported at this level of the chain.  This corresponds to <c>Imports &lt;xmlns:prefix =
         /// "name"&gt;</c> in Visual Basic.  It will be empty in C#.
         /// </summary>
+        /// <remarks>May be <see cref="ImmutableArray{T}.Empty"/>, will never be <see cref="ImmutableArray{T}.IsDefault"/>.</remarks>
         ImmutableArray<ImportedXmlNamespace> XmlNamespaces { get; }
     }
 
