@@ -3203,25 +3203,6 @@ class C {
         [Fact]
         public void KeywordParameterName_07()
         {
-            string source = "public => { }";
-            UsingExpression(source,
-                // (1,1): error CS1525: Invalid expression term 'public'
-                // public => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 1),
-                // (1,1): error CS1073: Unexpected token 'public'
-                // public => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("public").WithLocation(1, 1));
-
-            M(SyntaxKind.IdentifierName);
-            {
-                M(SyntaxKind.IdentifierToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void KeywordParameterName_08()
-        {
             string source = "f = [A] int => { }";
             UsingExpression(source,
                 // (1,1): error CS1073: Unexpected token 'int'
@@ -3262,7 +3243,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_09()
+        public void KeywordParameterName_08()
         {
             string source = "var => { }";
             UsingExpression(source);
@@ -3284,7 +3265,7 @@ class C {
         }
 
         [Fact]
-        public void KeywordParameterName_10()
+        public void KeywordParameterName_09()
         {
             string source = "async => { }";
             UsingExpression(source);
@@ -3301,6 +3282,86 @@ class C {
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_10()
+        {
+            string source = "Action<object> a = public => { };";
+            var tree = UsingTree(source);
+            tree.GetDiagnostics().Verify(
+                // (1,20): error CS1525: Invalid expression term 'public'
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 20),
+                // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "public").WithLocation(1, 20),
+                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(1, 27));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
