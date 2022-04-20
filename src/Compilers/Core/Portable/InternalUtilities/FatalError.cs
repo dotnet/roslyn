@@ -43,16 +43,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Same as setting the Handler property except that it avoids the assert.  This is useful in
-        /// test code which needs to verify the handler is called in specific cases and will continually
-        /// overwrite this value.
-        /// </summary>
-        public static void OverwriteHandler(ErrorReporterHandler? value)
-        {
-            s_handler = value;
-        }
-
-        /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
         /// <remarks>
@@ -240,6 +230,31 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             }
 
             s_handler(exception, severity, forceDump);
+        }
+
+        internal static class TestAccessor
+        {
+            public static IDisposable OverrideTestHandler(ErrorReporterHandler handler)
+            {
+                var originalHandler = s_handler;
+                s_handler = handler;
+                return new HandlerRestorer(originalHandler);
+            }
+
+            private class HandlerRestorer : IDisposable
+            {
+                private readonly ErrorReporterHandler? _originalHandler;
+
+                public HandlerRestorer(ErrorReporterHandler? originalHandler)
+                {
+                    _originalHandler = originalHandler;
+                }
+
+                public void Dispose()
+                {
+                    s_handler = _originalHandler;
+                }
+            }
         }
     }
 

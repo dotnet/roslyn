@@ -15,6 +15,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using System.Linq;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -11232,6 +11233,11 @@ class C
                     throw outOfMemory ? new OutOfMemoryException() : new SimpleToStringException();
                 }
             });
+
+
+            // Disable any default test handler -- want the exceptions being caught to be caught, and since we're asserting diagnostics
+            // are as expected we can't be trapping other failures.
+            using var _ = FatalError.TestAccessor.OverrideTestHandler(handler: null);
 
             var expectedDiagnostic = outOfMemory ?
                 Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
