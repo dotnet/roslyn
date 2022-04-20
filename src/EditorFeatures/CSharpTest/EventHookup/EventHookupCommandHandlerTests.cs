@@ -1170,6 +1170,32 @@ class Program
             testState.AssertShowing("Console_CancelKeyPress");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task HandlerName_InvocationExpression()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    public event EventHandler MyEvent;
+    
+    public static C CreateC()
+    {
+        return new C();
+    }
+    
+    public void M2()
+    {
+        CreateC().MyEvent +$$
+    }
+}";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("C_MyEvent");
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }

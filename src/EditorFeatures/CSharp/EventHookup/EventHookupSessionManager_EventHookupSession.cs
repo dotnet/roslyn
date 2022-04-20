@@ -265,7 +265,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return lhsGenericNameSyntax.Identifier.Text;
                     }
 
-                    return lhs.ToString();
+                    if (lhs != null)
+                    {
+                        return lhs.ToString();
+                    }
                 }
 
                 // If we didn't find an object name above, then the object name is the name of this class.
