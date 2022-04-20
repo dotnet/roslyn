@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     }
 
                     var document = solution.GetRequiredDocument(documentId);
-                    var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
+                    var options = _globalOptions.GetCodeActionOptions(document.Project.LanguageServices);
                     return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
 
-                var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
+                var options = _globalOptions.GetCodeActionOptions(document.Project.LanguageServices);
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
-            var ideOptions = _globalOptions.GetCodeActionOptions(project.Language);
+            var ideOptions = _globalOptions.GetCodeActionOptions(project.LanguageServices);
 
             foreach (var documentId in project.DocumentIds)
             {
@@ -355,7 +355,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, _ => ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

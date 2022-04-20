@@ -328,6 +328,7 @@ class Program<T> wh[||]ere T : class
         [InlineData("<=")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("*")]
         [InlineData("%")]
         [InlineData("&&")]
@@ -359,6 +360,7 @@ $@"namespace N
         [InlineData("^=")]
         [InlineData("<<=")]
         [InlineData(">>=")]
+        [InlineData(">>>=")]
         public async Task TestCompoundOperator(string operatorText)
         {
             await TestAsync(
@@ -940,6 +942,51 @@ class Program
         Console.WriteLine($[||]""Hello, {args[0]}"");
     }
 }", "$_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUTF8String()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = ""Hel[||]lo""u8;
+    }
+}", "UTF8StringLiteral_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRawString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = """"""Hel[||]lo"""""";
+    }
+}", "RawStringLiteral_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUTF8RawString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = """"""Hel[||]lo""""""u8;
+    }
+}", "UTF8StringLiteral_CSharpKeyword");
         }
 
         [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]

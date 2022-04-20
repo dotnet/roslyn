@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Indentation;
 
 internal static class IndentationOptionsStorage
 {
-    // TODO: move to LSP layer
     public static async Task<IndentationOptions> GetIndentationOptionsAsync(this IGlobalOptionService globalOptions, Document document, CancellationToken cancellationToken)
     {
         var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);

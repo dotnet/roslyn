@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-// TODO: move to LSP layer
 internal static class ExtractMethodOptionsStorage
 {
     public static ExtractMethodOptions GetExtractMethodOptions(this IGlobalOptionService globalOptions, string language)

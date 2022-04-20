@@ -349,6 +349,9 @@ breaks
             TestNormalizeExpression("a!=b", "a != b");
             TestNormalizeExpression("a<<b", "a << b");
             TestNormalizeExpression("a>>b", "a >> b");
+            TestNormalizeExpression("a>>>b", "a >>> b");
+            TestNormalizeExpression("a>>=b", "a >>= b");
+            TestNormalizeExpression("a>>>=b", "a >>>= b");
             TestNormalizeExpression("a??b", "a ?? b");
 
             TestNormalizeExpression("a<b>.c", "a<b>.c");
@@ -372,6 +375,7 @@ breaks
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+            TestNormalizeExpression("(IList<IList<IList<int>>>)args", "(IList<IList<IList<int>>>)args");
 
             TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
@@ -601,6 +605,11 @@ breaks
             TestNormalizeDeclaration("class a{b I1 . operator    checked-(c d){}}", "class a\r\n{\r\n  b I1.operator checked -(c d)\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{ implicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{ explicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
 
             // properties
             TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");

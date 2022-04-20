@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 

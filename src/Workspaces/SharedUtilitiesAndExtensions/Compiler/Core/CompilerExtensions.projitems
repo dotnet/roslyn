@@ -404,6 +404,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\AliasAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAllowVarAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AliasSymbolKey.cs" />
