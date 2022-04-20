@@ -81,16 +81,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
                 {
-                    N(SyntaxKind.FileKeyword);
                     N(typeKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
@@ -209,17 +219,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.FileKeyword);
-                    N(SyntaxKind.RefKeyword);
+                    // PROTOTYPE(ft): why is the ref keyword getting skipped here?
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
