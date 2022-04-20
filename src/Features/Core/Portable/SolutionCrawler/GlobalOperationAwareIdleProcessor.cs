@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private void OnGlobalOperationStarted(object? sender, EventArgs e)
-            => this.Paused = true;
+            => this.SetIsPaused(isPaused: true);
 
         private void OnGlobalOperationStopped(object? sender, EventArgs e)
-            => this.Paused = false;
+            => this.SetIsPaused(isPaused: false);
     }
 }

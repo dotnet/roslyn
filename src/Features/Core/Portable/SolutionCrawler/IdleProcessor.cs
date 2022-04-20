@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// Whether or not this processor is paused.  As long as it is paused, it will not start executing new work,
         /// even if <see cref="BackOffTimeSpan"/> has been met.
         /// </summary>
-        private bool _paused_doNotAccessDirectly;
+        private bool _isPaused_doNotAccessDirectly;
 
         public IdleProcessor(
             IAsynchronousOperationListener listener,
@@ -62,32 +62,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         protected void UpdateLastAccessTime()
             => _timeSinceLastAccess = SharedStopwatch.StartNew();
 
-        protected bool Paused
+        protected bool GetIsPaused()
         {
-            get
+            lock (_gate)
+                return _isPaused_doNotAccessDirectly;
+        }
+
+        protected void SetIsPaused(bool isPaused)
+        {
+            lock (_gate)
             {
-                lock (_gate)
-                    return _paused_doNotAccessDirectly;
+                // We should never try to transition from paused state to paused state.  That would indicate we
+                // missed some resume call, or that the pause-notification are not serialized.  Note: we cannot make
+                // the opposite assertion.  We start in the resumed state, and we might then get a call to resume if
+                // we were started while in the *middle* of some global operation.
+                if (isPaused)
+                    Contract.ThrowIfTrue(_isPaused_doNotAccessDirectly);
+
+                _isPaused_doNotAccessDirectly = isPaused;
             }
 
-            set
-            {
-                lock (_gate)
-                {
-                    // We should never try to transition from paused state to paused state.  That would indicate we
-                    // missed some resume call, or that the pause-notification are not serialized.  Note: we cannot make
-                    // the opposite assertion.  We start in the resumed state, and we might then get a call to resume if
-                    // we were started while in the *middle* of some global operation.
-                    if (value)
-                        Contract.ThrowIfTrue(_paused_doNotAccessDirectly);
-
-                    _paused_doNotAccessDirectly = value;
-                }
-
-                // Let subclasses know we're paused so they can change what they're doing accordingly.
-                if (value)
-                    OnPaused();
-            }
+            // Let subclasses know we're paused so they can change what they're doing accordingly.
+            if (isPaused)
+                OnPaused();
         }
 
         protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         protected bool ShouldWaitForIdle()
         {
             var diff = _timeSinceLastAccess.Elapsed;
-            return Paused || diff < BackOffTimeSpan;
+            return GetIsPaused() || diff < BackOffTimeSpan;
         }
 
         private async Task ProcessAsync()
