@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -103,9 +104,28 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Simple POCO implementation of the import scope, usable by both C# and VB.
     /// </summary>
-    internal sealed record SimpleImportScope(
-        ImmutableArray<IAliasSymbol> Aliases,
-        ImmutableArray<IAliasSymbol> ExternAliases,
-        ImmutableArray<ImportedNamespaceOrType> Imports,
-        ImmutableArray<ImportedXmlNamespace> XmlNamespaces) : IImportScope;
+    internal sealed class SimpleImportScope : IImportScope
+    {
+        public SimpleImportScope(
+            ImmutableArray<IAliasSymbol> aliases,
+            ImmutableArray<IAliasSymbol> externAliases,
+            ImmutableArray<ImportedNamespaceOrType> imports,
+            ImmutableArray<ImportedXmlNamespace> xmlNamespaces)
+        {
+            Debug.Assert(!aliases.IsDefault);
+            Debug.Assert(!externAliases.IsDefault);
+            Debug.Assert(!imports.IsDefault);
+            Debug.Assert(!xmlNamespaces.IsDefault);
+            Debug.Assert(aliases.Length + externAliases.Length + imports.Length + xmlNamespaces.Length > 0);
+            Aliases = aliases;
+            ExternAliases = externAliases;
+            Imports = imports;
+            XmlNamespaces = xmlNamespaces;
+        }
+
+        public ImmutableArray<IAliasSymbol> Aliases { get; }
+        public ImmutableArray<IAliasSymbol> ExternAliases { get; }
+        public ImmutableArray<ImportedNamespaceOrType> Imports { get; }
+        public ImmutableArray<ImportedXmlNamespace> XmlNamespaces { get; }
+    }
 }
