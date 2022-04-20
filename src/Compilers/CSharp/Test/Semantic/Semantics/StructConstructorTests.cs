@@ -2757,7 +2757,7 @@ public struct S
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Latest)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
         public void ImplicitlyInitializedFields_EmptyStruct(LanguageVersion languageVersion)
         {
             var source = @"
