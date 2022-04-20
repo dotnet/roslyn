@@ -4,6 +4,8 @@
 
 ## How to Install
 
+### Local Install
+
 You can install the latest build of the tool using the following command.
 
 ```console
@@ -12,8 +14,11 @@ dotnet tool install Microsoft.RoslynTools --prerelease --add-source https://pkgs
 
 ### Global Install
 
-You can optionally install the tool globally on your machine, rather than in a specific repository by adding the `-g` argument to the install (and uninstall) command.
-When installed globally the command is run with just `roslyn-tools`, so `roslyn-tools vsbranchinfo`.
+You can optionally install the tool globally on your machine. When installed globally the command is run with just `roslyn-tools`, so `roslyn-tools vsbranchinfo`.
+
+```console
+dotnet tool install -g Microsoft.RoslynTools --prerelease --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+```
 
 ## How to Use
 
