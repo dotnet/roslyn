@@ -10,36 +10,17 @@ namespace Microsoft.CodeAnalysis.Notification;
 
 internal partial class GlobalOperationNotificationService
 {
-    private class GlobalOperationRegistration : IGlobalOperationRegistration
+    private class GlobalOperationRegistration : IDisposable
     {
         private readonly GlobalOperationNotificationService _service;
-        private readonly CancellationTokenSource _source;
-        private readonly IDisposable _logging;
 
-        private bool _done = false;
-
-        public GlobalOperationRegistration(GlobalOperationNotificationService service, string operation)
-        {
-            _service = service;
-
-            _source = new CancellationTokenSource();
-            _logging = Logger.LogBlock(FunctionId.GlobalOperationRegistration, operation, _source.Token);
-        }
-
-        public void Done()
-            => _done = true;
+        public GlobalOperationRegistration(GlobalOperationNotificationService service)
+            => _service = service;
 
         public void Dispose()
         {
             // Inform any listeners that we're finished.
             _service.Done(this);
-
-            // If 'Done' wasn't called, cancel our cancellation-source so that our logging block will record that we
-            // didn't finish
-            if (!_done)
-                _source.Cancel();
-
-            _logging.Dispose();
         }
     }
 }
