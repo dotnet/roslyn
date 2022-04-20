@@ -99,6 +99,7 @@ modifier
   | 'async'
   | 'const'
   | 'extern'
+  | 'file'
   | 'fixed'
   | 'internal'
   | 'new'
