@@ -12,7 +12,6 @@ using System.Threading;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Metalama.Backstage.Diagnostics;
@@ -473,17 +472,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation);
             }
 
-            var services = new ServiceCollection();
-            var serviceProviderBuilder = new ServiceProviderBuilder(
-                (type, instance) => services.AddService(type, instance),
-                () => services);
+            var serviceProviderBuilder = new ServiceProviderBuilder();
 
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
             if (this.RequiresMetalamaLicensingServices)
             {
                 var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
-                serviceProviderBuilder.AddBackstageServices(
+                serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
                     new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses),
                     inputCompilation.AssemblyName,
                     !licenseOptions.SkipImplicitLicenses,
@@ -499,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException();
                 }
 
-                serviceProviderBuilder.AddMinimalBackstageServices(dotNetSdkDirectory);
+                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(dotNetSdkDirectory);
             }
 
             void ReportException(Exception e, bool throwReporterExceptions)
@@ -508,8 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     try
                     {
-                        var reporter = services.GetRequiredService<IExceptionReporter>();
-                        reporter.ReportException(e);
+                        var reporter = serviceProviderBuilder.ServiceProvider.GetService<IExceptionReporter>();
+                        reporter?.ReportException(e);
                     }
                     catch (Exception reporterException)
                     {
@@ -521,12 +517,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TransformersResult result;
-
             try
             {
+                // Initialize usage reporting
+                IUsageSample? usageSample = null;
+
+                if (this.RequiresMetalamaSupportServices)
+                {
+                    try
+                    {
+                        var usageReporter = serviceProviderBuilder.ServiceProvider.GetService<IUsageReporter>();
+
+                        if (usageReporter != null && usageReporter.ShouldReportSession(inputCompilation.AssemblyName ?? "<unknown>"))
+                        {
+                            usageSample = usageReporter.CreateSample("MetalamaCompilerUsage");
+                            serviceProviderBuilder = serviceProviderBuilder.AddSingleton<IUsageSample>(usageSample);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        ReportException(e, false);
+
+                        // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
+                    }
+                }
+
                 // Initialize licensing.
-                var licenseManager = services.GetService<ILicenseConsumptionManager>();
+                var licenseManager = serviceProviderBuilder.ServiceProvider.GetService<ILicenseConsumptionManager>();
                 try
                 {
                     if (licenseManager != null)
@@ -556,10 +573,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Run transformers.
                     ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
-                    result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
-                        analyzerConfigProvider, diagnostics, resources, AssemblyLoader, services, cancellationToken);
+                    var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
+                        analyzerConfigProvider, diagnostics, resources, AssemblyLoader, serviceProviderBuilder.ServiceProvider, cancellationToken);
 
                     Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
+
+                    return result;
                 }
                 finally
                 {
@@ -577,7 +596,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Close logs.
-                    services.GetLoggerFactory().Dispose();
+                    serviceProviderBuilder.ServiceProvider.GetLoggerFactory().Dispose();
+
+                    // Report usage.
+                    try
+                    {
+                        usageSample?.Flush();
+                    }
+                    catch (Exception e)
+                    {
+                        ReportException(e, false);
+
+                        // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
+                    }
                 }
             }
             catch (Exception e)
@@ -586,28 +617,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 throw;
             }
-
-            if (this.RequiresMetalamaSupportServices)
-            {
-                try
-                {
-                    var usageReporter = services.GetRequiredService<IUsageReporter>();
-
-                    if (usageReporter.ShouldReportSession(inputCompilation.AssemblyName ?? "<unknown>"))
-                    {
-                        var sample = usageReporter.CreateSample("MetalamaCompilerUsage");
-                        sample.Flush();
-                    }
-                }
-                catch (Exception e)
-                {
-                    ReportException(e, false);
-
-                    // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
-                }
-            }
-
-            return result;
         }
 
         internal static TransformersResult RunTransformers(

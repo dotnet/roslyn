@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Metalama.Compiler;
 using Metalama.Backstage.Extensibility;
-using Metalama.Backstage.Licensing.Consumption;
 
 namespace Roslyn.Test.Utilities
 {
@@ -25,10 +24,10 @@ namespace Roslyn.Test.Utilities
             var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            var services = new ServiceCollection();
+            var serviceProviderBuilder = new ServiceProviderBuilder();
 
             var transformersResult = CSharpCompiler.RunTransformers(
-                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, services, CancellationToken.None);
+                compilation, transformers, null, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, ImmutableArray<ResourceDescription>.Empty, null!, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 
