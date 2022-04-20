@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         // PROTOTYPE(ft): leaving 22 free since required is using it
-        File = 1 << 23, // used only for structs
+        File = 1 << 23, // used only for types
 
         All = (1 << 24) - 1, // all modifiers
         Unset = 1 << 24, // used when a modifiers value hasn't yet been computed
