@@ -8,13 +8,13 @@
 
   <!-- Package References -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
-    <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
+    <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="System.ValueTuple" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WizardResource.Designer.cs">

@@ -7,12 +7,11 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.IO;
 using System.Linq;
-using Templates.Editorconfig.Wizard;
 using VSLangProj;
 using Constants = EnvDTE.Constants;
 using Project = EnvDTE.Project;
 
-namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard;
+namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 
 public static class VSHelpers
 {
@@ -47,7 +46,7 @@ public static class VSHelpers
         {
             return LanguageNames.VisualBasic;
         }
-        
+
         return null;
     }
 
@@ -185,7 +184,7 @@ public static class VSHelpers
 
     public static string GetProjectLanguageName(this Project project)
     {
-        return project.Kind switch
+        return project?.Kind switch
         {
             PrjKind.prjKindCSharpProject => LanguageNames.CSharp,
             PrjKind.prjKindVBProject => LanguageNames.VisualBasic,

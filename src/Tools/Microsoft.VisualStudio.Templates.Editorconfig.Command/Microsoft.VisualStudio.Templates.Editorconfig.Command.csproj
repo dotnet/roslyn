@@ -40,6 +40,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace.VSIntegration" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
   </ItemGroup>
 
 </Project>

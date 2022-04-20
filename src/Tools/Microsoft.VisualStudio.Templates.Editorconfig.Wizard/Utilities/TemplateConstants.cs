@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.Templates.Editorconfig.Wizard;
+namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
 
-namespace Templates.EditorConfig.FileGenerator
+internal static class TemplateConstants
 {
-    internal static class TemplateConstants
-    {
-        public const string FileName = ".editorconfig";
-        public static readonly string DotNetFileContentIsRoot = $@"root = true
+    public const string FileName = ".editorconfig";
+    public static readonly string DotNetFileContentIsRoot = $@"root = true
 
 # All files
 [*]
@@ -371,7 +369,7 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator = 
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 ";
-        public static readonly string DotNetFileContent = $@"
+    public static readonly string DotNetFileContent = $@"
 # All files
 [*]
 indent_style = space
@@ -734,7 +732,7 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator = 
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 ";
-        public static readonly string DefaultFileContentIsRoot = $@"root = true
+    public static readonly string DefaultFileContentIsRoot = $@"root = true
 
 # All files
 [*]
@@ -744,7 +742,7 @@ indent_style = space
 [*.xml]
 indent_size = 2
 ";
-        public static readonly string DefaultFileContent = $@"
+    public static readonly string DefaultFileContent = $@"
 # All files
 [*]
 indent_style = space
@@ -753,5 +751,4 @@ indent_style = space
 [*.xml]
 indent_size = 2
 ";
-    }
 }

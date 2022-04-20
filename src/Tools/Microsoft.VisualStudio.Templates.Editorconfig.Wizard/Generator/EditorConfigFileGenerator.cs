@@ -1,51 +1,83 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Templates.Editorconfig.Wizard;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Kinds;
+using Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Utilities;
+using System;
 using System.IO;
-using System.Linq;
 using System.Windows;
+using static Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging.Logger;
 
-namespace Templates.EditorConfig.FileGenerator;
+namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Generator;
 
 public static class EditorConfigFileGenerator
 {
     public static (bool success, string fileName) TryAddFileToSolution(bool? isDotnet = null)
     {
         bool hasDotNetProjects = isDotnet ?? VSHelpers.IsDotnet();
+        LogEvent(EventId.FoundDotnetProjects, hasDotNetProjects);
         var (isAtSolutionLevel, path, language, selectedItem) = VSHelpers.TryGetSelectedItemLanguageAndPath();
+        LogEvent(EventId.FoundDotnetLanguage, language);
+        Assert(path is not null && selectedItem is not null, "Unable to get the selected item");
         if (path is null || selectedItem is null)
         {
             return (false, null);
         }
 
+        using var _ = LogCreateOperation(hasDotNetProjects, isAtSolutionLevel, language);
+
         var (success1, fileName) = TryCreateFile(path, hasDotNetProjects, isAtSolutionLevel, language);
         if (!success1)
         {
+            Assert(success1, "Unable to create editorconfig file");
             return (false, null);
         }
 
         var projectItem = selectedItem.TryAddFileToHierarchy(fileName);
         if (projectItem is null)
         {
-            return (false, fileName);
+            Assert(projectItem is not null, "Unable to add editorconfig file to hierarchy");
+            return (false, null);
         }
 
-        return (false, null);
+        return (true, fileName);
+    }
+
+    private static IDisposable LogCreateOperation(bool hasDotNetProjects, bool isAtSolutionLevel, string language)
+    {
+        var operation = GetOperationKind(hasDotNetProjects, isAtSolutionLevel, language);
+        return LogOperation(operation);
+
+        static OperationId GetOperationKind(bool isDotnet, bool isAtSolutionLevel, string language)
+        {
+            return (isDotnet, isAtSolutionLevel, language) switch
+            {
+                (_, _, LanguageNames.CSharp) => OperationId.CreatingRoslynCSharpFileContent,
+                (_, _, LanguageNames.VisualBasic) => OperationId.CreatingRoslynVisualBasicFileContent,
+                (false, true, _) => OperationId.CreatingDefaultFileContentIsRoot,
+                (false, false, _) => OperationId.CreatingDefaultFileContent,
+                (true, true, _) => OperationId.CreatingDotNetFileContentIsRoot,
+                (true, false, _) => OperationId.CreatingDotNetFileContent,
+            };
+        }
     }
 
     public static (bool success, string fileName) TryAddFileToFolder(string directory)
     {
         bool isDotnet = VSHelpers.IsDotnet(directory);
+        LogEvent(EventId.FoundDotnetProjects, isDotnet);
         var language = VSHelpers.GetLanguageFromDirectory(directory);
+        LogEvent(EventId.FoundDotnetLanguage, language);
 
+        using var _ = LogCreateOperation(isDotnet, true, language);
         var (success, fileName) = TryCreateFile(directory, isDotnet, true, language);
         if (!success)
         {
-            return (true, fileName);
+            Assert(success, "Unable to create editorconfig file");
+            return (false, fileName);
         }
 
-        return (false, null);
+        return (true, fileName);
     }
 
     private static (bool success, string fileName) TryCreateFile(string projectPath, bool isDotnet, bool isAtSolutionLevel, string language)
@@ -53,6 +85,7 @@ public static class EditorConfigFileGenerator
         string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
         if (File.Exists(fileName))
         {
+            LogEvent(EventId.CreationFailedFileExists);
             MessageBox.Show(WizardResource.AlreadyExists, ".editorconfig item template", MessageBoxButton.OK, MessageBoxImage.Information);
             return (false, null);
         }
@@ -67,6 +100,7 @@ public static class EditorConfigFileGenerator
     {
         string editorconfigFileContents = GetEditorconfigFileContents(isDotnet, isAtSolutionLevel, language);
         File.WriteAllText(fileName, editorconfigFileContents);
+        LogEvent(EventId.FileCreatedSuccessfully);
 
         static string GetEditorconfigFileContents(bool isDotnet, bool isAtSolutionLevel, string language)
         {
