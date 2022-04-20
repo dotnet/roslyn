@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -18,10 +17,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -105,19 +104,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var inheritanceMemberItems = ImmutableArray<InheritanceMarginItem>.Empty;
-            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken, LogLevel.Information))
-            {
-                inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
-                    document,
-                    spanToTag.SnapshotSpan.Span.ToTextSpan(),
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
+            var stopwatch = SharedStopwatch.StartNew();
+            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
+                document,
+                spanToSearch,
+                cancellationToken).ConfigureAwait(false);
+            var elapsed = stopwatch.Elapsed;
 
             if (inheritanceMemberItems.IsEmpty)
             {
                 return;
             }
+
+            InheritanceMarginLogger.LogGenerateBackgroundInheritanceInfo(elapsed);
 
             // One line might have multiple members to show, so group them.
             // For example:
