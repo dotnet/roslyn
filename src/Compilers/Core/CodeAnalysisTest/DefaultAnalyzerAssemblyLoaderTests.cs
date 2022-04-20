@@ -357,7 +357,7 @@ Delta: Epsilon: Test E
 #endif
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/60763")]
         public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch()
         {
             StringBuilder sb = new StringBuilder();

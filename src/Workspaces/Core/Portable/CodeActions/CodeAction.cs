@@ -312,28 +312,30 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns>A document with the post processing changes applied.</returns>
         protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
-            var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+            if (document.SupportsSyntaxTree)
+            {
+                var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
         }
 
         internal static async Task<Document> CleanupDocumentAsync(
             Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            if (document.SupportsSyntaxTree)
-            {
-                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+            document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
 
-                // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            // format any node with explicit formatter annotation
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-                // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            // format any elastic whitespace
+            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-                document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
-            }
+            document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
 
             return document;
         }

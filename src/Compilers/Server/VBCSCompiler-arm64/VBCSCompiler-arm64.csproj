@@ -3,8 +3,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
-    <UseAppHost>false</UseAppHost>
+    
+    <!-- This project file effectively retargets our exe for .NET Framework ARM64.  -->
+    <AssemblyName>VBCSCompiler</AssemblyName>
+    <PlatformTarget>ARM64</PlatformTarget>
+    <TargetFramework>net472</TargetFramework>
+    <DisableNullableWarnings>true</DisableNullableWarnings>
   </PropertyGroup>
   <Import Project="..\CommandLine\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>
