@@ -2853,6 +2853,40 @@ public struct S2
         }
 
         [Fact]
+        public void ImplicitlyInitializedFields_Nested_FullyInitialized_03()
+        {
+            var source = @"
+public struct S1
+{
+    public int X, Y;
+}
+
+public struct S2
+{
+    public S1 S1;
+
+    public S2()
+    {
+        S1 = default;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S2..ctor", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""S1 S2.S1""
+  IL_0007:  initobj    ""S1""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
         [WorkItem(59890, "https://github.com/dotnet/roslyn/issues/59890")]
         public void ImplicitlyInitializedFields_Nested_PartiallyInitialized()
         {
@@ -3094,6 +3128,25 @@ public struct S
                 // (6,12): warning CS9022: Control is returned to caller before field 'S.X' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public S()
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S.X").WithLocation(6, 12));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplicitlyInitializedFields_PragmaDisable()
+        {
+            var source = @"
+public struct S
+{
+    public int X;
+#pragma warning disable CS9022
+    public S()
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
