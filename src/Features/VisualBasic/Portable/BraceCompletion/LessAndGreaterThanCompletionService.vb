@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return token.IsKind(SyntaxKind.LessThanGreaterThanToken)
         End Function
 
-        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer) As Boolean
             If Not token.CheckParent(Of AttributeListSyntax)(Function(n) n.LessThanToken = token) AndAlso
                Not token.CheckParent(Of XmlNamespaceImportsClauseSyntax)(Function(n) n.LessThanToken = token) AndAlso
                Not token.CheckParent(Of XmlBracketedNameSyntax)(Function(n) n.LessThanToken = token) Then

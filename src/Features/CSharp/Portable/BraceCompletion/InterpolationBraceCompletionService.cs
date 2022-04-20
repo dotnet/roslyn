@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
-        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
             => IsValidOpeningBraceToken(token) && token.SpanStart == position;
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)

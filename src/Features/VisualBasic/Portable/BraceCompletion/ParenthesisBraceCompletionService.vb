@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             Return token.IsKind(SyntaxKind.CloseParenToken)
         End Function
 
-        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer) As Boolean
             If Not IsValidOpeningBraceToken(token) OrElse
                position <> token.SpanStart Then
                 Return False

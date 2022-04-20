@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
             else
             {
-                var validOpeningPoint = IsValidOpenBraceTokenAtPosition(sourceText, token, openingPoint, cancellationToken);
+                var validOpeningPoint = IsValidOpenBraceTokenAtPosition(sourceText, token, openingPoint);
                 if (!validOpeningPoint)
                     return null;
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// Checks if the already inserted token is a valid opening token at the position in the document.
         /// By default checks that the opening token is a valid token at the position and not in skipped token trivia.
         /// </summary>
-        protected virtual bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected virtual bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
             => token.SpanStart == position && IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTriviaOrNull(this.SyntaxFacts, token);
 
         /// <summary>

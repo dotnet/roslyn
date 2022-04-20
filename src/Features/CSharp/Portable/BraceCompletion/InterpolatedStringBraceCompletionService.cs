@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken rightToken)
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);
 
-        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position, CancellationToken cancellationToken)
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
             => IsValidOpeningBraceToken(token) && token.Span.End - 1 == position;
 
         /// <summary>

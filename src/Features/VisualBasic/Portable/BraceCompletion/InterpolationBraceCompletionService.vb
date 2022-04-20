@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
         Protected Overrides ReadOnly Property OpeningBrace As Char = CurlyBrace.OpenCharacter
         Protected Overrides ReadOnly Property ClosingBrace As Char = CurlyBrace.CloseCharacter
 
-        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsValidOpenBraceTokenAtPosition(text As SourceText, token As SyntaxToken, position As Integer) As Boolean
             Return IsValidOpeningBraceToken(token)
         End Function
 
