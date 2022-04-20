@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows;
 
 #if !COCOA
