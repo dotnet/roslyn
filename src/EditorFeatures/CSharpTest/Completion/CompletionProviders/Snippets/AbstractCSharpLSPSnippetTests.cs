@@ -42,23 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
             var items = completionList.Items;
 
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
-            var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
-            await VerifyCustomCommitWorkerAsync(service, document, firstItem, expectedLSPSnippet, commitChar);
-        }
-
-        private async Task VerifyCustomCommitWorkerAsync(
-            CompletionServiceWithProviders service,
-            Document document,
-            CompletionItem completionItem,
-            string expectedLSPSnippet,
-            char? commitChar = null)
-        {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            // textview is created lazily, so need to access it before making 
-            // changes to document, so the cursor position is tracked correctly.
-            var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
-
+            var completionItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
             var generatedLSPSnippet = commit.LSPSnippet;
             AssertEx.EqualOrDiff(expectedLSPSnippet, generatedLSPSnippet);
