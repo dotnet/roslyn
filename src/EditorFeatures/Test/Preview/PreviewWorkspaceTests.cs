@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/60863")]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
             // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
