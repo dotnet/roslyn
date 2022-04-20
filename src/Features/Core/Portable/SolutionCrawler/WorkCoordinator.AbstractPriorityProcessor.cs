@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
+                    protected override void OnPaused()
                         => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
@@ -71,31 +71,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, CancellationToken))
                         {
-                            do
+                            while (true)
                             {
-                                // Host is shutting down
-                                if (CancellationToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
+                                CancellationToken.ThrowIfCancellationRequested();
 
                                 // we wait for global operation and higher queue operation if there is anything going on
-                                if (!GlobalOperationTask.IsCompleted || !HigherQueueOperationTask.IsCompleted)
-                                {
-                                    await Task.WhenAll(GlobalOperationTask, HigherQueueOperationTask).ConfigureAwait(false);
-                                }
+                                await HigherQueueOperationTask.ConfigureAwait(false);
 
-                                // if there are no more work left for higher queue, then it is our time to go ahead
-                                if (!HigherQueueHasWorkItem)
-                                {
+                                // if there are no more work left for higher queue, and we didn't enter a state where we
+                                // should wait for idle again, then our time to go ahead.
+                                var higherQueueHasWorkItem = HigherQueueHasWorkItem;
+                                if (!higherQueueHasWorkItem && !ShouldWaitForIdle())
                                     return;
-                                }
 
-                                // back off and wait for next time slot.
-                                UpdateLastAccessTime();
+                                // either the higher queue has an item, or we still haven't idled long enough to start
+                                // processing our work.  In case it's the former, update our own time so that we still
+                                // idle long enough once that work is over.
+                                if (higherQueueHasWorkItem)
+                                    UpdateLastAccessTime();
+
+                                // back off and wait for next time slot or for us to become unpaused.
                                 await WaitForIdleAsync(Listener).ConfigureAwait(false);
                             }
-                            while (true);
                         }
                     }
 
