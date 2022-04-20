@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractIfSnippetProvider : AbstractSnippetProvider
     {
+        /// <summary>
+        /// Gets the corresponding pieces of the if statement that will be implemented differently per language.
+        /// </summary>
         protected abstract void GetPartsOfIfStatement(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode condition, out SyntaxNode statement);
         public override string SnippetIdentifier => "if";
 

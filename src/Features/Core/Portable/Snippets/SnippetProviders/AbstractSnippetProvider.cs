@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Gets a listing of the identifiers that need to be found in the snippet TextChange
             // and their associated TextSpan so they can later be converted into an LSP snippet format.
             var placeholders = GetRenameLocationsMap(mainChangeNode, syntaxFacts, cancellationToken);
+
+            // All the changes from the original document to the most updated. Will later be
+            // collpased into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
             return new SnippetChange(
                 textChanges: changesArray,

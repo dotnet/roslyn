@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
+            // Specifically for snippets, we use reflection to try and invoke the LanguageServerSnippetExpander's
+            // TryExpand method and determine if it succeeded or not.
             var snippetServiceSucceeded = false;
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
