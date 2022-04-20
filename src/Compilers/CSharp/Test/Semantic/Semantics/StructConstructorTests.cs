@@ -3827,7 +3827,7 @@ ReadOnlySpan<int> r = stackalloc int[512];
                 // ReadOnlySpan<int> r = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(3, 1));
         }
-        
+
         [Fact]
         public void ImplicitlyInitializedField_Simple()
         {
