@@ -16,14 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class GetImportScopesTests : SemanticModelTestBase
 {
-    [Fact]
-    public void TestEmptyFile()
+    private ImmutableArray<IImportScope> GetImportsScopes(string text)
     {
-        var text = @"/*pos*/";
         var tree = Parse(text);
         var comp = CreateCompilation(tree);
         var model = comp.GetSemanticModel(tree);
         var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        return scopes;
+    }
+
+    [Fact]
+    public void TestEmptyFile()
+    {
+        var text = @"/*pos*/";
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -32,10 +38,7 @@ public class GetImportScopesTests : SemanticModelTestBase
     {
         var text = @"/*pos*/
 class C {}";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -46,10 +49,7 @@ class C {}";
     {
         var text = @"/*pos*/
 using System;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Imports);
         Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -65,10 +65,7 @@ using System;";
         var text = @"
 using System;
 /*pos*/";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Imports);
         Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -87,10 +84,7 @@ using System;
 class C
 {
 }";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -102,10 +96,7 @@ class C
 using System;
 
 return;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Imports);
         Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -122,10 +113,7 @@ return;";
 using System;
 /*pos*/
 return;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -136,10 +124,7 @@ return;";
 using System;
 
 return /*pos*/;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Imports);
         Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -156,10 +141,7 @@ return /*pos*/;";
 using System;
 using Microsoft;
 /*pos*/";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Equal(2, scopes.Single().Imports.Length);
         Assert.True(scopes.Single().Imports.First().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -187,10 +169,7 @@ namespace N
     using Microsoft;
 }
 ";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Imports);
         Assert.True(scopes.Single().Imports.Single().NamespaceOrType is INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) });
@@ -212,10 +191,7 @@ namespace N
     }
 }
 ";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Equal(2, scopes.Length);
         Assert.Single(scopes[0].Imports);
         Assert.Single(scopes[1].Imports);
@@ -243,10 +219,7 @@ namespace Outer
     }
 }
 ";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Equal(2, scopes.Length);
         Assert.Single(scopes[0].Imports);
         Assert.Single(scopes[1].Imports);
@@ -265,10 +238,7 @@ namespace Outer
     {
         var text = @"/*pos*/
 using S = System;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Aliases);
         Assert.True(scopes.Single().Aliases.Single() is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
@@ -284,10 +254,7 @@ using S = System;";
         var text = @"
 using S = System;
 /*pos*/";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Aliases);
         Assert.True(scopes.Single().Aliases.Single() is { Name: "S", Target: { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
@@ -306,10 +273,7 @@ using S = System;
 class C
 {
 }";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -321,10 +285,7 @@ class C
 using S = System;
 
 return;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Aliases);
         Assert.True(scopes.Single().Aliases.Single() is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
@@ -341,10 +302,7 @@ return;";
 using S = System;
 /*pos*/
 return;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Empty(scopes);
     }
 
@@ -355,10 +313,7 @@ return;";
 using S = System;
 
 return /*pos*/;";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Aliases);
         Assert.True(scopes.Single().Aliases.Single() is { Name: "S", Target: { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
@@ -375,10 +330,7 @@ return /*pos*/;";
 using S = System;
 using M = Microsoft;
 /*pos*/";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Equal(2, scopes.Single().Aliases.Length);
         Assert.True(scopes.Single().Aliases.Any(a => a is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } }));
@@ -406,10 +358,7 @@ namespace N
     using M = Microsoft;
 }
 ";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Single(scopes);
         Assert.Single(scopes.Single().Aliases);
         Assert.True(scopes.Single().Aliases.Single() is { Name: "S", Target: INamespaceSymbol { ContainingNamespace.IsGlobalNamespace: true, Name: nameof(System) } });
@@ -431,10 +380,7 @@ namespace N
     }
 }
 ";
-        var tree = Parse(text);
-        var comp = CreateCompilation(tree);
-        var model = comp.GetSemanticModel(tree);
-        var scopes = model.GetImportScopes(GetPositionForBinding(text));
+        var scopes = GetImportsScopes(text);
         Assert.Equal(2, scopes.Length);
         Assert.Single(scopes[0].Aliases);
         Assert.Single(scopes[1].Aliases);
