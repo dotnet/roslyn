@@ -14,7 +14,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
 {
-    [UseExportProvider]
     public abstract class AbstractCSharpLSPSnippetTests : AbstractCSharpCompletionProviderTests
     {
         protected override async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedLSPSnippet, SourceCodeKind sourceCodeKind, char? commitChar = null)
