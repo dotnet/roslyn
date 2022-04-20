@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,15 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class QualifiedCrefSimplifier : AbstractCSharpSimplifier<QualifiedCrefSyntax, CrefSyntax>
     {
-        public QualifiedCrefSimplifier(SemanticModel semanticModel)
-            : base(semanticModel)
+        public static readonly QualifiedCrefSimplifier Instance = new();
+
+        private QualifiedCrefSimplifier()
         {
         }
 
         public override bool TrySimplify(
             QualifiedCrefSyntax crefSyntax,
+            SemanticModel semanticModel,
             CSharpSimplifierOptions options,
-            [NotNullWhen(true)] out CrefSyntax? replacementNode,
+            out CrefSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
@@ -35,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Currently we are dealing with only the NameMemberCrefs
             if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
-                memberCref.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax? nameMemberCref))
+                memberCref.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
             {
-                var symbolInfo = this.SemanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);
                 var symbol = symbolInfo.Symbol;
 
                 if (symbol == null)
@@ -62,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return CanSimplifyWithReplacement(
-                crefSyntax, memberCref, out replacementNode, out issueSpan, cancellationToken);
+                crefSyntax, semanticModel, memberCref,
+                out replacementNode, out issueSpan, cancellationToken);
         }
 
         private static TypeCrefSyntax CreateReplacement(QualifiedCrefSyntax crefSyntax, SyntaxKind keywordKind)
@@ -72,25 +76,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return TypeCref(PredefinedType(token)).WithAdditionalAnnotations(annotation);
         }
 
-        public bool CanSimplifyWithReplacement(
-            QualifiedCrefSyntax crefSyntax, CrefSyntax replacement, CancellationToken cancellationToken)
+        public static bool CanSimplifyWithReplacement(
+            QualifiedCrefSyntax crefSyntax, SemanticModel semanticModel,
+            CrefSyntax replacement, CancellationToken cancellationToken)
         {
-            return CanSimplifyWithReplacement(crefSyntax, replacement, out _, out _, cancellationToken);
+            return CanSimplifyWithReplacement(crefSyntax, semanticModel, replacement, out _, out _, cancellationToken);
         }
 
-        private bool CanSimplifyWithReplacement(
-            QualifiedCrefSyntax crefSyntax, CrefSyntax replacement,
-            [NotNullWhen(true)] out CrefSyntax? replacementNode, out TextSpan issueSpan,
+        private static bool CanSimplifyWithReplacement(
+            QualifiedCrefSyntax crefSyntax, SemanticModel semanticModel,
+            CrefSyntax replacement, out CrefSyntax replacementNode, out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            var oldSymbol = this.SemanticModel.GetSymbolInfo(crefSyntax, cancellationToken).Symbol;
+            var oldSymbol = semanticModel.GetSymbolInfo(crefSyntax, cancellationToken).Symbol;
             if (oldSymbol != null)
             {
                 var speculativeBindingOption = oldSymbol is INamespaceOrTypeSymbol
                     ? SpeculativeBindingOption.BindAsTypeOrNamespace
                     : SpeculativeBindingOption.BindAsExpression;
 
-                var newSymbol = this.SemanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, replacement, speculativeBindingOption).Symbol;
+                var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, replacement, speculativeBindingOption).Symbol;
 
                 if (Equals(newSymbol, oldSymbol))
                 {

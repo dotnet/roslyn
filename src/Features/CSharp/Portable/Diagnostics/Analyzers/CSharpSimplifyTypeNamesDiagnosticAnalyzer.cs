@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return simplifier.Diagnostics;
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        internal override bool IsCandidate(SyntaxNode node)
             => node != null && s_kindsOfInterest.Contains(node.Kind());
 
-        protected override bool CanSimplifyTypeNameExpression(
+        internal override bool CanSimplifyTypeNameExpression(
             SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken)
