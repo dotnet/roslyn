@@ -1008,7 +1008,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values</source>
+        <source>Paste a stack trace to view and navigate its values.</source>
         <target state="needs-review-translation">유효한 스택 추적을 붙여넣어 해당 값을 보고 탐색합니다.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
