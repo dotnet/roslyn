@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis
     public readonly struct ImportedNamespaceOrType
     {
         public INamespaceOrTypeSymbol NamespaceOrType { get; }
+
+        /// <summary>
+        /// Location in source where the <c>using</c> directive or <c>Imports</c> clause was declared. Will never be
+        /// null for C#, may be null for Visual Basic for a project-level import directive.
+        /// </summary>
         public SyntaxReference? DeclaringSyntaxReference { get; }
 
         internal ImportedNamespaceOrType(INamespaceOrTypeSymbol namespaceOrType, SyntaxReference? declaringSyntaxReference)
@@ -92,6 +97,11 @@ namespace Microsoft.CodeAnalysis
     public readonly struct ImportedXmlNamespace
     {
         public string XmlNamespace { get; }
+
+        /// <summary>
+        /// Location in source where the <c>Imports</c> clause was declared. May be null for a project-level import
+        /// directive.
+        /// </summary>
         public SyntaxReference? DeclaringSyntaxReference { get; }
 
         internal ImportedXmlNamespace(string xmlNamespace, SyntaxReference? declaringSyntaxReference)
