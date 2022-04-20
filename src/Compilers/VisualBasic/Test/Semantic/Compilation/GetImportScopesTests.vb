@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -15,13 +16,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GetImportScopesTests
         Inherits SemanticModelTestBase
 
-        <Fact>
-        Public Sub TestEmptyFile()
-            Dim text = "'pos"
-            Dim tree = Parse(Text)
+        Private Shared Function GetImportScopes(text As String) As ImmutableArray(Of IImportScope)
+            Dim tree = Parse(text)
             Dim comp = CreateCompilation(tree)
             Dim model = comp.GetSemanticModel(tree)
             Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Return scopes
+        End Function
+
+        <Fact>
+        Public Sub TestEmptyFile()
+            Dim text = "'pos"
+            Dim scopes = GetImportScopes(text)
             Assert.Empty(scopes)
         End Sub
 
@@ -30,10 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim Text = "'pos
 class C
 end class"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Empty(scopes)
         End Sub
 
@@ -63,10 +66,7 @@ end class"
         Public Sub TestBeforeImports()
             Dim Text = "'pos
 imports System"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Imports)
@@ -83,10 +83,7 @@ imports System"
             Dim Text = "
 imports System
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Imports)
@@ -106,10 +103,7 @@ imports System
 class C
 end class
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
             Assert.True(IsNamespaceWithName(scopes.Single().Imports.Single().NamespaceOrType, NameOf(System)))
             Assert.True(IsSimpleImportsClauseWithName(scopes.Single().Imports.Single().DeclaringSyntaxReference, NameOf(System)))
@@ -121,10 +115,7 @@ end class
 imports System
 imports Microsoft
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Equal(2, scopes.Single().Imports.Length)
@@ -154,10 +145,7 @@ namespace N
     end class
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Imports)
@@ -180,10 +168,7 @@ namespace N
     end class
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single.Imports)
@@ -208,10 +193,7 @@ namespace Outer
     end namespace
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Imports)
@@ -231,10 +213,7 @@ end namespace
         Public Sub TestBeforeAlias()
             Dim Text = "'pos
 imports S = System"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Aliases)
@@ -251,10 +230,7 @@ imports S = System"
             Dim Text = "
 imports S = System
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Aliases)
@@ -274,10 +250,7 @@ imports S = System
 class C
 end class
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Aliases)
@@ -295,10 +268,7 @@ end class
 imports S = System
 imports M = Microsoft
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Equal(2, scopes.Single().Aliases.Length)
@@ -325,10 +295,7 @@ end lass
 namespace N
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().Aliases)
@@ -351,10 +318,7 @@ namespace N
     end class
 end namespace
 "
-            Dim tree = Parse(text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(text)
 
             Assert.Single(scopes)
 
@@ -378,10 +342,7 @@ end namespace
         Public Sub TestBeforeXmlNamespae()
             Dim Text = "'pos
 Imports <xmlns:r1=""http://roslyn"">"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
 
             Assert.Single(scopes)
 
@@ -400,10 +361,7 @@ Imports <xmlns:r1=""http://roslyn"">"
             Dim Text = "
 Imports <xmlns:r1=""http://roslyn"">
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().XmlNamespaces)
@@ -424,10 +382,7 @@ Imports <xmlns:r1=""http://roslyn"">
 class C
 end class
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
 
             Assert.Single(scopes)
 
@@ -447,10 +402,7 @@ end class
 Imports <xmlns:r1=""http://roslyn"">
 Imports <xmlns:r2=""http://roslyn2"">
 'pos"
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Equal(2, scopes.Single().XmlNamespaces.Length)
@@ -482,10 +434,7 @@ namespace N
     end class
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().XmlNamespaces)
@@ -509,10 +458,7 @@ namespace N
     end class
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().XmlNamespaces)
@@ -538,10 +484,7 @@ namespace Outer
     end namespace
 end namespace
 "
-            Dim tree = Parse(Text)
-            Dim comp = CreateCompilation(tree)
-            Dim model = comp.GetSemanticModel(tree)
-            Dim scopes = model.GetImportScopes(FindPositionFromText(tree, "'pos"))
+            Dim scopes = GetImportScopes(Text)
             Assert.Single(scopes)
 
             Assert.Single(scopes.Single().XmlNamespaces)
