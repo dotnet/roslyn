@@ -44,13 +44,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return ImmutableArray<TextChange>.Empty;
             }
 
-            var services = document.Project.Solution.Workspace.Services;
+            var languageServices = document.Project.LanguageServices;
 
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var optionsProvider = (SyntaxFormattingOptionsProvider)globalOptions.CleanCodeGenerationOptionsProvider;
+            var fallbackOptions = await optionsProvider.GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false);
 
             var indentationOptions = new IndentationOptions(
-               SyntaxFormattingOptions.Create(documentOptions, globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices), document.Project.LanguageServices),
-               globalOptions.GetAutoFormattingOptions(document.Project.Language));
+               SyntaxFormattingOptions.Create(documentOptions, fallbackOptions, languageServices),
+               globalOptions.GetAutoFormattingOptions(languageServices));
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }
