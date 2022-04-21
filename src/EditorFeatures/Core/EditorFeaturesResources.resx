@@ -1070,4 +1070,7 @@ Do you want to proceed?</value>
     <value>{0} (Esc to cancel)</value>
     <comment>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</comment>
   </data>
+  <data name="Directives_from_0" xml:space="preserve">
+    <value>Directives from '{0}'</value>
+  </data>
 </root>

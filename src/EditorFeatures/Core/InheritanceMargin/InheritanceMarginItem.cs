@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly int LineNumber;
 
+        public readonly string? TopLevelDisplayText;
+
         /// <summary>
         /// Display texts for this member.
         /// </summary>
@@ -33,12 +35,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceMarginItem(
             int lineNumber,
+            string? topLevelDisplayText,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
             bool isOrdered,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
+            TopLevelDisplayText = topLevelDisplayText;
             DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
@@ -51,7 +55,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
                 (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, isOrdered: false, targetItems);
+            return new InheritanceMarginItem(
+                serializableItem.LineNumber, topLevelDisplayText: null, serializableItem.DisplayTexts, serializableItem.Glyph, isOrdered: false, targetItems);
         }
     }
 }

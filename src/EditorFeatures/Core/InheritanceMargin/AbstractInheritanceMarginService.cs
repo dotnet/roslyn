@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -55,13 +56,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var firstToken = root.GetFirstToken();
 
-            // Place the imports item on the start of the first item in the file.  Or, if there is no item, then on the
-            // first line.
-            var spanStart = firstToken == ((ICompilationUnitSyntax)root).EndOfFileToken
-                ? 0
-                : firstToken.SpanStart;
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var imports = syntaxFacts.GetImportsOfCompilationUnit(root);
+
+            // Place the imports item on the start of the first import in the file.  Or, if there is no import, then on
+            // the first line.
+            var spanStart = imports.Count > 0 ? imports[0].SpanStart : 0;
 
             // if that location doesn't intersect with the lines of interest, immediately bail out.
             if (!spanToSearch.IntersectsWith(spanStart))
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     }
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
                         Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
                 else
@@ -140,9 +141,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     var filePath = groupSyntaxTree.FilePath;
                     var fileName = filePath == null ? null : IOUtilities.PerformIO(() => Path.GetFileName(filePath)) ?? filePath;
+                    var taggedText = new TaggedText(TextTags.Text, string.Format(EditorFeaturesResources.Directives_from_0, fileName));
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, fileName)), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
             }
         }
