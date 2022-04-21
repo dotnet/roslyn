@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(AwaitCompletionProvider))>
     <[Shared]>
-    Partial Friend Class SymbolCompletionProvider
+    Friend NotInheritable Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)
 
         Private Shared ReadOnly s_cachedRules As New Dictionary(Of (importDirective As Boolean, preselect As Boolean, tuple As Boolean), CompletionItemRules)

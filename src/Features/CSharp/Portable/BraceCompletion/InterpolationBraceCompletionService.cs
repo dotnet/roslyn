@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
     /// In other curly brace completion scenarios the <see cref="CurlyBraceCompletionService"/> should be used.
     /// </summary>
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class InterpolationBraceCompletionService : AbstractBraceCompletionService
+    internal class InterpolationBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         }
 
         protected override char OpeningBrace => CurlyBrace.OpenCharacter;
-
         protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
@@ -40,11 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
-        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IsValidOpeningBraceToken(token)
-                && token.SpanStart == position);
-        }
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
+            => IsValidOpeningBraceToken(token) && token.SpanStart == position;
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation);

@@ -292,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 OperatorKind.Multiply => SyntaxKind.AsteriskToken,
                 OperatorKind.OnesComplement => SyntaxKind.TildeToken,
                 OperatorKind.RightShift => SyntaxKind.GreaterThanGreaterThanToken,
+                OperatorKind.UnsignedRightShift => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
                 OperatorKind.Subtraction => SyntaxKind.MinusToken,
                 OperatorKind.True => SyntaxKind.TrueKeyword,
                 OperatorKind.UnaryNegation => SyntaxKind.MinusToken,
@@ -998,11 +999,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var existingAttributes = this.GetAttributes(declaration);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return this.InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(declaration, existingAttributes[index], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else if (existingAttributes.Count > 0)
             {
-                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
+                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else
             {
@@ -1057,6 +1058,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.List(
                     attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)))));
+        }
+
+        private static SyntaxList<AttributeListSyntax> WithRequiredTargetSpecifier(SyntaxList<AttributeListSyntax> attributes, SyntaxNode declaration)
+        {
+            if (!declaration.IsKind(SyntaxKind.CompilationUnit))
+            {
+                return attributes;
+            }
+
+            return AsAssemblyAttributes(attributes);
         }
 
         public override IReadOnlyList<SyntaxNode> GetAttributeArguments(SyntaxNode attributeDeclaration)
@@ -1455,6 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly DeclarationModifiers s_localFunctionModifiers =
             DeclarationModifiers.Async |
             DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe |
             DeclarationModifiers.Extern;
 
         private static readonly DeclarationModifiers s_lambdaModifiers =

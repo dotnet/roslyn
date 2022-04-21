@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Start();
         }
 
-        private CancellationToken ShutdownCancellationToken => CancellationToken;
-
         protected override async Task ExecuteAsync()
         {
             lock (_gate)
@@ -64,19 +62,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 _currentToken = null;
             }
 
-            // wait for global operation to finish
-            await GlobalOperationTask.ConfigureAwait(false);
-
             // update primary solution in remote host
             await SynchronizePrimaryWorkspaceAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
         }
 
-        protected override void PauseOnGlobalOperation()
+        protected override void OnPaused()
         {
             var previousCancellationSource = _globalOperationCancellationSource;
 
             // create new cancellation token source linked with given shutdown cancellation token
-            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(ShutdownCancellationToken);
+            _globalOperationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(this.CancellationToken);
 
             CancelAndDispose(previousCancellationSource);
         }
@@ -141,11 +136,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
             {
-                var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-
+                var workspaceVersion = solution.WorkspaceVersion;
                 await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
-                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
+                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }

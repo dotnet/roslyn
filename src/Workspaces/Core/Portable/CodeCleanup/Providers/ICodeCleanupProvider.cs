@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         /// <summary>
         /// This should apply its code clean up logic to the spans of the document.
         /// </summary>
-        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// This will run all provided code cleaners in an order that is given to the method.

@@ -287,15 +287,21 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             foreach (var documentId in documentIds)
             {
                 var document = formattedSolution.GetDocument(documentId);
+
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
                 var formattedDocument = await Formatter.FormatAsync(
                     document,
                     Formatter.Annotation,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    formattingOptions,
+                    cancellationToken).ConfigureAwait(false);
 
                 var simplifiedDocument = await Simplifier.ReduceAsync(
                     formattedDocument,
                     Simplifier.Annotation,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    simplifierOptions,
+                    cancellationToken).ConfigureAwait(false);
 
                 formattedSolution = simplifiedDocument.Project.Solution;
             }

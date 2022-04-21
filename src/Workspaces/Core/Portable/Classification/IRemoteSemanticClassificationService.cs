@@ -19,12 +19,11 @@ namespace Microsoft.CodeAnalysis.Classification
     internal interface IRemoteSemanticClassificationService
     {
         ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
             ClassificationType type,
             ClassificationOptions options,
-            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken);
 
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationType type,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken);
     }
 

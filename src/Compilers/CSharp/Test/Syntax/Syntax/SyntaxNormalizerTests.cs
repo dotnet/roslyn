@@ -88,6 +88,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStringsUTF8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one""""""u8, 2 => """"""two""""""U8, 3 => """"""three""""""u8, {} => """""">= 4""""""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one""""""u8,
+  2 => """"""two""""""U8,
+  3 => """"""three""""""u8,
+  { } => """""">= 4""""""U8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultiline()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """""", 2 =>
+""""""
+   two
+"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """""",
+  2 => """"""
+   two
+""""""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestNormalizeSwitchExpressionRawStringsMultilineUTF8_01()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""
+       one
+  """"""U8, 2 =>
+""""""
+   two
+""""""u8 };",
+                @"var x = (int)1 switch
+{
+  1 => """"""
+       one
+  """"""U8,
+  2 => """"""
+   two
+""""""u8
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionStringsUTF8()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 =>
+    ""one""u8     , 2 =>
+  @""two""u8   , 3 =>
+ ""three""U8  , {} =>
+@"">= 4""U8 };",
+                @"var x = (int)1 switch
+{
+  1 => ""one""u8,
+  2 => @""two""u8,
+  3 => ""three""U8,
+  { } => @"">= 4""U8
+};".NormalizeLineEndings()
+            );
+        }
+
         [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchRecPattern()
         {
@@ -271,6 +349,9 @@ breaks
             TestNormalizeExpression("a!=b", "a != b");
             TestNormalizeExpression("a<<b", "a << b");
             TestNormalizeExpression("a>>b", "a >> b");
+            TestNormalizeExpression("a>>>b", "a >>> b");
+            TestNormalizeExpression("a>>=b", "a >>= b");
+            TestNormalizeExpression("a>>>=b", "a >>>= b");
             TestNormalizeExpression("a??b", "a ?? b");
 
             TestNormalizeExpression("a<b>.c", "a<b>.c");
@@ -294,6 +375,7 @@ breaks
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+            TestNormalizeExpression("(IList<IList<IList<int>>>)args", "(IList<IList<IList<int>>>)args");
 
             TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
@@ -514,6 +596,20 @@ breaks
             TestNormalizeDeclaration("class a{void b(){}void c(){}}", "class a\r\n{\r\n  void b()\r\n  {\r\n  }\r\n\r\n  void c()\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{a(){}}", "class a\r\n{\r\n  a()\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{~a(){}}", "class a\r\n{\r\n  ~a()\r\n  {\r\n  }\r\n}");
+
+            // operators
+            TestNormalizeDeclaration("class a{b operator    checked-(c d){}}", "class a\r\n{\r\n  b operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b I1 . operator    checked-(c d){}}", "class a\r\n{\r\n  b I1.operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator    >>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b I1 . operator>>>  ( c  d , e f ){}}", "class a\r\n{\r\n  b I1.operator >>>(c d, e f)\r\n  {\r\n  }\r\n}");
 
             // properties
             TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");

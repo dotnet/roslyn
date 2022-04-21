@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -87,10 +88,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 context,
                 cancellationToken).ConfigureAwait(false);
 
-            var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
-            if (formattingSerivce is not null)
+            var newCleanupOptions = await CodeCleanupOptions.FromDocumentAsync(newTypeDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+            var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
             {
-                newTypeDocument = await formattingSerivce.FormatNewDocumentAsync(newTypeDocument, hintDocument, cancellationToken).ConfigureAwait(false);
+                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, newCleanupOptions, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -103,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
-            var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var simplified = await Simplifier.ReduceAsync(newTypeDocument, newCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified, newCleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             return (formattedDocument, typeAnnotation);
         }
@@ -208,6 +211,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var property = member as IPropertySymbol;
                     return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
+                case SymbolKind.Field:
+                    var field = member as IFieldSymbol;
+                    return DoesTypeReferenceTypeParameter(field.Type, typeParameter, checkedTypes);
                 default:
                     Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                     return false;

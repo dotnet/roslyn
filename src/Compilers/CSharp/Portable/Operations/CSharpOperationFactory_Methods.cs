@@ -487,6 +487,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CSharp.BinaryOperatorKind.RightShift:
                         return BinaryOperatorKind.RightShift;
 
+                    case CSharp.BinaryOperatorKind.UnsignedRightShift:
+                        return BinaryOperatorKind.UnsignedRightShift;
+
                     case CSharp.BinaryOperatorKind.And:
                         return BinaryOperatorKind.And;
 

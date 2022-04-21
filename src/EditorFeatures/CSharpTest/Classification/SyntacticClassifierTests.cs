@@ -349,6 +349,24 @@ partial interface T3
                 Verbatim(@"@""goo"""));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_01(TestHost testHost)
+        {
+            await TestInMethodAsync(@"@""goo""u8",
+                testHost,
+                Verbatim(@"@""goo""u8"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_02(TestHost testHost)
+        {
+            await TestInMethodAsync(@"@""goo""U8",
+                testHost,
+                Verbatim(@"@""goo""U8"));
+        }
+
         /// <summary>
         /// Should show up as soon as we get the @\" typed out
         /// </summary>
@@ -366,7 +384,7 @@ partial interface T3
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteral3(TestHost testHost)
+        public async Task VerbatimStringLiterals3(TestHost testHost)
         {
             await TestAsync(@"goo @""",
                 testHost,
@@ -379,7 +397,7 @@ partial interface T3
         /// </summary>
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteral4(TestHost testHost)
+        public async Task VerbatimStringLiterals4(TestHost testHost)
         {
             var code = @"
 
@@ -395,7 +413,7 @@ partial interface T3
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteral5(TestHost testHost)
+        public async Task VerbatimStringLiterals5(TestHost testHost)
         {
             var code = @"
 
@@ -413,9 +431,47 @@ on a new line """),
         }
 
         [Theory]
+        [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_03(TestHost testHost)
+        {
+            var code = @"
+
+@"" goo bar
+and 
+on a new line ""u8 
+more stuff";
+            await TestInMethodAsync(code,
+                testHost,
+                Verbatim(@"@"" goo bar
+and 
+on a new line ""u8"),
+                Identifier("more"),
+                Local("stuff"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_04(TestHost testHost)
+        {
+            var code = @"
+
+@"" goo bar
+and 
+on a new line ""U8 
+more stuff";
+            await TestInMethodAsync(code,
+                testHost,
+                Verbatim(@"@"" goo bar
+and 
+on a new line ""U8"),
+                Identifier("more"),
+                Local("stuff"));
+        }
+
+        [Theory]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
-        public async Task VerbatimStringLiteral6(bool script, TestHost testHost)
+        public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*"";";
 
@@ -435,6 +491,46 @@ on a new line """),
 
         [Theory]
         [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_05(bool script, TestHost testHost)
+        {
+            var code = @"string s = @""""""/*""u8;";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                testHost,
+                parseOptions,
+                Keyword("string"),
+                script ? Field("s") : Local("s"),
+                Operators.Equals,
+                Verbatim(@"@""""""/*""u8"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task VerbatimStringLiteralsUTF8_06(bool script, TestHost testHost)
+        {
+            var code = @"string s = @""""""/*""u8;";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                testHost,
+                parseOptions,
+                Keyword("string"),
+                script ? Field("s") : Local("s"),
+                Operators.Equals,
+                Verbatim(@"@""""""/*""u8"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task StringLiteral1(TestHost testHost)
         {
             await TestAsync(@"""goo""",
@@ -444,11 +540,47 @@ on a new line """),
 
         [Theory]
         [CombinatorialData]
+        public async Task StringLiteralUTF8_01(TestHost testHost)
+        {
+            await TestAsync(@"""goo""u8",
+                testHost,
+                String(@"""goo""u8"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task StringLiteralUTF8_02(TestHost testHost)
+        {
+            await TestAsync(@"""goo""U8",
+                testHost,
+                String(@"""goo""U8"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task StringLiteral2(TestHost testHost)
         {
             await TestAsync(@"""""",
                 testHost,
                 String(@""""""));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task StringLiteralUTF8_03(TestHost testHost)
+        {
+            await TestAsync(@"""""u8",
+                testHost,
+                String(@"""""u8"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task StringLiteralUTF8_04(TestHost testHost)
+        {
+            await TestAsync(@"""""U8",
+                testHost,
+                String(@"""""U8"));
         }
 
         [Theory]
@@ -3361,6 +3493,7 @@ public class Goo<T>
         b = true && false || true;
         i << 5;
         i >> 5;
+        i >>> 5;
         b = i == i && i != i && i <= i && i >= i;
         i += 5.0;
         i -= i;
@@ -3372,6 +3505,7 @@ public class Goo<T>
         i ^= i;
         i <<= i;
         i >>= i;
+        i >>>= i;
         i ??= i;
         object s = x => x + 1;
         Point point;
@@ -3549,6 +3683,10 @@ public class Goo<T>
                 Operators.GreaterThanGreaterThan,
                 Number("5"),
                 Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Number("5"),
+                Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Identifier("i"),
@@ -3605,6 +3743,10 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.GreaterThanGreaterThanEquals,
+                Identifier("i"),
+                Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
@@ -5747,6 +5889,203 @@ class C
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRawStringLiteralUTF8_01(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""Hello world""""""u8;
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("\"\"\"Hello world\"\"\"u8"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralUTF8_02(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""Hello world""""""U8;
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String("\"\"\"Hello world\"\"\"U8"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralMultiline(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""
+      Hello world
+   """""";
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String(@"""""""
+      Hello world
+   """""""),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralMultilineUTF8_01(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""
+      Hello world
+   """"""u8;
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String(@"""""""
+      Hello world
+   """"""u8"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRawStringLiteralMultilineUTF8_02(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M(int x)
+    {
+        var s = """"""
+      Hello world
+   """"""U8;
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("var"),
+                Local("s"),
+                Operators.Equals,
+                String(@"""""""
+      Hello world
+   """"""U8"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
         {
             var code = @"
@@ -5866,6 +6205,236 @@ class C
                 String("}"),
                 String("\"\"\""),
                 Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_01(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator checked -(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_02(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator checked +(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Plus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_03(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static explicit operator checked T(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Keyword("explicit"),
+                Keyword("operator"),
+                Keyword("checked"),
+                Identifier("T"),
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_04(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked -(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_05(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked +(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.Plus,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task CheckedUserDefinedOperators_06(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static explicit I1.operator checked T(T a)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Keyword("explicit"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Identifier("T"),
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_01(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator >>>(T a, int b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_02(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked >>>(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestExclamationExclamation(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string v!!)
+    {
+    }
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("string"),
+                Parameter("v"),
+                Punctuation.ExclamationExclamation,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }

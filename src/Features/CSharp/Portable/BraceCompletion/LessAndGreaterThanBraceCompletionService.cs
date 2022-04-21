@@ -12,11 +12,12 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class LessAndGreaterThanBraceCompletionService : AbstractBraceCompletionService
+    internal class LessAndGreaterThanBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,43 +25,37 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         {
         }
 
-        protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
+        protected override bool NeedsSemantics => true;
 
+        protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;
         protected override char ClosingBrace => LessAndGreaterThan.CloseCharacter;
 
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
             => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
-        protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.LessThanToken);
+        protected override bool IsValidOpeningBraceToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.LessThanToken);
 
-        protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.GreaterThanToken);
+        protected override bool IsValidClosingBraceToken(SyntaxToken token)
+            => token.IsKind(SyntaxKind.GreaterThanToken);
 
-        protected override async Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override async ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
         {
             // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
             // type argument or parameter list
-            if (!token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) &&
-                !token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) &&
-                !token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token) &&
-                !await PossibleTypeArgumentAsync(document, token, cancellationToken).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            return true;
+            return token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) ||
+                token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) ||
+                token.CheckParent<FunctionPointerParameterListSyntax>(n => n.LessThanToken == token) ||
+                await PossibleTypeArgumentAsync(document, token, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
+        private static async ValueTask<bool> PossibleTypeArgumentAsync(Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
             // type argument can be easily ambiguous with normal < operations
             if (token.Parent is not BinaryExpressionSyntax node || node.Kind() != SyntaxKind.LessThanExpression || node.OperatorToken != token)
-            {
                 return false;
-            }
 
             // use binding to see whether it is actually generic type or method 
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             // Analyze node on the left of < operator to verify if it is a generic type or method.
             var leftNode = node.Left;
             if (leftNode is ConditionalAccessExpressionSyntax leftConditionalAccessExpression)
@@ -73,12 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // Case a?.M(x => x?.P)?.M2< : We need to analyze .M2
                 var innerMostConditionalAccessExpression = leftConditionalAccessExpression.GetInnerMostConditionalAccessExpression();
                 if (innerMostConditionalAccessExpression != null)
-                {
                     leftNode = innerMostConditionalAccessExpression.WhenNotNull;
-                }
             }
 
-            var info = model.GetSymbolInfo(leftNode, cancellationToken);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(leftNode.SpanStart, cancellationToken).ConfigureAwait(false);
+            var info = semanticModel.GetSymbolInfo(leftNode, cancellationToken);
             return info.CandidateSymbols.Any(IsGenericTypeOrMethod);
         }
 

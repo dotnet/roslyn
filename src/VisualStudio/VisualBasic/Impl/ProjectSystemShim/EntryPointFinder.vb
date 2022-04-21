@@ -25,8 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Shared Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
             Dim visitor = New EntryPointFinder(findFormsOnly)
-            ' Only search source symbols
-            visitor.Visit(symbol.ContainingCompilation.SourceModule.GlobalNamespace)
+            ' Attempt to only search source symbols
+            ' Some callers will give a symbol that is not part of a compilation
+            If symbol.ContainingCompilation IsNot Nothing Then
+                symbol = symbol.ContainingCompilation.SourceModule.GlobalNamespace
+            End If
+
+            visitor.Visit(symbol)
             Return visitor.EntryPoints
         End Function
 

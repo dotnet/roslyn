@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
+    internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public SymbolCompletionProvider()
         {
         }
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         internal override string Language => LanguageNames.CSharp;
 
@@ -128,8 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // By default we want to proceed with triggering completion if we have items.
             return true;
         }
-
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
         {

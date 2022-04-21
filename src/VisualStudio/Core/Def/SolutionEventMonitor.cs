@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private readonly UIContext _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         private readonly IGlobalOperationNotificationService _notificationService;
-        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new();
+        private readonly Dictionary<string, IDisposable> _operations = new();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
@@ -44,9 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public void Dispose()
         {
             foreach (var globalOperation in _operations.Values)
-            {
                 globalOperation.Dispose();
-            }
 
             _operations.Clear();
 
@@ -69,18 +67,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             TryCancelPendingNotification(operation);
 
             if (active)
-            {
                 _operations[operation] = _notificationService.Start(operation);
-            }
         }
 
         private void TryCancelPendingNotification(string operation)
         {
             if (_operations.TryGetValue(operation, out var globalOperation))
             {
-                globalOperation.Done();
                 globalOperation.Dispose();
-
                 _operations.Remove(operation);
             }
         }

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create<T>(T value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var context = SolutionReplicationContext.Create();
+            using var context = new SolutionReplicationContext();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {

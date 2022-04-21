@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
@@ -405,31 +406,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node);
         bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node);
 
-        /// <summary>
-        /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
-        /// </summary>
-        bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node);
-
-        /// <summary>
-        /// A node that contains a list of statements. In C#, this is BlockSyntax and SwitchSectionSyntax.
-        /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
-        /// </summary>
-        bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node);
-        // Violation.  This should return a SyntaxList
-        IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node);
-        // Violation.  This is a feature level API.
-        SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
-
-        /// <summary>
-        /// A node that can host a list of statements or a single statement. In addition to
-        /// every "executable block", this also includes C# embedded statement owners.
-        /// </summary>
-        // Violation.  This is a feature level API.
-        bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
-
-        // Violation.  This is a feature level API.
-        IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node);
-
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2);
 
@@ -474,8 +450,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         // Violation.  This is a feature level API.
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
-        // Violation.  This is a feature level API.
-        bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 
         /// <summary>
         /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
@@ -534,6 +508,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node);
 
         SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+
+        bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         #region IsXXX members
 

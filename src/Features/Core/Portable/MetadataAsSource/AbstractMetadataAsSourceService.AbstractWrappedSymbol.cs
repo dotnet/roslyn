@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
                 => _symbol.Accept(visitor);
 
+            public TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+                => _symbol.Accept(visitor, argument);
+
             public ImmutableArray<AttributeData> GetAttributes()
                 => _symbol.GetAttributes();
 

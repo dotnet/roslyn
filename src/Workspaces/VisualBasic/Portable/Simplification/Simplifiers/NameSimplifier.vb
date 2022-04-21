@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Public Overrides Function TrySimplify(
                 name As NameSyntax,
                 semanticModel As SemanticModel,
-                optionSet As OptionSet,
+                options As VisualBasicSimplifierOptions,
                 <Out> ByRef replacementNode As ExpressionSyntax,
                 <Out> ByRef issueSpan As TextSpan,
                 cancellationToken As CancellationToken) As Boolean
@@ -164,8 +164,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                     keywordKind,
                                     name.GetTrailingTrivia())
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
-                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
-                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
+                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, options)
+                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, options)
                                 If token.Text = valueText OrElse (inDeclarationContext OrElse inMemberAccessContext) Then
 
                                     Dim codeStyleOptionName As String = Nothing
@@ -390,11 +390,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
+        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, options As VisualBasicSimplifierOptions) As Boolean
             Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
+                   options.PreferPredefinedTypeKeywordInDeclaration.Value
         End Function
 
         Private Shared Function CanSimplifyNullable(type As INamedTypeSymbol, name As NameSyntax) As Boolean

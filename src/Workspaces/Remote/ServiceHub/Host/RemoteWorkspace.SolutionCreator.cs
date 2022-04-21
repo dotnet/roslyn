@@ -562,7 +562,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var (solutionInfo, options) = await _assetProvider.CreateSolutionInfoAndOptionsAsync(checksumFromRequest, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(_hostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                var workspace = new AdhocWorkspace(_hostServices);
+                workspace.AddSolution(solutionInfo);
+                workspace.SetCurrentSolution(s => s.WithOptions(options), WorkspaceChangeKind.SolutionChanged);
 
                 await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt).ConfigureAwait(false);
             }

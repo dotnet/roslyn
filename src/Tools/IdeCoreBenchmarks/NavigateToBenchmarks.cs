@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -85,18 +87,16 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
+
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
@@ -113,7 +113,7 @@ namespace IdeCoreBenchmarks
             _workspace = null;
         }
 
-        // [Benchmark]
+        [Benchmark]
         public async Task RunSerialIndexing()
         {
             Console.WriteLine("start profiling now");
@@ -129,6 +129,8 @@ namespace IdeCoreBenchmarks
                 }
             }
             Console.WriteLine("Serial: " + (DateTime.Now - start));
+            Console.WriteLine("Precalculated count: " + SyntaxTreeIndex.PrecalculatedCount);
+            Console.WriteLine("Computed count: " + SyntaxTreeIndex.ComputedCount);
             Console.ReadLine();
         }
 
@@ -144,7 +146,7 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunProjectParallelIndexing()
         {
             Console.WriteLine("start profiling now");

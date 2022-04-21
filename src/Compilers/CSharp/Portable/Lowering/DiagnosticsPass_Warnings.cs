@@ -251,9 +251,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Method is MethodSymbol method)
             {
-                if (_inExpressionLambda && method.IsAbstract && method.IsStatic)
+                if (_inExpressionLambda)
                 {
-                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    if (method.Name == WellKnownMemberNames.CheckedDivisionOperatorName)
+                    {
+                        Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
+                    }
+                    else if (method.IsAbstract && method.IsStatic)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    }
                 }
             }
             else
@@ -267,6 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
