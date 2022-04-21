@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Expression can be the LHS of a ref-assign operation.
             /// Example:
-            ///  ref local, ref parameter, out parameter
+            ///  ref local, ref parameter, out parameter, ref field
             /// </summary>
             RefAssignable = 8 << ValueKindInsignificantBits,
 
