@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public readonly IGlobalOptionService GlobalOptions;
 
-        public readonly LspWorkspaceManager LspWorkspaceManager;
         public readonly ILanguageServerNotificationManager NotificationManager;
         public readonly CancellationToken QueueCancellationToken;
 
@@ -79,7 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
             IGlobalOptionService globalOptions,
-            LspWorkspaceManager lspWorkspaceManager,
             ILanguageServerNotificationManager notificationManager,
             CancellationToken queueCancellationToken)
         {
@@ -92,7 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
-            LspWorkspaceManager = lspWorkspaceManager;
             NotificationManager = notificationManager;
             QueueCancellationToken = queueCancellationToken;
         }
@@ -121,9 +118,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 return new RequestContext(
-                    solution: null, logger, clientCapabilities, serverKind, document: null,
-                    documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions,
-                    lspWorkspaceManager, notificationManager, queueCancellationToken);
+                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, globalOptions: globalOptions,
+                    notificationManager: notificationManager, queueCancellationToken: queueCancellationToken);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -157,7 +154,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 trackedDocuments,
                 supportedLanguages,
                 globalOptions,
-                lspWorkspaceManager,
                 notificationManager,
                 queueCancellationToken);
             return context;
