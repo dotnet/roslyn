@@ -91,6 +91,23 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("mars_bar", "mars_Bar")]
+        [InlineData("Sars_Bar", "sars_Bar")]
+        public async Task TestCamelCaseField_UnderscoreInName(string fieldName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    int [|{fieldName}|];
+}}",
+$@"class C
+{{
+    int [|{correctedName}|];
+}}",
+                options: s_options.FieldNamesAreCamelCase);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [InlineData("M_bar", "_bar")]
         [InlineData("S_bar", "_bar")]
         [InlineData("T_bar", "_bar")]
@@ -297,6 +314,27 @@ $@"class C
 {
     public int P { [|get|]; set; }
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("mars_bar", "Mars_Bar")]
+        [InlineData("Sars_bar", "Sars_Bar")]
+        public async Task TestPascalCaseMethod_UnderscoreInName(string methodName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void [|{methodName}|]()
+    {{
+    }}
+}}",
+$@"class C
+{{
+    void [|{correctedName}|]()
+    {{
+    }}
+}}",
+            options: s_options.MethodNamesArePascalCase);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]

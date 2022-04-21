@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -255,6 +256,31 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 }
             }
 
+            if (!violations.Any() && name.Contains("_"))
+            {
+                var rx = new Regex("(?<=[_])");
+                var words = rx.Split(name).Where(str => str.Length > 0);
+                var spanStart = 0;
+                var firstWord = true;
+                foreach (var word in words)
+                {
+                    if (firstWord)
+                    {
+                        firstWord = false;
+                        spanStart += word.Length;
+                        continue;
+                    }
+
+                    var spanToCheck = TextSpan.FromBounds(spanStart, spanStart + word.Length);
+                    if (!wordCheck(name, spanToCheck))
+                    {
+                        violations.Add(Substring(name, spanToCheck));
+                    }
+
+                    spanStart += word.Length;
+                }
+            }
+
             if (violations.Count > 0)
             {
                 reason = string.Format(resourceId, string.Join(", ", violations));
@@ -309,6 +335,31 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 }
 
                 first = false;
+            }
+
+            if (!violations.Any() && name.Contains("_"))
+            {
+                var rx = new Regex("(?<=[_])");
+                var words = rx.Split(name).Where(str => str.Length > 0);
+                var spanStart = 0;
+                var firstWord = true;
+                foreach (var word in words)
+                {
+                    if (firstWord)
+                    {
+                        firstWord = false;
+                        spanStart += word.Length;
+                        continue;
+                    }
+
+                    var spanToCheck = TextSpan.FromBounds(spanStart, spanStart + word.Length);
+                    if (!restWordCheck(name, spanToCheck))
+                    {
+                        violations.Add(Substring(name, spanToCheck));
+                    }
+
+                    spanStart += word.Length;
+                }
             }
 
             if (violations.Count > 0)
@@ -442,6 +493,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
                     words = newWords;
                 }
+            }
+            else if (name.Contains("_"))
+            {
+                var rx = new Regex("(?<=[_])");
+                words = rx.Split(name);
             }
 
             words = ApplyCapitalization(words);
