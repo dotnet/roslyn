@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
+                    protected override void OnPaused()
                     {
-                        base.PauseOnGlobalOperation();
+                        base.OnPaused();
 
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
