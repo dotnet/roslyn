@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -44,10 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
-            var targetsByRelationship = member.TargetItems
-                .OrderBy(item => item.DisplayName)
+            var targetItems = member.IsOrdered ? (IEnumerable<InheritanceTargetItem>)member.TargetItems : member.TargetItems.OrderBy(item => item.DisplayName);
+
+            var targetsByRelationship = targetItems
                 .GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => InheritanceMarginHelpers.CreateMenuItemsWithHeader(grouping.Key, grouping))
+                .SelectMany(grouping => InheritanceMarginHelpers.CreateMenuItemsWithHeader(member, grouping.Key, grouping))
                 .ToImmutableArray();
 
             return new MemberMenuItemViewModel(

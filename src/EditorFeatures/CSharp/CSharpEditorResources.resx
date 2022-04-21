@@ -191,4 +191,7 @@
   <data name="Grow_raw_string" xml:space="preserve">
     <value>Grow raw string</value>
   </data>
+  <data name="Global_using_directives" xml:space="preserve">
+    <value>Global 'using' directives</value>
+  </data>
 </root>

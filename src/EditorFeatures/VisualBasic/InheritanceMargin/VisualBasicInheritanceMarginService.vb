@@ -20,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
         Public Sub New()
         End Sub
 
+        Protected Overrides ReadOnly Property GlobalImportsTitle As String = VBEditorResources.Project_level_Imports
+
         Protected Overrides Function GetMembers(nodesToSearch As IEnumerable(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
             Dim typeBlockNodes = nodesToSearch.OfType(Of TypeBlockSyntax)
 

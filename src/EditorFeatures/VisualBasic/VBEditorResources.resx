@@ -179,4 +179,7 @@
     <value>Add Missing Imports on Paste</value>
     <comment>"imports" is a language specific term and should not be localized</comment>
   </data>
+  <data name="Project_level_Imports" xml:space="preserve">
+    <value>Project level 'Imports'</value>
+  </data>
 </root>

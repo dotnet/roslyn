@@ -30,16 +30,23 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
+        /// <summary>
+        /// Whether the target items are already ordered or not.
+        /// </summary>
+        public readonly bool IsOrdered;
+
         public InheritanceMarginItem(
             int lineNumber,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
-            ImmutableArray<InheritanceTargetItem> targetItems)
+            ImmutableArray<InheritanceTargetItem> targetItems,
+            bool isOrdered)
         {
             LineNumber = lineNumber;
             DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = targetItems;
+            IsOrdered = isOrdered;
         }
 
         public static async ValueTask<InheritanceMarginItem> ConvertAsync(
@@ -48,8 +55,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
-                    (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems);
+                (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
+            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems, isOrdered: false);
         }
     }
 }

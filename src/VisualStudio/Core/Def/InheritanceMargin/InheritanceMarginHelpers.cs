@@ -88,14 +88,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return KnownMonikers.Overridden;
             }
 
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.InheritedImport))
+                return KnownMonikers.NamespaceShortcut;
+
             // The relationship is None. Don't know what image should be shown, throws
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(InheritanceMarginItem item, ImmutableArray<InheritanceTargetItem> targets)
             => targets.OrderBy(target => target.DisplayName)
                 .GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping))
+                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping))
                 .ToImmutableArray();
 
         /// <summary>
@@ -120,6 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
+            InheritanceMarginItem item,
             InheritanceRelationship relationship,
             IEnumerable<InheritanceTargetItem> targets)
         {
@@ -135,6 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 InheritanceRelationship.OverriddenMember => ServicesVSResources.Overridden_members,
                 InheritanceRelationship.OverridingMember => ServicesVSResources.Overriding_members,
                 InheritanceRelationship.ImplementingMember => ServicesVSResources.Implementing_members,
+                InheritanceRelationship.InheritedImport => item.DisplayTexts.JoinText(),
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 

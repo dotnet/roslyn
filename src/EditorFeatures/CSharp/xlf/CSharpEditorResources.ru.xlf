@@ -62,6 +62,11 @@
         <target state="translated">Создать подписку на события</target>
         <note />
       </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
         <target state="translated">Увеличить необработанную строку</target>

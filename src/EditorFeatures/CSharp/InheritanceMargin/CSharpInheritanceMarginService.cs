@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
         public CSharpInheritanceMarginService()
         {
         }
+
+        protected override string GlobalImportsTitle => CSharpEditorResources.Global_using_directives;
 
         protected override ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch)
         {

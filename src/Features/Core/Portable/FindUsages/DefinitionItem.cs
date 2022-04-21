@@ -321,5 +321,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return ImmutableArray<TaggedText>.Empty;
         }
+
+        public DetachedDefinitionItem Detach()
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }
