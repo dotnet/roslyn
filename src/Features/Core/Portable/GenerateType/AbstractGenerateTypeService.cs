@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);

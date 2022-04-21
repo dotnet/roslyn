@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly bool _fromDialog;
             private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
             private readonly CancellationToken _cancellationToken;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public Editor(
                 TService service,
                 SemanticDocument document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile,
                 CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 TService service,
                 SemanticDocument document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool fromDialog,
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)
@@ -320,8 +320,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                     if (formattingService is not null)
                     {
-                        // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
-                        var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(fallbackOptions: null, _cancellationToken).ConfigureAwait(false);
+                        var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_fallbackOptions, _cancellationToken).ConfigureAwait(false);
                         codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, cleanupOptions, _cancellationToken).ConfigureAwait(false);
                     }
                 }

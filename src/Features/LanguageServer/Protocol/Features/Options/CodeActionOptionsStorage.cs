@@ -32,20 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language));
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
-            => new CachingCodeActionsOptionsProvider(globalOptions);
-
-        private sealed class CachingCodeActionsOptionsProvider : AbstractCodeActionOptionsProvider
         {
-            private readonly IGlobalOptionService _globalOptions;
-            private ImmutableDictionary<string, CodeActionOptions> _cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
-
-            public CachingCodeActionsOptionsProvider(IGlobalOptionService globalOptions)
-            {
-                _globalOptions = globalOptions;
-            }
-
-            public override CodeActionOptions GetOptions(HostLanguageServices languageService)
-                => ImmutableInterlocked.GetOrAdd(ref _cache, languageService.Language, (language, options) => GetCodeActionOptions(options, languageService), _globalOptions);
+            var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
+            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions));
         }
     }
 }
