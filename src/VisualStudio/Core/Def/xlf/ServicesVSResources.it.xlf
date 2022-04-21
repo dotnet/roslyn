@@ -1008,8 +1008,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="translated">Incolla un'analisi dello stack valida per visualizzare e spostarti tra i relativi valori</target>
+        <source>Paste a stack trace to view and navigate its values.</source>
+        <target state="needs-review-translation">Incolla un'analisi dello stack valida per visualizzare e spostarti tra i relativi valori</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
