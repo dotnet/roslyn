@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal readonly struct InheritanceMarginItem
+    internal sealed class InheritanceMarginItem
     {
         /// <summary>
         /// Line number used to show the margin for the member.
@@ -26,27 +26,34 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
+        /// Whether the target items are already ordered or not.
+        /// </summary>
+        public readonly bool IsOrdered;
+
+        /// <summary>
         /// An array of the implementing/implemented/overriding/overridden targets for this member.
         /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
         /// <summary>
-        /// Whether the target items are already ordered or not.
+        /// An array of other margin items to show under this.
         /// </summary>
-        public readonly bool IsOrdered;
+        public readonly ImmutableArray<InheritanceMarginItem> NestedItems;
 
         public InheritanceMarginItem(
             int lineNumber,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
+            bool isOrdered,
             ImmutableArray<InheritanceTargetItem> targetItems,
-            bool isOrdered)
+            ImmutableArray<InheritanceMarginItem> nestedItems = default)
         {
             LineNumber = lineNumber;
             DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = targetItems;
             IsOrdered = isOrdered;
+            NestedItems = nestedItems.NullToEmpty();
         }
 
         public static async ValueTask<InheritanceMarginItem> ConvertAsync(
@@ -56,7 +63,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
                 (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems, isOrdered: false);
+            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, isOrdered: false, targetItems);
         }
     }
 }
