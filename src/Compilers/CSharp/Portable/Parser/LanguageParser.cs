@@ -1177,6 +1177,7 @@ tryAgain:
 
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
+            bool? isFollowedByType = null;
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
@@ -1250,30 +1251,41 @@ tryAgain:
                     case DeclarationModifiers.File:
                         // 'file' is only a modifier if it is followed by an optional sequence of modifiers and then by a type keyword.
                         {
-                            for (int i = 1; ; i++)
+                            isFollowedByType ??= computeFollowedByType();
+                            if (isFollowedByType.GetValueOrDefault())
                             {
-                                var kind = PeekToken(i).ContextualKind;
-                                if (kind is SyntaxKind.ClassKeyword
-                                        or SyntaxKind.StructKeyword
-                                        or SyntaxKind.InterfaceKeyword
-                                        or SyntaxKind.RecordKeyword
-                                        or SyntaxKind.EnumKeyword
-                                        or SyntaxKind.DelegateKeyword)
-                                {
-                                    // this is a file modifier.
-                                    modTok = ConvertToKeyword(EatToken());
-                                    break;
-                                }
-
-                                if (SyntaxFacts.IsKeywordKind(kind))
-                                {
-                                    continue;
-                                }
-
-                                return;
+                                // this is a file modifier.
+                                modTok = ConvertToKeyword(EatToken());
+                                break;
                             }
 
-                            break;
+                            return;
+
+                            bool computeFollowedByType()
+                            {
+                                var resetPoint = this.GetResetPoint();
+                                try
+                                {
+                                    while (true)
+                                    {
+                                        if (IsTypeDeclarationStart())
+                                        {
+                                            return true;
+                                        }
+                                        else if (!SyntaxFacts.IsKeywordKind(CurrentToken.ContextualKind))
+                                        {
+                                            return false;
+                                        }
+
+                                        EatToken();
+                                    }
+                                }
+                                finally
+                                {
+                                    this.Reset(ref resetPoint);
+                                    this.Release(ref resetPoint);
+                                }
+                            }
                         }
 
                     case DeclarationModifiers.Async:
