@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal class ConvertToLSPSnippetService : ILanguageService
+    internal class AbstractConvertToLSPSnippetService : ILanguageService
     {
         public string? GenerateLSPSnippet(TextChange textChange, List<(string, List<TextSpan>)> placeholders)
         {

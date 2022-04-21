@@ -15,6 +15,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
+        private readonly IRoslynLSPSnippetExpander _roslynLSPSnippetExpander;
+
+        public AbstractSnippetCompletionProvider(IRoslynLSPSnippetExpander roslynLSPSnippetExpander)
+        {
+            _roslynLSPSnippetExpander = roslynLSPSnippetExpander;
+        }
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion
@@ -37,36 +44,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            var lspSnippetService = allChangesDocument.GetRequiredLanguageService<ConvertToLSPSnippetService>();
+            var lspSnippetService = allChangesDocument.GetRequiredLanguageService<AbstractConvertToLSPSnippetService>();
             var lspSnippet = lspSnippetService.GenerateLSPSnippet(change, snippet.Placeholders);
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), lspSnippet, newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var position = context.Position;
-            var service = document.GetLanguageService<ISnippetService>();
-
-            if (service == null)
+            if (_roslynLSPSnippetExpander.CanExpandSnippet())
             {
-                return;
-            }
+                var document = context.Document;
+                var cancellationToken = context.CancellationToken;
+                var position = context.Position;
+                var service = document.GetLanguageService<ISnippetService>();
 
-            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (service == null)
+                {
+                    return;
+                }
 
-            var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+                var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            foreach (var snippetData in snippets)
-            {
-                var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.DisplayName,
-                    displayTextSuffix: "",
-                    position: position,
-                    snippetIdentifier: snippetData.SnippetIdentifier,
-                    glyph: Glyph.Snippet);
-                context.AddItem(completionItem);
+                var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+
+                foreach (var snippetData in snippets)
+                {
+                    var completionItem = SnippetCompletionItem.Create(
+                        displayText: snippetData.DisplayName,
+                        displayTextSuffix: "",
+                        position: position,
+                        snippetIdentifier: snippetData.SnippetIdentifier,
+                        glyph: Glyph.Snippet);
+                    context.AddItem(completionItem);
+                }
             }
         }
 

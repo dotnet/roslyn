@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
-    [ExportLanguageService(typeof(ConvertToLSPSnippetService), LanguageNames.CSharp), Shared]
-    internal class CSharpConvertToLSPSnippetService : ConvertToLSPSnippetService
+    [ExportLanguageService(typeof(AbstractConvertToLSPSnippetService), LanguageNames.CSharp), Shared]
+    internal class CSharpConvertToLSPSnippetService : AbstractConvertToLSPSnippetService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
