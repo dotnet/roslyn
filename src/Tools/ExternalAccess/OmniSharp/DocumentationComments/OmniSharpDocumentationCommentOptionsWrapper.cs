@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             bool autoXmlDocCommentGeneration,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
 
             return new(new DocumentationCommentOptions(
                 AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration,
