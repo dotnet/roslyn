@@ -154,7 +154,7 @@ namespace Root
         {
             await TestInRegularAndScriptAsync(
 @"<Workspace>
-    <Project Language=""C#"">
+    <Project Language=""C#"" CommonReferences=""true"">
         <Document>
 global using MyType = System.IO.File;
         </Document>
