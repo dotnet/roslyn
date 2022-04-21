@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Notification
         /// <summary>
         /// start new global operation
         /// </summary>
-        IGlobalOperationRegistration Start(string operation);
+        IDisposable Start(string operation);
     }
 }
