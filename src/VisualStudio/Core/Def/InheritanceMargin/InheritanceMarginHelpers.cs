@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -95,11 +98,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(InheritanceMarginItem item, ImmutableArray<InheritanceTargetItem> targets)
-            => targets.OrderBy(target => target.DisplayName)
-                .GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping))
-                .ToImmutableArray();
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(InheritanceMarginItem item)
+        {
+            using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var result);
+
+            result.AddRange(item.TargetItems.GroupBy(target => target.RelationToMember)
+                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping)));
+
+            foreach (var nestedItem in item.NestedItems)
+            {
+                var displayText = nestedItem.DisplayTexts.JoinText();
+                var headerViewModel = new HeaderMenuItemViewModel(displayText, item.Glyph.GetImageMoniker(), displayText);
+                result.Add(headerViewModel);
+                foreach (var targetItem in nestedItem.TargetItems)
+                    result.Add(TargetMenuItemViewModel.Create(targetItem));
+            }
+
+            return result.ToImmutable();
+        }
 
         /// <summary>
         /// Create the view models for the inheritance targets of multiple members
@@ -127,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             InheritanceRelationship relationship,
             IEnumerable<InheritanceTargetItem> targets)
         {
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
             {
                 InheritanceRelationship.ImplementedInterface => ServicesVSResources.Implemented_interfaces,

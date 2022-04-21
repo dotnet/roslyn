@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,11 +27,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// Whether the target items are already ordered or not.
-        /// </summary>
-        public readonly bool IsOrdered;
-
-        /// <summary>
         /// An array of the implementing/implemented/overriding/overridden targets for this member.
         /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
@@ -51,8 +47,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             LineNumber = lineNumber;
             DisplayTexts = displayTexts;
             Glyph = glyph;
-            TargetItems = targetItems;
-            IsOrdered = isOrdered;
+            TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
             NestedItems = nestedItems.NullToEmpty();
         }
 

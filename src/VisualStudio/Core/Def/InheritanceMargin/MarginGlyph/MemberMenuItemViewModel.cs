@@ -45,9 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
-            var targetItems = member.IsOrdered ? (IEnumerable<InheritanceTargetItem>)member.TargetItems : member.TargetItems.OrderBy(item => item.DisplayName);
 
-            var targetsByRelationship = targetItems
+            var targetsByRelationship = member.TargetItems
                 .GroupBy(target => target.RelationToMember)
                 .SelectMany(grouping => InheritanceMarginHelpers.CreateMenuItemsWithHeader(member, grouping.Key, grouping))
                 .ToImmutableArray();
