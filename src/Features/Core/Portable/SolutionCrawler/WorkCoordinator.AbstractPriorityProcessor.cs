@@ -81,17 +81,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // if there are no more work left for higher queue, and we didn't enter a state where we
                                 // should wait for idle again, then our time to go ahead.
                                 var higherQueueHasWorkItem = HigherQueueHasWorkItem;
-                                if (!higherQueueHasWorkItem && !ShouldWaitForIdle())
-                                    return;
 
-                                // either the higher queue has an item, or we still haven't idled long enough to start
-                                // processing our work.  In case it's the former, update our own time so that we still
-                                // idle long enough once that work is over.
+                                // If we have something more important in the queue.  Act as we need to back off again
+                                // (e.g. call UpdateLastAccessTime) then wait that amount of time and check again.
                                 if (higherQueueHasWorkItem)
+                                {
                                     UpdateLastAccessTime();
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
+                                }
 
-                                // back off and wait for next time slot or for us to become unpaused.
-                                await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                // There was no higher queue work item.  However, we also may still be paused, or we may
+                                // not have waited long enough to actually satisfy our our backoff-delay.  If so, wait
+                                // until we're actually idle.
+                                if (ShouldWaitForIdle())
+                                {
+                                    // Do the wait.  However, if it returns 'false' then that means the delay completed
+                                    // quickly because some unit/integration test is asking us to expedite our work.  In
+                                    // that case, just return out immediately so we can process what is in our queue.
+                                    //
+                                    // Otherwise, we did a normal wait, continue the loop in case higher priority work
+                                    // came in. if nothing did, then we'll bail out below.
+                                    if (await WaitForIdleAsync(Listener).ConfigureAwait(false))
+                                        continue;
+
+                                    // intentional fall-through.
+                                }
+
+                                // If we got here, then either:
+                                //
+                                // 1. there was no more important work *and* we are not paused *and* we waited long
+                                //    enough to start running. or
+                                // 2. we were paused or hadn't waited long enough *but* the test harness is asking to
+                                //    expedite things, so we proceed anyways.
+
+                                return;
                             }
                         }
                     }

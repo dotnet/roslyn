@@ -87,7 +87,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 OnPaused();
         }
 
-        protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
+        /// <returns><see langword="true"/> if the delay compeleted normally; otherwise, <see langword="false"/> if the
+        /// delay completed due to a request to expedite the delay.</returns>
+        protected async Task<bool> WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
             while (true)
             {
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // least s_minimumDelay and check again in the future.
                 var diff = _timeSinceLastAccess.Elapsed;
                 if (!ShouldWaitForIdle())
-                    return;
+                    return true;
 
                 var timeLeft = BackOffTimeSpan - diff;
                 var delayTimeSpan = TimeSpan.FromMilliseconds(Math.Max(s_minimumDelay.TotalMilliseconds, timeLeft.TotalMilliseconds));
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // 📝 At the time this was discovered, it was not clear exactly why the yield (previously delay)
                     // was needed in order to avoid live-lock scenarios.
                     await Task.Yield().ConfigureAwait(false);
-                    return;
+                    return false;
                 }
             }
         }
