@@ -3340,8 +3340,8 @@ namespace Microsoft.Cci
 
             // If BlobEncoder provides a field encoder that supports IsByReference and RefCustomModifiers
             // directly, use that (see https://github.com/dotnet/runtime/issues/68309).
-            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
             var typeEncoder = new BlobEncoder(builder).FieldSignature();
+            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
             if (fieldReference.IsByReference)
             {
                 typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);

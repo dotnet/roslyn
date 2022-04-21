@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static string IncludeExpectedOutput(string expectedOutput)
         {
-            // PROTOTYPE: Enable.
-#if RuntimeSupport
+#if NET7_0_OR_GREATER
             return expectedOutput;
 #else
             return null;
@@ -2573,8 +2572,8 @@ class Program
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
-34
-34
+33
+33
 "));
             verifier.VerifyIL("Program.Increment",
 @"{
