@@ -103,20 +103,23 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
 
-            using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
-            using var _1 = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var nestedMarginItems);
-
             foreach (var group in nonLocalImports.GroupBy(i => i.DeclaringSyntaxReference?.SyntaxTree))
             {
                 var groupSyntaxTree = group.Key;
                 if (groupSyntaxTree is null)
                 {
+                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
+
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.CreateNonNavigableItem(ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty);
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, import.NamespaceOrType.ToDisplayString()));
                     }
+
+                    items.Add(new InheritanceMarginItem(
+                        lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
+                        Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
                 else
                 {
@@ -124,28 +127,24 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     if (destinationDocument is null)
                         continue;
 
-                    using var _2 = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var nestedTargetItems);
+                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
 
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.Create(
                             ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
                             new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
-                        nestedTargetItems.Add(new InheritanceTargetItem(
+                        targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, import.NamespaceOrType.ToDisplayString()));
                     }
 
                     var filePath = groupSyntaxTree.FilePath;
                     var fileName = filePath == null ? null : IOUtilities.PerformIO(() => Path.GetFileName(filePath)) ?? filePath;
 
-                    nestedMarginItems.Add(new InheritanceMarginItem(
-                        lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, fileName)), Glyph.None, isOrdered: true, nestedTargetItems.ToImmutable()));
+                    items.Add(new InheritanceMarginItem(
+                        lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, fileName)), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
             }
-
-            items.Add(new InheritanceMarginItem(
-                lineNumber, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
-                Glyph.Namespace, isOrdered: true, targetItems.ToImmutable(), nestedMarginItems.ToImmutable()));
         }
 
         private async ValueTask AddInheritanceMemberItemsAsync(

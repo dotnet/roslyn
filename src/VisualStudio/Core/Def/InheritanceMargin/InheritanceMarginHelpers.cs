@@ -100,21 +100,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(InheritanceMarginItem item)
         {
-            using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var result);
-
-            result.AddRange(item.TargetItems.GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping)));
-
-            foreach (var nestedItem in item.NestedItems)
-            {
-                var displayText = nestedItem.DisplayTexts.JoinText();
-                var headerViewModel = new HeaderMenuItemViewModel(displayText, item.Glyph.GetImageMoniker(), displayText);
-                result.Add(headerViewModel);
-                foreach (var targetItem in nestedItem.TargetItems)
-                    result.Add(TargetMenuItemViewModel.Create(targetItem));
-            }
-
-            return result.ToImmutable();
+            return item.TargetItems
+                .GroupBy(target => target.RelationToMember)
+                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping))
+                .ToImmutableArray();
         }
 
         /// <summary>

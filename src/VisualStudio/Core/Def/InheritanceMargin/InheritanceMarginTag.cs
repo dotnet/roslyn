@@ -49,20 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // The common case, one line has one member, avoid to use select & aggregate
             using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var allItems);
             foreach (var marginItem in membersOnLine)
-                AddAllTargetItems(marginItem, allItems);
+                allItems.AddRange(marginItem.TargetItems);
 
             var relationship = allItems[0].RelationToMember;
             for (var i = 1; i < allItems.Count; i++)
                 relationship |= allItems[i].RelationToMember;
 
             Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
-        }
-
-        private static void AddAllTargetItems(InheritanceMarginItem marginItem, ArrayBuilder<InheritanceTargetItem> allItems)
-        {
-            allItems.AddRange(marginItem.TargetItems);
-            foreach (var nestedItem in marginItem.NestedItems)
-                AddAllTargetItems(nestedItem, allItems);
         }
     }
 }

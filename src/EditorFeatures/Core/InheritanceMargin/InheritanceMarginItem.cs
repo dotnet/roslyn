@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal sealed class InheritanceMarginItem
+    internal readonly struct InheritanceMarginItem
     {
         /// <summary>
         /// Line number used to show the margin for the member.
@@ -31,24 +31,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
-        /// <summary>
-        /// An array of other margin items to show under this.
-        /// </summary>
-        public readonly ImmutableArray<InheritanceMarginItem> NestedItems;
-
         public InheritanceMarginItem(
             int lineNumber,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
             bool isOrdered,
-            ImmutableArray<InheritanceTargetItem> targetItems,
-            ImmutableArray<InheritanceMarginItem> nestedItems = default)
+            ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
             DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
-            NestedItems = nestedItems.NullToEmpty();
         }
 
         public static async ValueTask<InheritanceMarginItem> ConvertAsync(
