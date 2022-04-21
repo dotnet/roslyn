@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
@@ -15,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -358,13 +360,10 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-                Dim options = New CodeActionOptions(
-                    CleanupOptions:=New CodeCleanupOptions(
-                        FormattingOptions:=New VisualBasicSyntaxFormattingOptions(
-                            LineFormattingOptions.Default,
-                            separateImportDirectiveGroups:=separateImportsGroups),
-                        SimplifierOptions:=VisualBasicSimplifierOptions.Default,
-                        AddImportOptions:=AddImportPlacementOptions.Default))
+                Dim options = VisualBasicCodeActionOptions.Default.With(
+                    New VisualBasicSyntaxFormattingOptions(
+                        LineFormattingOptions.Default,
+                        separateImportDirectiveGroups:=separateImportsGroups))
 
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,

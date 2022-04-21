@@ -646,12 +646,15 @@ namespace A
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+            var defaultOptions = CodeActionOptions.GetDefault(document.Project.LanguageServices);
 
-            var fallbackOptions = new CodeActionOptions(
-                CleanupOptions: CodeCleanupOptions.GetDefault(document.Project.LanguageServices) with
+            var fallbackOptions = defaultOptions  with
+            {
+                CleanupOptions = defaultOptions.CleanupOptions with
                 {
                     FormattingOptions = new CSharpSyntaxFormattingOptions(separateImportDirectiveGroups: separateUsingGroups)
-                });
+                }
+            };
 
             var newDoc = await codeCleanupService.CleanupAsync(
                 document, enabledDiagnostics, new ProgressTracker(), fallbackOptions.CreateProvider(), CancellationToken.None);
