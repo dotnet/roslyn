@@ -6,34 +6,26 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Notification
+namespace Microsoft.CodeAnalysis.Notification;
+
+internal partial class GlobalOperationNotificationService
 {
-    internal class GlobalOperationRegistration : IDisposable
+    private class GlobalOperationRegistration : IGlobalOperationRegistration
     {
-        private readonly AbstractGlobalOperationNotificationService _service;
+        private readonly GlobalOperationNotificationService _service;
         private readonly CancellationTokenSource _source;
         private readonly IDisposable _logging;
 
-        private bool _done;
+        private bool _done = false;
 
-        public GlobalOperationRegistration(AbstractGlobalOperationNotificationService service, string operation)
+        public GlobalOperationRegistration(GlobalOperationNotificationService service, string operation)
         {
             _service = service;
-            _done = false;
-            this.Operation = operation;
 
             _source = new CancellationTokenSource();
             _logging = Logger.LogBlock(FunctionId.GlobalOperationRegistration, operation, _source.Token);
         }
 
-        public string Operation { get; }
-
-        /// <summary>
-        /// Used to indicate that the global operation completed fully.  The only effect this has is how this operation
-        /// will be logged when <see cref="Dispose"/> is called. If this has been called, then <see cref="Dispose"/>
-        /// will log that we completed without cancellation.  If this has not been called, then <see cref="Dispose"/>
-        /// will log that we were canceled.
-        /// </summary>
         public void Done()
             => _done = true;
 
