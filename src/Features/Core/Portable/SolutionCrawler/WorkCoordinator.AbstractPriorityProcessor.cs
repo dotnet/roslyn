@@ -91,10 +91,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     continue;
                                 }
 
-                                // There was no higher queue work item.  However, we also may still be paused, or we may
-                                // not have waited long enough to actually satisfy our our backoff-delay.  If so, wait
-                                // until we're actually idle.
-                                if (ShouldWaitForIdle())
+                                if (GetIsPaused())
+                                {
+                                    // if we're paused, we still want to keep waiting until we become unpaused. After we
+                                    // become unpaused though, loop around those to see if there is still high pri work
+                                    // to do.
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
+                                }
+
+                                // There was no higher queue work item.  And we're not paused. However, we may not have
+                                // waited long enough to actually satisfy our our backoff-delay.  If so, wait until
+                                // we're actually idle.
+                                if (ShouldContinueToBackOff())
                                 {
                                     // Do the wait.  However, if it returns 'false' then that means the delay completed
                                     // quickly because some unit/integration test is asking us to expedite our work.  In
@@ -111,9 +120,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // If we got here, then either:
                                 //
                                 // 1. there was no more important work *and* we are not paused *and* we waited long
-                                //    enough to start running. or
-                                // 2. we were paused or hadn't waited long enough *but* the test harness is asking to
-                                //    expedite things, so we proceed anyways.
+                                //    enough to start running and had not need to back off. or
+                                // 2. there was no more important work *and* we are not paused *and* we needed to
+                                //    backoff *but* the test harness is asking to expedite things, so we're skipping
+                                //    backing off.
 
                                 return;
                             }
