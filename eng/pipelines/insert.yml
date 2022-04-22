@@ -178,7 +178,7 @@ steps:
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt" `
+        -writePullRequest "prid.txt"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
