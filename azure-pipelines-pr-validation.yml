@@ -31,9 +31,9 @@ variables:
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
   - group: DotNet-Roslyn-Insertion-Variables
-  - name: _DevDivAccessToken
+  - name: _DevDivInsertionAccessToken
     value: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-  - name: _DncEngAccessToken
+  - name: _DncEngInsertionAccessToken
     value: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
@@ -232,9 +232,9 @@ stages:
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
         buildUserName: "dn-bot@microsoft.com"
-        buildPassword: "$(_DevDivAccessToken)"
+        buildPassword: "$(_DevDivInsertionAccessToken)"
         componentUserName: "dn-bot@microsoft.com"
-        componentPassword: "$(_DncEngDropAccessToken)"
+        componentPassword: "$(_DncEngInsertionAccessToken)"
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
