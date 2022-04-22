@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         // TO-DO: Replace hardcoded string with const once LSP side is merged.
         public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
-            => _languageServerNotificationManager.SendNotificationAsync("workspace/semanticTokens/refresh", cancellationToken);
+            => _languageServerNotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
 
         public void Dispose()
         {

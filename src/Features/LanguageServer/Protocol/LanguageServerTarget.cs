@@ -161,8 +161,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         [JsonRpcMethod(Methods.InitializedName)]
         public virtual Task InitializedAsync(CancellationToken cancellationToken)
         {
-            // TO-DO: Add client capability check below once LSP side is merged
-            _semanticTokensRefreshListener = new SemanticTokensRefreshListener(_lspWorkspaceManager, _notificationManager, _listener, cancellationToken);
+            Contract.ThrowIfNull(_clientCapabilities);
+            if (_clientCapabilities.Workspace is not null && _clientCapabilities.Workspace.SemanticTokens.RefreshSupport)
+            {
+                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(
+                    _lspWorkspaceManager, _notificationManager, _listener, cancellationToken);
+            }
 
             return Task.CompletedTask;
         }
