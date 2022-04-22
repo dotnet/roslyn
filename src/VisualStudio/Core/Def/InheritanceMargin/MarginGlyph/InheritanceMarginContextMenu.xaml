@@ -23,6 +23,8 @@
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
         <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
 
+        <local:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
+
         <!-- Style used to display a single target menu item -->
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
@@ -148,8 +150,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <local:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
 
         <!-- Style used to show the header  -->
         <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}">
