@@ -18,12 +18,47 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
-using static Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.NativeIntegerTests.ExpectedConversion;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NativeIntegerTests : CSharpTestBase
     {
+        internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
+        internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };
+        internal static readonly ConversionKind[] Boxing = new[] { ConversionKind.Boxing };
+        internal static readonly ConversionKind[] Unboxing = new[] { ConversionKind.Unboxing };
+        internal static readonly ConversionKind[] IntPtrConversion = new[] { ConversionKind.IntPtr };
+        internal static readonly ConversionKind[] ImplicitNumeric = new[] { ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitIntegerToPointer = new[] { ConversionKind.ExplicitIntegerToPointer };
+        internal static readonly ConversionKind[] ExplicitPointerToInteger = new[] { ConversionKind.ExplicitPointerToInteger };
+        internal static readonly ConversionKind[] ExplicitEnumeration = new[] { ConversionKind.ExplicitEnumeration };
+        internal static readonly ConversionKind[] ExplicitNumeric = new[] { ConversionKind.ExplicitNumeric };
+
+        internal static readonly ConversionKind[] ImplicitNullableNumeric = new[] { ConversionKind.ImplicitNullable, ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ImplicitNullableIdentity = new[] { ConversionKind.ImplicitNullable, ConversionKind.Identity };
+
+        internal static readonly ConversionKind[] ExplicitNullableEnumeration = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitEnumeration };
+        internal static readonly ConversionKind[] ExplicitNullableImplicitNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ImplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitNullableNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric };
+        internal static readonly ConversionKind[] ExplicitNullablePointerToInteger = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger };
+        internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
+
+        internal static bool IsNoConversion(ConversionKind[] conversionKinds)
+        {
+            return conversionKinds is [ConversionKind.NoConversion];
+        }
+
+        internal static void AssertMatches(ConversionKind[] expected, Conversion conversion)
+        {
+            IEnumerable<ConversionKind> actualConversionKinds = new[] { conversion.Kind };
+            if (!conversion.UnderlyingConversions.IsDefault)
+            {
+                actualConversionKinds = actualConversionKinds.Concat(conversion.UnderlyingConversions.Select(c => c.Kind));
+            }
+            Assert.Equal(expected, actualConversionKinds);
+        }
+
         [Fact]
         public void LanguageVersion()
         {
@@ -7285,56 +7320,6 @@ default: 0
 ");
         }
 
-        internal class ExpectedConversion
-        {
-            private ConversionKind[] kinds;
-
-            public static ExpectedConversion Identity = ConversionKind.Identity;
-            public static ExpectedConversion NoConversion = ConversionKind.NoConversion;
-            public static ExpectedConversion Boxing = ConversionKind.Boxing;
-            public static ExpectedConversion Unboxing = ConversionKind.Unboxing;
-            public static ExpectedConversion IntPtrConversion = ConversionKind.IntPtr;
-            public static ExpectedConversion ImplicitNumeric = ConversionKind.ImplicitNumeric;
-            public static ExpectedConversion ExplicitIntegerToPointer = ConversionKind.ExplicitIntegerToPointer;
-            public static ExpectedConversion ExplicitPointerToInteger = ConversionKind.ExplicitPointerToInteger;
-            public static ExpectedConversion ExplicitEnumeration = ConversionKind.ExplicitEnumeration;
-            public static ExpectedConversion ExplicitNumeric = ConversionKind.ExplicitNumeric;
-
-            public static ExpectedConversion ImplicitNullableNumeric = new[] { ConversionKind.ImplicitNullable, ConversionKind.ImplicitNumeric };
-            public static ExpectedConversion ImplicitNullableIdentity = new[] { ConversionKind.ImplicitNullable, ConversionKind.Identity };
-
-            public static ExpectedConversion ExplicitNullableEnumeration = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitEnumeration };
-            public static ExpectedConversion ExplicitNullableImplicitNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ImplicitNumeric };
-            public static ExpectedConversion ExplicitNullableNumeric = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitNumeric };
-            public static ExpectedConversion ExplicitNullablePointerToInteger = new[] { ConversionKind.ExplicitNullable, ConversionKind.ExplicitPointerToInteger };
-            public static ExpectedConversion ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
-
-            public static implicit operator ExpectedConversion(ConversionKind conversionKind)
-            {
-                return new ExpectedConversion() { kinds = new[] { conversionKind } };
-            }
-
-            public static implicit operator ExpectedConversion(ConversionKind[] conversionKinds)
-            {
-                return new ExpectedConversion() { kinds = conversionKinds };
-            }
-
-            public bool IsNoConversion()
-            {
-                return kinds is [ConversionKind.NoConversion];
-            }
-
-            public void AssertMatches(Conversion conversion)
-            {
-                IEnumerable<ConversionKind> actualConversionKinds = new[] { conversion.Kind };
-                if (!conversion.UnderlyingConversions.IsDefault)
-                {
-                    actualConversionKinds = actualConversionKinds.Concat(conversion.UnderlyingConversions.Select(c => c.Kind));
-                }
-                Assert.Equal(kinds, actualConversionKinds);
-            }
-        }
-
         [Fact]
         public void Conversions()
         {
@@ -7542,11 +7527,11 @@ $@"{{
   IL_0021:  newobj     ""{destType}?..ctor({destType})""
   IL_0026:  ret
 }}";
-            void conversions(string sourceType, string destType, ExpectedConversion expectedConversions, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
+            void conversions(string sourceType, string destType, ConversionKind[] expectedConversions, string expectedImplicitIL, string expectedExplicitIL, string expectedCheckedIL = null)
             {
                 if (expectedExplicitIL is not null)
                 {
-                    Assert.False(expectedConversions.IsNoConversion());
+                    Assert.False(IsNoConversion(expectedConversions));
                 }
 
                 // https://github.com/dotnet/roslyn/issues/42834: Invalid code generated for nullable conversions
@@ -9106,7 +9091,7 @@ $@"{{
                 bool useExplicitCast,
                 bool useChecked,
                 bool verify,
-                ExpectedConversion expectedConversions,
+                ConversionKind[] expectedConversions,
                 ErrorCode expectedErrorCode)
             {
                 bool useUnsafeContext = useUnsafe(sourceType) || useUnsafe(destType);
@@ -9143,7 +9128,7 @@ enum E {{ }}
                 if (!useExplicitCast)
                 {
                     var destTypeSymbol = ((MethodSymbol)comp.GetMember("Program.Convert")).ReturnType.GetPublicSymbol();
-                    expectedConversions.AssertMatches(model.ClassifyConversion(expr, destTypeSymbol));
+                    AssertMatches(expectedConversions, model.ClassifyConversion(expr, destTypeSymbol));
                 }
 
                 if (!skipTypeChecks)
