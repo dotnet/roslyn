@@ -232,9 +232,9 @@ stages:
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
         buildUserName: "dn-bot@microsoft.com"
-        buildPassword: $(_DevDivAccessToken)
+        buildPassword: "$(_DevDivAccessToken)"
         componentUserName: "dn-bot@microsoft.com"
-        componentPassword: $(_DncEngDropAccessToken)
+        componentPassword: "$(_DncEngDropAccessToken)"
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
