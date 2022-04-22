@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.Notification
                 _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
         }
 
-        public IGlobalOperationRegistration Start(string operation)
+        public IDisposable Start(string operation)
         {
             lock (_gate)
             {
                 // create new registration
-                var registration = new GlobalOperationRegistration(this, operation);
+                var registration = new GlobalOperationRegistration(this);
 
                 // states
                 _registrations.Add(registration);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Notification
             if (!Environment.HasShutdownStarted)
             {
                 Contract.ThrowIfFalse(_registrations.Count == 0);
-                Contract.ThrowIfFalse(_operations.Count == 0);
+                Contract.ThrowIfFalse(_operations.Count == 0, $"Non-disposed operations: {string.Join(", ", _operations)}");
             }
         }
     }

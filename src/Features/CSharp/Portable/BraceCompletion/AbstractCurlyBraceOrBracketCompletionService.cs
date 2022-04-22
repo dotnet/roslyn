@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
-    internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractBraceCompletionService
+    internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractCSharpBraceCompletionService
     {
         /// <summary>
         /// Annotation used to find the closing brace location after formatting changes are applied.

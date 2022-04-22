@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 case Key.Enter:
                     e.Handled = true;
+                    _viewModel.PreviewChangesFlag = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
                     _viewModel.Submit();
                     break;
 
