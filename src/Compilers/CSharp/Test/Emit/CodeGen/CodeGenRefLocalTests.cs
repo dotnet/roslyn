@@ -3710,5 +3710,53 @@ unsafe
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
         }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void DiscardedUse()
+        {
+            var source =
+@"struct S { }
+class Program
+{
+    static void Main()
+    {
+        F(new S[1]);
+    }
+    static void F(S[] a)
+    {
+        ref var b = ref a[0];
+        _ = b;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (S& V_0) //b
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""S""
+  IL_0008:  stloc.0
+  IL_0009:  nop
+  IL_000a:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""S""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+            // PROTOTYPE: Verify that if 'b' is null, a NRE is thrown at runtime.
+            // PROTOTYPE: Test: _ = ref b;
+            // PROTOTYPE: Test read of `ref` and `in` parameters.
+        }
     }
 }
