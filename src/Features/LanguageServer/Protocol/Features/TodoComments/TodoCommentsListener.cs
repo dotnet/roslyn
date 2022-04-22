@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => ValueTaskFactory.FromResult(_globalOptions.GetTodoCommentOptions());
 
         private ValueTask ProcessTodoCommentInfosAsync(
-            ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private static void AddFilteredInfos(
-            ImmutableArray<DocumentAndComments> array,
+            ImmutableSegmentedList<DocumentAndComments> array,
             ArrayBuilder<DocumentAndComments> filteredArray)
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             // Walk the list of todo comments in reverse, and skip any items for a document once
             // we've already seen it once.  That way, we're only reporting the most up to date
             // information for a document, and we're skipping the stale information.
-            for (var i = array.Length - 1; i >= 0; i--)
+            for (var i = array.Count - 1; i >= 0; i--)
             {
                 var info = array[i];
                 if (seenDocumentIds.Add(info.DocumentId))

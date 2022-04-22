@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Builder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+PrivateInterlocked.cs" />

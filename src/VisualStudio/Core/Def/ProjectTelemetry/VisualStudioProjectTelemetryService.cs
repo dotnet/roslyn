@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         }
 
         private async ValueTask NotifyTelemetryServiceAsync(
-            ImmutableArray<ProjectTelemetryData> infos, CancellationToken cancellationToken)
+            ImmutableSegmentedList<ProjectTelemetryData> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -135,14 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
+        private static void AddFilteredData(ImmutableSegmentedList<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
         {
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
             // Walk the list of telemetry items in reverse, and skip any items for a project once
             // we've already seen it once.  That way, we're only reporting the most up to date
             // information for a project, and we're skipping the stale information.
-            for (var i = infos.Length - 1; i >= 0; i--)
+            for (var i = infos.Count - 1; i >= 0; i--)
             {
                 var info = infos[i];
                 if (seenProjectIds.Add(info.ProjectId))
