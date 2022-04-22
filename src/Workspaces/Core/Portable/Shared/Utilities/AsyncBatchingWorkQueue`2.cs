@@ -169,16 +169,14 @@ namespace Roslyn.Utilities
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<TItem>.GetInstance();
-                result.AddRange(_nextBatch);
+                var result = _nextBatch.ToImmutableAndClear();
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
-                _nextBatch.Clear();
                 _uniqueItems.Clear();
                 _taskInFlight = false;
 
-                return result.ToImmutableAndFree();
+                return result;
             }
         }
     }
