@@ -1233,7 +1233,7 @@ class C2
             await TestServices.EditorVerifier.CodeActionAsync(
                 "Invert conditional",
                 applyFix: true,
-                refactoringFixAllScope: FixAllScope.ContainingMember,
+                fixAllScope: FixAllScope.ContainingMember,
                 cancellationToken: HangMitigatingCancellationToken);
 
             AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
@@ -1367,7 +1367,7 @@ class C2
             await TestServices.EditorVerifier.CodeActionAsync(
                 "Invert conditional",
                 applyFix: true,
-                refactoringFixAllScope: FixAllScope.ContainingType,
+                fixAllScope: FixAllScope.ContainingType,
                 cancellationToken: HangMitigatingCancellationToken);
 
             AssertEx.EqualOrDiff(expectedText1, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));

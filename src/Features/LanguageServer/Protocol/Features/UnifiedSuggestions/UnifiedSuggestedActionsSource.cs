@@ -422,9 +422,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // the background so that no one takes an accidentally dependency on running on
             // the UI thread.
             var refactorings = await Task.Run(
-                    () => codeRefactoringService.GetRefactoringsAsync(
-                        document, selection, priority, options, addOperationScope,
-                        cancellationToken), cancellationToken).ConfigureAwait(false);
+                () => codeRefactoringService.GetRefactoringsAsync(
+                    document, selection, priority, options, addOperationScope,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 

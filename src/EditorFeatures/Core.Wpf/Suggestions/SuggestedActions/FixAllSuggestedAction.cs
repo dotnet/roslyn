@@ -7,11 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -22,11 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal abstract class FixAllSuggestedAction : SuggestedAction
     {
-        /// <summary>
-        /// The original code-action that we are a fix-all for.  This suggestion action
-        /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
-        /// will perform the fix in the appropriate document/project/solution scope.
-        /// </summary>
         public CodeAction OriginalCodeAction { get; }
 
         public IFixAllState FixAllState { get; }
@@ -49,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public override bool TryGetTelemetryId(out Guid telemetryId)
         {
             // We get the telemetry id for the original code action we are fixing,
-            // not the special 'FixAllCodeAction'.
+            // not the special 'FixAllCodeAction'.  that is the .CodeAction this
+            // SuggestedAction is pointing at.
             telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.Scope);
             return true;
         }
