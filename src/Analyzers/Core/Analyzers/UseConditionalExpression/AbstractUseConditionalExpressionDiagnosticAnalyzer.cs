@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol);
+        protected abstract CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Conditional);
@@ -49,9 +50,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var language = ifStatement.Language;
-
-            var option = context.GetOption(_option, language);
+            var option = GetStylePreference(context);
             if (!option.Value)
             {
                 return;

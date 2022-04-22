@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -18,17 +19,19 @@ internal static class IdeAnalyzerOptionsStorage
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
     {
         var language = languageServices.Language;
-        var supportsCleanupOptions = languageServices.GetService<ISyntaxFormattingOptionsStorage>() != null;
+        var supportsLanguageSpecificOptions = languageServices.GetService<ISyntaxFormattingOptionsStorage>() != null;
 
         return new(
             CrashOnAnalyzerException: globalOptions.GetOption(CrashOnAnalyzerException),
             FadeOutUnusedImports: globalOptions.GetOption(FadeOutUnusedImports, language),
             FadeOutUnreachableCode: globalOptions.GetOption(FadeOutUnreachableCode, language),
+            FadeOutComplexObjectInitialization: globalOptions.GetOption(FadeOutComplexObjectInitialization, language),
             ReportInvalidPlaceholdersInStringDotFormatCalls: globalOptions.GetOption(ReportInvalidPlaceholdersInStringDotFormatCalls, language),
             ReportInvalidRegexPatterns: globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns: globalOptions.GetOption(ReportInvalidJsonPatterns, language),
             DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
-            CleanupOptions: supportsCleanupOptions ? globalOptions.GetCodeCleanupOptions(languageServices) : null);
+            CleanupOptions: supportsLanguageSpecificOptions ? globalOptions.GetCodeCleanupOptions(languageServices) : null,
+            CodeStyleOptions: supportsLanguageSpecificOptions ? globalOptions.GetCodeStyleOptions(languageServices) : null);
     }
 
     public static readonly Option2<bool> CrashOnAnalyzerException = new(
@@ -42,6 +45,15 @@ internal static class IdeAnalyzerOptionsStorage
     public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
         "FadingOptions", "FadeOutUnreachableCode", IdeAnalyzerOptions.DefaultFadeOutUnreachableCode,
         storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
+
+    public static readonly PerLanguageOption2<bool> FadeOutComplexObjectInitialization = new(
+        "CodeStyleOptions", "PreferObjectInitializer_FadeOutCode", IdeAnalyzerOptions.DefaultFadeOutComplexObjectInitialization,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
+
+    internal static readonly PerLanguageOption2<bool> FadeOutComplexCollectionInitialization = new(
+        "CodeStyleOptions", "PreferCollectionInitializer_FadeOutCode", IdeAnalyzerOptions.DefaultFadeOutComplexCollectionInitialization,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
+
 
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
         new("ValidateFormatStringOption",

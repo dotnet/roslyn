@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -215,14 +216,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Style_PreferObjectInitializer_FadeOutCode
         {
-            get { return GetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode); }
-            set { SetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, value); }
+            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization); }
+            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization, value); }
         }
 
         public int Style_PreferCollectionInitializer_FadeOutCode
         {
-            get { return GetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode); }
-            set { SetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, value); }
+            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization); }
+            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization, value); }
         }
 
         public string Style_PreferSimplifiedBooleanExpressions

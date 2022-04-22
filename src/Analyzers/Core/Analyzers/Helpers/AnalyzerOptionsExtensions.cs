@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -36,15 +37,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [property: DataMember(Order = 0)] bool CrashOnAnalyzerException = IdeAnalyzerOptions.DefaultCrashOnAnalyzerException,
         [property: DataMember(Order = 1)] bool FadeOutUnusedImports = IdeAnalyzerOptions.DefaultFadeOutUnusedImports,
         [property: DataMember(Order = 2)] bool FadeOutUnreachableCode = IdeAnalyzerOptions.DefaultFadeOutUnreachableCode,
-        [property: DataMember(Order = 3)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = IdeAnalyzerOptions.DefaultReportInvalidPlaceholdersInStringDotFormatCalls,
-        [property: DataMember(Order = 4)] bool ReportInvalidRegexPatterns = IdeAnalyzerOptions.DefaultReportInvalidRegexPatterns,
-        [property: DataMember(Order = 5)] bool ReportInvalidJsonPatterns = IdeAnalyzerOptions.DefaultReportInvalidJsonPatterns,
-        [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = IdeAnalyzerOptions.DefaultDetectAndOfferEditorFeaturesForProbableJsonStrings,
-        [property: DataMember(Order = 7)] CodeCleanupOptions? CleanupOptions = null)
+        [property: DataMember(Order = 3)] bool FadeOutComplexObjectInitialization = IdeAnalyzerOptions.DefaultFadeOutComplexObjectInitialization,
+        [property: DataMember(Order = 4)] bool FadeOutComplexCollectiontInitialization = IdeAnalyzerOptions.DefaultFadeOutComplexCollectionInitialization,
+        [property: DataMember(Order = 5)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = IdeAnalyzerOptions.DefaultReportInvalidPlaceholdersInStringDotFormatCalls,
+        [property: DataMember(Order = 6)] bool ReportInvalidRegexPatterns = IdeAnalyzerOptions.DefaultReportInvalidRegexPatterns,
+        [property: DataMember(Order = 7)] bool ReportInvalidJsonPatterns = IdeAnalyzerOptions.DefaultReportInvalidJsonPatterns,
+        [property: DataMember(Order = 8)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = IdeAnalyzerOptions.DefaultDetectAndOfferEditorFeaturesForProbableJsonStrings,
+        [property: DataMember(Order = 9)] CodeCleanupOptions? CleanupOptions = null,
+        [property: DataMember(Order = 10)] IdeCodeStyleOptions? CodeStyleOptions = null)
     {
         public const bool DefaultCrashOnAnalyzerException = false;
         public const bool DefaultFadeOutUnusedImports = true;
         public const bool DefaultFadeOutUnreachableCode = true;
+        public const bool DefaultFadeOutComplexObjectInitialization = false;
+        public const bool DefaultFadeOutComplexCollectionInitialization = false;
         public const bool DefaultReportInvalidPlaceholdersInStringDotFormatCalls = true;
         public const bool DefaultReportInvalidRegexPatterns = true;
         public const bool DefaultReportInvalidJsonPatterns = true;
@@ -78,78 +84,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var fallbackOptions = options.GetIdeOptions().CleanupOptions?.FormattingOptions;
 #endif
             return formatting.GetFormattingOptions(options.AnalyzerConfigOptionsProvider.GetOptions(tree), fallbackOptions);
-        }
-
-        public static T GetOption<T>(this SemanticModelAnalysisContext context, Option2<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, Option2<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, Option2<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this OperationAnalysisContext context, Option2<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SemanticModelAnalysisContext context, PerLanguageOption2<T> option, string? language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, PerLanguageOption2<T> option, string? language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, PerLanguageOption2<T> option, string? language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this OperationAnalysisContext context, PerLanguageOption2<T> option, string? language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return analyzerOptions.GetOption(option, language, syntaxTree, cancellationToken);
         }
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerOptions analyzerOptions, TOption option, SyntaxTree syntaxTree, [MaybeNullWhen(false)] out T value)

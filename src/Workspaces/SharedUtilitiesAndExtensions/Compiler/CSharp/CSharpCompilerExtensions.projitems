@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions_Parsing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpIdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />

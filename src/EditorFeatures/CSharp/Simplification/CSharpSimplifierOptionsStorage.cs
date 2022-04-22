@@ -29,12 +29,7 @@ internal static class CSharpSimplifierOptionsStorage
 
     public static CSharpSimplifierOptions GetCSharpSimplifierOptions(this IGlobalOptionService globalOptions)
         => new(
-            qualifyFieldAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp),
-            qualifyPropertyAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, LanguageNames.CSharp),
-            qualifyMethodAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.CSharp),
-            qualifyEventAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, LanguageNames.CSharp),
-            preferPredefinedTypeKeywordInMemberAccess: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
-            preferPredefinedTypeKeywordInDeclaration: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.CSharp),
+            common: globalOptions.GetCommonSimplifierOptions(LanguageNames.CSharp),
             varForBuiltInTypes: globalOptions.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes),
             varWhenTypeIsApparent: globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
             varElsewhere: globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),

@@ -22,6 +22,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
             FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
             new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
-        }
     }
 }

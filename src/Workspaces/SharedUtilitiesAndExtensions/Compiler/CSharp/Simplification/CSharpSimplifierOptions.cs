@@ -32,24 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
 
         public CSharpSimplifierOptions(
-            CodeStyleOption2<bool>? qualifyFieldAccess = null,
-            CodeStyleOption2<bool>? qualifyPropertyAccess = null,
-            CodeStyleOption2<bool>? qualifyMethodAccess = null,
-            CodeStyleOption2<bool>? qualifyEventAccess = null,
-            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess = null,
-            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration = null,
+            CommonOptions? common = null,
             CodeStyleOption2<bool>? varForBuiltInTypes = null,
             CodeStyleOption2<bool>? varWhenTypeIsApparent = null,
             CodeStyleOption2<bool>? varElsewhere = null,
             CodeStyleOption2<bool>? preferSimpleDefaultExpression = null,
             CodeStyleOption2<PreferBracesPreference>? preferBraces = null)
-            : base(
-                qualifyFieldAccess: qualifyFieldAccess,
-                qualifyPropertyAccess: qualifyPropertyAccess,
-                qualifyMethodAccess: qualifyMethodAccess,
-                qualifyEventAccess: qualifyEventAccess,
-                preferPredefinedTypeKeywordInMemberAccess,
-                preferPredefinedTypeKeywordInDeclaration)
+            : base(common)
         {
             VarForBuiltInTypes = varForBuiltInTypes ?? CodeStyleOption2<bool>.Default;
             VarWhenTypeIsApparent = varWhenTypeIsApparent ?? CodeStyleOption2<bool>.Default;
@@ -65,12 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             fallbackOptions ??= Default;
 
             return new(
-                qualifyFieldAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
-                qualifyPropertyAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
-                qualifyMethodAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
-                qualifyEventAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
-                preferPredefinedTypeKeywordInMemberAccess: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
-                preferPredefinedTypeKeywordInDeclaration: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration),
+                CommonOptions.Create(options, fallbackOptions.Common),
                 varForBuiltInTypes: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarForBuiltInTypes, fallbackOptions.VarForBuiltInTypes),
                 varWhenTypeIsApparent: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent),
                 varElsewhere: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarElsewhere, fallbackOptions.VarElsewhere),

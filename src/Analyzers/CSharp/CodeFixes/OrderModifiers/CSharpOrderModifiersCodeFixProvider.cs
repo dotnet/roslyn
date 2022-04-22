@@ -5,9 +5,13 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.OrderModifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers

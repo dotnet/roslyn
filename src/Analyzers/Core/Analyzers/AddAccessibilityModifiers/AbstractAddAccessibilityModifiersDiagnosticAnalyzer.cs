@@ -28,15 +28,11 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;
-
-            var language = syntaxTree.Options.Language;
-            var option = context.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language);
+            var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
             if (option.Value == AccessibilityModifiersRequired.Never)
                 return;
 
-            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken));
+            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
         }
 
         protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);

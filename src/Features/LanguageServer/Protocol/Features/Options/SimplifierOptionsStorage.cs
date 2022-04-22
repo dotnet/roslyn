@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -21,4 +22,13 @@ internal static class SimplifierOptionsStorage
 
     public static SimplifierOptions GetSimplifierOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => languageServices.GetRequiredService<ISimplifierOptionsStorage>().GetOptions(globalOptions);
+
+    public static SimplifierOptions.CommonOptions GetCommonSimplifierOptions(this IGlobalOptionService globalOptions, string language)
+        => new(
+            qualifyFieldAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, language),
+            qualifyPropertyAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language),
+            qualifyMethodAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, language),
+            qualifyEventAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, language),
+            preferPredefinedTypeKeywordInMemberAccess: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language),
+            preferPredefinedTypeKeywordInDeclaration: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language));
 }
