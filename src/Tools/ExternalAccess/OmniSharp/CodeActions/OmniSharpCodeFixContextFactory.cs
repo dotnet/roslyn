@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Func<string, OmniSharpCodeActionOptions> optionsProvider,
             CancellationToken cancellationToken)
             => new(new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan,
                     document,
                     project,
