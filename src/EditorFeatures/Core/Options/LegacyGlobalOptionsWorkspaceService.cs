@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.InlineHints;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -44,6 +45,13 @@ namespace Microsoft.CodeAnalysis.Options
 
         public int RazorTabSize
             => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
+
+        /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
+        public bool InlineHintsOptionsDisplayAllOverride
+        {
+            get => _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
+            set => _globalOptions.SetGlobalOption(new OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), value);
+        }
 
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
             => _provider;

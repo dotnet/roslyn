@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
         public int RazorTabSize { get; }
 
         public bool GenerateOverrides { get; set; }
+        public bool InlineHintsOptionsDisplayAllOverride { get; set; }
 
         public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices);
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider { get; }

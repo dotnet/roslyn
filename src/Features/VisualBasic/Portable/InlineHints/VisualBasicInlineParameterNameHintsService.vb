@@ -18,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService)
-            MyBase.New(globalOptions)
+        Public Sub New()
+            MyBase.New()
         End Sub
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
