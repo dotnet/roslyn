@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -41,10 +42,6 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
-
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
-using FixAllCodeRefactoringCodeAction = Microsoft.CodeAnalysis.CodeRefactorings.FixAllCodeRefactoringCodeAction;
-using FixSomeCodeAction = Microsoft.CodeAnalysis.CodeFixes.FixSomeCodeAction;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -734,7 +731,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(cancellationToken);
-
                     var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value, cancellationToken);
                     if (fixAllAction == null)
                     {
