@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyExplicitInterfaceImplementations = ImmutableArray<PropertySymbol>.Empty;
             }
 
-            isAutoProperty = isAutoProperty && CanHaveBackingField();
+            bool isIndexer = IsIndexer;
+            isAutoProperty = isAutoProperty && !(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer;
 
             if (isAutoProperty)
             {
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsInitOnly;
             }
 
-            if (IsIndexer)
+            if (isIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
                 {
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                GetOrCreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
+                GetOrCreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true, diagnostics);
             }
 
             if (hasGetAccessor)
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol? GetOrCreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
+        private SynthesizedBackingFieldSymbol? GetOrCreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsIndexer);
             if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
@@ -208,28 +209,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               this.IsStatic,
                                               hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0,
                                               isCreatedForFieldKeyword: isCreatedForFieldKeyword,
-                                              isEarlyConstructed: isEarlyConstructed);
+                                              isEarlyConstructed: isEarlyConstructed,
+                                              diagnostics);
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
 
             return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
         }
 
-        private bool CanHaveBackingField()
+        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword(BindingDiagnosticBag diagnostics)
         {
-            return !(_containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !IsIndexer;
-        }
-
-        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword()
-        {
-            Debug.Assert(!IsIndexer);
-            if (!CanHaveBackingField())
-            {
-                MarkBackingFieldAsCalculated();
-                return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
-            }
-
-            return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
+            return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false, diagnostics);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)

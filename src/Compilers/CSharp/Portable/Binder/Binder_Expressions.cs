@@ -1563,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
                         ContainingMember().CanHaveFieldKeywordBackingField())
                     {
-                        if (GetSymbolForPossibleFieldKeyword() is { } backingField)
+                        if (GetSymbolForPossibleFieldKeyword(diagnostics) is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                             if (IsInsideNameof)

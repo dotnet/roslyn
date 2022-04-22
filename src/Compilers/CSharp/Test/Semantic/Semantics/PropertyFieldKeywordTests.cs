@@ -95,13 +95,13 @@ public interface I
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             comp.VerifyDiagnostics(
-                // (4,27): error CS0103: The name 'field' does not exist in the current context
+                // (4,16): error CS0525: Interfaces cannot contain instance fields
                 //     public int P { get => field; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P").WithLocation(4, 16)
                 );
             var @interface = comp.GetTypeByMetadataName("I");
             Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
-            Assert.Empty(@interface.GetFieldsToEmit());
+            Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -143,6 +143,29 @@ public interface I
     }
 } // end of class I
 ");
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestStaticInInterface_DefaultImplementationsOfInterfacesIsMissing()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public static int P { get => field; }
+}
+");
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static int P { get => field; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 27)
+                );
             var @interface = comp.GetTypeByMetadataName("I");
             Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
