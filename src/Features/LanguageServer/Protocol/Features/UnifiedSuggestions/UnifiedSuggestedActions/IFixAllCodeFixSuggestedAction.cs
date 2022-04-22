@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
 
         CodeAction OriginalCodeAction { get; }
 
-        IFixAllState? FixAllState { get; }
+        IFixAllState FixAllState { get; }
     }
 }

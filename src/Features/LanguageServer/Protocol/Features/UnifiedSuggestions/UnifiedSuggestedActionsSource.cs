@@ -564,6 +564,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 return null;
             }
 
+            // If the provider registered more than one code action, but provided a null equivalence key
+            // we have no way to distinguish between which registered actions to apply or ignore for FixAll.
+            // So, we just bail out for this case.
             if (actionCount > 1 && action.EquivalenceKey == null)
             {
                 return null;
