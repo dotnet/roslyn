@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
         }
 
-        [Fact]
+        [Fact] // PROTOTYPE(semi-auto-props): Test with initializer when they're supported.
         public void TestInInterface()
         {
             var comp = CreateCompilation(@"
