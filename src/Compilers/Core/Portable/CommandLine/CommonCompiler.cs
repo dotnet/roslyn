@@ -817,10 +817,7 @@ namespace Microsoft.CodeAnalysis
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            return TransformersResult.Empty(inputCompilation);
-
-
-
+            return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
         }
         // </Metalama>
 
@@ -1295,6 +1292,10 @@ namespace Microsoft.CodeAnalysis
                     {
                         return;
                     }
+                    
+                    // Replace analyzer options by the ones returned by RunTransformers because the mapping of SyntaxTrees to options has changed.
+                    analyzerOptions =
+                        CreateAnalyzerOptions(additionalTextFiles, transformersResult.MappedAnalyzerOptions);
 
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -36,5 +37,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CompilerAnalyzerConfigOptionsProvider WithGlobalOptions(AnalyzerConfigOptions globalOptions)
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict, globalOptions);
+        
+        // <Metalama>
+        internal CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
+            IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap)
+        {
+            var builder = this._treeDict.ToBuilder();
+            
+            foreach (var entry in treeMap)
+            {
+                if (builder.TryGetValue(entry.OldTree, out var options))
+                {
+                    builder.Remove(entry.OldTree);
+                    builder[entry.NewTree] = options;
+                }
+                
+            }
+
+            return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable(), this.GlobalOptions);
+        }
+        // </Metalama>
     }
 }
