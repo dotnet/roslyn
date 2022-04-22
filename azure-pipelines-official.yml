@@ -56,10 +56,9 @@ variables:
   - group: ManagedLanguageSecrets
   - group: DotNet-Roslyn-Insertion-Variables
   - name: _DevDivInsertionAccessToken
-    value: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+    value: '$(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)'
   - name: _DncEngInsertionAccessToken
-    value: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
-    
+    value: '$(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)'
   - name: BuildConfiguration
     value: release
   - name: Roslyn.GitHubEmail
@@ -332,14 +331,14 @@ stages:
 
     - template: eng/pipelines/insert.yml
       parameters:
-        buildUserName: "dn-bot@microsoft.com"
-        buildPassword: "$(_DevDivInsertionAccessToken)"
-        componentUserName: "dn-bot@microsoft.com"
-        componentPassword: "$(_DncEngInsertionAccessToken)"
+        buildUserName: 'dn-bot@microsoft.com'
+        buildPassword: '$(_DevDivInsertionAccessToken)'
+        componentUserName: 'dn-bot@microsoft.com'
+        componentPassword: '$(_DncEngInsertionAccessToken)'
         componentBuildProjectName: internal
-        sourceBranch: "$(ComponentBranchName)"
-        publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
-        publishDataAccessToken: "$(System.AccessToken)"
+        sourceBranch: '$(ComponentBranchName)'
+        publishDataURI: 'https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0'
+        publishDataAccessToken: '$(System.AccessToken)'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

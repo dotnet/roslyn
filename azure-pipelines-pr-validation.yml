@@ -32,10 +32,9 @@ variables:
   - group: DotNet-Roslyn-SDLValidation-Params
   - group: DotNet-Roslyn-Insertion-Variables
   - name: _DevDivInsertionAccessToken
-    value: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+    value: '$(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)'
   - name: _DncEngInsertionAccessToken
-    value: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
-
+    value: '$(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)'
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
@@ -231,12 +230,12 @@ stages:
         createDraftPR: true
         autoComplete: false
         insertToolset: ${{ parameters.InsertToolset }}
-        buildUserName: "dn-bot@microsoft.com"
-        buildPassword: "$(_DevDivInsertionAccessToken)"
-        componentUserName: "dn-bot@microsoft.com"
-        componentPassword: "$(_DncEngInsertionAccessToken)"
+        buildUserName: 'dn-bot@microsoft.com'
+        buildPassword: '$(_DevDivInsertionAccessToken)'
+        componentUserName: 'dn-bot@microsoft.com'
+        componentPassword: '$(_DncEngInsertionAccessToken)'
         vsBranchName: ${{ parameters.VisualStudioBranchName }}
         titlePrefix: ${{ parameters.OptionalTitlePrefix }}
         sourceBranch: $(SourceBranchName)
-        publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+        publishDataURI: 'https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json'
 

@@ -179,6 +179,7 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
+        -skipCoreXTPackages "(default)" `
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
