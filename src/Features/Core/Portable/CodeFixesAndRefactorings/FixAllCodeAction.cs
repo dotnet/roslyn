@@ -13,12 +13,12 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
-    internal abstract class FixAllCodeFixOrCodeRefactoringCodeAction : CodeAction
+    internal abstract class FixAllCodeAction : CodeAction
     {
         internal readonly IFixAllState FixAllState;
         private bool _showPreviewChangesDialog;
 
-        protected FixAllCodeFixOrCodeRefactoringCodeAction(
+        protected FixAllCodeAction(
             IFixAllState fixAllState, bool showPreviewChangesDialog)
         {
             FixAllState = fixAllState;
@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
         internal readonly struct TestAccessor
         {
-            private readonly FixAllCodeFixOrCodeRefactoringCodeAction _fixAllCodeAction;
+            private readonly FixAllCodeAction _fixAllCodeAction;
 
-            internal TestAccessor(FixAllCodeFixOrCodeRefactoringCodeAction fixAllCodeAction)
+            internal TestAccessor(FixAllCodeAction fixAllCodeAction)
                 => _fixAllCodeAction = fixAllCodeAction;
 
             /// <summary>

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal abstract class FixSomeCodeAction : FixAllCodeFixOrCodeRefactoringCodeAction
+    internal abstract class FixSomeCodeAction : FixAllCodeAction
     {
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             CodeAction originalCodeAction,
-            FixAllCodeFixOrCodeRefactoringCodeAction fixAllCodeAction)
+            FixAllCodeAction fixAllCodeAction)
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    fixAllState.FixAllProvider, fixAllCodeAction)
         {
