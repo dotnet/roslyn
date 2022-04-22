@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
-                return TransformersResult.Empty(inputCompilation);
+                return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
             var serviceProviderBuilder = new ServiceProviderBuilder();
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
-                return TransformersResult.Empty(inputCompilation);
+                return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
@@ -748,6 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
                         }
                     }
+                    
+                    
                 }
                 catch (Exception ex)
                 {
@@ -789,8 +791,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            return new TransformersResult(annotatedInputCompilation, outputCompilation,
-                 replacements, new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), addedResources.SelectAsArray( m => m.Resource) );
+            return new TransformersResult(
+                annotatedInputCompilation, 
+                outputCompilation,
+                 replacements, 
+                new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
+                addedResources.SelectAsArray( m => m.Resource),
+                ((CompilerAnalyzerConfigOptionsProvider) analyzerConfigProvider).WithMappedTrees(oldTreeToNewTrees.Select( x => ( x.Key, x.Value.NewTree ) ) ) );
             
     
         }
