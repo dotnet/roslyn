@@ -266,7 +266,7 @@ In C..ctor: 0").VerifyIL("C..ctor", @"
         }
 
         [Fact]
-        public void TestPropertyIsAssignedInStructConstructor()
+        public void TestPropertyIsReadThenAssignedInStructConstructor()
         {
             var comp = CreateCompilation(@"
 var x = new C();
@@ -323,6 +323,130 @@ In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
     // (10,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         System.Console.WriteLine("In C..ctor before assignment: " + P);
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 69)
+    );
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestPropertyIsReadThenAssignedInStructConstructor_ReadOnlyProperty()
+        {
+            var comp = CreateCompilation(@"
+var x = new C();
+System.Console.Write(x.P);
+
+public struct C
+{
+    public C()
+    {
+        P = 5;
+    }
+
+    public int P { get => field; }
+}
+", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.5
+  IL_0009:  stfld      ""int C.<P>k__BackingField""
+  IL_000e:  ret
+}
+").VerifyDiagnostics(
+    // (9,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    //         P = 5;
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(9, 9)
+    );
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestPropertyIsAssignedInStructConstructor_PropertyHasSetter()
+        {
+            var comp = CreateCompilation(@"
+var x = new C();
+System.Console.Write(x.P + "" ""); // 5
+x.P = 10;
+System.Console.Write(x.P + "" ""); // 10
+x = new C();
+System.Console.Write(x.P); // 5
+
+public struct C
+{
+    public C()
+    {
+        P = 5;
+    }
+
+    public int P { get => field; set => field = value; }
+}
+", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5 10 5").VerifyIL("C..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.5
+  IL_0009:  call       ""void C.P.set""
+  IL_000e:  ret
+}
+").VerifyDiagnostics(
+    // (13,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    //         P = 5;
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 9)
+    );
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestPropertyIsAssignedInStructConstructor_ReadOnlyProperty()
+        {
+            var comp = CreateCompilation(@"
+var x = new C();
+System.Console.Write(x.P);
+
+public struct C
+{
+    public C()
+    {
+        P = 5;
+    }
+
+    public int P { get => field; }
+}
+", options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C..ctor", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.<P>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.5
+  IL_0009:  stfld      ""int C.<P>k__BackingField""
+  IL_000e:  ret
+}
+").VerifyDiagnostics(
+    // (9,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    //         P = 5;
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(9, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -3239,6 +3363,54 @@ struct S
             Assert.Equal("System.Int32 S.<P>k__BackingField", comp.GetTypeByMetadataName("S").GetMembers().OfType<FieldSymbol>().Single().ToTestDisplayString());
             comp.VerifyDiagnostics();
 
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void InStruct_Cycle(bool firstIsSemi, bool secondIsSemi)
+        {
+            var firstAccessor = firstIsSemi ? "get => field;" : "get;";
+            var secondAccessor = secondIsSemi ? "get => field;" : "get;";
+            var comp = CreateCompilation($@"
+struct S1
+{{
+    public S2 P {{ {firstAccessor} }}
+}}
+
+struct S2
+{{
+    public S1 P {{ {secondAccessor} }}
+}}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0523: Struct member 'S1.P' of type 'S2' causes a cycle in the struct layout
+                //     public S2 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S1.P", "S2").WithLocation(4, 15),
+                // (9,15): error CS0523: Struct member 'S2.P' of type 'S1' causes a cycle in the struct layout
+                //     public S1 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(9, 15)
+                );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void InStruct_SelfCycle()
+        {
+            var comp = CreateCompilation(@"
+struct S
+{
+    public S P { get => field; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0523: Struct member 'S.P' of type 'S' causes a cycle in the struct layout
+                //     public S P { get => field; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S.P", "S").WithLocation(4, 14)
+                );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 

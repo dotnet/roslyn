@@ -2163,16 +2163,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    FieldSymbol field;
+                    if (member is SourcePropertySymbolBase { IsStatic: false, FieldKeywordBackingField: { } fieldKeywordField })
+                    {
+                        field = fieldKeywordField;
+                    }
+                    else if (member.Kind == SymbolKind.Field && !member.IsStatic)
+                    {
+                        field = (FieldSymbol)member;
+                    }
+                    else
                     {
                         // NOTE: don't have to check field-like events, because they can't have struct types.
                         continue;
                     }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
-                    {
-                        continue;
-                    }
+
+                    Debug.Assert(!field.IsStatic);
                     var type = field.NonPointerType();
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
