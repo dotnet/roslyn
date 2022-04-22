@@ -96,13 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             _providerTypeForTelemetry = provider.GetType();
         }
 
-        internal Guid GetTelemetryId()
-            => GetTelemetryId(fixAllScopeId: 0);
-
-        internal Guid GetTelemetryId(FixAllScope fixAllScope)
-            => GetTelemetryId(fixAllScope.GetScopeIdForTelemetry());
-
-        private Guid GetTelemetryId(short fixAllScopeId)
+        internal Guid GetTelemetryId(FixAllScope? fixAllScope = null)
         {
             // We need to identify the type name to use for CodeAction's telemetry ID.
             // For code actions created from 'CodeAction.Create' factory methods,
@@ -116,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             // Additionally, we also add the equivalence key and fixAllScope ID (if non-null)
             // to the telemetry ID.
-            return type.GetTelemetryId(fixAllScopeId, EquivalenceKey);
+            var scope = fixAllScope?.GetScopeIdForTelemetry() ?? 0;
+            return type.GetTelemetryId(scope, EquivalenceKey);
         }
 
         /// <summary>
@@ -432,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             /// <summary>
             /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
-            /// This is used in <see cref="GetTelemetryId()"/> to determine the appropriate type
+            /// This is used in <see cref="GetTelemetryId(FixAllScope?)"/> to determine the appropriate type
             /// name to log in the CodeAction telemetry.
             /// </summary>
             public bool CreatedFromFactoryMethod { get; }
