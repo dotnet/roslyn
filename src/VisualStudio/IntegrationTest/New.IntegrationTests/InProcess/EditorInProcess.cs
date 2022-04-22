@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -49,7 +50,6 @@ using IPersistFile = Microsoft.VisualStudio.OLE.Interop.IPersistFile;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using SComponentModel = Microsoft.VisualStudio.ComponentModelHost.SComponentModel;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {

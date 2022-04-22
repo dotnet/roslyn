@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -428,13 +429,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     action = fixAllAction;
 
                     if (willBlockUntilComplete
-                        && action is FixAllCodeFixSuggestedAction fixAllSuggestedAction
-                        && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
+                        && action is FixAllSuggestedAction fixAllSuggestedAction
+                        && fixAllSuggestedAction.CodeAction is FixAllCodeAction fixAllCodeAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
                         // either timeout or deadlock.
-                        fixSomeCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                        fixAllCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
                     }
 
                     if (string.IsNullOrEmpty(actionName))
@@ -495,7 +496,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static async Task<FixAllCodeFixSuggestedAction?> GetFixAllSuggestedActionAsync(JoinableTaskFactory joinableTaskFactory, IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(JoinableTaskFactory joinableTaskFactory, IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -503,9 +504,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    if (action is FixAllCodeFixSuggestedAction fixAllSuggestedAction)
+                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
                     {
-                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
+                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixAllCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
                         {
                             return fixAllSuggestedAction;
