@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Theory]
-        [InlineData(SyntaxKind.EnumKeyword)]
+        [Fact]
         public void FileModifier_02_Enum()
         {
             UsingNode($$"""
