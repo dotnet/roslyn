@@ -7,21 +7,24 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
-    using FixAllContexts = Func<FixAllContext, ImmutableArray<FixAllContext>, Task<Solution?>>;
-
     /// <summary>
     /// Default implementation of a <see cref="FixAllProvider"/> that efficiently handles the dispatch logic for fixing
     /// entire solutions.  Used by <see cref="BatchFixAllProvider"/> and <see cref="DocumentBasedFixAllProvider"/>.
     /// </summary>
     internal static class DefaultFixAllProviderHelpers
     {
-        public static async Task<CodeAction?> GetFixAsync(
-            string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+        public static async Task<CodeAction?> GetFixAsync<TFixAllContext>(
+            string title,
+            TFixAllContext fixAllContext,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            where TFixAllContext : IFixAllContext
         {
             var solution = fixAllContext.Scope switch
             {
@@ -39,13 +42,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 title, c => Task.FromResult(solution));
         }
 
-        private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+        private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(
+            TFixAllContext fixAllContext,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            where TFixAllContext : IFixAllContext
             => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
 
-        private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.With((document: null, fixAllContext.Project))));
+        private static Task<Solution?> GetProjectFixesAsync<TFixAllContext>(
+            TFixAllContext fixAllContext,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            where TFixAllContext : IFixAllContext
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create((TFixAllContext)fixAllContext.With((document: null, fixAllContext.Project))));
 
-        private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+        private static Task<Solution?> GetSolutionFixesAsync<TFixAllContext>(
+            TFixAllContext fixAllContext,
+            Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
+            where TFixAllContext : IFixAllContext
         {
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -67,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return fixAllContextsAsync(
                 fixAllContext,
-                sortedProjects.SelectAsArray(p => fixAllContext.With((document: null, project: p), scope: FixAllScope.Project)));
+                sortedProjects.SelectAsArray(p => (TFixAllContext)fixAllContext.With((document: null, project: p), scope: FixAllScope.Project)));
         }
     }
 }

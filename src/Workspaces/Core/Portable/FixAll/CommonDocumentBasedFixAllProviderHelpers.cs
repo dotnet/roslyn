@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,12 +23,58 @@ namespace Microsoft.CodeAnalysis.FixAll
     /// </summary>
     internal static class CommonDocumentBasedFixAllProviderHelpers
     {
+        public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
+            TFixAllContext originalFixAllContext,
+            ImmutableArray<TFixAllContext> fixAllContexts,
+            IProgressTracker progressTracker,
+            string progressTrackerDescription,
+            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            where TFixAllContext : IFixAllContext
+        {
+            progressTracker.Description = progressTrackerDescription;
+
+            var solution = originalFixAllContext.Solution;
+
+            // For code fixes, we have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
+            // For refactorings, we have 2 pieces of work per project.  Computing refactorings, and applying refactorings.
+            var fixAllKind = originalFixAllContext.State.FixAllKind;
+            var workItemCount = fixAllKind == FixAllKind.CodeFix ? 3 : 2;
+            progressTracker.AddItems(fixAllContexts.Length * workItemCount);
+
+            // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
+            var currentSolution = solution;
+            foreach (var fixAllContext in fixAllContexts)
+            {
+                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
+                    or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync).ConfigureAwait(false);
+            }
+
+            return currentSolution;
+        }
+
+        private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
+            Solution currentSolution,
+            TFixAllContext fixAllContext,
+            IProgressTracker progressTracker,
+            Func<TFixAllContext, IProgressTracker, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+            where TFixAllContext : IFixAllContext
+        {
+            // First, compute and apply the fixes.
+            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+
+            // Then, cleanup the new doc roots, and apply the results to the solution.
+            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
+
+            return currentSolution;
+        }
+
         /// <summary>
         /// Take all the fixed documents and format/simplify/clean them up (if the language supports that), and take the
         /// resultant text and apply it to the solution.  If the language doesn't support cleanup, then just take the
         /// given text and apply that instead.
         /// </summary>
-        internal static async Task<Solution> CleanupAndApplyChangesAsync(
+        private static async Task<Solution> CleanupAndApplyChangesAsync(
             IProgressTracker progressTracker,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,

@@ -73,96 +73,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => _supportedFixAllScopes;
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            => GetFixAsync(fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
+            => DefaultFixAllProviderHelpers.GetFixAsync(
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
-        private static async Task<CodeAction?> GetFixAsync(
-            string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-        {
-            Contract.ThrowIfFalse(fixAllContext.Scope is
-                FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution or
-                FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
-            var solution = fixAllContext.Scope switch
-            {
-                FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
-                    => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                FixAllScope.Project
-                    => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                FixAllScope.Solution
-                    => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
-            };
-
-            if (solution == null)
-                return null;
-
-            return CodeAction.Create(
-                title, c => Task.FromResult(solution));
-        }
-
-        private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
-
-        private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
-
-        private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-        {
-            var solution = fixAllContext.Project.Solution;
-            var dependencyGraph = solution.GetProjectDependencyGraph();
-
-            // Walk through each project in topological order, determining and applying the diagnostics for each
-            // project.  We do this in topological order so that the compilations for successive projects are readily
-            // available as we just computed them for dependent projects.  If we were to do it out of order, we might
-            // start with a project that has a ton of dependencies, and we'd spend an inordinate amount of time just
-            // building the compilations for it before we could proceed.
-            //
-            // By processing one project at a time, we can also let go of a project once done with it, allowing us to
-            // reclaim lots of the memory so we don't overload the system while processing a large solution.
-            //
-            // Note: we have to filter down to projects of the same language as the FixAllContext points at a
-            // CodeFixProvider, and we can't call into providers of different languages with diagnostics from a
-            // different language.
-            var sortedProjects = dependencyGraph.GetTopologicallySortedProjects()
-                                                .Select(id => solution.GetRequiredProject(id))
-                                                .Where(p => p.Language == fixAllContext.Project.Language);
-            return fixAllContextsAsync(
-                fixAllContext,
-                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
-        }
-
-        private async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-        {
-            var progressTracker = originalFixAllContext.ProgressTracker;
-            progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
-
-            var solution = originalFixAllContext.Project.Solution;
-
-            // We have 2 pieces of work per project.  Computing code actions, and applying actions.
-            progressTracker.AddItems(fixAllContexts.Length * 2);
-
-            // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
-            var currentSolution = solution;
-            foreach (var fixAllContext in fixAllContexts)
-            {
-                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or
-                    FixAllScope.ContainingMember or FixAllScope.ContainingType);
-                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
-            }
-
-            return currentSolution;
-        }
-
-        private async Task<Solution> FixSingleContextAsync(Solution currentSolution, FixAllContext fixAllContext, IProgressTracker progressTracker)
-        {
-            // First, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-            var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
-
-            // Finally, cleanup the new doc roots, and apply the results to the solution.
-            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
-
-            return currentSolution;
-        }
+        private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
+            => FixAllContextsAsync(originalFixAllContext, fixAllContexts,
+                    originalFixAllContext.ProgressTracker,
+                    this.GetFixAllTitle(originalFixAllContext),
+                    GetFixedDocumentsAsync);
 
         /// <summary>
         /// Attempts to apply fix all operations returning, for each updated document, either
@@ -184,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
             // Process all documents in parallel to get the change for each doc.
-            var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
+            var documentsAndSpansToFix = await (fixAllContext).GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var (document, spans) in documentsAndSpansToFix)
             {

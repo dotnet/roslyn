@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         IProgressTracker IFixAllContext.ProgressTracker => this.ProgressTracker;
 
         string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
+
+        IFixAllContext IFixAllContext.With(
+            Optional<(Document? document, Project project)> documentAndProject,
+            Optional<FixAllScope> scope,
+            Optional<string?> codeActionEquivalenceKey)
+            => this.With(documentAndProject, scope, codeActionEquivalenceKey);
         #endregion
 
         internal FixAllContext(
@@ -116,6 +122,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal FixAllContext WithScope(FixAllScope scope)
             => this.WithState(State.With(scope: scope));
+
+        internal FixAllContext With(
+            Optional<(Document? document, Project project)> documentAndProject = default,
+            Optional<FixAllScope> scope = default,
+            Optional<string?> codeActionEquivalenceKey = default)
+            => this.WithState(State.With(documentAndProject, scope, codeActionEquivalenceKey));
 
         private FixAllContext WithState(FixAllState state)
             => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);

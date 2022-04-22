@@ -24,5 +24,9 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         IProgressTracker ProgressTracker { get; }
 
         string GetDefaultFixAllTitle();
+        IFixAllContext With(
+            Optional<(Document? document, Project project)> documentAndProject = default,
+            Optional<FixAllScope> scope = default,
+            Optional<string?> codeActionEquivalenceKey = default);
     }
 }

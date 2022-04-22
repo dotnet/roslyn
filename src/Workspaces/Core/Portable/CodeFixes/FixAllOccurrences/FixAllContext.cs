@@ -80,6 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         string IFixAllContext.GetDefaultFixAllTitle()
             => this.GetDefaultFixAllTitle();
+
+        IFixAllContext IFixAllContext.With(
+            Optional<(Document? document, Project project)> documentAndProject,
+            Optional<FixAllScope> scope,
+            Optional<string?> codeActionEquivalenceKey)
+            => this.With(documentAndProject, scope, codeActionEquivalenceKey);
         #endregion
 
         /// <summary>

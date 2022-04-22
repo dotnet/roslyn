@@ -70,42 +70,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
-        private async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-        {
-            var progressTracker = originalFixAllContext.GetProgressTracker();
-            progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
+        private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
+            => FixAllContextsAsync(originalFixAllContext, fixAllContexts,
+                    originalFixAllContext.GetProgressTracker(),
+                    this.GetFixAllTitle(originalFixAllContext),
+                    DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
-            var solution = originalFixAllContext.Solution;
-
-            // We have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
-            progressTracker.AddItems(fixAllContexts.Length * 3);
-
-            // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
-            var currentSolution = solution;
-            foreach (var fixAllContext in fixAllContexts)
-            {
-                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
-                    or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
-            }
-
-            return currentSolution;
-        }
-
-        private async Task<Solution> FixSingleContextAsync(Solution currentSolution, FixAllContext fixAllContext, IProgressTracker progressTracker)
+        private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
+            FixAllContext fixAllContext,
+            IProgressTracker progressTracker)
         {
             // First, determine the diagnostics to fix.
             var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
 
             // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-            var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
-
-            // Finally, cleanup the new doc roots, and apply the results to the solution.
-            currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
-
-            return currentSolution;
+            return await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
         }
 
         /// <summary>
