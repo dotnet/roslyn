@@ -336,6 +336,11 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
+        internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
+        {
+            return _solution.State.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
+        }
+
         internal Task<bool> ContainsSymbolsWithNameAsync(
             string name, CancellationToken cancellationToken)
         {

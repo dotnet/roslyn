@@ -397,9 +397,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                {
                     return null;
-                }
 
                 var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
                 var openingSnapshotPoint = OpeningPoint.GetPosition(snapshot);

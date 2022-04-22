@@ -1347,9 +1347,6 @@ class C
 
                 // and then wait them to be processed
                 await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
-
-                // let analyzer to process
-                operation.Done();
             }
 
             token.Dispose();
