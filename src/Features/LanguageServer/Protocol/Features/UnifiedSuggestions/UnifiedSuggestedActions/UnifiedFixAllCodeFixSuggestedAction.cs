@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     {
         public Diagnostic Diagnostic { get; }
 
-        public IFixAllState? FixAllState { get; }
+        public IFixAllState FixAllState { get; }
 
         public UnifiedFixAllCodeFixSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            IFixAllState? fixAllState,
+            IFixAllState fixAllState,
             Diagnostic diagnostic)
             : base(workspace, codeAction, codeActionPriority)
         {
