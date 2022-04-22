@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         [Obsolete]
         bool ITypeScriptCodeFixContext.IsBlocking
-            => Options("TypeScript").IsBlocking;
+            => Options(Document.Project.LanguageServices).IsBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.

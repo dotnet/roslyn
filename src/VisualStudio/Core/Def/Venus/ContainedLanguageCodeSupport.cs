@@ -217,6 +217,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
+            var globalOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
+
             var options = codeGenerationService.GetOptions(
                 targetSyntaxTree.Options,
                 documentOptions,
@@ -225,11 +227,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var simplifierOptions = targetDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+
             newRoot = Simplifier.ReduceAsync(
-                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
-            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,

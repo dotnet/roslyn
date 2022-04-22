@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 RoslynDebug.AssertNotNull(variable.Initializer);
                 if (!AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, variable.Initializer.Value,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return false;
                 }
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 if (!AssignmentSupportsStylePreference(
                         foreachStatement.Identifier, typeName, foreachStatement.Expression,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return false;
                 }
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // is or contains an anonymous type

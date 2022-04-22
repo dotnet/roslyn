@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Operations;
@@ -25,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
         public EncapsulateFieldCommandHandler(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, undoManager, listenerProvider)
+            : base(threadingContext, undoManager, globalOptions, listenerProvider)
         {
         }
     }

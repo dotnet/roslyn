@@ -201,8 +201,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
                 // we're on the UI thread that we stay on it.
-                await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+                //
+                // Don't do this on the initial-tags request.  First, we want files to appear richly tagged as soon as
+                // possible.  Second, the outlining tagger explicitly calls into this, but synchronously blocks to get
+                // outlining spans (see TryGetTagIntervalTreeForBuffer).  We don't want to insert any artificial delays
+                // into that blocking call at all.
+                if (!initialTags)
+                {
+                    await _visibilityTracker.DelayWhileNonVisibleAsync(
+                        _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+                }
 
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

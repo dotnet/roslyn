@@ -10548,6 +10548,10 @@ class C
     {
         return 0;
     }
+    public static int operator >>>(int c1, int c2) // CS0564
+    {
+        return 0;
+    }
     static void Main()
     {
     }
@@ -10558,10 +10562,12 @@ class C
                 // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     public static int operator <<(C c1, C c2) // CS0564
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<"),
-
                 // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     public static int operator >>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>")
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>"),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
                 );
         }
 
@@ -10957,6 +10963,7 @@ public class C
     public static implicit operator void(C c1) { }
     public static void operator +(C c) { }
     public static void operator >>(C c, int x) { }
+    public static void operator >>>(C c, int x) { }
 }
 ";
             var comp = CreateCompilation(text);
@@ -10967,15 +10974,18 @@ public class C
                 // (5,33): error CS0590: User-defined operators cannot return void
                 //     public static implicit operator void(C c1) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "void"),
-// (5,46): error CS1547: Keyword 'void' cannot be used in this context
-//     public static implicit operator void(C c1) { }
-Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                // (5,46): error CS1547: Keyword 'void' cannot be used in this context
+                //     public static implicit operator void(C c1) { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (6,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "+"),
                 // (73): error CS0590: User-defined operators cannot return void
                 //     public static void operator >>(C c, int x) { }
-                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>")
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>"),
+                // (74): error CS0590: User-defined operators cannot return void
+                //     public static void operator >>>(C c, int x) { }
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>>")
                 );
         }
 

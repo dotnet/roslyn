@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private Async Function GenerateCodeForItemAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken) As Task
             ' We'll compute everything up front before we go mutate state
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim newDocument = Await GetGeneratedDocumentAsync(document, generateCodeItem, cancellationToken).ConfigureAwait(False)
+            Dim newDocument = Await GetGeneratedDocumentAsync(document, generateCodeItem, _globalOptions, cancellationToken).ConfigureAwait(False)
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End Using
         End Function
 
-        Public Shared Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, cancellationToken As CancellationToken) As Task(Of Document)
+        Public Shared Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, globalOptions As IGlobalOptionService, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim contextLocation = syntaxTree.GetLocation(New TextSpan(0, 0))
 
@@ -59,19 +60,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Return document
             End If
 
-            newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).ConfigureAwait(False)
+            Dim simplifierOptions = Await newDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(False)
+            Dim formattingOptions = Await SyntaxFormattingOptions.FromDocumentAsync(newDocument, cancellationToken).ConfigureAwait(False)
+
+            newDocument = Await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).ConfigureAwait(False)
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ShouldApplyLineAdjustmentFormattingRule(generateCodeItem) Then
                 formatterRules = ImmutableArray.Create(Of AbstractFormattingRule)(LineAdjustmentFormattingRule.Instance).AddRange(formatterRules)
             End If
 
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-
             Return Await Formatter.FormatAsync(
                 newDocument,
                 Formatter.Annotation,
-                options:=documentOptions,
+                options:=formattingOptions,
                 cancellationToken:=cancellationToken,
                 rules:=formatterRules).ConfigureAwait(False)
         End Function

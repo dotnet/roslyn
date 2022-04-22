@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,
-                    language => optionsProvider(language).GetCodeActionOptions()),
+                    languageServices => optionsProvider(languageServices.Language).GetCodeActionOptions()),
                   new ProgressTracker(), cancellationToken);
     }
 }

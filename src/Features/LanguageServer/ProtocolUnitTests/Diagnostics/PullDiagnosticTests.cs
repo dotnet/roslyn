@@ -10,11 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -22,6 +20,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -519,6 +518,32 @@ class B {";
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            var generator = new DiagnosticProducingGenerator(context => Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                document.Project.Id,
+                new TestGeneratorReference(generator));
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            var diagnostic = Assert.Single(results.Single().Diagnostics);
+            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        }
+
         #endregion
 
         #region Workspace Diagnostics
@@ -551,6 +576,81 @@ class B {";
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: true);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            var generator = new DiagnosticProducingGenerator(context => Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                document.Project.Id,
+                new TestGeneratorReference(generator));
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            var diagnostic = Assert.Single(results.Single().Diagnostics);
+            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsDoesNotIncludeSourceGeneratorDiagnosticsClosedFSAOffAndNoFilesOpen(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var generator = new DiagnosticProducingGenerator(
+                context => Location.Create(
+                    context.Compilation.SyntaxTrees.Single(),
+                    new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                testLspServer.GetCurrentSolution().Projects.Single().Id,
+                new TestGeneratorReference(generator));
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+            Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOffAndFilesOpen(bool useVSDiagnostics)
+        {
+            // In this case, even though one file is open, we can still have diagnostics for the other file in the project, since by
+            // nature the generator had to run regardless.
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(new[] { markup, markup }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var documentWithDiagnostics = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
+            var documentToOpen = testLspServer.GetCurrentSolution().Projects.Single().Documents.Last();
+
+            Assert.NotSame(documentWithDiagnostics, documentToOpen);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single(id => id.Id == documentToOpen.Id).GetTextBuffer();
+
+            var documentTrackingService = (TestDocumentTrackingService)testLspServer.TestWorkspace.Services.GetRequiredService<IDocumentTrackingService>();
+            documentTrackingService.SetActiveDocument(documentToOpen.Id);
+
+            var generator = new DiagnosticProducingGenerator(
+                context => Location.Create(
+                    context.Compilation.SyntaxTrees.Single(t => t.FilePath == documentWithDiagnostics.FilePath),
+                    new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                documentWithDiagnostics.Project.Id,
+                new TestGeneratorReference(generator));
+
+            await OpenDocumentAsync(testLspServer, documentToOpen);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            var diagnostic = Assert.Single(results.Single().Diagnostics);
+            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
         }
 
         [Theory, CombinatorialData]

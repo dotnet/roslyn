@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal interface IRemoteDependentTypeFinderService
     {
         ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId type,
             ImmutableArray<ProjectId> projectsOpt,
             bool transitive,

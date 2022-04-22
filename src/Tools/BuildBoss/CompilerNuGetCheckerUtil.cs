@@ -80,7 +80,6 @@ namespace BuildBoss
 
                 var allGood = true;
                 allGood &= CheckDesktop(textWriter, filter(isDesktop: true));
-                allGood &= CheckCoreClr(textWriter, filter(isDesktop: false));
                 allGood &= CheckCombined(textWriter, packageAssets);
                 allGood &= CheckExternalApis(textWriter);
                 return allGood;
@@ -99,31 +98,10 @@ namespace BuildBoss
         /// </summary>
         private bool CheckDesktop(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
         {
-            var allGood = true;
-            allGood &= VerifyNuPackage(
-                        textWriter,
-                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
-                        @"tools",
-                        assetRelativeNames);
-
-            allGood &= VerifyNuPackage(
+            return VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
-                        assetRelativeNames);
-
-            return allGood;
-        }
-
-        /// <summary>
-        /// Verify the contents of our desktop targeting compiler packages are correct.
-        /// </summary>
-        private bool CheckCoreClr(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
-        {
-            return VerifyNuPackage(
-                        textWriter,
-                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
-                        @"tools",
                         assetRelativeNames);
         }
 
@@ -246,7 +224,7 @@ namespace BuildBoss
             // root as well. That copy is unnecessary.
             coreClrAssets.RemoveAll(asset =>
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.amd64.dll", asset.FileRelativeName) ||
-                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm.dll", asset.FileRelativeName) ||
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm64.dll", asset.FileRelativeName) ||
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.x86.dll", asset.FileRelativeName));
 
             // Move all of the assets into bincore as that is where the non-MSBuild task assets will go

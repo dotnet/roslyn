@@ -28,6 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _rules
         End Function
 
+        Public Overrides ReadOnly Property DefaultOptions As SyntaxFormattingOptions
+            Get
+                Return VisualBasicSyntaxFormattingOptions.Default
+            End Get
+        End Property
+
         Public Overrides Function GetFormattingOptions(options As AnalyzerConfigOptions) As SyntaxFormattingOptions
             Return VisualBasicSyntaxFormattingOptions.Create(options)
         End Function

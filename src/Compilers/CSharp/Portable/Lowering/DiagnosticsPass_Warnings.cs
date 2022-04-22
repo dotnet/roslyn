@@ -274,6 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)

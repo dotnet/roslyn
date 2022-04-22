@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask OnGlobalOperationStoppedAsync(ImmutableArray<string> operations, CancellationToken cancellationToken)
+        public ValueTask OnGlobalOperationStoppedAsync(CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
                 var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStopped(operations);
+                globalOperationNotificationService?.OnStopped();
                 return default;
             }, cancellationToken);
         }

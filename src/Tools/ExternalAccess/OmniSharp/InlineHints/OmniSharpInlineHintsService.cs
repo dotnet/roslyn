@@ -23,6 +23,7 @@ internal static class OmniSharpInlineHintsService
         return hints.SelectAsArray(static h => new OmniSharpInlineHint(
             h.Span,
             h.DisplayParts,
+            h.ReplacementTextChange,
             (document, cancellationToken) => h.GetDescriptionAsync(document, cancellationToken)));
     }
 }
@@ -34,15 +35,18 @@ internal readonly struct OmniSharpInlineHint
     public OmniSharpInlineHint(
         TextSpan span,
         ImmutableArray<TaggedText> displayParts,
+        TextChange? replacementTextChange,
         Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>> getDescriptionAsync)
     {
         Span = span;
         DisplayParts = displayParts;
+        ReplacementTextChange = replacementTextChange;
         _getDescriptionAsync = getDescriptionAsync;
     }
 
     public readonly TextSpan Span { get; }
     public readonly ImmutableArray<TaggedText> DisplayParts { get; }
+    public readonly TextChange? ReplacementTextChange { get; }
 
     public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
         => _getDescriptionAsync.Invoke(document, cancellationToken);

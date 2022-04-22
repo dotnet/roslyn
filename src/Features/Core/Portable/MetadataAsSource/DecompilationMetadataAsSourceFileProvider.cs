@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                                                  .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
                 var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(temporaryDocument, cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await SimplifierOptions.FromDocumentAsync(temporaryDocument, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
 
                 if (useDecompiler)
                 {
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!useDecompiler)
                 {
                     var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetRequiredService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, formattingOptions, cancellationToken).ConfigureAwait(false);
+                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We have the content, so write it out to disk
