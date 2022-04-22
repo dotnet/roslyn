@@ -83,17 +83,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 catch (OperationCanceledException)
                 {
-                    FixAllLogger.LogComputationResult(fixAllContext.State.FixAllKind, fixAllContext.State.CorrelationId, completed: false);
+                    FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false);
                 }
                 finally
                 {
                     if (action != null)
                     {
-                        FixAllLogger.LogComputationResult(fixAllContext.State.FixAllKind, fixAllContext.State.CorrelationId, completed: true);
+                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: true);
                     }
                     else
                     {
-                        FixAllLogger.LogComputationResult(fixAllContext.State.FixAllKind, fixAllContext.State.CorrelationId, completed: false, timedOut: true);
+                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false, timedOut: true);
                     }
                 }
 

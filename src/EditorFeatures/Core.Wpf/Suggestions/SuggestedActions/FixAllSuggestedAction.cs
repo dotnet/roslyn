@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Suggested action for fix all occurrences for a code fix or a code refactoring.
     /// </summary>
-    internal abstract class FixAllCodeFixOrCodeRefactoringSuggestedAction : SuggestedAction
+    internal abstract class FixAllSuggestedAction : SuggestedAction
     {
         /// <summary>
         /// The original code-action that we are a fix-all for.  This suggestion action
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public IFixAllState FixAllState { get; }
 
-        protected FixAllCodeFixOrCodeRefactoringSuggestedAction(
+        protected FixAllSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,

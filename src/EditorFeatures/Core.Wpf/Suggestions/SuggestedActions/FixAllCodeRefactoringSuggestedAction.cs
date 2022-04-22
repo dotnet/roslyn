@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
     /// as a 'flavor' inside CodeRefactoringSuggestionAction.
     /// </summary>
-    internal sealed class FixAllCodeRefactoringSuggestedAction : FixAllCodeFixOrCodeRefactoringSuggestedAction, IFixAllCodeRefactoringSuggestedAction
+    internal sealed class FixAllCodeRefactoringSuggestedAction : FixAllSuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
         internal FixAllCodeRefactoringSuggestedAction(
             IThreadingContext threadingContext,
