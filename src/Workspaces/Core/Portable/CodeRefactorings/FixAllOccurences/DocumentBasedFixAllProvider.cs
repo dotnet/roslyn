@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -14,13 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.FixAll.CommonDocumentBasedFixAllProviderHelpers;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    using FixAllContexts = Func<FixAllContext, ImmutableArray<FixAllContext>, Task<Solution?>>;
-
     /// <summary>
     /// Provides a base class to write a <see cref="FixAllProvider"/> for refactorings that fixes documents independently.
     /// This type should be used in the case where the code refactoring(s) only affect individual <see cref="Document"/>s.
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-            => FixAllContextsAsync(originalFixAllContext, fixAllContexts,
+            => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
                     originalFixAllContext.ProgressTracker,
                     this.GetFixAllTitle(originalFixAllContext),
                     GetFixedDocumentsAsync);
@@ -102,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
             // Process all documents in parallel to get the change for each doc.
-            var documentsAndSpansToFix = await (fixAllContext).GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
+            var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var (document, spans) in documentsAndSpansToFix)
             {

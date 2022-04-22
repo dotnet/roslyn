@@ -9,19 +9,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FixAll
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
     /// <summary>
     /// Helper methods for DocumentBasedFixAllProvider common to code fixes and refactorings.
     /// </summary>
-    internal static class CommonDocumentBasedFixAllProviderHelpers
+    internal static class DocumentBasedFixAllProviderHelpers
     {
         public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
             TFixAllContext originalFixAllContext,

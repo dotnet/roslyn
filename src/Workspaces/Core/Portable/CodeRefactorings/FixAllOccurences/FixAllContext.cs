@@ -114,23 +114,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
             => State.GetFixAllSpansAsync(cancellationToken);
 
-        internal FixAllContext WithDocument(Document? document)
-            => this.WithState(State.With(documentAndProject: (document, document?.Project ?? this.Project)));
-
-        internal FixAllContext WithProject(Project project)
-            => this.WithState(State.With(documentAndProject: (null, project)));
-
-        internal FixAllContext WithScope(FixAllScope scope)
-            => this.WithState(State.With(scope: scope));
-
         internal FixAllContext With(
             Optional<(Document? document, Project project)> documentAndProject = default,
             Optional<FixAllScope> scope = default,
             Optional<string?> codeActionEquivalenceKey = default)
-            => this.WithState(State.With(documentAndProject, scope, codeActionEquivalenceKey));
-
-        private FixAllContext WithState(FixAllState state)
-            => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
+        {
+            var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+            return State == newState ? this : new FixAllContext(newState, ProgressTracker, CancellationToken);
+        }
 
         internal string GetDefaultFixAllTitle()
             => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.Document, this.Project);

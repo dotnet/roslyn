@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 FixAllScope.ContainingType => 6,
                 _ => 7,
             };
+
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us

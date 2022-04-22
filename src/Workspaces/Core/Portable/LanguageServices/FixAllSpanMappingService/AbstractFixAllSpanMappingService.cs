@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             Document document, TextSpan span, CancellationToken cancellationToken);
 
         public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan triggerSpan, CodeFixes.FixAllScope fixAllScope, CancellationToken cancellationToken)
+            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-            var fixAllInContainingMember = fixAllScope == CodeFixes.FixAllScope.ContainingMember;
+            var fixAllInContainingMember = fixAllScope == FixAllScope.ContainingMember;
             return GetFixAllSpansAsync(document, triggerSpan, fixAllInContainingMember, cancellationToken);
         }
 

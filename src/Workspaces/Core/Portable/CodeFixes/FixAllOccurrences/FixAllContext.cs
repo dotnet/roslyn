@@ -343,10 +343,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Optional<(Document? document, Project project)> documentAndProject = default,
             Optional<FixAllScope> scope = default,
             Optional<string?> codeActionEquivalenceKey = default)
-            => this.WithState(State.With(documentAndProject, scope, codeActionEquivalenceKey));
-
-        private FixAllContext WithState(FixAllState state)
-            => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
+        {
+            var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+            return State == newState ? this : new FixAllContext(newState, ProgressTracker, CancellationToken);
+        }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
             => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);

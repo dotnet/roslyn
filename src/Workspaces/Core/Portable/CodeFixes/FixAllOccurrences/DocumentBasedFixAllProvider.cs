@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.FixAll.CommonDocumentBasedFixAllProviderHelpers;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-            => FixAllContextsAsync(originalFixAllContext, fixAllContexts,
+            => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
                     originalFixAllContext.GetProgressTracker(),
                     this.GetFixAllTitle(originalFixAllContext),
                     DetermineDiagnosticsAndGetFixedDocumentsAsync);
