@@ -154,14 +154,14 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilation,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
-                    ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
+                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                 {
-                    Contract.ThrowIfTrue(intermediateProjects.IsDefault);
+                    Contract.ThrowIfTrue(intermediateProjects is null);
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return intermediateProjects.Length == 0
+                    return intermediateProjects.IsEmpty
                         ? new AllSyntaxTreesParsedState(compilation, generatorInfo.WithDocumentsAreFinal(false))
                         : new InProgressState(compilation, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
                 /// </summary>
-                public ImmutableArray<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating them by
@@ -203,12 +203,12 @@ namespace Microsoft.CodeAnalysis
                     Compilation inProgressCompilation,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
-                    ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
+                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: inProgressCompilation,
                            generatorInfo.WithDocumentsAreFinal(false)) // since we have a set of transformations to make, we'll always have to run generators again
                 {
-                    Contract.ThrowIfTrue(intermediateProjects.IsDefault);
-                    Contract.ThrowIfFalse(intermediateProjects.Length > 0);
+                    Contract.ThrowIfTrue(intermediateProjects is null);
+                    Contract.ThrowIfFalse(intermediateProjects.Count > 0);
 
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
