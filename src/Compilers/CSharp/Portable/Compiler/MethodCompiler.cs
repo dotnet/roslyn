@@ -489,6 +489,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
             }
 
+            foreach (var member in members)
+            {
+                if (member is SourcePropertySymbolBase property)
+                {
+                    // PROTOTYPE(semi-auto-props): This can be optimized by checking for field keyword syntactically first.
+                    // If we don't have field keyword, we can safely ignore the filter check.
+                    // This will require more tests.
+                    var getMethod = property.GetMethod;
+                    var setMethod = property.SetMethod;
+                    if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
+                        (setMethod is null || PassesFilter(_filterOpt, setMethod)))
+                    {
+                        property.MarkBackingFieldAsCalculated();
+                    }
+                }
+            }
+
             // Then we compile everything, excluding the accessors we already compiled in the loop above.
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
@@ -601,23 +618,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         }
-                }
-            }
-
-            foreach (var member in members)
-            {
-                if (member is SourcePropertySymbolBase property)
-                {
-                    // PROTOTYPE(semi-auto-props): This can be optimized by checking for field keyword syntactically first.
-                    // If we don't have field keyword, we can safely ignore the filter check.
-                    // This will require more tests.
-                    var getMethod = property.GetMethod;
-                    var setMethod = property.SetMethod;
-                    if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
-                        (setMethod is null || PassesFilter(_filterOpt, setMethod)))
-                    {
-                        property.MarkBackingFieldAsCalculated();
-                    }
                 }
             }
 

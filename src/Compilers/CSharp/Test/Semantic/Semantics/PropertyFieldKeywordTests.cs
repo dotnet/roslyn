@@ -221,12 +221,15 @@ public class C
         public void TestPropertyNotAssignedInStructConstructor()
         {
             var comp = CreateCompilation(@"
-var x = new C();
-x.P = 10;
-x = new C();
-
 public struct C
 {
+    public static void Main()
+    {
+        var x = new C();
+        x.P = 10;
+        x = new C();
+    }
+
     public C()
     {
         System.Console.WriteLine(""In C..ctor: "" + P);
@@ -257,9 +260,9 @@ In C..ctor: 0").VerifyIL("C..ctor", @"
     IL_0024:  ret
 }
 ").VerifyDiagnostics(
-    // (10,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    // (13,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         System.Console.WriteLine("In C..ctor: " + P);
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(10, 51)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 51)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -328,15 +331,18 @@ In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact] // PROTOTYPE(semi-auto-props): Add test with semi-colon setter when mixed scenarios are supported.
         public void TestPropertyIsReadThenAssignedInStructConstructor_ReadOnlyProperty()
         {
             var comp = CreateCompilation(@"
-var x = new C();
-System.Console.Write(x.P);
-
 public struct C
 {
+    public static void Main()
+    {
+        var x = new C();
+        System.Console.Write(x.P);
+    }
+
     public C()
     {
         P = 5;
@@ -360,9 +366,9 @@ public struct C
   IL_000e:  ret
 }
 ").VerifyDiagnostics(
-    // (9,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    // (12,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(9, 9)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -372,15 +378,18 @@ public struct C
         public void TestPropertyIsAssignedInStructConstructor_PropertyHasSetter()
         {
             var comp = CreateCompilation(@"
-var x = new C();
-System.Console.Write(x.P + "" ""); // 5
-x.P = 10;
-System.Console.Write(x.P + "" ""); // 10
-x = new C();
-System.Console.Write(x.P); // 5
-
 public struct C
 {
+    public static void Main()
+    {
+        var x = new C();
+        System.Console.Write(x.P + "" ""); // 5
+        x.P = 10;
+        System.Console.Write(x.P + "" ""); // 10
+        x = new C();
+        System.Console.Write(x.P); // 5
+    }
+
     public C()
     {
         P = 5;
@@ -404,9 +413,9 @@ public struct C
   IL_000e:  ret
 }
 ").VerifyDiagnostics(
-    // (13,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    // (16,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 9)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(16, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -416,11 +425,14 @@ public struct C
         public void TestPropertyIsAssignedInStructConstructor_ReadOnlyProperty()
         {
             var comp = CreateCompilation(@"
-var x = new C();
-System.Console.Write(x.P);
-
 public struct C
 {
+    public static void Main()
+    {
+        var x = new C();
+        System.Console.Write(x.P);
+    }
+
     public C()
     {
         P = 5;
@@ -444,9 +456,9 @@ public struct C
   IL_000e:  ret
 }
 ").VerifyDiagnostics(
-    // (9,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+    // (12,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(9, 9)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
