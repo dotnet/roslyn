@@ -8044,7 +8044,7 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "nint?", destType: "System.IntPtr?", ImplicitNullableIdentity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
+            conversions(sourceType: "nint?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "nint?", destType: "System.UIntPtr?", NoConversion, expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "object", destType: "nuint", Unboxing, expectedImplicitIL: null,
 @"{
