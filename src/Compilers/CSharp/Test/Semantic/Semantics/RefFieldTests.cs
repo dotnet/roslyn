@@ -437,6 +437,70 @@ ref struct B
             Assert.Equal(new[] { "System.Int32", "System.Object" }, fieldInfo.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
         }
 
+        [Fact]
+        public void MemberRefMetadataDecoder_FindFieldBySignature()
+        {
+            var sourceA =
+@".class public sealed R<T> extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public !0& modopt(object) F
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static int Main()
+    {
+        var r = new R<int>();
+        return r.F;
+    }
+}";
+            var verifier = CompileAndVerify(sourceB, new[] { refA });
+            // MemberRefMetadataDecoder.FindFieldBySignature() is used to find fields when realIL: true.
+            verifier.VerifyIL("Program.Main", realIL: true, expectedIL:
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (R<int> V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""R<int>""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""ref int R<int>.F""
+  IL_000e:  ldind.i4
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void EnumUnderlyingType()
+        {
+            var sourceA =
+@".class public sealed E extends [mscorlib]System.Enum
+{
+  .field public int64 modreq(object) value1
+  .field public int32& modreq(object) value2
+  .field public int16 value3
+  .field public static literal valuetype E A = int16(0x01)
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        _ = E.A;
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics();
+
+            var type = (NamedTypeSymbol)comp.GetTypeByMetadataName("E");
+            Assert.Equal(SpecialType.System_Int16, type.EnumUnderlyingType.SpecialType);
+        }
+
         private static void VerifyFieldSymbol(FieldSymbol field, string expectedDisplayString, RefKind expectedRefKind, string[] expectedRefCustomModifiers)
         {
             Assert.Equal(expectedRefKind, field.RefKind);
@@ -1329,7 +1393,7 @@ class Program
         }
 
         [Fact]
-        public void AssignOutFrom_RefField()
+        public void AssignOutParameterFrom_RefField()
         {
             var source =
 @"#pragma warning disable 649
@@ -1368,7 +1432,7 @@ class Program
         }
 
         [Fact]
-        public void AssignRefFrom_RefField()
+        public void AssignRefLocalFrom_RefField()
         {
             var source =
 @"ref struct S<T>
@@ -1430,7 +1494,7 @@ class Program
         }
 
         [Fact]
-        public void AssignRefReadonlyFrom_RefField()
+        public void AssignRefReadonlyLocalFrom_RefField()
         {
             var source =
 @"ref struct S<T>

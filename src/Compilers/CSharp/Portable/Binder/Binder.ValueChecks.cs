@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if (RequiresAssignableVariable(valueKind) && fieldSymbol.RefKind == RefKind.None ||
+                if ((RequiresAssignableVariable(valueKind) && fieldSymbol.RefKind == RefKind.None) ||
                     RequiresRefAssignableVariable(valueKind))
                 {
                     var canModifyReadonly = false;

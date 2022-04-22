@@ -1154,7 +1154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             FieldInfo<TypeSymbol> fieldInfo = decoder.DecodeFieldSignature(fieldDef);
                             TypeSymbol type = fieldInfo.Type;
 
-                            if (type.SpecialType.IsValidEnumUnderlyingType() && !fieldInfo.CustomModifiers.AnyRequired())
+                            if (type.SpecialType.IsValidEnumUnderlyingType() &&
+                                !fieldInfo.RefCustomModifiers.AnyRequired() &&
+                                !fieldInfo.CustomModifiers.AnyRequired())
                             {
                                 if ((object)underlyingType == null)
                                 {
