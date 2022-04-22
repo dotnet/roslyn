@@ -3767,9 +3767,9 @@ ref struct Example
 }";
             var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,31): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (5,31): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //     public Span<byte> Field = F(() => stackalloc byte[512]);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("this", "preview").WithLocation(5, 31),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("preview").WithLocation(5, 31),
                 // (5,39): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public Span<byte> Field = F(() => stackalloc byte[512]);
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 39),
