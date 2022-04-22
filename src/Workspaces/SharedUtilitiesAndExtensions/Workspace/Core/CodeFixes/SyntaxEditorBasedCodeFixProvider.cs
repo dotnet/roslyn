@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         ///
         /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in
         /// that it also passes along the <see cref="FixAllState"/> in case that would be useful
-        /// (for example if the <see cref="FixAllState.CodeActionEquivalenceKey"/> is used.
+        /// (for example if the <see cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
         ///
         /// Only one of these three overloads needs to be overridden if you want to customize
         /// behavior.
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// By default, all diagnostics will be included in fix-all unless they are filtered out
         /// here. If only the diagnostic needs to be queried to make this determination, only this
         /// overload needs to be overridden.  However, if information from <see cref="FixAllState"/>
-        /// is needed (for example <see cref="FixAllState.CodeActionEquivalenceKey"/>), then <see
+        /// is needed (for example <see cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see
         /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
         /// should be overridden instead.
         ///

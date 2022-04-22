@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.FixAll;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -24,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <remarks>
     /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
     /// </remarks>
-    internal sealed class FixAllContext
+    internal sealed class FixAllContext : IFixAllContext
     {
         internal FixAllState State { get; }
 
@@ -43,17 +38,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
         /// </summary>
-        public CodeRefactoringProvider CodeRefactoringProvider => State.CodeRefactoringProvider;
+        public CodeRefactoringProvider CodeRefactoringProvider => State.Provider;
 
         /// <summary>
         /// <see cref="FixAllScope"/> to fix all occurrences.
         /// </summary>
-        public FixAllScope Scope => State.FixAllScope;
+        public FixAllScope Scope => State.Scope;
 
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string? CodeActionEquivalenceKey => State.CodeAction.EquivalenceKey;
+        public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -68,7 +63,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// for publicly exposed FixAllContext instance. However, we might create an intermediate FixAllContext
         /// with null <see cref="Document"/> and non-null Project, so we require this internal property for intermediate computation.
         /// </summary>
-        internal Project Project => State.Project;
+        public Project Project => State.Project;
+
+        public Solution Solution => Project.Solution;
+
+        #region IFixAllContext implementation
+        IFixAllState IFixAllContext.State => this.State;
+
+        IFixAllProvider? IFixAllContext.FixAllProvider => this.FixAllProvider;
+
+        object IFixAllContext.Provider => this.CodeRefactoringProvider;
+
+        IProgressTracker IFixAllContext.ProgressTracker => this.ProgressTracker;
+
+        string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
+        #endregion
 
         internal FixAllContext(
             FixAllState state,
@@ -100,15 +109,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => State.GetFixAllSpansAsync(cancellationToken);
 
         internal FixAllContext WithDocument(Document? document)
-            => this.WithState(State.WithDocument(document));
+            => this.WithState(State.With(documentAndProject: (document, document?.Project ?? this.Project)));
 
         internal FixAllContext WithProject(Project project)
-            => this.WithState(State.WithProject(project));
+            => this.WithState(State.With(documentAndProject: (null, project)));
 
         internal FixAllContext WithScope(FixAllScope scope)
-            => this.WithState(State.WithScope(scope));
+            => this.WithState(State.With(scope: scope));
 
         private FixAllContext WithState(FixAllState state)
             => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
+
+        internal string GetDefaultFixAllTitle()
+            => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.Document, this.Project);
     }
 }

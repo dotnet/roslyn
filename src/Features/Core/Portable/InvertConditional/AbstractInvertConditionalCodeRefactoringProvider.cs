@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
     {
         protected abstract bool ShouldOffer(TConditionalExpressionSyntax conditional);
 
-        protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+        protected override ImmutableArray<CodeFixes.FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

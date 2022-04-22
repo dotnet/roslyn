@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -23,6 +24,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -42,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
 
-            var fixAllScope = GetFixAllScopeForCodeRefactoring(annotation);
+            var fixAllScope = GetFixAllScope(annotation);
 
             if (fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
-                document.GetLanguageService<FixAll.IFixAllSpanMappingService>() is FixAll.IFixAllSpanMappingService spanMappingService)
+                document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
             {
                 var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
                     document, span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);

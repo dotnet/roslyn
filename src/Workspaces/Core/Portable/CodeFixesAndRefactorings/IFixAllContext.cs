@@ -1,0 +1,28 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
+{
+    internal interface IFixAllContext
+    {
+        IFixAllState State { get; }
+        IFixAllProvider? FixAllProvider { get; }
+        Solution Solution { get; }
+        Project Project { get; }
+        Document? Document { get; }
+        object Provider { get; }
+        FixAllScope Scope { get; }
+        string? CodeActionEquivalenceKey { get; }
+        CancellationToken CancellationToken { get; }
+        IProgressTracker ProgressTracker { get; }
+
+        string GetDefaultFixAllTitle();
+    }
+}

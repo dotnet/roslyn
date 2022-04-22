@@ -5,13 +5,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FixAll
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
@@ -19,21 +20,12 @@ namespace Microsoft.CodeAnalysis.FixAll
             Document document, TextSpan span, CancellationToken cancellationToken);
 
         public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan diagnosticSpan, CodeFixes.FixAllScope fixAllScope, CancellationToken cancellationToken)
+            Document document, TextSpan triggerSpan, CodeFixes.FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(fixAllScope is CodeFixes.FixAllScope.ContainingMember or CodeFixes.FixAllScope.ContainingType);
+            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             var fixAllInContainingMember = fixAllScope == CodeFixes.FixAllScope.ContainingMember;
-            return GetFixAllSpansAsync(document, diagnosticSpan, fixAllInContainingMember, cancellationToken);
-        }
-
-        public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan diagnosticSpan, CodeRefactorings.FixAllScope fixAllScope, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(fixAllScope is CodeRefactorings.FixAllScope.ContainingMember or CodeRefactorings.FixAllScope.ContainingType);
-
-            var fixAllInContainingMember = fixAllScope == CodeRefactorings.FixAllScope.ContainingMember;
-            return GetFixAllSpansAsync(document, diagnosticSpan, fixAllInContainingMember, cancellationToken);
+            return GetFixAllSpansAsync(document, triggerSpan, fixAllInContainingMember, cancellationToken);
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(

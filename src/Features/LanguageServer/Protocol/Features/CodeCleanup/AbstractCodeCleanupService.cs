@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 return document;
             }
 
-            var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllCodeFixGetFixesService>();
+            var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
                 new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);

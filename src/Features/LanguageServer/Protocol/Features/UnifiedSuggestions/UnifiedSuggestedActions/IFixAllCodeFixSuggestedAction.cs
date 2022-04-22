@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
 {
     /// <summary>
     /// Common interface used by both local Roslyn and LSP to implement
-    /// their specific versions of FixAllSuggestedAction.
+    /// their specific versions of FixAllCodeFixSuggestedAction.
     /// </summary>
-    internal interface IFixAllSuggestedAction
+    internal interface IFixAllCodeFixSuggestedAction
     {
         Diagnostic Diagnostic { get; }
 
         CodeAction OriginalCodeAction { get; }
 
-        FixAllState? FixAllState { get; }
+        IFixAllState? FixAllState { get; }
     }
 }

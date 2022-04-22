@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -367,11 +368,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (showPreviewChangesDialog)
                     {
-                        newSolution = FixAllCodeFixGetFixesService.PreviewChanges(
+                        newSolution = FixAllGetFixesService.PreviewChanges(
                             _workspace.CurrentSolution,
                             newSolution,
                             fixAllPreviewChangesTitle: title,
                             fixAllTopLevelHeader: title,
+                            fixAllKind: FixAllKind.CodeFix,
                             languageOpt: languages?.Count == 1 ? languages.Single() : null,
                             workspace: _workspace);
                         if (newSolution == null)

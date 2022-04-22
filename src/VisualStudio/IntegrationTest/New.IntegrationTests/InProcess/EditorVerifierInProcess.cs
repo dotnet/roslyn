@@ -18,8 +18,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-using CodeFixesFixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
-using CodeRefactoringsFixAllScope = Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -115,8 +114,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             bool applyFix = false,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            CodeFixesFixAllScope? fixAllScope = null,
-            CodeRefactoringsFixAllScope? refactoringFixAllScope = null,
+            FixAllScope? fixAllScope = null,
+            FixAllScope? refactoringFixAllScope = null,
             bool blockUntilComplete = true,
             CancellationToken cancellationToken = default)
         {
@@ -146,8 +145,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             string? applyFix = null,
             bool verifyNotShowing = false,
             bool ensureExpectedItemsAreOrdered = false,
-            CodeFixesFixAllScope? fixAllScope = null,
-            CodeRefactoringsFixAllScope? refactoringFixAllScope = null,
+            FixAllScope? fixAllScope = null,
+            FixAllScope? refactoringFixAllScope = null,
             bool blockUntilComplete = true,
             CancellationToken cancellationToken = default)
         {

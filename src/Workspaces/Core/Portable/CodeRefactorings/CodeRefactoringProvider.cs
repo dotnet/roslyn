@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProvider"/> that can apply multiple occurrences of code refactoring(s)
-        /// registered by this code refactoring provider across the supported <see cref="FixAllScope"/>s.
+        /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
         /// Return null if the provider doesn't support fix all operation.
         /// </summary>
         /// <remarks>

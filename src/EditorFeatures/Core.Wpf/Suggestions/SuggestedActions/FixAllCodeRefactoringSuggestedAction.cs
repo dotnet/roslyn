@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,48 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
     /// as a 'flavor' inside CodeRefactoringSuggestionAction.
     /// </summary>
-    internal sealed class FixAllCodeRefactoringSuggestedAction : SuggestedAction, IFixAllCodeRefactoringSuggestedAction
+    internal sealed class FixAllCodeRefactoringSuggestedAction : FixAllCodeFixOrCodeRefactoringSuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
-        /// <summary>
-        /// The original code-action that we are a fix-all for.  This suggestion action
-        /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
-        /// will perform the fix in the appropriate document/project/solution scope.
-        /// </summary>
-        public CodeAction OriginalCodeAction { get; }
-
-        public FixAllState FixAllState { get; }
-
         internal FixAllCodeRefactoringSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            FixAllState fixAllState,
+            IFixAllState fixAllState,
             CodeAction originalCodeAction)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   fixAllState.FixAllProvider, new FixAllCodeRefactoringCodeAction(fixAllState))
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer, fixAllState,
+                   originalCodeAction, new FixAllCodeRefactoringCodeAction(fixAllState))
         {
-            OriginalCodeAction = originalCodeAction;
-            FixAllState = fixAllState;
-        }
-
-        public override bool TryGetTelemetryId(out Guid telemetryId)
-        {
-            // We get the telemetry id for the original code action we are fixing,
-            // not the special 'FixAllCodeAction'.
-            telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.FixAllScope);
-            return true;
-        }
-
-        protected override async Task InnerInvokeAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            using (Logger.LogBlock(FunctionId.Refactoring_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
-            {
-                await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }

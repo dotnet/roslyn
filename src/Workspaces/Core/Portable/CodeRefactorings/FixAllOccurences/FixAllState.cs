@@ -2,34 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.FixAll;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal partial class FixAllState
+    internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, FixAllProvider, FixAllState>
     {
-        internal readonly int CorrelationId = LogAggregator.GetNextId();
+        public override FixAllKind FixAllKind => FixAllKind.Refactoring;
 
-        public FixAllProvider FixAllProvider { get; }
-        public CodeAction CodeAction { get; }
-        public CodeRefactoringProvider CodeRefactoringProvider { get; }
-        public Document? Document { get; }
-        public Project Project { get; }
-        public FixAllScope FixAllScope { get; }
-        public Solution Solution => this.Project.Solution;
+        public string CodeActionTitle { get; }
 
         /// <summary>
         /// Original selection span from which FixAll was invoked
@@ -43,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
-            : this(fixAllProvider, document, document.Project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction)
+            : this(fixAllProvider, document, document.Project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
         {
         }
 
@@ -54,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
-            : this(fixAllProvider, document: null, project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction)
+            : this(fixAllProvider, document: null, project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
         {
         }
 
@@ -65,53 +57,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
             FixAllScope fixAllScope,
-            CodeAction codeAction)
+            string codeActionTitle,
+            string? codeActionEquivalenceKey)
+            : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope, codeActionEquivalenceKey)
         {
-            Contract.ThrowIfNull(project);
-            Contract.ThrowIfNull(codeRefactoringProvider);
-
-            this.FixAllProvider = fixAllProvider;
-            this.Document = document;
-            this.Project = project;
             this.SelectionSpan = selectionSpan;
-            this.CodeRefactoringProvider = codeRefactoringProvider;
-            this.FixAllScope = fixAllScope;
-            this.CodeAction = codeAction;
+            this.CodeActionTitle = codeActionTitle;
         }
 
-        public FixAllState WithDocument(Document? document)
-            => this.With(document: document);
-
-        public FixAllState WithProject(Project project)
-            => this.With(project: project);
-
-        public FixAllState WithScope(FixAllScope scope)
-            => this.With(scope: scope);
-
-        public FixAllState With(
-            Optional<Document?> document = default,
-            Optional<Project> project = default,
-            Optional<FixAllScope> scope = default)
+        protected override FixAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
         {
-            var newDocument = document.HasValue ? document.Value : this.Document;
-            var newProject = project.HasValue ? project.Value : this.Project;
-            var newFixAllScope = scope.HasValue ? scope.Value : this.FixAllScope;
-
-            if (newDocument == this.Document &&
-                newProject == this.Project &&
-                newFixAllScope == this.FixAllScope)
-            {
-                return this;
-            }
-
             return new FixAllState(
                 this.FixAllProvider,
-                newDocument,
-                newProject,
+                document,
+                project,
                 this.SelectionSpan,
-                this.CodeRefactoringProvider,
-                newFixAllScope,
-                this.CodeAction);
+                this.Provider,
+                scope,
+                this.CodeActionTitle,
+                codeActionEquivalenceKey);
         }
 
         /// <summary>
@@ -120,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         internal async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
         {
             IEnumerable<Document>? documentsToFix = null;
-            switch (FixAllScope)
+            switch (this.Scope)
             {
                 case FixAllScope.ContainingType or FixAllScope.ContainingMember:
                     Contract.ThrowIfNull(Document);
@@ -129,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
                     return await spanMappingService.GetFixAllSpansAsync(
-                        Document, SelectionSpan, FixAllScope, cancellationToken).ConfigureAwait(false);
+                        Document, SelectionSpan, Scope, cancellationToken).ConfigureAwait(false);
 
                 case FixAllScope.Document:
                     Contract.ThrowIfNull(Document);

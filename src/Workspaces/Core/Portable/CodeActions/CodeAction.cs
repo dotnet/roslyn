@@ -98,10 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal Guid GetTelemetryId()
             => GetTelemetryId(fixAllScopeId: 0);
 
-        internal Guid GetTelemetryId(CodeFixes.FixAllScope fixAllScope)
-            => GetTelemetryId(fixAllScope.GetScopeIdForTelemetry());
-
-        internal Guid GetTelemetryId(CodeRefactorings.FixAllScope fixAllScope)
+        internal Guid GetTelemetryId(FixAllScope fixAllScope)
             => GetTelemetryId(fixAllScope.GetScopeIdForTelemetry());
 
         private Guid GetTelemetryId(short fixAllScopeId)

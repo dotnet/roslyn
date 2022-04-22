@@ -49,19 +49,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 FixAllScope.ContainingType => 6,
                 _ => 7,
             };
-
-#if WORKSPACE
-        public static short GetScopeIdForTelemetry(this CodeRefactorings.FixAllScope scope)
-            => scope switch
-            {
-                CodeRefactorings.FixAllScope.Document => 1,
-                CodeRefactorings.FixAllScope.Project => 2,
-                CodeRefactorings.FixAllScope.Solution => 3,
-                CodeRefactorings.FixAllScope.ContainingMember => 4,
-                CodeRefactorings.FixAllScope.ContainingType => 5,
-                _ => short.MaxValue,
-            };
-#endif
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us

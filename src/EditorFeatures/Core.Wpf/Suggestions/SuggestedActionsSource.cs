@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             ThreadingContext, owner, codeRefactoringAction.Workspace, subjectBuffer,
                             codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, owner, subjectBuffer)),
-                        UnifiedFixAllSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
+                        UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
                             ThreadingContext, owner, fixAllAction.Workspace, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(

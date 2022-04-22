@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -13,23 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private sealed partial class FixAllCodeAction : FixSomeCodeAction
         {
-            public FixAllCodeAction(FixAllState fixAllState)
+            public FixAllCodeAction(IFixAllState fixAllState)
                 : base(fixAllState, showPreviewChangesDialog: true)
             {
             }
-
-            public override string Title
-                => this.FixAllState.Scope switch
-                {
-                    FixAllScope.Document => FeaturesResources.Document,
-                    FixAllScope.Project => FeaturesResources.Project,
-                    FixAllScope.Solution => FeaturesResources.Solution,
-                    FixAllScope.ContainingMember => FeaturesResources.Containing_Member,
-                    FixAllScope.ContainingType => FeaturesResources.Containing_Type,
-                    _ => throw new NotSupportedException(),
-                };
-
-            internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
         }
     }
 }

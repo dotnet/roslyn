@@ -8,12 +8,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.FixAll.CommonDocumentBasedFixAllProviderHelpers;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
         /// </summary>
         protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            => fixAllContext.GetDefaultFixAllTitle();
 
         /// <summary>
         /// Apply fix all operation for the code refactoring in the <see cref="FixAllContext.Document"/>
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             => _supportedFixAllScopes;
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            => GetFixAsync(FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
+            => GetFixAsync(fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
 
         private static async Task<CodeAction?> GetFixAsync(
             string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
         {
-            var progressTracker = originalFixAllContext.GetProgressTracker();
+            var progressTracker = originalFixAllContext.ProgressTracker;
             progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
 
             var solution = originalFixAllContext.Project.Solution;

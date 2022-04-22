@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.FixAll;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
             }
 
-            var scope = GetFixAllScopeForCodeFix(annotation);
+            var scope = GetFixAllScope(annotation);
 
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
                 document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)

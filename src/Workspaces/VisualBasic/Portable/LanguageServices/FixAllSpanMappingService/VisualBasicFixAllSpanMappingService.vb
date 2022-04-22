@@ -5,11 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.FixAll
+Imports Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FixAll
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixesAndRefactorings
     <ExportLanguageService(GetType(IFixAllSpanMappingService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFixAllSpanMappingService
         Inherits AbstractFixAllSpanMappingService

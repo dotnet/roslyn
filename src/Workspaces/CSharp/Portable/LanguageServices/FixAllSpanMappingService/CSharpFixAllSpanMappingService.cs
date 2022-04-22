@@ -8,13 +8,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FixAll;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-namespace Microsoft.CodeAnalysis.CSharp.FixAll
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixesAndRefactorings
 {
     [ExportLanguageService(typeof(IFixAllSpanMappingService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpFixAllSpanMappingService : AbstractFixAllSpanMappingService

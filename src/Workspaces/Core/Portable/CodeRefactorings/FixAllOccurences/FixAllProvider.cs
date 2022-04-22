@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <remarks>
     /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
     /// </remarks>
-    internal abstract class FixAllProvider
+    internal abstract class FixAllProvider : IFixAllProvider
     {
         private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
             = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
@@ -37,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
         public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext);
+
+        #region IFixAllProvider implementation
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
+            => this.GetFixAsync((FixAllContext)fixAllContext);
+        #endregion
 
         /// <summary>
         /// Create a <see cref="FixAllProvider"/> that fixes documents independently.

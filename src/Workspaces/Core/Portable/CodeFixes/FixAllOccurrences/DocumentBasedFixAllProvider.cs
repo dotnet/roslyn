@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
         /// </summary>
         protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            => fixAllContext.GetDefaultFixAllTitle();
 
         /// <summary>
         /// Fix all the <paramref name="diagnostics"/> present in <paramref name="document"/>.  The document returned
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
 
         private async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
         {

@@ -943,7 +943,7 @@ Consider using the title as the equivalence key instead of 'null'";
             return workspace.CurrentSolution.GetDocument(hostDocument.Id);
         }
 
-        protected static FixAllScope? GetFixAllScopeForCodeFix(string annotation)
+        protected static FixAllScope? GetFixAllScope(string annotation)
         {
             if (annotation == null)
             {
@@ -958,25 +958,6 @@ Consider using the title as the equivalence key instead of 'null'";
                 "FixAllInContainingMember" => FixAllScope.ContainingMember,
                 "FixAllInContainingType" => FixAllScope.ContainingType,
                 "FixAllInSelection" => FixAllScope.Custom,
-                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
-            };
-        }
-
-        private protected static CodeRefactorings.FixAllScope? GetFixAllScopeForCodeRefactoring(string annotation)
-        {
-            if (annotation == null)
-            {
-                return null;
-            }
-
-            return annotation switch
-            {
-                "FixAllInDocument" => CodeRefactorings.FixAllScope.Document,
-                "FixAllInProject" => CodeRefactorings.FixAllScope.Project,
-                "FixAllInSolution" => CodeRefactorings.FixAllScope.Solution,
-                "FixAllInContainingMember" => CodeRefactorings.FixAllScope.ContainingMember,
-                "FixAllInContainingType" => CodeRefactorings.FixAllScope.ContainingType,
-                "FixAllInSelection" => CodeRefactorings.FixAllScope.Custom,
                 _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
             };
         }

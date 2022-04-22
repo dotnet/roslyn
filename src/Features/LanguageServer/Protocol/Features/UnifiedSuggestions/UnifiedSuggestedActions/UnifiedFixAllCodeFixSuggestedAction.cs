@@ -4,25 +4,26 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
-    /// Similar to FixAllSuggestedAction, but in a location that can be used by
+    /// Similar to FixAllCodeFixSuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedFixAllSuggestedAction : UnifiedSuggestedAction, IFixAllSuggestedAction
+    internal class UnifiedFixAllCodeFixSuggestedAction : UnifiedSuggestedAction, IFixAllCodeFixSuggestedAction
     {
         public Diagnostic Diagnostic { get; }
 
-        public FixAllState? FixAllState { get; }
+        public IFixAllState? FixAllState { get; }
 
-        public UnifiedFixAllSuggestedAction(
+        public UnifiedFixAllCodeFixSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            FixAllState? fixAllState,
+            IFixAllState? fixAllState,
             Diagnostic diagnostic)
             : base(workspace, codeAction, codeActionPriority)
         {
