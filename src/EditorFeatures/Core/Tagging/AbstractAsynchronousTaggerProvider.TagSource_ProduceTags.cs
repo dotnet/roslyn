@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return;
 
                 // If any of the requests was high priority, then compute at that speed.
-                var highPriority = changes.Any(b => b);
+                var highPriority = changes.Contains(true);
                 await RecomputeTagsAsync(highPriority, cancellationToken).ConfigureAwait(false);
             }
 
