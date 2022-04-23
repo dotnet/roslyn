@@ -10,10 +10,12 @@ Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -333,12 +335,9 @@ End Class
 
                 Dim solution = workspace.CurrentSolution _
                     .WithOptions(workspace.Options _
-                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
-                                       LanguageNames.VisualBasic,
-                                       systemImportsFirst) _
-                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups,
-                                       LanguageNames.VisualBasic,
-                                       separateImportsGroups)) _
+                        .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
+                                           LanguageNames.VisualBasic,
+                                           systemImportsFirst)) _
                     .WithAnalyzerReferences({
                         New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
                         New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
@@ -346,6 +345,10 @@ End Class
                                             })
 
                 workspace.TryApplyChanges(solution)
+
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
+                    LineFormattingOptions.Default,
+                    separateImportDirectiveGroups:=separateImportsGroups)
 
                 ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
                 Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
@@ -362,7 +365,8 @@ End Class
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    options,
+                    Function(language) options,
+                    formattingOptions,
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

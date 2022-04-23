@@ -13,12 +13,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -553,9 +555,9 @@ namespace A
 
         [Theory]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        [InlineData(LanguageNames.CSharp, 32)]
-        [InlineData(LanguageNames.VisualBasic, 67)]
-        public void VerifyAllVisualBasicCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
+        [InlineData(LanguageNames.CSharp, 35)]
+        [InlineData(LanguageNames.VisualBasic, 70)]
+        public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
         {
             var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
 
@@ -625,7 +627,6 @@ namespace A
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
-                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups)
                     .WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement))
                 .WithAnalyzerReferences(new[]
                 {
@@ -634,6 +635,17 @@ namespace A
                 });
 
             workspace.TryApplyChanges(solution);
+
+            var formattingOptions = new CSharpSyntaxFormattingOptions(
+                lineFormatting: LineFormattingOptions.Default,
+                separateImportDirectiveGroups: separateUsingGroups,
+                spacing: CSharpSyntaxFormattingOptions.Default.Spacing,
+                spacingAroundBinaryOperator: CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
+                newLines: CSharpSyntaxFormattingOptions.Default.NewLines,
+                labelPositioning: CSharpSyntaxFormattingOptions.Default.LabelPositioning,
+                indentation: CSharpSyntaxFormattingOptions.Default.Indentation,
+                wrappingKeepStatementsOnSingleLine: CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine,
+                wrappingPreserveSingleLine: CSharpSyntaxFormattingOptions.Default.WrappingPreserveSingleLine);
 
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
@@ -647,7 +659,7 @@ namespace A
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), _ => options, formattingOptions, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

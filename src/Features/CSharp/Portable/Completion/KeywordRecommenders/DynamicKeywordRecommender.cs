@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsPreProcessorDirectiveContext)
+            if (context.IsPreProcessorDirectiveContext ||
+                context.IsInTaskLikeTypeContext)
             {
                 return false;
             }

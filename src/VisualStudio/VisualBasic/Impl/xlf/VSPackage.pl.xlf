@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Podkreślenie ponownie przypisanych zmiennych;Wyświetlanie wskazówek śródwierszowych; Automatyczne wstawianie konstrukcji końcowych; Zmiana ustawień formatowania kodu;Zmiana tryb konspektu; Automatyczne wstawianie składowych interfejsu i MustOverride; Pokazywanie lub ukrywanie separatorów wierszy procedury; Włączanie lub wyłączanie sugestii poprawek błędów; Włączanie lub wyłączanie wyróżnianie odwołań i słów kluczowych; Wyrażenie regularne; Kolorowanie wyrażeń regularnych; Wyróżnianie powiązanych składników pod kursorem; Zgłaszanie nieprawidłowych wyrażeń regularnych;wyrażenie regularne;wyrażenie regularne; Użyj rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>
+        <target state="translated">Podkreślanie ponownie przypisanych zmiennych;Wyświatlnie wskazówek śródwierszowych; Automatyczne wstawianie konstrukcji końcowych; Zmiana ustawień wyświetlania listy;Zmiana trybu konspektu; Automatyczne wstawianie elementów członkowskich Interfejs i Należy Zastąpić; Pokazywanie lub ukrywanie separatorów wierszy procedury; Włączanie lub wyłączanie sugestii poprawek błędów; Włączanie lub wyłączanie wyróżnianie odwołań i słów kluczowych;
+Wyrażenie regularne;
+Wyrażenia regularne;
+Powiązane składniki pod kursorem;
+Zgłaszanie nieprawidłowych wyrażeń regularnych;
+wyrażenie regularne;
+wyrażenie regularne; 
+JSON, 
+Kolorowanie ciągów JSON; 
+Zgłaszanie nieprawidłowych ciągów JSON;
+Wykrywanie i oferowanie funkcji edytowania dla ciągów JSON;
+Użycie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

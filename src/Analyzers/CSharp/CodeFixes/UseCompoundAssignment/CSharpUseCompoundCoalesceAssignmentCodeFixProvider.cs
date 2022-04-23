@@ -33,21 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Use_compound_assignment,
-                c => FixAsync(document, diagnostic, c),
-                nameof(AnalyzersResources.Use_compound_assignment)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Use_compound_assignment, nameof(AnalyzersResources.Use_compound_assignment));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

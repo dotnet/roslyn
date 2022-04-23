@@ -5,7 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 

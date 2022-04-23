@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class DiagnosticAnalyzerExtensions
     {
         public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer == FileContentLoadAnalyzer.Instance;
+            => analyzer is DocumentDiagnosticAnalyzer
+            || analyzer is ProjectDiagnosticAnalyzer
+            || analyzer == FileContentLoadAnalyzer.Instance
+            || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
             => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();

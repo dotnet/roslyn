@@ -37,18 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_explicit_type_instead_of_var, nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
 

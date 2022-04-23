@@ -67,6 +67,16 @@
         <target state="translated">Erro ao ler o conteúdo do arquivo de origem '{0}' – '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
+        <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
+        <target state="new">'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
+        <source>'FixAllScope.Custom' is not supported with this API</source>
+        <target state="new">'FixAllScope.Custom' is not supported with this API</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Recuo e espaçamento</target>

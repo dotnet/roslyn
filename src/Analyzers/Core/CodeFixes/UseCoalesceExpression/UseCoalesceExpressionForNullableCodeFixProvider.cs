@@ -34,17 +34,13 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Use_coalesce_expression,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(AnalyzersResources.Use_coalesce_expression)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();

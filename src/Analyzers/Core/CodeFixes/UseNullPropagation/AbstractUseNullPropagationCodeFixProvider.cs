@@ -50,17 +50,13 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Use_null_propagation,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(AnalyzersResources.Use_null_propagation)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_null_propagation, nameof(AnalyzersResources.Use_null_propagation));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

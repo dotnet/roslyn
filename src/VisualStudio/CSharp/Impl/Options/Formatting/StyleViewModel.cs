@@ -986,6 +986,45 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferTopLevelStatements = $@"
+using System;
+//[
+// {ServicesVSResources.Prefer_colon}
+Console.WriteLine(""Hello, World!"");
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferProgramMain = $@"
+using System;
+
+//[
+// {ServicesVSResources.Prefer_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+Console.WriteLine(""Hello, World!"");
+//]
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -2115,6 +2154,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferMethodGroupConversion, ServicesVSResources.Prefer_method_group_conversion, s_preferMethodGroupConversion, s_preferMethodGroupConversion, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, s_preferTopLevelStatements, s_preferProgramMain, this, optionStore, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(OptionStore);
 

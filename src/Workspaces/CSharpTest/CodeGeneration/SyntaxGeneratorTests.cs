@@ -924,6 +924,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "bool operator >>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(OperatorKind.UnsignedRightShift, parameters, returnType),
+                "bool operator >>>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
                 "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 

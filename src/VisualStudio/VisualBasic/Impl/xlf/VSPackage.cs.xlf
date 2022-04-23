@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Podtrhnout znovu přiřazené proměnné;Zobrazovat vložené nápovědy;Automatické vložení koncových konstruktorů;Změnit nastavení přehledného výpisu;Změnit režim sbalení;Automatické vkládání členů Interface a MustOverride;Zobrazit nebo skrýt oddělovače řádků procedur;Zapnout nebo vypnout návrhy oprav;Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov;Regex;Obarvit regulární výrazy;Zvýrazňovat související komponenty pod kurzorem;Nahlásit neplatné regulární výrazy;reg. výr.;regulární výraz;Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direktivy importu;</target>
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;Zobrazovat vložené nápovědy;Automatické vložení koncových konstruktorů;Změnit nastavení přehledného výpisu;Změnit režim sbalení;Automatické vkládání členů Interface a MustOverride;Zobrazit nebo skrýt oddělovače řádků procedur;Zapnout nebo vypnout návrhy oprav chyb;Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov;
+Regex;
+regulární výrazy;
+související komponenty pod kurzorem;
+Nahlásit neplatné regulární výrazy;
+regex;
+regulární výraz;
+JSON;
+Obarvit řetězce JSON;
+Nahlásit neplatné řetězce JSON;
+Rozpoznat a nabízet funkce editoru pro řetězce JSON;
+Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direktivy importu;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

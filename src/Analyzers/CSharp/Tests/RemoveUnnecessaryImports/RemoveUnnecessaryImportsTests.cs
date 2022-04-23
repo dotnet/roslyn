@@ -1984,5 +1984,144 @@ class Program
                 LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_SingleUsing()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;|}
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_DeleteLeadingBlankLinesIfFirstGroupWasDeleted_MultipleUsings()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;
+using System.Threading.Tasks;|}
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_NotAllFirstGroupIsDeleted()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|{|IDE0005:using System;|}
+using System.Threading.Tasks;
+
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+        Task task = null;
+    }
+}
+",
+                FixedCode =
+@"using System.Threading.Tasks;
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+        Task task = null;
+    }
+}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(45866, "https://github.com/dotnet/roslyn/issues/45866")]
+        public async Task TestUsingGroups_AllLastGroupIsDeleted()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"[|using System.Collections.Generic;
+
+{|IDE0005:using System;
+using System.Threading.Tasks;|}|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+"
+            }.RunAsync();
+        }
     }
 }

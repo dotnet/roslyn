@@ -118,6 +118,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.CSharpShortErrorMessageFormat);
         }
 
+        public override bool GetIsEnabledByDefault(int code) =>
+            (ErrorCode)code is not (
+                ErrorCode.WRN_UseDefViolationPropertySupportedVersion
+                or ErrorCode.WRN_UseDefViolationFieldSupportedVersion
+                or ErrorCode.WRN_UseDefViolationThisSupportedVersion
+                or ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion
+                or ErrorCode.WRN_UnassignedThisSupportedVersion
+            );
+
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             bool hasPragmaSuppression;

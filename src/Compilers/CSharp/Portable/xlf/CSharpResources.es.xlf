@@ -222,6 +222,11 @@
         <target state="translated">El atributo AsyncMethodBuilder no se permite en métodos anónimos sin un tipo de valor devuelto explícito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'No se puede hacer que '{0}' acepte valores NULL.</target>
@@ -285,6 +290,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist no puede tener un argumento que se ha pasado con "in" o "out"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_DiscardCannotBeNullChecked">
         <source>Discard parameter cannot be null-checked.</source>
-        <target state="new">Discard parameter cannot be null-checked.</target>
+        <target state="translated">El parámetro de descarte no se puede comprobar con valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -414,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
         <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <target state="translated">No se puede actualizar porque ha cambiado un tipo delegado inferido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -490,6 +500,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Un árbol de expresión no puede contener un operador de tupla == o !=.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -604,12 +619,17 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalAtSequence">
         <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <target state="translated">No se permite la secuencia de caracteres \"@\". Una cadena textual o un identificador solo pueden tener un carácter \"@\" y una cadena sin formato no puede tener ninguno.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">No se permite el operador de supresión en este contexto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
+        <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
+        <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -789,12 +809,12 @@
       </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
-        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <target state="translated">La línea contiene un espacio en blanco diferente de la línea de cierre del literal de cadena sin formato: \"{0}\" frente a \"{1}\"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
         <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
-        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <target state="translated">La línea no comienza con el mismo espacio en blanco que la línea de cierre del literal de cadena sin formato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -809,7 +829,7 @@
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <target state="translated">No se pueden usar patrones de lista para un valor de tipo \"{0}\". No se encontró ninguna propiedad \"Length\" o \"Count\" adecuada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -819,7 +839,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
+        <target state="translated">Palabra clave \"record\" inesperada. ¿Quería decir \"record struct\" o \"record class\"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -919,12 +939,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoDelegateConstraint">
         <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
-        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <target state="translated">La palabra clave \"delegate\" no se puede usar como restricción. ¿Quería decir \"System.Delegate\"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
-        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <target state="translated">La palabra clave \"enum\" no se puede usar como restricción. ¿Quería decir \"struct, System.Enum\"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -964,12 +984,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
         <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
-        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <target state="translated">La interpolación debe terminar con el mismo número de corchetes de cierre que el número de caracteres \"$\" con los que comenzó el literal de cadena sin formato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotEnoughQuotesForRawString">
         <source>Not enough quotes for raw string literal.</source>
-        <target state="new">Not enough quotes for raw string literal.</target>
+        <target state="translated">No hay comillas suficientes para el literal de cadena sin formato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
@@ -984,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnOutParameter">
         <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">El parámetro \"out\" \"{0}\" no se puede comprobar con valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1015,6 +1035,11 @@
       <trans-unit id="ERR_OmittedTypeArgument">
         <source>Omitting the type argument is not allowed in the current context</source>
         <target state="translated">No se permite omitir el argumento de tipo en el contexto actual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorCantBeChecked">
+        <source>User-defined operator '{0}' cannot be declared checked</source>
+        <target state="new">User-defined operator '{0}' cannot be declared checked</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1082,6 +1107,11 @@
         <target state="translated">El método parcial "{0}" debe tener modificadores de accesibilidad porque tiene parámetros "out".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">No se permite la coincidencia de patrones para tipos de puntero.</target>
@@ -1104,22 +1134,22 @@
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
-        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <target state="translated">El delimitador literal de cadena sin formato debe estar en su propia línea.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
         <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <target state="translated">Los literales de cadena sin formato de varias líneas solo se permiten en las cadenas interpoladas textuales.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringMustContainContent">
         <source>Multi-line raw string literals must contain at least one line of content.</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <target state="translated">Los literales de cadena sin formato de varias líneas deben contener al menos una línea de contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringNotInDirectives">
         <source>Raw string literals are not allowed in preprocessor directives.</source>
-        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
+        <target state="translated">No se permiten literales de cadena sin formato en las directivas de preprocesador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1264,7 +1294,7 @@
       </trans-unit>
       <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
         <source>String must start with quote character: "</source>
-        <target state="new">String must start with quote character: "</target>
+        <target state="translated">La cadena debe comenzar con las comillas: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
@@ -1294,17 +1324,17 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <target state="translated">El literal de cadena sin formato interpolado no comienza con suficientes caracteres \"$\" para permitir tantos corchetes de cierre consecutivos como contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyOpenBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <target state="translated">El literal de cadena sin formato interpolado no comienza con suficientes caracteres \"$\" para permitir tantos corchetes de apertura consecutivos como contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
         <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
-        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
+        <target state="translated">El literal de cadena sin formato no comienza con suficientes comillas para permitir tantas comillas consecutivas como contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1342,6 +1372,16 @@
         <target state="translated">El tipo "{0}" debe ser público para poder usarlo como convención de llamada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" tiene un atributo "UnmanagedCallersOnly" y no se le puede llamar directamente. Obtenga un puntero de función a este método.</target>
@@ -1364,7 +1404,22 @@
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
-        <target state="new">Unterminated raw string literal.</target>
+        <target state="translated">Literal de cadena sin formato sin terminar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1387,6 +1442,16 @@
         <target state="translated">invalidación del generador de métodos asincrónicos</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAutoDefaultStructs">
+        <source>auto default struct fields</source>
+        <target state="new">auto default struct fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
+        <source>checked user-defined operators</source>
+        <target state="new">checked user-defined operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">valores devueltos de covariante</target>
@@ -1399,7 +1464,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDisposalPattern">
         <source>pattern-based disposal</source>
-        <target state="new">pattern-based disposal</target>
+        <target state="translated">eliminación basada en patrones</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1474,7 +1539,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
         <source>raw string literals</source>
-        <target state="new">raw string literals</target>
+        <target state="translated">literales de cadena sin formato</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
@@ -1490,6 +1555,16 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">inicializadores de campo de estructura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsignedRightShift">
+        <source>unsigned right shift</source>
+        <target state="new">unsigned right shift</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1510,6 +1585,11 @@
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">comprobación null de parámetro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3556,24 +3636,44 @@
         <target state="translated">El parámetro de tipo tiene el mismo tipo que el parámetro de tipo del método externo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">El campo '{0}' debe estar totalmente asignado antes de que se devuelva el control al llamador</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
+        <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">La propiedad '{0}' implementada automáticamente se debe asignar completamente antes de devolver el control al llamador.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion_Title">
+        <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
-        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">Una propiedad implementada automáticamente debe estar totalmente asignada antes de devolver el control al llamador.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis_Title">
-        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
-        <target state="translated">Los campos de una estructura deben estar totalmente asignados en un constructor antes de devolver el control al llamador</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</source>
+        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion">
+        <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion_Title">
+        <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
@@ -3636,6 +3736,26 @@
         <target state="translated">Uso del campo '{0}' posiblemente sin asignar</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion">
+        <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion_Title">
+        <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
+        <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field. Consider updating the language version to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
         <source>Use of possibly unassigned field</source>
         <target state="translated">Uso de un campo posiblemente sin asignar</target>
@@ -3656,19 +3776,49 @@
         <target state="translated">Uso de una propiedad implementada automáticamente posiblemente sin asignar '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion">
+        <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion_Title">
+        <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
+        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">Uso de una propiedad implementada automáticamente posiblemente sin asignar</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">El objeto "this" no se puede utilizar antes de que se hayan asignado todos sus campos</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis_Title">
-        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
-        <target state="translated">No se puede usar el objeto "this" en un constructor antes de que se hayan asignado todos sus campos</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion_Title">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation_Title">
@@ -4436,11 +4586,6 @@
         <target state="translated">Uso de una propiedad implementada automáticamente posiblemente sin asignar '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">El campo '{0}' debe estar totalmente asignado antes de que se devuelva el control al llamador</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AmbigQM">
         <source>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</source>
         <target state="translated">No se puede determinar el tipo de expresión condicional porque '{0}' y '{1}' se convierten implícitamente uno en el otro</target>
@@ -4539,11 +4684,6 @@
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
         <target state="translated">El uso del literal predeterminado no es válido en este contexto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">El objeto "this" no se puede utilizar antes de que se hayan asignado todos sus campos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -6693,11 +6833,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">El tipo de '{0}' no se puede inferir porque su inicializador hace referencia, directa o indirectamente, a la definición.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">La propiedad '{0}' implementada automáticamente se debe asignar completamente antes de devolver el control al llamador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableUsedBeforeDeclarationAndHidesField">

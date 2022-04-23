@@ -28,17 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
-                context.RegisterCodeFix(CodeAction.Create(
-                    VisualBasicAnalyzersResources.Remove_ByVal,
-                    Function(ct) FixAsync(context.Document, diagnostic, ct),
-                    NameOf(VisualBasicAnalyzersResources.Remove_ByVal)),
-                    diagnostic)
+                RegisterCodeFix(context, VisualBasicAnalyzersResources.Remove_ByVal, NameOf(VisualBasicAnalyzersResources.Remove_ByVal), diagnostic)
             Next
 
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, options As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             For Each diagnostic In diagnostics
                 Dim node = DirectCast(root.FindNode(diagnostic.AdditionalLocations(0).SourceSpan), ParameterSyntax)

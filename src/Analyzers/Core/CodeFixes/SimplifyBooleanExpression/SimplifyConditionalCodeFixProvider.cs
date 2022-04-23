@@ -34,18 +34,13 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Simplify_conditional_expression,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(AnalyzersResources.Simplify_conditional_expression)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Simplify_conditional_expression, nameof(AnalyzersResources.Simplify_conditional_expression));
             return Task.CompletedTask;
         }
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

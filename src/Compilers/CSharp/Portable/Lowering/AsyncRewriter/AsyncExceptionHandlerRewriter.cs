@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (returnLabel == null)
                 {
-                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue);
+                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue, @checked: false);
                 }
                 else
                 {

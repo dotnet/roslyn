@@ -2292,5 +2292,277 @@ Punctuation.CloseParen,
 Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMember(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    public async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteMemberWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|class Test
+{
+    public async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("class"),
+Class("Test"),
+Punctuation.OpenCurly,
+Keyword("public"),
+Class("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclaration(TestHost testHost)
+        {
+            await TestAsync(
+@"void M()
+{
+    async
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Keyword("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInPotentialLocalFunctionDeclarationWhenAsyncTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync(
+@"[|void M()
+{
+    async
+}|]
+
+class async
+{
+}",
+                testHost,
+                parseOptions: null,
+Keyword("void"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Class("async"),
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsLocalMemberType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Keyword("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsLocalMemberType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    void M()
+    {
+        [|async a;|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Class("async"),
+Local("a"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Keyword("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsPropertyType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async Prop { get; set; }|]
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
+Property("Prop"),
+Punctuation.OpenCurly,
+Keyword("get"),
+Punctuation.Semicolon,
+Keyword("set"),
+Punctuation.Semicolon,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_NoAsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Keyword("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsMethodReturnType_AsyncInScope(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class async { }
+
+class Test
+{
+    [|public async M()|] {}
+}",
+                testHost,
+                parseOptions: null,
+Keyword("public"),
+Class("async"),
+Method("M"),
+Punctuation.OpenParen,
+Punctuation.CloseParen);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncAsAccessingName(TestHost testHost)
+        {
+            await TestAsync(
+@"class Test
+{
+    void M()
+    {
+        var a = [|C.async;|]
+    }
+}
+
+class C
+{
+    public static int async;
+}",
+                testHost,
+                parseOptions: null,
+Class("C"),
+Operators.Dot,
+Field("async"),
+Static("async"),
+Punctuation.Semicolon);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
+        public async Task TestAsyncInIncompleteDelegateOrLambda(TestHost testHost)
+        {
+            await TestAsync(
+@"using System;
+class Test
+{
+    void M()
+    {
+        [|Action a = async |]
+    }
+}",
+                testHost,
+                parseOptions: null,
+Delegate("Action"),
+Local("a"),
+Operators.Equals,
+Keyword("async"));
+        }
     }
 }

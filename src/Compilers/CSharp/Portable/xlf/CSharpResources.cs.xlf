@@ -222,6 +222,11 @@
         <target state="translated">Atribut AsyncMethodBuilder je u anonymních metod bez explicitního návratového typu zakázaný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUTF8">
+        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">{0} nejde nastavit tak, aby se povolovala hodnota null.</target>
@@ -285,6 +290,11 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist nemůže mít argument předávaný pomocí in nebo out</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_DiscardCannotBeNullChecked">
         <source>Discard parameter cannot be null-checked.</source>
-        <target state="new">Discard parameter cannot be null-checked.</target>
+        <target state="translated">U parametru discard není možné provést kontrolu hodnoty null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -414,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
         <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <target state="translated">Nelze aktualizovat, protože se změnil odvozený typ delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -490,6 +500,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Strom výrazů nesmí obsahovat operátor řazené kolekce členů == nebo !=.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
+        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -604,12 +619,17 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalAtSequence">
         <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <target state="translated">Posloupnost znaků @ se nepovoluje. Doslovný řetězec nebo identifikátor může obsahovat pouze jeden znak @ a nezpracovaná hodnota nemůže obsahovat žádný z těchto znaků.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Operátor potlačení není v tomto kontextu povolený.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
+        <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
+        <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -789,12 +809,12 @@
       </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
-        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <target state="translated">Řádek obsahuje jiné prázdné znaky než ukončovací řádek literálu nezpracovaného řetězce: {0} versus {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
         <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
-        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <target state="translated">Řádek nezačíná stejným prázdným znakem jako ukončovací řádek literálu nezpracovaného řetězce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -809,7 +829,7 @@
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <target state="translated">Vzory seznamů nelze použít pro hodnotu typu {0}. Nenašla se žádná vhodná vlastnost Length nebo Count.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -819,7 +839,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
+        <target state="translated">Neočekávané klíčové slovo record. Měli jste na mysli record struct nebo record class?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -919,12 +939,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoDelegateConstraint">
         <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
-        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <target state="translated">Klíčové slovo delegate nelze použít jako omezení. Měli jste na mysli System.Delegate?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
-        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <target state="translated">Klíčové slovo enum nelze použít jako omezení. Měli jste na mysli struct, System.Enum?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -964,12 +984,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
         <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
-        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <target state="translated">Interpolace musí končit stejným počtem uzavíracích složených závorek jako počet znaků $, kterými začal literál nezpracovaného řetězce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotEnoughQuotesForRawString">
         <source>Not enough quotes for raw string literal.</source>
-        <target state="new">Not enough quotes for raw string literal.</target>
+        <target state="translated">Pro literál nezpracovaného řetězce není dost uvozovek.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
@@ -984,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnOutParameter">
         <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">U parametru out {0} není možné provést kontrolu hodnoty null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1015,6 +1035,11 @@
       <trans-unit id="ERR_OmittedTypeArgument">
         <source>Omitting the type argument is not allowed in the current context</source>
         <target state="translated">V aktuálním kontextu se vynechání argumentu typu nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorCantBeChecked">
+        <source>User-defined operator '{0}' cannot be declared checked</source>
+        <target state="new">User-defined operator '{0}' cannot be declared checked</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1082,6 +1107,11 @@
         <target state="translated">Částečná metoda {0} musí mít modifikátory přístupnosti, protože má parametry out.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Porovnávání vzorů není povolené pro typy ukazatelů.</target>
@@ -1104,22 +1134,22 @@
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
-        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <target state="translated">Oddělovač literálu nezpracovaného řetězce musí být na vlastním řádku.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
         <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <target state="translated">Víceřádkové literály nezpracovaných řetězců se povolují pouze v doslovných interpolovaných řetězcích.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringMustContainContent">
         <source>Multi-line raw string literals must contain at least one line of content.</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <target state="translated">Víceřádkové literály nezpracovaných řetězců musí obsahovat alespoň jeden řádek obsahu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringNotInDirectives">
         <source>Raw string literals are not allowed in preprocessor directives.</source>
-        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
+        <target state="translated">Literály nezpracovaných řetězců nejsou v direktivách preprocesoru povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1264,7 +1294,7 @@
       </trans-unit>
       <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
         <source>String must start with quote character: "</source>
-        <target state="new">String must start with quote character: "</target>
+        <target state="translated">Řetězec musí začínat znakem uvozovek: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
@@ -1294,17 +1324,17 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <target state="translated">Interpolovaný literál nezpracovaného řetězce nezačíná dostatečným počtem znaků $, aby bylo možné takový počet po sobě jdoucích koncových složených závorek povolit jako obsah.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyOpenBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <target state="translated">Interpolovaný literál nezpracovaného řetězce nezačíná dostatečným počtem znaků $, aby bylo možné takový počet po sobě jdoucích počátečních složených závorek povolit jako obsah.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
         <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
-        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
+        <target state="translated">Literál nezpracovaného řetězce nezačíná dostatečným počtem uvozovek, aby bylo možné tento počet po sobě jdoucích znaků uvozovek povolit jako obsah.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1342,6 +1372,16 @@
         <target state="translated">Aby se typ {0} dal použít jako konvence volání, musí být veřejný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se volat napřímo. Pro tuto metodu získejte ukazatel na funkci.</target>
@@ -1364,7 +1404,22 @@
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
-        <target state="new">Unterminated raw string literal.</target>
+        <target state="translated">Neukončený literál nezpracovaného řetězce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1387,6 +1442,16 @@
         <target state="translated">přepsání tvůrce asynchronní metody</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAutoDefaultStructs">
+        <source>auto default struct fields</source>
+        <target state="new">auto default struct fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
+        <source>checked user-defined operators</source>
+        <target state="new">checked user-defined operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">kovariantní návratové hodnoty</target>
@@ -1399,7 +1464,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDisposalPattern">
         <source>pattern-based disposal</source>
-        <target state="new">pattern-based disposal</target>
+        <target state="translated">vyřazení na základě vzoru</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1474,7 +1539,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
         <source>raw string literals</source>
-        <target state="new">raw string literals</target>
+        <target state="translated">literály nezpracovaného řetězce</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
@@ -1490,6 +1555,16 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">Inicializátory polí struktury</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUTF8StringLiterals">
+        <source>Utf8 String Literals</source>
+        <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsignedRightShift">
+        <source>unsigned right shift</source>
+        <target state="new">unsigned right shift</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1510,6 +1585,11 @@
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">kontrola hodnoty null parametru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3556,24 +3636,44 @@
         <target state="translated">Parametr typu má stejný typ jako parametr typu z vnější metody.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">Před předáním řízení volající proceduře musí být pole {0} plně přiřazené.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
+        <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">Před vrácením řízení volajícímu modulu musí být plně přiřazená automaticky implementovaná vlastnost {0}.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion_Title">
+        <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
-        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">Před vrácením řízení volajícímu se musí plně přiřadit automaticky implementovaná vlastnost</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis_Title">
-        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
-        <target state="translated">Před vrácením řízení volajícímu se musí v konstruktoru plně přiřadit pole struktury</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</source>
+        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion">
+        <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion_Title">
+        <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
@@ -3636,6 +3736,26 @@
         <target state="translated">Použila se možná nepřiřazené pole {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion">
+        <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion_Title">
+        <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
+        <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field. Consider updating the language version to auto-default the field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
         <source>Use of possibly unassigned field</source>
         <target state="translated">Použilo se pravděpodobně nepřiřazené pole</target>
@@ -3656,19 +3776,49 @@
         <target state="translated">Použití pravděpodobně nepřiřazené automaticky implementované vlastnosti {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion">
+        <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion_Title">
+        <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
+        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">Použily se pravděpodobně nepřiřazené automaticky implementované vlastnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">Objekt this se nedá použít, dokud se nepřiřadí všechna jeho pole.</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis_Title">
-        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
-        <target state="translated">Objekt this se v konstruktoru nedá použít, dokud se nepřiřadí všechna jeho pole</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion_Title">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</source>
+        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation_Title">
@@ -4436,11 +4586,6 @@
         <target state="translated">Použití pravděpodobně nepřiřazené automaticky implementované vlastnosti {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">Před předáním řízení volající proceduře musí být pole {0} plně přiřazené.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AmbigQM">
         <source>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</source>
         <target state="translated">Typ podmíněného výrazu nejde určit, protože {0} a {1} se implicitně převádějí jeden na druhého.</target>
@@ -4539,11 +4684,6 @@
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
         <target state="translated">Použití výchozího literálu není v tomto kontextu platné.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">Objekt this se nedá použít, dokud se nepřiřadí všechna jeho pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -6693,11 +6833,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">Typ pro {0} nejde odvodit, protože jeho inicializátor přímo nebo nepřímo odkazuje na definici.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">Před vrácením řízení volajícímu modulu musí být plně přiřazená automaticky implementovaná vlastnost {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableUsedBeforeDeclarationAndHidesField">

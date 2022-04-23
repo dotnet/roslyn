@@ -37,17 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                CSharpAnalyzersResources.Simplify_default_expression,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(CSharpAnalyzersResources.Simplify_default_expression)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_default_expression, nameof(CSharpAnalyzersResources.Simplify_default_expression));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  Each time we fix one case, it
             // may make the next case unfixable.  For example:

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
     internal interface IRemoteConvertTupleToStructCodeRefactoringService
     {
         ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
             Scope scope,

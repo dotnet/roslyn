@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,6 +37,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+
 #pragma warning disable CS0618 // Type or member is obsolete
     internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -970,10 +972,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         if (end >= 0 && text[end] == '}')
                         {
                             var token = root.FindToken(end);
-                            var syntaxFact = _workspace.Services.GetLanguageServices(_project.Language).GetService<ISyntaxFactsService>();
-                            if (token.Span.Start == end && syntaxFact != null)
+                            var service = _workspace.Services.GetLanguageServices(_project.Language).GetService<IVenusBraceMatchingService>();
+                            if (token.Span.Start == end && service != null)
                             {
-                                if (syntaxFact.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
+                                if (service.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
                                 {
                                     return 0;
                                 }

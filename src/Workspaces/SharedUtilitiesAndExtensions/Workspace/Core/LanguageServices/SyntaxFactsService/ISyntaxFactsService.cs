@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         // Violation.  This is feature level code.
-        bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-
-        // Violation.  This is feature level code.
         Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(SyntaxTree syntaxTree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken);
 
         // Walks the tree, starting from contextNode, looking for the first construct

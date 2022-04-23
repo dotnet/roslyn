@@ -27,17 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
         protected readonly int CursorPosition;
         protected readonly SourceText SourceText;
         protected readonly SyntaxNode Root;
+        protected readonly IndentationOptions Options;
         protected readonly int TabSize;
         protected readonly bool UseTabs;
         protected readonly CancellationToken CancellationToken;
 
-        private readonly FormattingOptions.IndentStyle _indentStyle;
-
         public StringSplitter(
             Document document, int position,
             SyntaxNode root, SourceText sourceText,
-            bool useTabs, int tabSize,
-            FormattingOptions.IndentStyle indentStyle,
+            in IndentationOptions options, bool useTabs, int tabSize,
             CancellationToken cancellationToken)
         {
             Document = document;
@@ -46,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             SourceText = sourceText;
             UseTabs = useTabs;
             TabSize = tabSize;
-            _indentStyle = indentStyle;
+            Options = options;
             CancellationToken = cancellationToken;
         }
 
         public static StringSplitter TryCreate(
             Document document, int position,
-            bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
+            in IndentationOptions options, bool useTabs, int tabSize,
             CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -60,12 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             var token = root.FindToken(position);
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            if (token.IsKind(SyntaxKind.StringLiteralToken) ||
+                token.IsKind(SyntaxKind.UTF8StringLiteralToken))
             {
                 return new SimpleStringSplitter(
                     document, position, root,
-                    sourceText, token, useTabs, tabSize,
-                    indentStyle, cancellationToken);
+                    sourceText, token, options, useTabs, tabSize,
+                    cancellationToken);
             }
 
             var interpolatedStringExpression = TryGetInterpolatedStringExpression(token, position);
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 return new InterpolatedStringSplitter(
                     document, position, root,
                     sourceText, interpolatedStringExpression,
-                    useTabs, tabSize, indentStyle, cancellationToken);
+                    options, useTabs, tabSize, cancellationToken);
             }
 
             return null;
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
             var desiredIndentation = indentationService.GetIndentation(
-                newDocument, originalLineNumber + 1, _indentStyle, CancellationToken);
+                newDocument, originalLineNumber + 1, Options, CancellationToken);
 
             var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);
             var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
