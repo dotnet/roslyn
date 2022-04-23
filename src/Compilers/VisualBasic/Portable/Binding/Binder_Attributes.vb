@@ -766,7 +766,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    Not _binder.IsValidTypeForAttributeArgument(conv.Operand.Type) Then
 
                                     If Not conv.HasErrors Then
-                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, conv.Operand.Type, conv.Type)
+                                        ' BC30934: Conversion from '{0}' to '{1}' cannot occur in a constant expression used as an argument to an attribute.
+                                        Dim firstArgument As Object = If(conv.Operand.Type Is Nothing, "Nothing", conv.Operand.Type)
+                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, firstArgument, conv.Type)
                                     End If
                                     Return CreateErrorTypedConstant(node.Type)
                                 Else
