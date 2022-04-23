@@ -32,20 +32,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Use_System_HashCode,
-                c => FixAsync(document, diagnostic, c),
-                nameof(AnalyzersResources.Use_System_HashCode)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

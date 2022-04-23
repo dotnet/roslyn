@@ -3273,4 +3273,20 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IUTF8StringOperation" Base="IOperation" HasType="true" HasConstantValue="false">
+    <Comments>
+      <summary>
+        Represents a UTF8 encoded byte representation of a string.
+        <para>
+          Current usage:
+          (1) C# UTF8 string literal expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Value" Type="string">
+      <Comments>
+        <summary>The underlying string value.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

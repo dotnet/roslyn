@@ -86,19 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var diagnostic = context.Diagnostics.First();
             if (TryGetRecordDeclaration(diagnostic, cancellationToken, out var recordDeclaration) &&
                 TryGetTokens(recordDeclaration, out _, out _))
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        CSharpCodeFixesResources.Fix_record_declaration,
-                        c => this.FixAsync(document, diagnostic, c),
-                        nameof(CSharpCodeFixesResources.Fix_record_declaration)),
-                    diagnostic);
+                RegisterCodeFix(context, CSharpCodeFixesResources.Fix_record_declaration, nameof(CSharpCodeFixesResources.Fix_record_declaration));
             }
 
             return Task.CompletedTask;
@@ -106,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {

@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private const string NugetTitle = "NuGet";
 
         private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
-        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -104,14 +103,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
-            : base(globalOptions,
+            : base(threadingContext,
+                   globalOptions,
+                   workspace,
                    listenerProvider,
-                   threadingContext,
                    SymbolSearchGlobalOptions.Enabled,
                    ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;
-            _workspace = workspace;
 
             _serviceProvider = serviceProvider;
             // MEFv2 doesn't support type based contract for Import above and for this particular contract
@@ -234,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
             // Start listening to additional events workspace changes.
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            Workspace.WorkspaceChanged += OnWorkspaceChanged;
             packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
 
             // Kick off an initial set of work that will analyze the entire solution.
@@ -270,14 +269,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
-            if (workspace == _workspace && _workspace != null && IsEnabled)
+            if (workspace == Workspace && Workspace != null && IsEnabled)
             {
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
-                var dteProject = _workspace.TryGetDTEProject(projectId);
-                var projectGuid = _workspace.GetProjectGuid(projectId);
+                var dteProject = Workspace.TryGetDTEProject(projectId);
+                var projectGuid = Workspace.GetProjectGuid(projectId);
                 if (dteProject != null && projectGuid != Guid.Empty)
                 {
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
@@ -353,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
-                var notificationService = _workspace.Services.GetService<INotificationService>();
+                var notificationService = Workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
                     string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
@@ -414,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
-                var notificationService = _workspace.Services.GetService<INotificationService>();
+                var notificationService = Workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
                     string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
@@ -463,7 +462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Contract.ThrowIfNull(_workQueue, "How could we be processing a workqueue change without a workqueue?");
 
             // If we've been disconnected, then there's no point proceeding.
-            if (_workspace == null || !IsEnabled)
+            if (Workspace == null || !IsEnabled)
                 return ValueTaskFactory.CompletedTask;
 
             return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
@@ -480,7 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Figure out the entire set of projects to process.
                 using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
 
-                var solution = _workspace.CurrentSolution;
+                var solution = Workspace.CurrentSolution;
                 AddProjectsToProcess(workQueue, solution, projectsToProcess);
 
                 // And Process them one at a time.
@@ -557,7 +556,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (project?.Language is LanguageNames.CSharp or
                 LanguageNames.VisualBasic)
             {
-                var projectGuid = _workspace.GetProjectGuid(projectId);
+                var projectGuid = Workspace.GetProjectGuid(projectId);
                 if (projectGuid != Guid.Empty)
                 {
                     newState = await GetCurrentProjectStateAsync(

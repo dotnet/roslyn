@@ -1389,6 +1389,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e is > $$
+            // e is >= $$
+            // e is < $$
+            // e is <= $$
+            if (leftToken.IsKind(SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken) &&
+                leftToken.Parent.IsKind(SyntaxKind.RelationalPattern))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -2146,6 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // q |= |
             // q <<= |
             // q >>= |
+            // q >>>= |
             // q ??= |
             if (token.IsKind(SyntaxKind.EqualsToken) ||
                 token.IsKind(SyntaxKind.MinusEqualsToken) ||
@@ -2159,6 +2170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.IsKind(SyntaxKind.PercentEqualsToken) ||
                 token.IsKind(SyntaxKind.LessThanLessThanEqualsToken) ||
                 token.IsKind(SyntaxKind.GreaterThanGreaterThanEqualsToken) ||
+                token.IsKind(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken) ||
                 token.IsKind(SyntaxKind.QuestionQuestionEqualsToken))
             {
                 return true;

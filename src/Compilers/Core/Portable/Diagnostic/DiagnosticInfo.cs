@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             var category = messageProvider.GetCategory(errorCode);
             var customTags = GetCustomTags(defaultSeverity);
             return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity,
-                isEnabledByDefault: true, description: description, helpLinkUri: helpLink, customTags: customTags);
+                isEnabledByDefault: messageProvider.GetIsEnabledByDefault(errorCode), description: description, helpLinkUri: helpLink, customTags: customTags);
         }
 
         [Conditional("DEBUG")]

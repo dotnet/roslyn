@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionOnAnonymousMember()
+        Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -29,11 +29,11 @@ end class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinition()
+        Public Async Function TestVisualBasicGoToDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -47,12 +47,12 @@ end class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        Public Sub TestVisualBasicLiteralGoToDefinition()
+        Public Async Function TestVisualBasicLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -62,12 +62,12 @@ end class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        Public Sub TestVisualBasicStringLiteralGoToDefinition()
+        Public Async Function TestVisualBasicStringLiteralGoToDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -77,12 +77,12 @@ end class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(541105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicPropertyBackingField()
+        Public Async Function TestVisualBasicPropertyBackingField() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -97,11 +97,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionSameClass()
+        Public Async Function TestVisualBasicGoToDefinitionSameClass() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -113,11 +113,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionNestedClass()
+        Public Async Function TestVisualBasicGoToDefinitionNestedClass() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -131,11 +131,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionDifferentFiles()
+        Public Async Function TestVisualBasicGotoDefinitionDifferentFiles() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -156,11 +156,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionPartialClasses()
+        Public Async Function TestVisualBasicGotoDefinitionPartialClasses() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -186,11 +186,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionMethod()
+        Public Async Function TestVisualBasicGotoDefinitionMethod() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -209,12 +209,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionPartialMethod()
+        Public Async Function TestVisualBasicGotoDefinitionPartialMethod() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -239,11 +239,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTouchLeft()
+        Public Async Function TestVisualBasicTouchLeft() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -262,11 +262,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTouchRight()
+        Public Async Function TestVisualBasicTouchRight() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -285,12 +285,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMe()
+        Public Async Function TestVisualBasicMe() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -319,12 +319,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMyClass()
+        Public Async Function TestVisualBasicMyClass() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -353,12 +353,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMyBase()
+        Public Async Function TestVisualBasicMyBase() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -387,11 +387,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenSubDefinition()
+        Public Async Function TestVisualBasicGoToOverridenSubDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -410,11 +410,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenFunctionDefinition()
+        Public Async Function TestVisualBasicGoToOverridenFunctionDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -435,11 +435,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenPropertyDefinition()
+        Public Async Function TestVisualBasicGoToOverridenPropertyDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -456,14 +456,14 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 #End Region
 
 #Region "Venus Visual Basic Tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicVenusGotoDefinition()
+        Public Async Function TestVisualBasicVenusGotoDefinition() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -479,12 +479,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicFilterGotoDefResultsFromHiddenCodeForUIPresenters()
+        Public Async Function TestVisualBasicFilterGotoDefResultsFromHiddenCodeForUIPresenters() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -500,12 +500,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicDoNotFilterGotoDefResultsFromHiddenCodeForApis()
+        Public Async Function TestVisualBasicDoNotFilterGotoDefResultsFromHiddenCodeForApis() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -521,12 +521,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 #End Region
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTestThroughExecuteCommand()
+        Public Async Function TestVisualBasicTestThroughExecuteCommand() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -545,11 +545,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionOnExtensionMethod()
+        Public Async Function TestVisualBasicGoToDefinitionOnExtensionMethod() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -574,12 +574,12 @@ End Module]]>]
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(543218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543218")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicQueryRangeVariable()
+        Public Async Function TestVisualBasicQueryRangeVariable() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -598,12 +598,12 @@ End Module
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoConstant()
+        Public Async Function TestVisualBasicGotoConstant() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -618,13 +618,13 @@ End Module
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(10132, "https://github.com/dotnet/roslyn/issues/10132")>
         <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCrossLanguageParameterizedPropertyOverride()
+        Public Async Function TestCrossLanguageParameterizedPropertyOverride() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
@@ -651,12 +651,12 @@ class B : A
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCrossLanguageNavigationToVBModuleMember()
+        Public Async Function TestCrossLanguageNavigationToVBModuleMember() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
@@ -681,13 +681,13 @@ class C
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
 #Region "Show notification tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestShowNotificationVB()
+        Public Async Function TestShowNotificationVB() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -701,12 +701,12 @@ class C
     </Project>
 </Workspace>
 
-            Test(workspace, expectedResult:=False)
-        End Sub
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
 
         <WorkItem(902119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902119")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestGoToDefinitionOnInferredFieldInitializer()
+        Public Async Function TestGoToDefinitionOnInferredFieldInitializer() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -728,12 +728,12 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestGoToDefinitionGlobalImportAlias()
+        Public Async Function TestGoToDefinitionGlobalImportAlias() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -760,12 +760,12 @@ End Namespace
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 #End Region
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitSelect_Exit()
+        Public Async Function TestVisualBasicGoToOnExitSelect_Exit() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -782,11 +782,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitSelect_Select()
+        Public Async Function TestVisualBasicGoToOnExitSelect_Select() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -803,11 +803,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitSub()
+        Public Async Function TestVisualBasicGoToOnExitSub() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -821,11 +821,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitFunction()
+        Public Async Function TestVisualBasicGoToOnExitFunction() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -839,11 +839,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueWhile_Continue()
+        Public Async Function TestVisualBasicGoToOnContinueWhile_Continue() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -859,11 +859,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueWhile_While()
+        Public Async Function TestVisualBasicGoToOnContinueWhile_While() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -879,11 +879,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitWhile_While()
+        Public Async Function TestVisualBasicGoToOnExitWhile_While() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -899,11 +899,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueFor_Continue()
+        Public Async Function TestVisualBasicGoToOnContinueFor_Continue() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -919,11 +919,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueFor_For()
+        Public Async Function TestVisualBasicGoToOnContinueFor_For() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -939,11 +939,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitFor_For()
+        Public Async Function TestVisualBasicGoToOnExitFor_For() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -959,11 +959,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueForEach_For()
+        Public Async Function TestVisualBasicGoToOnContinueForEach_For() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -979,11 +979,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitForEach_For()
+        Public Async Function TestVisualBasicGoToOnExitForEach_For() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -999,11 +999,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueDoWhileLoop_Do()
+        Public Async Function TestVisualBasicGoToOnContinueDoWhileLoop_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1019,11 +1019,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitDoWhileLoop_Do()
+        Public Async Function TestVisualBasicGoToOnExitDoWhileLoop_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1039,11 +1039,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueDoUntilLoop_Do()
+        Public Async Function TestVisualBasicGoToOnContinueDoUntilLoop_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1059,11 +1059,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitDoUntilLoop_Do()
+        Public Async Function TestVisualBasicGoToOnExitDoUntilLoop_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1079,11 +1079,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueDoLoopWhile_Do()
+        Public Async Function TestVisualBasicGoToOnContinueDoLoopWhile_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1099,11 +1099,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnContinueDoLoopUntil_Do()
+        Public Async Function TestVisualBasicGoToOnContinueDoLoopUntil_Do() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1119,11 +1119,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitTry()
+        Public Async Function TestVisualBasicGoToOnExitTry() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1139,11 +1139,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitTryInCatch()
+        Public Async Function TestVisualBasicGoToOnExitTryInCatch() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1160,11 +1160,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInSub()
+        Public Async Function TestVisualBasicGoToOnReturnInSub() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1178,11 +1178,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInSub_Partial()
+        Public Async Function TestVisualBasicGoToOnReturnInSub_Partial() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1199,11 +1199,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInSub_Partial_ReverseOrder()
+        Public Async Function TestVisualBasicGoToOnReturnInSub_Partial_ReverseOrder() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1220,11 +1220,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInSubLambda()
+        Public Async Function TestVisualBasicGoToOnReturnInSubLambda() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1240,11 +1240,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInFunction()
+        Public Async Function TestVisualBasicGoToOnReturnInFunction() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1258,11 +1258,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInFunction_OnValue()
+        Public Async Function TestVisualBasicGoToOnReturnInFunction_OnValue() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1276,11 +1276,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInIterator()
+        Public Async Function TestVisualBasicGoToOnReturnInIterator() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1294,11 +1294,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInIterator_OnValue()
+        Public Async Function TestVisualBasicGoToOnReturnInIterator_OnValue() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1312,11 +1312,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInFunctionLambda()
+        Public Async Function TestVisualBasicGoToOnReturnInFunctionLambda() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1332,11 +1332,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInConstructor()
+        Public Async Function TestVisualBasicGoToOnReturnInConstructor() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1350,11 +1350,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInOperator()
+        Public Async Function TestVisualBasicGoToOnReturnInOperator() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1368,11 +1368,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInGetAccessor()
+        Public Async Function TestVisualBasicGoToOnReturnInGetAccessor() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1388,11 +1388,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInSetAccessor()
+        Public Async Function TestVisualBasicGoToOnReturnInSetAccessor() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1408,11 +1408,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitPropertyInGetAccessor()
+        Public Async Function TestVisualBasicGoToOnExitPropertyInGetAccessor() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1428,11 +1428,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnExitPropertyInSetAccessor()
+        Public Async Function TestVisualBasicGoToOnExitPropertyInSetAccessor() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1448,11 +1448,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInAddHandler()
+        Public Async Function TestVisualBasicGoToOnReturnInAddHandler() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1468,11 +1468,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInRemoveHandler()
+        Public Async Function TestVisualBasicGoToOnReturnInRemoveHandler() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1488,11 +1488,11 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
+            Await TestAsync(workspace)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOnReturnInRaiseEvent()
+        Public Async Function TestVisualBasicGoToOnReturnInRaiseEvent() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1508,8 +1508,7 @@ End Class
     </Project>
 </Workspace>
 
-            Test(workspace)
-        End Sub
-
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

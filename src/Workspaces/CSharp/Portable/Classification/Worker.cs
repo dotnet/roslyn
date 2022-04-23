@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// artifacts T T is normally either ClassificationSpan or a Tuple (for testing purposes) 
     /// and constructed via provided factory.
     /// </summary>
-    internal partial class Worker
+    internal ref partial struct Worker
     {
         private readonly TextSpan _textSpan;
         private readonly ArrayBuilder<ClassifiedSpan> _result;

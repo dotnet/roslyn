@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discardedUseSiteInfo);
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, isChecked: false, ref discardedUseSiteInfo);
                     return c.IsImplicit;
                 }
             }

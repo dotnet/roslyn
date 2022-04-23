@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -56,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             private readonly IGlobalOptionService _globalOptions;
+
+            protected readonly IThreadingContext ThreadingContext;
             protected readonly IWpfTableControl2 TableControl;
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
@@ -117,13 +120,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 IThreadingContext threadingContext)
             {
                 presenter.AssertIsForeground();
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
                 _globalOptions = globalOptions;
+                ThreadingContext = threadingContext;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
@@ -378,7 +383,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     excerptResult,
                     lineText,
                     symbolUsageInfo,
-                    additionalProperties);
+                    additionalProperties,
+                    ThreadingContext);
             }
 
             private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
@@ -418,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault, ThreadingContext);
                         _definitionToBucket.Add(definition, bucket);
                     }
 

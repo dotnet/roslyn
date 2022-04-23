@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -931,7 +932,7 @@ namespace N1
             }
 
             var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
-            var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(modifiedDocument, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ConfigureAwait(false);
 
             var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
             Assert.Equal(expectedCode, formattedText.ToString());

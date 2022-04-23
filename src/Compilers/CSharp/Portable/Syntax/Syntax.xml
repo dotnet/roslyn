@@ -686,6 +686,7 @@
     <Kind Name="ModuloExpression"/>
     <Kind Name="LeftShiftExpression"/>
     <Kind Name="RightShiftExpression"/>
+    <Kind Name="UnsignedRightShiftExpression"/>
     <Kind Name="LogicalOrExpression"/>
     <Kind Name="LogicalAndExpression"/>
     <Kind Name="BitwiseOrExpression"/>
@@ -713,6 +714,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarBarToken"/>
       <Kind Name="AmpersandAmpersandToken"/>
       <Kind Name="BarToken"/>
@@ -755,6 +757,7 @@
       <Kind Name="OrAssignmentExpression"/>
       <Kind Name="LeftShiftAssignmentExpression"/>
       <Kind Name="RightShiftAssignmentExpression"/>
+      <Kind Name="UnsignedRightShiftAssignmentExpression"/>
       <Kind Name="CoalesceAssignmentExpression" />
       <Field Name="Left" Type="ExpressionSyntax">
         <PropertyComment>
@@ -773,6 +776,7 @@
         <Kind Name="BarEqualsToken"/>
         <Kind Name="LessThanLessThanEqualsToken"/>
         <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
         <Kind Name="QuestionQuestionEqualsToken" />
         <PropertyComment>
           <summary>SyntaxToken representing the operator of the assignment expression.</summary>
@@ -865,6 +869,7 @@
     <Kind Name="ArgListExpression"/>
     <Kind Name="NumericLiteralExpression"/>
     <Kind Name="StringLiteralExpression"/>
+    <Kind Name="UTF8StringLiteralExpression"/>
     <Kind Name="CharacterLiteralExpression"/>
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
@@ -874,8 +879,11 @@
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
       <Kind Name="StringLiteralToken"/>
+      <Kind Name="UTF8StringLiteralToken"/>
       <Kind Name="MultiLineRawStringLiteralToken"/>
+      <Kind Name="UTF8MultiLineRawStringLiteralToken"/>
       <Kind Name="SingleLineRawStringLiteralToken"/>
+      <Kind Name="UTF8SingleLineRawStringLiteralToken"/>
       <Kind Name="CharacterLiteralToken"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
@@ -3798,6 +3806,12 @@
       </PropertyComment>
       <Kind Name="OperatorKeyword"/>
     </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the "checked" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="CheckedKeyword"/>
+    </Field>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the operator token.</summary>
@@ -3813,6 +3827,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="CaretToken"/>
@@ -3861,6 +3876,12 @@
         <summary>Gets the "operator" token.</summary>
       </PropertyComment>
       <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the "checked" keyword.</summary>
+      </PropertyComment>
+      <Kind Name="CheckedKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax">
       <PropertyComment>
@@ -4341,6 +4362,9 @@
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <Kind Name="OperatorKeyword"/>
     </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="CheckedKeyword"/>
+    </Field>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the operator token.</summary>
@@ -4356,6 +4380,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="CaretToken"/>
@@ -4384,6 +4409,9 @@
     </Field>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <Kind Name="OperatorKeyword"/>
+    </Field>
+    <Field Name="CheckedKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="CheckedKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>

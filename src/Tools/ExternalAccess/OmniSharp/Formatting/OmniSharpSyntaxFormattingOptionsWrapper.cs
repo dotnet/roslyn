@@ -5,20 +5,27 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
     internal readonly record struct OmniSharpSyntaxFormattingOptionsWrapper
     {
-        internal readonly SyntaxFormattingOptions UnderlyingObject;
+        internal readonly SyntaxFormattingOptions FormattingOptions;
+        internal readonly SimplifierOptions SimplifierOptions;
 
-        internal OmniSharpSyntaxFormattingOptionsWrapper(SyntaxFormattingOptions underlyingObject)
-            => UnderlyingObject = underlyingObject;
+        internal OmniSharpSyntaxFormattingOptionsWrapper(SyntaxFormattingOptions formattingOptions, SimplifierOptions simplifierOptions)
+        {
+            FormattingOptions = formattingOptions;
+            SimplifierOptions = simplifierOptions;
+        }
 
         public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return new OmniSharpSyntaxFormattingOptionsWrapper(options);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+            return new OmniSharpSyntaxFormattingOptionsWrapper(formattingOptions, simplifierOptions);
         }
     }
 }

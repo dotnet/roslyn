@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (callerSourceLocation is object
                     && !parameter.IsCallerMemberName
-                    && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, ref discardedUseSiteInfo).Exists
+                    && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, isChecked: false, ref discardedUseSiteInfo).Exists
                     && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex
                     && argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteInfo);
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(syntax, useSiteInfo);
 
                 if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })

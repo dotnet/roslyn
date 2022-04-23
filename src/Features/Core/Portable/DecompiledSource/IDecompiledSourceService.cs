@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.DecompiledSource
@@ -24,6 +25,6 @@ namespace Microsoft.CodeAnalysis.DecompiledSource
         /// <param name="assemblyLocation">The location of the implementation assembly to decompile</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken);
+        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
     }
 }

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -48,8 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IGlobalOptionService globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when

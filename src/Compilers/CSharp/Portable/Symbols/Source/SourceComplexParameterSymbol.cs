@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.TypeInternal, this.Type, ref useSiteInfo).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.TypeInternal, this.Type, isChecked: false, ref useSiteInfo).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)

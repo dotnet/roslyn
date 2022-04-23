@@ -82,6 +82,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<Symbol> _writtenVariables = PooledHashSet<Symbol>.GetInstance();
 
         /// <summary>
+        /// Struct fields that are implicitly initialized, due to being used before being written, or not being written at an exit point.
+        /// </summary>
+        private PooledHashSet<FieldSymbol>? _implicitlyInitializedFieldsOpt;
+
+        private void AddImplicitlyInitializedField(FieldSymbol field)
+        {
+            if (TrackImplicitlyInitializedFields)
+            {
+                (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
+            }
+        }
+
+        private bool TrackImplicitlyInitializedFields
+        {
+            get
+            {
+                return _requireOutParamsAssigned
+                    && !this._emptyStructTypeCache._dev12CompilerCompatibility
+                    && CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
+            }
+        }
+
+        /// <summary>
         /// Map from variables that had their addresses taken, to the location of the first corresponding
         /// address-of expression.
         /// </summary>
@@ -230,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
+            _implicitlyInitializedFieldsOpt?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -431,14 +455,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
-                                if (associatedPropertyOrEvent?.Kind == SymbolKind.Property)
+                                bool hasAssociatedProperty = associatedPropertyOrEvent?.Kind == SymbolKind.Property;
+                                if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                                 {
-                                    Diagnostics.Add(ErrorCode.ERR_UnassignedThisAutoProperty, location, associatedPropertyOrEvent);
+                                    Diagnostics.Add(
+                                        hasAssociatedProperty ? ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion : ErrorCode.WRN_UnassignedThisSupportedVersion,
+                                        location,
+                                        hasAssociatedProperty ? associatedPropertyOrEvent : field);
                                 }
                                 else
                                 {
-                                    Diagnostics.Add(ErrorCode.ERR_UnassignedThis, location, field);
+                                    Diagnostics.Add(
+                                        hasAssociatedProperty ? ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion : ErrorCode.ERR_UnassignedThisUnsupportedVersion,
+                                        location,
+                                        hasAssociatedProperty ? associatedPropertyOrEvent : field,
+                                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
                                 }
+
+                                this.AddImplicitlyInitializedField(field);
                             }
                         }
                         reported = true;
@@ -461,22 +495,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol member,
             BoundNode node,
             DiagnosticBag diagnostics,
-            bool requireOutParamsAssigned = true)
+            out ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt,
+            bool requireOutParamsAssigned)
         {
             Debug.Assert(diagnostics != null);
 
             // Run the strongest version of analysis
-            DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
-            if (strictDiagnostics.IsEmptyWithoutResolution)
+            (DiagnosticBag strictDiagnostics, implicitlyInitializedFieldsOpt) = analyze(strictAnalysis: true);
+            if (!strictDiagnostics.HasAnyErrors())
             {
-                // If it reports nothing, there is nothing to report and we are done.
-                strictDiagnostics.Free();
+                // if we have no diagnostics or only warning-level diagnostics, we know we don't need to run the compat analysis.
+                diagnostics.AddRangeAndFree(strictDiagnostics);
                 return;
             }
 
             // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
-            DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+            (DiagnosticBag compatDiagnostics, var unused) = analyze(strictAnalysis: false);
+            Debug.Assert(unused.IsDefault);
 
             // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
             // So we just report the compat ones including that error.
@@ -513,14 +549,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ErrorCode newCode = oldCode switch
                 {
 #pragma warning disable format
-                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
-                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
-                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
-                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
-                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
-                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
-                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
-                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion => ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion,
+                    ErrorCode.ERR_UnassignedThisUnsupportedVersion             => ErrorCode.WRN_UnassignedThisUnsupportedVersion,
+                    ErrorCode.ERR_ParamUnassigned                              => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty                      => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField                         => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThisUnsupportedVersion        => ErrorCode.WRN_UseDefViolationThisUnsupportedVersion,
+                    ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion    => ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion,
+                    ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion       => ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion,
+                    ErrorCode.ERR_UseDefViolationOut                           => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation                              => ErrorCode.WRN_UseDefViolation,
                     _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
 #pragma warning restore format
                 };
@@ -535,9 +573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             strictDiagnostics.Free();
             return;
 
-            DiagnosticBag analyze(bool strictAnalysis)
+            (DiagnosticBag, ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt) analyze(bool strictAnalysis)
             {
                 DiagnosticBag result = DiagnosticBag.GetInstance();
+                ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt = default;
                 var walker = new DefiniteAssignmentPass(
                     compilation,
                     member,
@@ -550,6 +589,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool badRegion = false;
                     walker.Analyze(ref badRegion, result);
+                    if (walker._implicitlyInitializedFieldsOpt is { } implicitlyInitializedFields)
+                    {
+                        Debug.Assert(walker.TrackImplicitlyInitializedFields);
+                        var builder = ArrayBuilder<FieldSymbol>.GetInstance(implicitlyInitializedFields.Count);
+                        foreach (var field in implicitlyInitializedFields)
+                        {
+                            builder.Add(field);
+                        }
+                        builder.Sort(LexicalOrderSymbolComparer.Instance);
+                        implicitlyInitializedFieldsOpt = builder.ToImmutableAndFree();
+                    }
+
                     Debug.Assert(!badRegion);
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
@@ -561,9 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     walker.Free();
                 }
 
-                return result;
+                Debug.Assert(strictAnalysis || implicitlyInitializedFieldsOpt.IsDefault);
+                return (result, implicitlyInitializedFieldsOpt);
             }
         }
+#nullable disable
 
         private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
         {
@@ -799,7 +852,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool WriteConsideredUse(TypeSymbol type, BoundExpression value)
         {
             if (value == null || value.HasAnyErrors) return true;
-            if ((object)type != null && type.IsReferenceType && type.SpecialType != SpecialType.System_String)
+
+            if ((object)type != null && type.IsReferenceType &&
+                type.SpecialType != SpecialType.System_String &&
+                type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
                 return value.ConstantValue != ConstantValue.Null;
             }
@@ -815,6 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
             if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -839,6 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
+                case BoundKind.UTF8String:
                     return false;
                 default:
                     return true;
@@ -1104,44 +1162,128 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CONSIDER: could suppress this diagnostic in cases where the local was declared in a using
                 // or fixed statement because there's a special error code for not initializing those.
 
-                ErrorCode errorCode;
                 string symbolName = symbol.Name;
 
                 if (symbol.Kind == SymbolKind.Field)
                 {
-                    var fieldSymbol = (FieldSymbol)symbol;
-                    var associatedSymbol = fieldSymbol.AssociatedSymbol;
-                    if (associatedSymbol?.Kind == SymbolKind.Property)
-                    {
-                        errorCode = ErrorCode.ERR_UseDefViolationProperty;
-                        symbolName = associatedSymbol.Name;
-                    }
-                    else
-                    {
-                        errorCode = ErrorCode.ERR_UseDefViolationField;
-                    }
+                    addDiagnosticForStructField(slot, (FieldSymbol)symbol);
                 }
                 else if (symbol.Kind == SymbolKind.Parameter &&
                          ((ParameterSymbol)symbol).RefKind == RefKind.Out)
                 {
                     if (((ParameterSymbol)symbol).IsThis)
                     {
-                        errorCode = ErrorCode.ERR_UseDefViolationThis;
+                        addDiagnosticForStructThis(symbol, slot);
                     }
                     else
                     {
-                        errorCode = ErrorCode.ERR_UseDefViolationOut;
+                        Diagnostics.Add(ErrorCode.ERR_UseDefViolationOut, node.Location, symbolName);
                     }
                 }
                 else
                 {
-                    errorCode = ErrorCode.ERR_UseDefViolation;
+                    Diagnostics.Add(ErrorCode.ERR_UseDefViolation, node.Location, symbolName);
                 }
-                Diagnostics.Add(errorCode, new SourceLocation(node), symbolName);
             }
 
             // mark the variable's slot so that we don't complain about the variable again
             _alreadyReported[slot] = true;
+
+            return;
+
+            void addDiagnosticForStructThis(Symbol thisParameter, int thisSlot)
+            {
+                Debug.Assert(CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct });
+                if (TrackImplicitlyInitializedFields)
+                {
+#if DEBUG
+                    bool foundUnassignedField = false;
+#endif
+                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
+                    {
+                        if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
+                            continue;
+
+                        if (field is TupleErrorFieldSymbol)
+                            continue;
+
+                        int slot = VariableSlot(field, thisSlot);
+                        if (slot == -1 || !State.IsAssigned(slot))
+                        {
+                            AddImplicitlyInitializedField(field);
+#if DEBUG
+                            foundUnassignedField = true;
+#endif
+                        }
+                    }
+
+#if DEBUG
+                    Debug.Assert(foundUnassignedField);
+#endif
+                }
+
+                if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                {
+                    Diagnostics.Add(ErrorCode.WRN_UseDefViolationThisSupportedVersion, node.Location);
+                }
+                else
+                {
+                    Diagnostics.Add(
+                        ErrorCode.ERR_UseDefViolationThisUnsupportedVersion,
+                        node.Location,
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
+                }
+            }
+
+            void addDiagnosticForStructField(int fieldSlot, FieldSymbol fieldSymbol)
+            {
+                var associatedSymbol = fieldSymbol.AssociatedSymbol;
+                var hasAssociatedProperty = associatedSymbol?.Kind == SymbolKind.Property;
+                var symbolName = hasAssociatedProperty ? associatedSymbol.Name : fieldSymbol.Name;
+                if (CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct })
+                {
+                    Diagnostics.Add(hasAssociatedProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField, node.Location, symbolName);
+                    return;
+                }
+
+                var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol());
+                while (true)
+                {
+                    if (fieldSlot == 0)
+                    {
+                        // the offending field access is not contained in 'this'.
+                        Diagnostics.Add(hasAssociatedProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField, node.Location, symbolName);
+                        return;
+                    }
+
+                    var fieldIdentifier = variableBySlot[fieldSlot];
+                    var containingSlot = fieldIdentifier.ContainingSlot;
+                    if (containingSlot == thisSlot)
+                    {
+                        // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
+                        AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
+
+                        if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                        {
+                            Diagnostics.Add(
+                                hasAssociatedProperty ? ErrorCode.WRN_UseDefViolationPropertySupportedVersion : ErrorCode.WRN_UseDefViolationFieldSupportedVersion,
+                                node.Location,
+                                symbolName);
+                        }
+                        else
+                        {
+                            Diagnostics.Add(
+                                hasAssociatedProperty ? ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion : ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion,
+                                node.Location,
+                                symbolName,
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
+                        }
+                        return;
+                    }
+
+                    fieldSlot = containingSlot;
+                }
+            }
         }
 
         protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)

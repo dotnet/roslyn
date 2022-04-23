@@ -712,6 +712,12 @@ Do you want to continue?</value>
   <data name="Solution" xml:space="preserve">
     <value>Solution</value>
   </data>
+  <data name="Containing_Member" xml:space="preserve">
+    <value>Containing Member</value>
+  </data>
+  <data name="Containing_Type" xml:space="preserve">
+    <value>Containing Type</value>
+  </data>
   <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
     <value>TODO: dispose managed state (managed objects)</value>
   </data>
@@ -959,9 +965,6 @@ This version used in: {2}</value>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
   </data>
-  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
-    <value>Use interpolated verbatim string</value>
-  </data>
   <data name="Fix_typo_0" xml:space="preserve">
     <value>Fix typo '{0}'</value>
   </data>
@@ -1115,9 +1118,6 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
-  <data name="Alias_ambiguous_type_0" xml:space="preserve">
-    <value>Alias ambiguous type '{0}'</value>
-  </data>
   <data name="Warning_colon_Collection_was_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection was modified during iteration.</value>
   </data>
@@ -1264,9 +1264,6 @@ This version used in: {2}</value>
   <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
     <value>Failed to analyze data-flow for: {0}</value>
   </data>
-  <data name="Fix_formatting" xml:space="preserve">
-    <value>Fix formatting</value>
-  </data>
   <data name="Split_into_nested_0_statements" xml:space="preserve">
     <value>Split into nested '{0}' statements</value>
   </data>
@@ -1386,9 +1383,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
-  </data>
-  <data name="Make_member_static" xml:space="preserve">
-    <value>Make static</value>
   </data>
   <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
     <value>TODO</value>
@@ -1899,9 +1893,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   </data>
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
-  </data>
-  <data name="Add_explicit_cast" xml:space="preserve">
-    <value>Add explicit cast</value>
   </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
@@ -2702,9 +2693,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
     <value>&lt;infer&gt;</value>
   </data>
-  <data name="Convert_type_to_0" xml:space="preserve">
-    <value>Convert type to '{0}'</value>
-  </data>
   <data name="from_metadata" xml:space="preserve">
     <value>from metadata</value>
   </data>
@@ -2722,9 +2710,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
-  </data>
-  <data name="Make_class_abstract" xml:space="preserve">
-    <value>Make class 'abstract'</value>
   </data>
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
@@ -2877,9 +2862,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
-  </data>
-  <data name="Explicitly_inherit_documentation" xml:space="preserve">
-    <value>Explicitly inherit documentation</value>
   </data>
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>

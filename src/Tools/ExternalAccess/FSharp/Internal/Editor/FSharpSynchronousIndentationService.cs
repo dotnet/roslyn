@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public IndentationResult GetIndentation(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        public IndentationResult GetIndentation(Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
         {
             // all F# documents should have a file path
             if (document.FilePath == null)
@@ -46,13 +46,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             if (_service != null)
             {
                 var text = document.GetTextSynchronously(cancellationToken);
-                var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var options = new FSharpIndentationOptions(
-                    TabSize: documentOptions.GetOption(FormattingOptions.TabSize, LanguageNames.FSharp),
-                    IndentStyle: indentStyle);
+                var fsharpOptions = new FSharpIndentationOptions(
+                    TabSize: options.FormattingOptions.TabSize,
+                    IndentStyle: (FormattingOptions.IndentStyle)options.IndentStyle);
 
-                result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, options);
+                result = _service.GetDesiredIndentation(document.Project.LanguageServices, text, document.Id, document.FilePath, lineNumber, fsharpOptions);
             }
             else
             {

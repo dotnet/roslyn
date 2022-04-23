@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -15,54 +16,62 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal sealed class CSharpCodeGenerationPreferences : CodeGenerationPreferences
     {
+        public readonly ExpressionBodyPreference PreferExpressionBodiedMethods;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedAccessors;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedProperties;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedIndexers;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedConstructors;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedOperators;
+        public readonly ExpressionBodyPreference PreferExpressionBodiedLocalFunctions;
+        public readonly NamespaceDeclarationPreference NamespaceDeclarations;
+        public readonly AddImportPlacement PreferredUsingDirectivePlacement;
         public readonly LanguageVersion LanguageVersion;
 
-        public CSharpCodeGenerationPreferences(CSharpParseOptions parseOptions, OptionSet options)
-            : this(parseOptions.LanguageVersion, options)
+        public CSharpCodeGenerationPreferences(
+            bool placeSystemNamespaceFirst,
+            ExpressionBodyPreference preferExpressionBodiedMethods,
+            ExpressionBodyPreference preferExpressionBodiedAccessors,
+            ExpressionBodyPreference preferExpressionBodiedProperties,
+            ExpressionBodyPreference preferExpressionBodiedIndexers,
+            ExpressionBodyPreference preferExpressionBodiedConstructors,
+            ExpressionBodyPreference preferExpressionBodiedOperators,
+            ExpressionBodyPreference preferExpressionBodiedLocalFunctions,
+            NamespaceDeclarationPreference namespaceDeclarations,
+            AddImportPlacement preferredUsingDirectivePlacement,
+            LanguageVersion languageVersion)
+            : base(placeSystemNamespaceFirst)
         {
-        }
-
-        public CSharpCodeGenerationPreferences(LanguageVersion languageVersion, OptionSet options)
-            : base(options)
-        {
+            PreferExpressionBodiedMethods = preferExpressionBodiedMethods;
+            PreferExpressionBodiedAccessors = preferExpressionBodiedAccessors;
+            PreferExpressionBodiedProperties = preferExpressionBodiedProperties;
+            PreferExpressionBodiedIndexers = preferExpressionBodiedIndexers;
+            PreferExpressionBodiedConstructors = preferExpressionBodiedConstructors;
+            PreferExpressionBodiedOperators = preferExpressionBodiedOperators;
+            PreferExpressionBodiedLocalFunctions = preferExpressionBodiedLocalFunctions;
+            NamespaceDeclarations = namespaceDeclarations;
+            PreferredUsingDirectivePlacement = preferredUsingDirectivePlacement;
             LanguageVersion = languageVersion;
         }
-
-        public ExpressionBodyPreference PreferExpressionBodiedMethods
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedAccessors
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedProperties
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedIndexers
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedConstructors
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedOperators
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
-
-        public ExpressionBodyPreference PreferExpressionBodiedLocalFunctions
-            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
-
-        public NamespaceDeclarationPreference NamespaceDeclarations
-            => Options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value;
-
-        public AddImportPlacement PreferredUsingDirectivePlacement
-            => Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value;
 
         public override bool PlaceImportsInsideNamespaces
             => PreferredUsingDirectivePlacement == AddImportPlacement.InsideNamespace;
 
-        public override string Language
-            => LanguageNames.CSharp;
-
         public override CodeGenerationOptions GetOptions(CodeGenerationContext context)
             => new CSharpCodeGenerationOptions(context, this);
+
+        public static CSharpCodeGenerationPreferences Create(CSharpParseOptions parseOptions, OptionSet documentOptions)
+            => new(
+                placeSystemNamespaceFirst: documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp),
+                preferExpressionBodiedMethods: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value,
+                preferExpressionBodiedAccessors: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value,
+                preferExpressionBodiedProperties: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value,
+                preferExpressionBodiedIndexers: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value,
+                preferExpressionBodiedConstructors: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value,
+                preferExpressionBodiedOperators: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value,
+                preferExpressionBodiedLocalFunctions: documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value,
+                namespaceDeclarations: documentOptions.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value,
+                preferredUsingDirectivePlacement: documentOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value,
+                languageVersion: parseOptions.LanguageVersion);
 
         public static new async Task<CSharpCodeGenerationPreferences> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
@@ -70,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Contract.ThrowIfNull(parseOptions);
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new CSharpCodeGenerationPreferences(parseOptions, documentOptions);
+            return Create(parseOptions, documentOptions);
         }
     }
 }

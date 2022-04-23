@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
                 => _codeStyleProvider.RegisterCodeFixesAsync(context);
 
-            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
                 => _codeStyleProvider.FixAllAsync(document, diagnostics, editor, cancellationToken);
         }
     }

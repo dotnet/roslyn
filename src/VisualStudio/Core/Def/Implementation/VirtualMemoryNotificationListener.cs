@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// Listens to broadcast notifications from the Visual Studio Shell indicating that the application is running
     /// low on available virtual memory.
     /// </summary>
-    internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
+    internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEvents
     {
         // memory threshold to turn off full solution analysis - 200MB
         private const long MemoryThreshold = 200 * 1024 * 1024;
@@ -41,11 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _infoBarShown;
 
         private VirtualMemoryNotificationListener(
-            IThreadingContext threadingContext,
             IVsShell shell,
             IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace)
-            : base(threadingContext, assertIsForeground: true)
         {
             _globalOptions = globalOptions;
             _workspace = workspace;
@@ -76,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             Assumes.Present(shell);
 
-            return new VirtualMemoryNotificationListener(threadingContext, shell, globalOptions, workspace);
+            return new VirtualMemoryNotificationListener(shell, globalOptions, workspace);
         }
 
         /// <summary>

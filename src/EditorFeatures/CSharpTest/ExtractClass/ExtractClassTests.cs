@@ -2023,6 +2023,51 @@ class Test : MyBase
             }.RunAsync();
         }
 
+        [Fact, WorkItem(55871, "https://github.com/dotnet/roslyn/issues/55871")]
+        public async Task TestGenericClass()
+        {
+            var input = @"using System.Collections.Generic;
+
+[|class C<T1, T2, T3>
+{
+    public List<T1> Field1;
+    public T2 Field2;
+    public T3 Method()
+    {
+        return default;
+    }|]
+}";
+            var expected1 = @"using System.Collections.Generic;
+
+class C<T1, T2, T3> : MyBase<T1, T3>
+{
+    public T2 Field2;
+}";
+            var expected2 = @"using System.Collections.Generic;
+
+internal class MyBase<T1, T3>
+{
+    public List<T1> Field1;
+    public T3 Method()
+    {
+        return default;
+    }
+}";
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeSelection("Field1", "Method")
+            }.RunAsync();
+        }
+
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
             => memberNames.Select(m => (m, true));
 

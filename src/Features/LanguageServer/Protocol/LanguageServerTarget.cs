@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -25,12 +26,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private readonly JsonRpc _jsonRpc;
         private readonly RequestDispatcher _requestDispatcher;
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly RequestExecutionQueue _queue;
+        private readonly LanguageServerNotificationManager _notificationManager;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly ILspLogger _logger;
 
         // Set on first LSP initialize request.
         private ClientCapabilities? _clientCapabilities;
+
+        // Set on initialized.
+        private SemanticTokensRefreshListener? _semanticTokensRefreshListener;
 
         // Fields used during shutdown.
         private bool _shuttingDown;
@@ -59,15 +66,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
+            _notificationManager = new LanguageServerNotificationManager(_jsonRpc);
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+
+            // Pass the language client instance type name to the telemetry logger to ensure we can
+            // differentiate between the different C# LSP servers that have the same client name.
+            // We also don't use the language client's name property as it is a localized user facing string
+            // which is difficult to write telemetry queries for.
+            _requestTelemetryLogger = new RequestTelemetryLogger(serverKind.ToTelemetryString());
+            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, workspaceRegistrationService, _requestTelemetryLogger);
 
             _queue = new RequestExecutionQueue(
                 logger,
-                workspaceRegistrationService,
-                lspMiscellaneousFilesWorkspace,
                 globalOptions,
                 supportedLanguages,
-                serverKind);
+                serverKind,
+                _requestTelemetryLogger,
+                _lspWorkspaceManager);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
@@ -75,10 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
             {
-                // Instead of concretely defining methods for each LSP method, we instead dynamically construct
-                // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
-                // but different type parameters.  This is a key functionality to support TS external access as we do not want to couple
-                // our LSP protocol version dll to theirs.
+                // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
+                // generic method info from the exported handler types.  This allows us to define multiple handlers for
+                // the same method but different type parameters.  This is a key functionality to support TS external
+                // access as we do not want to couple our LSP protocol version dll to theirs.
                 //
                 // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
                 // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
@@ -131,6 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
                 Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
                 _clientCapabilities = initializeParams.Capabilities;
+
                 return Task.FromResult(new InitializeResult
                 {
                     Capabilities = _capabilitiesProvider.GetCapabilities(_clientCapabilities),
@@ -143,8 +159,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public virtual Task InitializedAsync()
+        public virtual Task InitializedAsync(CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_clientCapabilities);
+            if (_clientCapabilities.Workspace is not null && _clientCapabilities.Workspace.SemanticTokens.RefreshSupport)
+            {
+                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(
+                    _lspWorkspaceManager, _notificationManager, _listener, cancellationToken);
+            }
+
             return Task.CompletedTask;
         }
 
@@ -231,6 +254,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // if the queue requested shutdown via its event, it will have already shut itself down, but this
             // won't cause any problems calling it again
             _queue.Shutdown();
+
+            _semanticTokensRefreshListener?.Dispose();
+            _requestTelemetryLogger.Dispose();
+            _lspWorkspaceManager.Dispose();
         }
 
         private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)

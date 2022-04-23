@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             Snippets,
             BackgroundAnalysisMemoryMonitor);
 
-        private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
         private const string FeatureName = "InternalFeatureOnOffOptions";
 
         public static readonly Option2<bool> BraceMatching = new(FeatureName, "BraceMatching", defaultValue: true,

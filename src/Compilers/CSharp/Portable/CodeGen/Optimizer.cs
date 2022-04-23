@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type);
+            return node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, @checked: node.Checked, node.Type);
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();
 
-            return node.Update(node.RefKind, expressionOpt);
+            return node.Update(node.RefKind, expressionOpt, @checked: node.Checked);
         }
 
         // Ensures that there are no stack locals.

@@ -792,6 +792,33 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterAsync1()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterAsync2()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+    public void M() {}
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterDot()
         {

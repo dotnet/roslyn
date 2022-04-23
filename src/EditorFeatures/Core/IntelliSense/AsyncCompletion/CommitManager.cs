@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -28,7 +29,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
+    internal sealed class CommitManager : IAsyncCompletionCommitManager
     {
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new(isHandled: false, AsyncCompletionData.CommitBehavior.None);
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -53,10 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext)
-            : base(threadingContext)
+        internal CommitManager(
+            ITextView textView,
+            RecentItemsManager recentItemsManager,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
         }
@@ -91,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -184,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             string filterText,
             CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             bool includesCommitCharacter;
             if (!subjectBuffer.CheckEditAccess())
@@ -283,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
                         var changes = formattingService.GetFormattingChangesAsync(
-                            currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
+                            currentDocument, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
                     }
                 }
             }
@@ -293,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {
-                _ = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     // Make sure the notification isn't sent on UI thread.
                     await TaskScheduler.Default;

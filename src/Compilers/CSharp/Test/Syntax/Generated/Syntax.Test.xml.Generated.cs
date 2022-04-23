@@ -542,10 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.MethodDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, InternalSyntaxFactory.Identifier("Identifier"), null, GenerateParameterList(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, null, null);
 
         private static Syntax.InternalSyntax.OperatorDeclarationSyntax GenerateOperatorDeclaration()
-            => InternalSyntaxFactory.OperatorDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), InternalSyntaxFactory.Token(SyntaxKind.PlusToken), GenerateParameterList(), null, null, null);
+            => InternalSyntaxFactory.OperatorDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.PlusToken), GenerateParameterList(), null, null, null);
 
         private static Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax GenerateConversionOperatorDeclaration()
-            => InternalSyntaxFactory.ConversionOperatorDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ImplicitKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), GenerateIdentifierName(), GenerateParameterList(), null, null, null);
+            => InternalSyntaxFactory.ConversionOperatorDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ImplicitKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), null, GenerateIdentifierName(), GenerateParameterList(), null, null, null);
 
         private static Syntax.InternalSyntax.ConstructorDeclarationSyntax GenerateConstructorDeclaration()
             => InternalSyntaxFactory.ConstructorDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Identifier("Identifier"), GenerateParameterList(), null, null, null, null);
@@ -608,10 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.IndexerMemberCref(InternalSyntaxFactory.Token(SyntaxKind.ThisKeyword), null);
 
         private static Syntax.InternalSyntax.OperatorMemberCrefSyntax GenerateOperatorMemberCref()
-            => InternalSyntaxFactory.OperatorMemberCref(InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), InternalSyntaxFactory.Token(SyntaxKind.PlusToken), null);
+            => InternalSyntaxFactory.OperatorMemberCref(InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.PlusToken), null);
 
         private static Syntax.InternalSyntax.ConversionOperatorMemberCrefSyntax GenerateConversionOperatorMemberCref()
-            => InternalSyntaxFactory.ConversionOperatorMemberCref(InternalSyntaxFactory.Token(SyntaxKind.ImplicitKeyword), InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), GenerateIdentifierName(), null);
+            => InternalSyntaxFactory.ConversionOperatorMemberCref(InternalSyntaxFactory.Token(SyntaxKind.ImplicitKeyword), InternalSyntaxFactory.Token(SyntaxKind.OperatorKeyword), null, GenerateIdentifierName(), null);
 
         private static Syntax.InternalSyntax.CrefParameterListSyntax GenerateCrefParameterList()
             => InternalSyntaxFactory.CrefParameterList(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CrefParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -2968,6 +2968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ReturnType);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
+            Assert.Null(node.CheckedKeyword);
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind);
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Body);
@@ -2987,6 +2988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
+            Assert.Null(node.CheckedKeyword);
             Assert.NotNull(node.Type);
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Body);
@@ -3267,6 +3269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateOperatorMemberCref();
 
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
+            Assert.Null(node.CheckedKeyword);
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind);
             Assert.Null(node.Parameters);
 
@@ -3280,6 +3283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind);
+            Assert.Null(node.CheckedKeyword);
             Assert.NotNull(node.Type);
             Assert.Null(node.Parameters);
 
@@ -10471,10 +10475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.MethodDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), GenerateParameterList(), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclaration()
-            => SyntaxFactory.OperatorDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), SyntaxFactory.Token(SyntaxKind.PlusToken), GenerateParameterList(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
+            => SyntaxFactory.OperatorDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.PlusToken), GenerateParameterList(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionOperatorDeclaration()
-            => SyntaxFactory.ConversionOperatorDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ImplicitKeyword), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), GenerateIdentifierName(), GenerateParameterList(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
+            => SyntaxFactory.ConversionOperatorDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ImplicitKeyword), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default(SyntaxToken), GenerateIdentifierName(), GenerateParameterList(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
 
         private static ConstructorDeclarationSyntax GenerateConstructorDeclaration()
             => SyntaxFactory.ConstructorDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Identifier"), GenerateParameterList(), default(ConstructorInitializerSyntax), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
@@ -10537,10 +10541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.IndexerMemberCref(SyntaxFactory.Token(SyntaxKind.ThisKeyword), default(CrefBracketedParameterListSyntax));
 
         private static OperatorMemberCrefSyntax GenerateOperatorMemberCref()
-            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), SyntaxFactory.Token(SyntaxKind.PlusToken), default(CrefParameterListSyntax));
+            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.PlusToken), default(CrefParameterListSyntax));
 
         private static ConversionOperatorMemberCrefSyntax GenerateConversionOperatorMemberCref()
-            => SyntaxFactory.ConversionOperatorMemberCref(SyntaxFactory.Token(SyntaxKind.ImplicitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), GenerateIdentifierName(), default(CrefParameterListSyntax));
+            => SyntaxFactory.ConversionOperatorMemberCref(SyntaxFactory.Token(SyntaxKind.ImplicitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default(SyntaxToken), GenerateIdentifierName(), default(CrefParameterListSyntax));
 
         private static CrefParameterListSyntax GenerateCrefParameterList()
             => SyntaxFactory.CrefParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<CrefParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -12897,12 +12901,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ReturnType);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.CheckedKeyword.Kind());
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind());
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithOperatorToken(node.OperatorToken).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithOperatorToken(node.OperatorToken).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -12916,12 +12921,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind());
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.CheckedKeyword.Kind());
             Assert.NotNull(node.Type);
             Assert.NotNull(node.ParameterList);
             Assert.Null(node.Body);
             Assert.Null(node.ExpressionBody);
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithType(node.Type).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithType(node.Type).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -13196,9 +13202,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateOperatorMemberCref();
 
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.CheckedKeyword.Kind());
             Assert.Equal(SyntaxKind.PlusToken, node.OperatorToken.Kind());
             Assert.Null(node.Parameters);
-            var newNode = node.WithOperatorKeyword(node.OperatorKeyword).WithOperatorToken(node.OperatorToken).WithParameters(node.Parameters);
+            var newNode = node.WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithOperatorToken(node.OperatorToken).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
         }
 
@@ -13209,9 +13216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.ImplicitKeyword, node.ImplicitOrExplicitKeyword.Kind());
             Assert.Equal(SyntaxKind.OperatorKeyword, node.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.CheckedKeyword.Kind());
             Assert.NotNull(node.Type);
             Assert.Null(node.Parameters);
-            var newNode = node.WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithOperatorKeyword(node.OperatorKeyword).WithType(node.Type).WithParameters(node.Parameters);
+            var newNode = node.WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithType(node.Type).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
         }
 

@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitField(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitField(this, argument);
+
         public bool IsConst
         {
             get

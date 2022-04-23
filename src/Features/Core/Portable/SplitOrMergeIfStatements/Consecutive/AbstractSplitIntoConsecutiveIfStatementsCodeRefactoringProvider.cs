@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetLanguageService<IBlockFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             editor.ReplaceNode(ifOrElseIf, (currentNode, _) => ifGenerator.WithCondition(currentNode, leftCondition));
 
-            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken).ConfigureAwait(false))
+            if (await CanBeSeparateStatementsAsync(document, blockFacts, ifGenerator, ifOrElseIf, cancellationToken).ConfigureAwait(false))
             {
                 // Generate:
                 // if (a)
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var secondIfStatement = ifGenerator.WithCondition(ifOrElseIf, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
-                if (!syntaxFacts.IsExecutableBlock(ifOrElseIf.Parent))
+                if (!blockFacts.IsExecutableBlock(ifOrElseIf.Parent))
                 {
                     // In order to insert a new statement, we have to be inside a block.
                     editor.ReplaceNode(ifOrElseIf, (currentNode, _) => generator.ScopeBlock(ImmutableArray.Create(currentNode)));
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
-            ISyntaxFactsService syntaxFacts,
+            IBlockFactsService blockFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
             CancellationToken cancellationToken)
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            var insideStatements = syntaxFacts.GetStatementContainerStatements(ifOrElseIf);
+            var insideStatements = blockFacts.GetStatementContainerStatements(ifOrElseIf);
             if (insideStatements.Count == 0)
             {
                 // Even though there are no statements inside, we still can't split this into separate statements

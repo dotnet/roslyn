@@ -1,5 +1,11 @@
+Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> void
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? diagnosticSpan, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
+Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>>
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void
@@ -21,3 +27,5 @@ Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.
 Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.init -> void
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Rename.DocumentRenameOptions options, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions options, string newName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+
+Microsoft.CodeAnalysis.Editing.OperatorKind.UnsignedRightShift = 26 -> Microsoft.CodeAnalysis.Editing.OperatorKind

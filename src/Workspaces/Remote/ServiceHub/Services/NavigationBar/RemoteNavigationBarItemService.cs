@@ -25,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableNavigationBarItem>> GetItemsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken)
+            Checksum solutionChecksum, DocumentId documentId, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 

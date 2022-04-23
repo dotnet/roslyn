@@ -348,11 +348,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // After we do https://github.com/dotnet/roslyn/issues/49602, this assert can be
+                // simplified to `argsToParamsOpt.IsDefault || argsToParamsOpt == lengthAfterRewriting`.
+                Debug.Assert(argsToParamsOpt.IsDefault
+                    || argsToParamsOpt.Length == lengthAfterRewriting
+                    // in expanded scenarios, lengthAfterRewriting can only be larger than argsToParamsOpt by 1--otherwise it will be the same size or smaller
+                    || (boundAttribute.ConstructorExpanded && lengthAfterRewriting - argsToParamsOpt.Length <= 1));
+
                 var constructorArgumentSourceIndices = ArrayBuilder<int>.GetInstance(lengthAfterRewriting);
                 constructorArgumentSourceIndices.Count = lengthAfterRewriting;
                 for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
-                    int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    int paramIndex = argsToParamsOpt.IsDefault || argIndex >= argsToParamsOpt.Length ? argIndex : argsToParamsOpt[argIndex];
                     constructorArgumentSourceIndices[paramIndex] = defaultArguments[argIndex] ? -1 : argIndex;
                 }
                 return constructorArgumentSourceIndices.ToImmutableAndFree();
@@ -800,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(argument.TypeInternal is object);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref discardedUseSiteInfo);
+            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, isChecked: false, ref discardedUseSiteInfo);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

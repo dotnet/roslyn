@@ -4,20 +4,15 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices
 {
     internal class DateAndTimeEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
-
-        // We don't currently expose a classifier for Date/Time literals.  However, one could always be added in the future.
-        public ISyntaxClassifier? Classifier => null;
 
         public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
