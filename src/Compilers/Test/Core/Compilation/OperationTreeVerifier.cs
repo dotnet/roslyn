@@ -57,10 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
-            actual = actual.Replace("\"", "\"\"");
+            actual = actual.Replace(" \n", "\n").Replace(" \r", "\r");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
-            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
+            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
@@ -217,22 +216,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static string ConstantToString(object constant, bool quoteString = true)
+        private static string ConstantToString(object constant)
         {
             switch (constant)
             {
                 case null:
                     return "null";
                 case string s:
-                    if (quoteString)
-                    {
-                        return @"""" + s + @"""";
-                    }
-                    return s;
+                    s = s.Replace("\"", "\"\"");
+                    return @"""" + s + @"""";
                 case IFormattable formattable:
-                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                    return formattable.ToString(null, CultureInfo.InvariantCulture).Replace("\"", "\"\"");
                 default:
-                    return constant.ToString();
+                    return constant.ToString().Replace("\"", "\"\"");
             }
         }
 
@@ -1774,7 +1770,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInterpolatedStringTextOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
+            if (operation.Text.Kind != OperationKind.Literal)
+            {
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
+            }
             Visit(operation.Text, "Text");
         }
 
@@ -1787,9 +1786,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Alignment, "Alignment");
             Visit(operation.FormatString, "FormatString");
 
-            if (operation.FormatString != null)
+            if (operation.FormatString != null && operation.FormatString.Kind != OperationKind.Literal)
             {
-                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
             }
         }
 
@@ -1941,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
-            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
+            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms, IsExhaustive: {operation.IsExhaustive})");
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Value, nameof(operation.Value));
             VisitArray(operation.Arms, nameof(operation.Arms), logElementCount: true);

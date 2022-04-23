@@ -18,28 +18,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 nameof(RegularExpressionsOptions),
                 nameof(ColorizeRegexPatterns),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
 
         public static PerLanguageOption2<bool> ReportInvalidRegexPatterns =
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(ReportInvalidRegexPatterns),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
         public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
 
         public static PerLanguageOption2<bool> ProvideRegexCompletions =
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(ProvideRegexCompletions),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
     }
 
     [ExportOptionProvider, Shared]

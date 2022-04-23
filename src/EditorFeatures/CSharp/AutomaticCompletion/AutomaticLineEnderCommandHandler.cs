@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
             var changes = Formatter.GetFormattedTextChanges(
                 root,
-                new[] { CommonFormattingHelpers.GetFormattingSpan(root, span.Value) },
+                SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
                 document.Project.Solution.Workspace,
                 options,
-                rules: null, // use default
                 cancellationToken: cancellationToken);
 
             return document.ApplyTextChanges(changes, cancellationToken);
@@ -589,16 +589,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         private static int GetBraceInsertionPosition(SyntaxNode node)
-            => node switch
+        {
+            if (node is SwitchStatementSyntax switchStatementNode)
+            {
+                // There is no parenthesis pair in the switchStatementNode, and the node before 'switch' is an expression
+                // e.g.
+                // void Foo(int i)
+                // {
+                //    var c = (i + 1) swit$$ch
+                // }
+                // Consider this as a SwitchExpression, add the brace after 'switch'
+                if (switchStatementNode.OpenParenToken.IsMissing
+                    && switchStatementNode.CloseParenToken.IsMissing
+                    && IsTokenPartOfExpresion(switchStatementNode.GetFirstToken().GetPreviousToken()))
+                {
+                    return switchStatementNode.SwitchKeyword.Span.End;
+                }
+
+                // In all other case, think it is a switch statement, add brace after the close parenthesis.
+                return switchStatementNode.CloseParenToken.Span.End;
+            }
+
+            return node switch
             {
                 NamespaceDeclarationSyntax => node.GetBraces().openBrace.SpanStart,
                 IndexerDeclarationSyntax indexerNode => indexerNode.ParameterList.Span.End,
-                SwitchStatementSyntax switchStatementNode => switchStatementNode.CloseParenToken.Span.End,
                 TryStatementSyntax tryStatementNode => tryStatementNode.TryKeyword.Span.End,
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
                 _ => throw ExceptionUtilities.Unreachable,
             };
+        }
+
+        private static bool IsTokenPartOfExpresion(SyntaxToken syntaxToken)
+        {
+            if (syntaxToken.IsMissing || syntaxToken.IsKind(SyntaxKind.None))
+            {
+                return false;
+            }
+
+            return !syntaxToken.GetAncestors<ExpressionSyntax>().IsEmpty();
+        }
 
         private static string GetBracePairString(IEditorOptions editorOptions)
             => string.Concat(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken),

@@ -11,6 +11,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") interactive host implementation.
     </PackageDescription>
@@ -56,6 +57,11 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="Utilities\FileUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Utilities\ArrayBuilderExtensions.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.cs" Link="Utilities\ArrayBuilder.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.Enumerator.cs" Link="Utilities\ArrayBuilder.Enumerator.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\ObjectPool`1.cs" Link="Utilities\ObjectPool`1.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />

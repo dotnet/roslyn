@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
+            if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
                 return ImmutableArray<SyntaxNode>.Empty;
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
-            if (trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia ||
-                trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
+            if (trivia.Kind() is SyntaxKind.MultiLineDocumentationCommentTrivia or
+                SyntaxKind.SingleLineDocumentationCommentTrivia)
             {
                 return ConvertDocumentationComment(trivia, rewriter);
             }
@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                             .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
                                             .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
                 }
+
                 if (getAccessorDeclaration?.Body != null)
                 {
                     return methodDeclaration.WithBody(getAccessorDeclaration.Body)

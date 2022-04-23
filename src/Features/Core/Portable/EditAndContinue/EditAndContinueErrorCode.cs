@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangesDisallowedWhileStoppedAtException = 4,
         DocumentIsOutOfSyncWithDebuggee = 5,
         UnableToReadSourceFileOrPdb = 6,
+        AddingTypeRuntimeCapabilityRequired = 7,
     }
 }

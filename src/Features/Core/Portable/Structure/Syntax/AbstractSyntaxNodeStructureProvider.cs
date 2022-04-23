@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public sealed override void CollectBlockSpans(
+            SyntaxToken previousToken,
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
@@ -28,11 +29,12 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             if (node is TSyntaxNode tSyntax)
             {
-                CollectBlockSpans(tSyntax, ref spans, optionProvider, cancellationToken);
+                CollectBlockSpans(previousToken, tSyntax, ref spans, optionProvider, cancellationToken);
             }
         }
 
         protected abstract void CollectBlockSpans(
+            SyntaxToken previousToken,
             TSyntaxNode node, ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider, CancellationToken cancellationToken);
     }

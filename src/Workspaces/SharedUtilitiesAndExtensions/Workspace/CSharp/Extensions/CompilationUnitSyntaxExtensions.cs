@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, NamespaceDeclarationSyntax? namespaceDeclaration)
+        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax? namespaceDeclaration)
         {
             if (namespaceDeclaration != null)
             {
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var firstOuterNamespaceWithUsings = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-
             if (firstOuterNamespaceWithUsings == null)
             {
                 return root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, annotations);

@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetSpaces(int space)
         {
-            if (space >= 0 && space < 20)
+            if (space is >= 0 and < 20)
             {
                 return s_spaceCache[space];
             }

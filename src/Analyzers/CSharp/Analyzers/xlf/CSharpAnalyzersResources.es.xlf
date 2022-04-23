@@ -27,6 +27,16 @@
         <target state="translated">Convertir una instrucción switch en expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="translated">Convertir en namespace con ámbito de bloque</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="translated">Convertir en namespace con ámbito de archivo</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">Desconstruir la declaración de variable</target>
@@ -85,6 +95,16 @@
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
         <target state="translated">Negar expresión (cambia la semántica)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="translated">Se puede aclarar la comprobación de valores NULL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Preferir comprobación "null' sobre comprobación de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -235,6 +255,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usar coincidencia de patrones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">Usar coincidencia de patrones (puede cambiar el significado del código)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

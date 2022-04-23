@@ -698,15 +698,16 @@
     <value>Multiple global analyzer config files set the same key. It has been unset.</value>
   </data>
   <data name="HintNameUniquePerGenerator" xml:space="preserve">
-    <value>The hintName of the added source file must be unique within a generator.</value>
+    <value>The hintName '{0}' of the added source file must be unique within a generator.</value>
+    <comment>{0}: the provided hintname</comment>
   </data>
   <data name="HintNameInvalidChar" xml:space="preserve">
-    <value>The hintName contains an invalid character '{0}' at position {1}.</value>
-    <comment>{0}: the invalid character, {1} the position it occurred at</comment>
+    <value>The hintName '{0}' contains an invalid character '{1}' at position {2}.</value>
+    <comment>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</comment>
   </data>
   <data name="SourceTextRequiresEncoding" xml:space="preserve">
-    <value>The provided SourceText must have an explicit encoding set.</value>
-    <comment>'SourceText' is not localizable.</comment>
+    <value>The SourceText with hintName '{0}' must have an explicit encoding set.</value>
+    <comment>'SourceText' is not localizable. {0}: the provided hintname</comment>
   </data>
   <data name="AssemblyReferencesNetFramework" xml:space="preserve">
     <value>The assembly containing type '{0}' references .NET Framework, which is not supported.</value>

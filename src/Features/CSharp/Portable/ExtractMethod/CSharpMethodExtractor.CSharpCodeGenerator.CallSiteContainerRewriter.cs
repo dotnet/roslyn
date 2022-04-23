@@ -355,6 +355,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return node.WithStatement(ReplaceStatementIfNeeded(node.Statement));
                 }
 
+                public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitInterfaceDeclaration(node);
+                    }
+
+                    return GetUpdatedTypeDeclaration(node);
+                }
+
                 public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
                 {
                     if (node != ContainerOfStatementsOrFieldToReplace)

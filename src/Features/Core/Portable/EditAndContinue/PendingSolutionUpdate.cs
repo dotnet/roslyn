@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {

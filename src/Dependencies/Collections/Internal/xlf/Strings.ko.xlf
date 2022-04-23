@@ -102,6 +102,11 @@
         <target state="translated">오프셋 및 길이가 배열의 범위를 벗어났거나 카운트가 인덱스부터 소스 컬렉션 끝까지의 요소 수보다 큽니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">이전 값을 찾을 수 없음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">
         <source>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</source>
         <target state="translated">비동시 컬렉션을 변경하는 작업에는 단독 액세스 권한이 있어야 합니다. 이 컬렉션에 대해 동시 업데이트가 수행되어 해당 상태가 손상되었습니다. 컬렉션의 상태가 더 이상 올바르지 않습니다.</target>

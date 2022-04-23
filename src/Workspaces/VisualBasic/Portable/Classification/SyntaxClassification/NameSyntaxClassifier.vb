@@ -79,6 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 If TryClassifyIdentifier(node, semanticModel, cancellationToken, classifiedSpan) Then
                     result.Add(classifiedSpan)
                 End If
+
                 Return
             End If
 

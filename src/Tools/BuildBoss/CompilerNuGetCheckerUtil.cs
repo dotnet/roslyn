@@ -275,7 +275,7 @@ namespace BuildBoss
         /// </summary>
         private bool GetPackageAssetsCore(TextWriter textWriter, bool isDesktop, List<PackageAsset> packageAssets, params string[] directoryPaths)
         {
-            var relativeNameMap = new Dictionary<string, PackageAsset>(PathComparer);
+            var relativeNameMap = new Dictionary<string, (PackageAsset PackageAsset, string OriginalFilePath)>(PathComparer);
             var allGood = true;
 
             IEnumerable<string> enumerateAssets(string directory, SearchOption searchOption = SearchOption.TopDirectoryOnly)
@@ -320,16 +320,18 @@ namespace BuildBoss
                         var assetRelativeName = getRelativeName(assetFilePath);
                         var hash = md5.ComputeHash(stream);
                         var hashString = BitConverter.ToString(hash);
-                        if (relativeNameMap.TryGetValue(assetRelativeName, out PackageAsset existingAsset))
+                        if (relativeNameMap.TryGetValue(assetRelativeName, out var tuple))
                         {
                             // Make sure that all copies of the DLL have the same contents. The DLLs are being merged into
                             // a single directory in the resulting NuGet. If the contents are different then our merge is 
                             // invalid.
-                            if (existingAsset.Checksum != hashString)
+                            if (tuple.PackageAsset.Checksum != hashString)
                             {
                                 textWriter.WriteLine($"Asset {assetRelativeName} exists at two different versions");
-                                textWriter.WriteLine($"\tHash 1: {hashString}");
-                                textWriter.WriteLine($"\tHash 2: {existingAsset.Checksum}");
+                                textWriter.WriteLine($"\tFile Path 1: {tuple.OriginalFilePath}");
+                                textWriter.WriteLine($"\tHash 1: {tuple.PackageAsset.Checksum}");
+                                textWriter.WriteLine($"\tFile Path 2: {assetFilePath}");
+                                textWriter.WriteLine($"\tHash 2: {hashString}");
                                 allGood = false;
                             }
                         }
@@ -337,7 +339,7 @@ namespace BuildBoss
                         {
                             var packageAsset = new PackageAsset(assetRelativeName, hashString, isDesktop);
                             packageAssets.Add(packageAsset);
-                            relativeNameMap[assetRelativeName] = packageAsset;
+                            relativeNameMap[assetRelativeName] = (packageAsset, assetFilePath);
                         }
                     }
                 }

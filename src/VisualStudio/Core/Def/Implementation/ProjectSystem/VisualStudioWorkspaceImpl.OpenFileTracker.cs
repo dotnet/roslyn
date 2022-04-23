@@ -453,8 +453,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 int IVsHierarchyEvents.OnPropertyChanged(uint itemid, int propid, uint flags)
                 {
-                    if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy ||
-                        propid == (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext)
+                    if (propid is ((int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy) or
+                        ((int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext))
                     {
                         _openFileTracker.RefreshContextsForHierarchyPropertyChange(_hierarchy);
                     }

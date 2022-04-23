@@ -951,5 +951,29 @@ class D : C, I
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderParamTagsInDocComments_Record()
+        {
+            var markup = @"
+/// <param name=""A""></param>
+/// <param name=""B""></param>
+/// <param name=""C""></param>
+record $$R(int A, int B, int C)
+{
+    public static R Instance = new(0, 1, 2);
+}";
+            var permutation = new[] { 2, 1, 0 };
+            var updatedCode = @"
+/// <param name=""C""></param>
+/// <param name=""B""></param>
+/// <param name=""A""></param>
+record R(int C, int B, int A)
+{
+    public static R Instance = new(2, 1, 0);
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }

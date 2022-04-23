@@ -182,6 +182,11 @@
         <target state="translated">クラス '{0}' のシールを解除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">再帰パターンを使用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 一時メソッド呼び出しを条件付きメソッド呼び出しにインライン展開しています。</target>
@@ -297,21 +302,6 @@
         <target state="translated">選択が無効です。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">選択には有効なトークンは含まれません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">抽出を行うための有効な選択がありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">抽出するための一般的なルート ノードがありません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">無効な選択が含まれています。</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">レコード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">レコード構造体</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

@@ -55,6 +55,32 @@ class Program
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestThisConstructorInitializerSameFile_FileScopedNamespace(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+namespace FileScopedNS;
+
+class Program
+{
+    private int v;
+    public Program() : $$[|this|](4)
+    {
+    }
+
+    public {|Definition:Program|}(int v)
+    {
+        this.v = v;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestThisConstructorInitializerDifferentFile1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

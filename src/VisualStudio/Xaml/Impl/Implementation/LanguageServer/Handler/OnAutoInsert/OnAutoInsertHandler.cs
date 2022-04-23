@@ -17,8 +17,8 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
+    [ProvidesMethod(VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => MSLSPMethods.OnAutoInsertName;
+        public override string Method => VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 insertText = insertText.Insert(result.CaretOffset.Value, "$0");
             }
 
-            return new DocumentOnAutoInsertResponseItem
+            return new VSInternalDocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = insertFormat,
                 TextEdit = new TextEdit

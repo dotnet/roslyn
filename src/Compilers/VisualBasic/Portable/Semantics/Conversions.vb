@@ -1571,7 +1571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If anonymousType.Properties.Length <> 1 OrElse
                anonymousType.Properties(0).SetMethod IsNot Nothing OrElse
-               Not anonymousType.Properties(0).Name.Equals(StringConstants.ItAnonymous) OrElse
+               Not anonymousType.Properties(0).Name.Equals(GeneratedNameConstants.ItAnonymous) OrElse
                Not invokeParams(1).Type.IsSameTypeIgnoringAll(anonymousType.Properties(0).Type) Then
                 Return Nothing ' No conversion
             End If

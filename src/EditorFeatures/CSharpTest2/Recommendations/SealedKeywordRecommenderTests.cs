@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -101,6 +99,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -280,10 +286,18 @@ $$");
         public async Task TestNotAfterStatic()
             => await VerifyAbsenceAsync(@"static $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedStatic()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedStatic([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
+    static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedStaticInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
     static $$");
         }
 
@@ -299,17 +313,19 @@ $$");
         public async Task TestNotAfterDelegate()
             => await VerifyAbsenceAsync(@"delegate $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAbstract()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedAbstract([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     abstract $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedVirtual()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     virtual $$");
         }
 
@@ -321,10 +337,11 @@ $$");
     override $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedSealed()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedSealed([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     sealed $$");
         }
 

@@ -23,19 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
         {
             var dummyDiagnosticBag = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
-            var boundAttribute = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
+            var result = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
             generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
             dummyDiagnosticBag.Free();
-            return boundAttribute;
+            return result;
         }
 
         // Hide the GetAttribute overload which takes a diagnostic bag.
         // This ensures that diagnostics from the early bound attributes are never preserved.
         [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
-        internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/56498
+        internal new (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
+#pragma warning restore format
         {
             Debug.Assert(false, "Don't call this overload.");
             diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);

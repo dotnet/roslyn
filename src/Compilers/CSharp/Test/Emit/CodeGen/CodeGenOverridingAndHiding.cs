@@ -1190,8 +1190,9 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
                     string expectedOutput;
+                    Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
                     {
                         // Correct runtime behavior with no warning

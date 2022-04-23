@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                             HighlightRelatedKeywords(child.AsNode(), spans);
                         }
                     }
+
                     break;
             }
         }

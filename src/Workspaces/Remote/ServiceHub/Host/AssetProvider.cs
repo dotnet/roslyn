@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            var timer = new Stopwatch();
+            timer.Start();
+
             // this will pull in assets that belong to the given solution checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
             // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
@@ -83,6 +86,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var syncer = new ChecksumSynchronizer(this);
                 await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            timer.Stop();
+
+            // report telemetry to help correlate slow solution sync with UI delays
+            if (timer.ElapsedMilliseconds > 1000)
+            {
+                Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = timer.ElapsedMilliseconds));
             }
         }
 

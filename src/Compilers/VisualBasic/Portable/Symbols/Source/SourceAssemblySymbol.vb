@@ -1705,7 +1705,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         VersionHelper.GenerateVersionFromPatternAndCurrentTime(_compilation.Options.CurrentLocalTime, AssemblyVersionAttributeSetting),
                                         Me.AssemblyCultureAttributeSetting,
                                         StrongNameKeys.PublicKey,
-                                        hasPublicKey:=Not StrongNameKeys.PublicKey.IsDefault)
+                                        hasPublicKey:=Not StrongNameKeys.PublicKey.IsDefault,
+                                        isRetargetable:=(AssemblyFlags And AssemblyFlags.Retargetable) = AssemblyFlags.Retargetable)
 
         End Function
 

@@ -111,7 +111,7 @@ and only be correct at build time. Based on conversations with 1st party custome
 there are several cases where this would be enough.
 
 However, for scenarios such as code first gRPC, and in particular Razor and Blazor,
-the IDE will need to be able to generate code on-they-fly as those file types are
+the IDE will need to be able to generate code on-the-fly as those file types are
 edited and reflect the changes back to other files in the IDE in near real-time.
 
 The proposal is to have a set of advanced callbacks that can be optionally implemented,

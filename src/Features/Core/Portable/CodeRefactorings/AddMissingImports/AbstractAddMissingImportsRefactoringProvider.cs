@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
         {
             public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

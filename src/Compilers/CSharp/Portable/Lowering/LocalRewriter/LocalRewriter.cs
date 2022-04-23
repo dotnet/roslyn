@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -390,6 +389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return PlaceholderReplacement(node);
         }
+
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            => PlaceholderReplacement(node);
+
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
+            => PlaceholderReplacement(node);
 
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
@@ -789,8 +794,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rhs.IsDefaultValue();
         }
 
-        // There are two situations in which the language permits passing rvalues by reference.
-        // (technically there are 4, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
+        // There are three situations in which the language permits passing rvalues by reference.
+        // (technically there are 5, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
         //
         // #1: Receiver of a struct/generic method call.
         //
@@ -851,6 +856,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //            Console.WriteLine(y);
         //        }
         //
+        // #3: Ordinary byval interpolated string expression passed to a "ref" interpolated string handler value type.
+        //
+        // Interpolated string expressions passed to a builder type are lowered into a handler form. When the handler type
+        // is a value type (struct, or type parameter constrained to struct (though the latter will fail to bind today because
+        // there's no constructor)), the final handler instance type is passed by reference if the parameter is by reference.
+        //
+        // Example:
+        //        M($""); // Language lowers this to a sequence of creating CustomHandler, appending all values, and evaluating to the builder
+        //        static void M(ref CustomHandler c) { }
+        //
         // NB: The readonliness is not considered here.
         //     We only care about possible introduction of aliasing. I.E. RValue->LValue change.
         //     Even if we start with a readonly variable, it cannot be lowered into a writeable one,
@@ -879,6 +894,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                     // we will consider that placeholder always represents a temp local
                     // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // An argument placeholder is always a reference to some type of temp local,
+                    // either representing a user-typed expression that went through this path
+                    // itself when it was originally visited, or the trailing out parameter that
+                    // is passed by out.
+                    return true;
+
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // A handler placeholder is the receiver of the interpolated string AppendLiteral
+                    // or AppendFormatted calls, and should never be defensively copied.
                     return true;
 
                 case BoundKind.EventAccess:
@@ -931,6 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
                     };
                     return refKind != RefKind.None;
+
+                case BoundKind.Conversion:
+                    var conversion = ((BoundConversion)expr);
+                    return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
 
             return false;
@@ -1002,6 +1033,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
             {
                 Fail(node);
                 return null;

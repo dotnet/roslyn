@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
             RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(editorConfigStringForValue));
-            Debug.Assert(editorConfigStringForValue.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
             return editorConfigStringForValue;
         }
 

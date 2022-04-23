@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class SyncLockBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of SyncLockBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As SyncLockBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As SyncLockBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

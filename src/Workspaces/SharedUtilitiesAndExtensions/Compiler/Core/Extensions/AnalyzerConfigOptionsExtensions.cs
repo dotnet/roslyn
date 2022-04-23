@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                if (!(storageLocation is IEditorConfigStorageLocation configStorageLocation))
+                if (storageLocation is not IEditorConfigStorageLocation configStorageLocation)
                 {
                     continue;
                 }

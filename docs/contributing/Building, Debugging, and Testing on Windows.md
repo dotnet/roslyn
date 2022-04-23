@@ -13,14 +13,14 @@ Using the command line, Roslyn can be developed using the following pattern:
 
 The minimal required version of .NET Framework is 4.7.2.
 
-## Developing with Visual Studio 2019
+## Developing with Visual Studio 2022
 
-1. [Visual Studio 2019 16.9](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2022 17.0 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.8" or greater
+    - Ensure Visual Studio is on Version "17.0" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 6.0 Preview 1 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.1-windows-x64-installer)
+1. [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -37,7 +37,7 @@ There are a number of options for running the core Roslyn unit tests:
 
 The Test.cmd script will run our unit test on already built binaries. It can be passed the `-build` argument to force a new build before running tests.
 
-1. Run the "Developer Command Prompt for VS2019" from your start menu.
+1. Run the "Developer Command Prompt for VS2022" from your start menu.
 2. Navigate to the directory of your Git clone.
 3. Run `Test.cmd` in the command prompt.
 
@@ -73,7 +73,7 @@ The Rosyln solution is designed to support easy debugging via F5.  Several of ou
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
 will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the language, IDE or debugger is as
-simple as hitting F5.
+simple as hitting F5. Note that for changes to the compiler, out-of-process builds won't use the privately built version of the compiler.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
 the default but in some cases will need to be set explicitly.
@@ -175,6 +175,12 @@ under `AppData`, not from `Program File`).
 4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) then build again
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
     - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
+
+### Testing with extra IOperation validation
+
+Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.
+For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
+See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
 ## Contributing
 

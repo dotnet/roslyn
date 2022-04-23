@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Differencing
         private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
         private readonly IEnumerable<SyntaxNode>? _newRootChildren;
 
-        // This comparer can operate in two modes: 
+        // This comparer can operate in two modes:
         // * Top level syntax, which looks at member declarations, but doesn't look inside method bodies etc.
         // * Statement syntax, which looks into member bodies and descends through all statements and expressions
-        // This flag is used where there needs to be a disctinction made between how these are treated
+        // This flag is used where there needs to be a distinction made between how these are treated
         protected readonly bool _compareStatementSyntax;
 
         internal AbstractSyntaxComparer(

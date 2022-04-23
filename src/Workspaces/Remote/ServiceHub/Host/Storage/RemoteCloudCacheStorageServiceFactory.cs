@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             _globalServiceBroker = globalServiceBroker;
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
-            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, locationService);
+        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
+            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, configuration);
 
         private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
         {
             private readonly IGlobalServiceBroker _globalServiceBroker;
 
-            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageLocationService locationService)
-                : base(locationService)
+            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
+                : base(configuration)
             {
                 _globalServiceBroker = globalServiceBroker;
             }

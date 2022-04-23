@@ -42,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                             highlights.Add(.WhenClause.WhenKeyword.Span)
                         End If
                     End With
+
                     HighlightRelatedStatements(catchBlock, highlights)
                 Next
 

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -2521,6 +2522,7 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(2, actions.Length);
             }
+
             var expect_0 =
 @"
 class Program
@@ -2670,6 +2672,7 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(2, actions.Length);
             }
+
             var expect_0 =
 @"
 class Program
@@ -2745,6 +2748,7 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(3, actions.Length);
             }
+
             var expect_0 =
 @"
 class Program
@@ -3044,6 +3048,33 @@ class C
     [Obsolete((string)str, false)]
     void M() 
     {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        [WorkItem(50493, "https://github.com/dotnet/roslyn/issues/50493")]
+        public async Task ArrayAccess()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C
+{
+    public void M(object o)
+    {
+        var array = new int[10];
+
+        if (array[[||]o] > 0) {}
+    }
+}",
+                @"
+class C
+{
+    public void M(object o)
+    {
+        var array = new int[10];
+
+        if (array[(int)o] > 0) {}
     }
 }");
         }

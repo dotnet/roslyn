@@ -952,6 +952,102 @@ i", options);
             );
         }
 
+        [Fact, WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        public async Task SwitchPatternWithVar_WhenValidCode_ShouldReturnValidResult()
+        {
+            var code = @"
+using System;
+var data = ""data"";
+var reply = data switch {
+    null => ""data are null"",
+    """" => ""data are empty"",
+    _ => data
+};
+
+return reply;
+";
+            var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+            compilation.VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+
+            Assert.Equal("data", result);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenNonExistentVariable_ShouldReturnNameNotInContextCompilationError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,12): error CS0103: The name 'notExistentVariable' does not exist in the current context
+                    // var data = notExistentVariable switch { _ => null };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenInvalidPattern_ShouldReturnUnsupportedTypeForRelationalPatternAndNoImplicitConvErrors()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""data"" switch { < 5 => null };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,28): error CS8781: Relational patterns may not be used for a value of type 'string'.
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 5").WithArguments("string").WithLocation(1, 28),
+                    // (1,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "5").WithArguments("int", "string").WithLocation(1, 30));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
+        [WorkItem(49529, "https://github.com/dotnet/roslyn/issues/49529")]
+        [Fact]
+        public async Task SwitchPatternWithVar_WhenInvalidArm_ShouldReturnTheNameNotInContextError()
+        {
+            var exceptionThrown = false;
+
+            try
+            {
+                await CSharpScript.RunAsync(@"var data = ""test"" switch { _ => armError };", globals: new ScriptTests());
+            }
+            catch (CompilationErrorException ex)
+            {
+                exceptionThrown = true;
+                // Verify that it produces a single NameNotInContext error. 
+                ex.Diagnostics.Verify(
+                    // (1,33): error CS0103: The name 'armError' does not exist in the current context
+                    // var data = "test" switch { _ => armError };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "armError").WithArguments("armError")
+                        .WithLocation(1, 33));
+            }
+
+            Assert.True(exceptionThrown);
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);
