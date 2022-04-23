@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private void OnTagsChangedForBuffer(
-                ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool initialTags)
+                ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool highPriority)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -35,10 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // data out from the ui immediately.
                     _highPriTagsChangedQueue.AddWork(change.Value.Removed);
 
-                    // Added tags are run at normal priority, except in the case where this is the
-                    // initial batch of tags.  We want those to appear immediately to make the UI
-                    // show up quickly.
-                    var addedTagsQueue = initialTags ? _highPriTagsChangedQueue : _normalPriTagsChangedQueue;
+                    // Added tags are run at the requested priority.
+                    var addedTagsQueue = highPriority ? _highPriTagsChangedQueue : _normalPriTagsChangedQueue;
                     addedTagsQueue.AddWork(change.Value.Added);
                 }
             }

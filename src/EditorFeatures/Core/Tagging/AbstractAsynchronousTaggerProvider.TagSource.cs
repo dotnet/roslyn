@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             /// <summary>
             /// Used to keep track of if this <see cref="_subjectBuffer"/> is visible or not (e.g. is in some <see
-            /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see cref="Pause"/>
-            /// tagging when not visible to avoid wasting machine resources. Note: we do not examine <see
-            /// cref="_textView"/> for this as that is only available for "view taggers" (taggers which only tag
-            /// portions of the view) whereas we want this for all taggers (including just buffer taggers which tag the
-            /// entire document).
+            /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see
+            /// cref="PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we do not
+            /// examine <see cref="_textView"/> for this as that is only available for "view taggers" (taggers which
+            /// only tag portions of the view) whereas we want this for all taggers (including just buffer taggers which
+            /// tag the entire document).
             /// </summary>
             private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Now hook up this tagger to all interesting events.
                 Connect();
 
-                // Now that we're all hooked up to the events we care about, start computing the initial set of tags
-                // immediately.  We want to get the UI to a complete state as soon as possible.
-                EnqueueWork(initialTags: true);
+                // Now that we're all hooked up to the events we care about, start computing the initial set of tags at
+                // high priority.  We want to get the UI to a complete state as soon as possible.
+                EnqueueWork(highPriority: true);
 
                 return;
 
@@ -302,7 +302,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Set us back to running, and kick off work to compute tags now that we're visible again.
                 _paused = false;
                 _eventSource.Resume();
-                EnqueueWork(initialTags: false);
+
+                // We just transitioned to being visible, compute our tags at high priority so the view is updated as
+                // quickly as possible.
+                EnqueueWork(highPriority: true);
             }
 
             private ITaggerEventSource CreateEventSource()
@@ -381,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 OnTagsChangedForBuffer(SpecializedCollections.SingletonCollection(
                     new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
-                    initialTags: false);
+                    highPriority: false);
             }
         }
     }
