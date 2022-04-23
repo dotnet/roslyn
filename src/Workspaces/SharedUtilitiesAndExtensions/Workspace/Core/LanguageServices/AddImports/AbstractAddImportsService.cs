@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TUsingOrAliasSyntax, TExternSyntax>
@@ -35,6 +29,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+
+        public AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
+        {
+            fallbackOptions ??= AddImportPlacementOptions.Default;
+
+            return new(
+                PlaceSystemNamespaceFirst: configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.Value.PlaceSystemNamespaceFirst),
+                PlaceImportsInsideNamespaces: PlaceImportsInsideNamespaces(configOptions, fallbackOptions.Value.PlaceImportsInsideNamespaces),
+                AllowInHiddenRegions: allowInHiddenRegions);
+        }
 
         public abstract bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue);
 

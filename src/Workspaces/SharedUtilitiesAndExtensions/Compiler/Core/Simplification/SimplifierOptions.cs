@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     }
 
 #if !CODE_STYLE
-    internal static class SimplifierOptionsProviders
+    internal static partial class SimplifierOptionsProviders
     {
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {

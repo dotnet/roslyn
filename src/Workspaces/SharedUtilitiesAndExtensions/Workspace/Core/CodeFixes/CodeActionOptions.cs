@@ -163,39 +163,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => context.State.CodeActionOptionsProvider;
 #endif
 
-        internal static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting syntaxFormatting, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxFormatting.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), fallbackOptions: null);
-#else
-            var fallbackFormattingOptions = await fallbackOptionsProvider.GetOptionsAsync(document.Project.GetExtendedLanguageServices(), cancellationToken).ConfigureAwait(false);
-            return await document.GetSyntaxFormattingOptionsAsync(fallbackFormattingOptions, cancellationToken).ConfigureAwait(false);
-#endif
-        }
-
-        internal static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplification simplification, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return simplification.GetSimplifierOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), fallbackOptions: null);
-#else
-            var fallbackFormattingOptions = await fallbackOptionsProvider.GetOptionsAsync(document.Project.GetExtendedLanguageServices(), cancellationToken).ConfigureAwait(false);
-            return await document.GetSimplifierOptionsAsync(fallbackFormattingOptions, cancellationToken).ConfigureAwait(false);
-#endif
-        }
-
-        internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions: false, fallbackOptions: AddImportPlacementOptions.Default);
-#else
-            return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
-#endif
-        }
-
 #if !CODE_STYLE
         public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this CodeActionOptionsProvider provider, HostLanguageServices languageServices)
             => new(provider.GetOptions(languageServices).ImplementTypeOptions, provider);

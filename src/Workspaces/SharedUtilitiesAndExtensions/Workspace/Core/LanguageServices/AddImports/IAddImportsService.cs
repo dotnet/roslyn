@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal interface IAddImportsService : ILanguageService
     {
+        AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
+
         bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue);
 
         /// <summary>

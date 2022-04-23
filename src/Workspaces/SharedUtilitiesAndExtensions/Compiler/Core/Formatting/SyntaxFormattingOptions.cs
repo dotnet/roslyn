@@ -56,7 +56,7 @@ internal interface SyntaxFormattingOptionsProvider
 }
 
 #if !CODE_STYLE
-internal static class SyntaxFormattingOptionsProviders
+internal static partial class SyntaxFormattingOptionsProviders
 {
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {

@@ -5,8 +5,6 @@
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -24,18 +22,6 @@ internal readonly record struct AddImportPlacementOptions(
     }
 
     public static readonly AddImportPlacementOptions Default = new();
-
-#if !CODE_STYLE
-    internal static AddImportPlacementOptions Create(AnalyzerConfigOptions configOptions, IAddImportsService addImportsService, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
-    {
-        fallbackOptions ??= Default;
-
-        return new(
-            PlaceSystemNamespaceFirst: configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.Value.PlaceSystemNamespaceFirst),
-            PlaceImportsInsideNamespaces: addImportsService.PlaceImportsInsideNamespaces(configOptions, fallbackOptions.Value.PlaceImportsInsideNamespaces),
-            AllowInHiddenRegions: allowInHiddenRegions);
-    }
-#endif
 }
 
 internal interface AddImportPlacementOptionsProvider
@@ -46,7 +32,7 @@ internal interface AddImportPlacementOptionsProvider
 }
 
 #if !CODE_STYLE
-internal static class AddImportPlacementOptionsProviders
+internal static partial class AddImportPlacementOptionsProviders
 {
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
     {
@@ -61,7 +47,7 @@ internal static class AddImportPlacementOptionsProviders
         var spanMapper = document.Services.GetService<ISpanMappingService>();
         var allowInHiddenRegions = spanMapper != null && spanMapper.SupportsMappingImportDirectives;
 
-        return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions, fallbackOptions);
+        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions, fallbackOptions);
     }
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
