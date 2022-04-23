@@ -536,7 +536,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, node);
+                        var errorCode = GetThisLvalueError(valueKind, isValueType);
+                        if (errorCode == ErrorCode.ERR_InvalidAddrOp)
+                        {
+                            Error(diagnostics, errorCode, node);
+                        }
+                        else
+                        {
+                            Error(diagnostics, errorCode, node, node);
+                        }
                         return false;
                     }
 
