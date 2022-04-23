@@ -8,8 +8,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Roslyn.Utilities;
-using System.Threading;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
@@ -43,20 +43,20 @@ namespace Microsoft.CodeAnalysis
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
+            : this(messageProvider, errorCode, Array.Empty<object>())
         {
-            _messageProvider = messageProvider;
-            _errorCode = errorCode;
-            _defaultSeverity = messageProvider.GetSeverity(errorCode);
-            _effectiveSeverity = _defaultSeverity;
-            _arguments = Array.Empty<object>();
         }
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, params object[] arguments)
-            : this(messageProvider, errorCode)
         {
             AssertMessageSerializable(arguments);
+            AssertExpectedMessageArgumentsLength(messageProvider, errorCode, arguments.Length);
 
+            _messageProvider = messageProvider;
+            _errorCode = errorCode;
+            _defaultSeverity = messageProvider.GetSeverity(errorCode);
+            _effectiveSeverity = _defaultSeverity;
             _arguments = arguments;
         }
 
@@ -120,6 +120,25 @@ namespace Microsoft.CodeAnalysis
 
                 throw ExceptionUtilities.UnexpectedValue(type);
             }
+        }
+
+        [Conditional("DEBUG")]
+        internal static void AssertExpectedMessageArgumentsLength(CommonMessageProvider messageProvider, int errorCode, int actualLength)
+        {
+#if DEBUG
+            if (errorCode <= 0)
+            {
+                return;
+            }
+            string message = messageProvider.LoadMessage(errorCode, language: null) ?? string.Empty;
+            var matches = Regex.Matches(message, @"\{\d+}");
+            int expectedLength = 0;
+            foreach (Match match in matches)
+            {
+                expectedLength = Math.Max(int.Parse(match.Value[1..^1]) + 1, expectedLength);
+            }
+            Debug.Assert(expectedLength == actualLength);
+#endif
         }
 
         // Only the compiler creates instances.
