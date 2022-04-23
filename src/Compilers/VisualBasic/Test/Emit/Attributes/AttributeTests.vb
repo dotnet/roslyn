@@ -4654,5 +4654,23 @@ End Namespace
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
         End Sub
+
+        <Fact>
+        Public Sub AttributeWithOptionalNullableParameter_NullIsPassed()
+            Dim code = "
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My(Nothing)>
+Class C
+End Class
+"
+            CreateCompilation(code).VerifyDiagnostics()
+        End Sub
     End Class
 End Namespace
