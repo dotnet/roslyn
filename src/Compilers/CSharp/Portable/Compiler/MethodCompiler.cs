@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //When a filter is supplied, limit the compilation of members passing the filter.
                 if (!PassesFilter(_filterOpt, member) ||
-                    member is not SourcePropertyAccessorSymbol accessor)
+                    member is not MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } accessor)
                 {
                     continue;
                 }
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Method:
                         {
                             MethodSymbol method = (MethodSymbol)member;
-                            if (method is SourcePropertyAccessorSymbol)
+                            if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet)
                             {
                                 // The loop for compiling accessors was written with these valid assumptions.
                                 // If this requirement has changed, the loop above may need to be modified (e.g, if partial accessors was allowed in future)
