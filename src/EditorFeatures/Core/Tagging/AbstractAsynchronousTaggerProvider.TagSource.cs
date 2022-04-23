@@ -195,14 +195,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Create the tagger-specific events that will cause the tagger to refresh.
                 _eventSource = CreateEventSource();
-                _onVisibilityChanged = () =>
-                {
-                    _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-                    // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
-                    // themselves immediately afterwards.
-                    ResumeIfVisible();
-                };
+                // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                // themselves immediately afterwards.
+                _onVisibilityChanged = () => ResumeIfVisible();
 
                 // Now hook up this tagger to all interesting events.
                 Connect();
