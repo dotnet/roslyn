@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
                     // machine resources that the user won't even notice.
-                    if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
-                        Pause();
+                    PauseIfNotVisible();
                 }
             }
 
@@ -556,6 +555,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                // Some client is asking for tags.  Possible that we're becoming visible.  Preemptively start tagging
+                // again so we don't have to wait for the visibility notification to come in.
+                ResumeIfVisible();
+
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 

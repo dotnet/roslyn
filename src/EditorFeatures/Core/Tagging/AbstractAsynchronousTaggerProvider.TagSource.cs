@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
                     // themselves immediately afterwards.
-                    Resume();
+                    ResumeIfVisible();
                 };
 
                 // Now hook up this tagger to all interesting events.
@@ -277,24 +277,36 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private void Pause()
+            private bool IsVisible()
+                => _visibilityTracker == null || _visibilityTracker.IsVisible(_subjectBuffer);
+
+            private void PauseIfNotVisible()
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _paused = true;
-                _eventSource.Pause();
+
+                if (!IsVisible())
+                {
+                    _paused = true;
+                    _eventSource.Pause();
+                }
             }
 
-            private void Resume()
+            private void ResumeIfVisible()
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
                 // if we're not actually paused, no need to do anything.
-                if (_paused)
-                {
-                    // Set us back to running, and kick off work to compute tags now that we're visible again.
-                    _paused = false;
-                    _eventSource.Resume();
-                    EnqueueWork(initialTags: false);
-                }
+                if (!_paused)
+                    return;
+
+                // If we're not visible, no need to resume.
+                if (!IsVisible())
+                    return;
+
+                // Set us back to running, and kick off work to compute tags now that we're visible again.
+                _paused = false;
+                _eventSource.Resume();
+                EnqueueWork(initialTags: false);
             }
 
             private ITaggerEventSource CreateEventSource()
