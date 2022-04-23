@@ -83,8 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 CastExpressionSyntax cast => GetKind(cast.Expression),
                 PrefixUnaryExpressionSyntax prefix => GetKind(prefix.Operand),
                 // Treat `expr!` the same as `expr` (i.e. treat `!` as if it's just trivia).
-                PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } postfix => GetKind(postfix.Operand),
+                PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfix => GetKind(postfix.Operand),
                 _ => HintKind.Other,
             };
+
+        protected override bool IsIndexer(SyntaxNode node, IParameterSymbol parameter)
+        {
+            return node is BracketedArgumentListSyntax;
+        }
     }
 }

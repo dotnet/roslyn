@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = typeWithAnnotations.Type;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
-            Debug.Assert(!(_containingType is SimpleProgramNamedTypeSymbol));
             if (!_containingType.IsImplicitlyDeclared)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));

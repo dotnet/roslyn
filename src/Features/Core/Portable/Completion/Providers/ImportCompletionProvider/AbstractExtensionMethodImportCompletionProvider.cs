@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     using var nestedTokenSource = new CancellationTokenSource();
                     using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
-                    var inferredTypes = IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Document.Project.Solution.Workspace)
+                    var inferredTypes = IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Document.Project.Solution.Options)
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
 
@@ -87,14 +87,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        private bool IsTargetTypeCompletionFilterExperimentEnabled(OptionSet options)
         {
-            if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
-            }
-
+            _isTargetTypeCompletionFilterExperimentEnabled ??= options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
@@ -114,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (expressionNode != null)
             {
                 // Check if we are accessing members of a type, no extension methods are exposed off of types.
-                if (!(syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol))
+                if (syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
                 {
                     // The expression we're calling off of needs to have an actual instance type.
                     // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.

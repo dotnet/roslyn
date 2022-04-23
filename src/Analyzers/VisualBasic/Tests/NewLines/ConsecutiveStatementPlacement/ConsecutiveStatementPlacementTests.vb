@@ -431,5 +431,17 @@ class C
     end sub
 end class")
         End Function
+
+        <Fact>
+        Public Async Function TestClassWithEndOfLine() As Task
+            Dim code = "
+class C
+    sub M()
+    end sub
+end class
+"
+
+            Await TestWithOptionOn(code, code)
+        End Function
     End Class
 End Namespace

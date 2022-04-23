@@ -1105,7 +1105,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             Assert.Equal(OperationKind.InterpolatedStringText, operation.Kind);
-            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
+            if (operation.Text.Kind != OperationKind.Literal)
+            {
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
+            }
             Assert.Same(operation.Text, operation.Children.Single());
         }
 
@@ -1120,7 +1123,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.FormatString != null)
             {
-                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+                if (operation.FormatString.Kind != OperationKind.Literal)
+                {
+                    Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
+                }
                 children = children.Concat(new[] { operation.FormatString });
             }
 
@@ -1284,6 +1290,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
+            //force the existence of IsExhaustive
+            _ = operation.IsExhaustive;
             Assert.NotNull(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
             Assert.Equal(OperationKind.SwitchExpression, operation.Kind);

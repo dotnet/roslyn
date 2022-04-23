@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     workspace.ChangeSolution(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
                 Next
             End If
+
             Return workspace
         End Function
 
@@ -135,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Exit While
                 End If
             End While
+
             Return node
         End Function
 

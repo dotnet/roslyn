@@ -33,24 +33,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in nodesToProcess)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol is INamedTypeSymbol namedType)
                     {
                         if (namedType.BaseType != null)
                         {
                             var baseTypeNode = await graphBuilder.AddNodeAsync(
-                                namedType.BaseType, relatedNode: node).ConfigureAwait(false);
+                                namedType.BaseType, relatedNode: node, cancellationToken).ConfigureAwait(false);
                             newNodes.Add(baseTypeNode);
-                            graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
+                            graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode, cancellationToken);
                         }
                         else if (namedType.TypeKind == TypeKind.Interface && !namedType.OriginalDefinition.AllInterfaces.IsEmpty)
                         {
                             foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
                             {
                                 var baseTypeNode = await graphBuilder.AddNodeAsync(
-                                    baseNode, relatedNode: node).ConfigureAwait(false);
+                                    baseNode, relatedNode: node, cancellationToken).ConfigureAwait(false);
                                 newNodes.Add(baseTypeNode);
-                                graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
+                                graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode, cancellationToken);
                             }
                         }
                     }

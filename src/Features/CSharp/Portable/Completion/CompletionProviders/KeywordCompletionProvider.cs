@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new AsKeywordRecommender(),
                 new AssemblyKeywordRecommender(),
                 new AsyncKeywordRecommender(),
-                new AwaitKeywordRecommender(),
                 new BaseKeywordRecommender(),
                 new BoolKeywordRecommender(),
                 new BreakKeywordRecommender(),

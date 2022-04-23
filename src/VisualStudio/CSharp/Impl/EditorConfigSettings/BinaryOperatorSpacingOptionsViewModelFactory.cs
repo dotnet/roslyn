@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
         {
         }
 
-        public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
+        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
         {
             return new BinaryOperatorSpacingOptionsViewModel(setting);
         }

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             foreach (var (filePath, fileContent) in fileNamesAndContent)
             {
-                Debug.Assert(fileContent is string || fileContent is byte[]);
+                Debug.Assert(fileContent is string or byte[]);
 
                 var subdirectory = Path.GetDirectoryName(filePath);
                 var fileName = Path.GetFileName(filePath);

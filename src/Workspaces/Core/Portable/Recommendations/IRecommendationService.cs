@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
     internal interface IRecommendationService : ILanguageService
     {
         RecommendedSymbols GetRecommendedSymbolsAtPosition(
-            Workspace workspace,
+            Document document,
             SemanticModel semanticModel,
             int position,
             OptionSet options,

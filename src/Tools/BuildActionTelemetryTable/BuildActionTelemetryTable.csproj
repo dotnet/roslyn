@@ -26,6 +26,8 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\EditorFeatures\Core\Shared\Extensions\TelemetryExtensions.cs" Link="Utilities\TelemetryExtensions.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CodeStyle\EditorConfigSeverityStrings.cs" Link="Utilities\EditorConfigSeverityStrings.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\DiagnosticDescriptorExtensions.cs" Link="Utilities\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
   </ItemGroup>
 

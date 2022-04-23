@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             s.Kind == SymbolKind.Parameter ||
             s.Kind == SymbolKind.RangeVariable ||
             s.Kind == SymbolKind.Field ||
-            s.Kind == SymbolKind.Property;
+            s.Kind == SymbolKind.Property ||
+            (s.Kind == SymbolKind.NamedType && s.IsStatic);
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,

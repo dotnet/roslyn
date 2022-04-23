@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type: null),
                             constantValueOpt: null,
                             methodOpt: null,
+                            constrainedToTypeOpt: null,
                             resultKind: LookupResultKind.Viable,
                             type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                         rewrittenConsequence: disposeCallStatement,
@@ -406,6 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         right: MakeLiteral(forEachSyntax, constantValue: ConstantValue.Null, type: null),
                         constantValueOpt: null,
                         methodOpt: null,
+                        constrainedToTypeOpt: null,
                         resultKind: LookupResultKind.Viable,
                         type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                     rewrittenConsequence: disposeCallStatement,
@@ -604,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: arrayLength,
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType);
 
@@ -811,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: arrayLength,
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType);
 
@@ -991,6 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     right: boundUpperVar[dimension],
                     constantValueOpt: null,
                     methodOpt: null,
+                    constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Viable,
                     type: boolType);
 
@@ -1092,6 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type: intType),
                             constantValueOpt: null,
                             methodOpt: null,
+                            constrainedToTypeOpt: null,
                             resultKind: LookupResultKind.Viable,
                             type: intType),
                         type: intType)));

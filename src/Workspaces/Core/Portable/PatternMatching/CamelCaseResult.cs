@@ -6,6 +6,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ArrayBuilder<TextSpan> candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, in TemporaryArray<TextSpan> candidateHumps)
         {
             var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)

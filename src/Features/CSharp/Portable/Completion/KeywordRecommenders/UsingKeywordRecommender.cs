@@ -79,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // root: u|
 
-            // ns Goo { u|
+            // namespace N { u|
+
+            // namespace N; u|
 
             // extern alias a;
             // u|
@@ -98,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return IsValidContextAtTheRoot(context, originalToken, cancellationToken);
             }
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
-                token.Parent.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax _))
+            if ((token.Kind() == SyntaxKind.OpenBraceToken && token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
+                || (token.Kind() == SyntaxKind.SemicolonToken && token.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)))
             {
                 // a child using can't come before externs
                 var nextToken = originalToken.GetNextToken(includeSkipped: true);

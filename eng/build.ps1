@@ -233,7 +233,7 @@ function BuildSolution() {
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
-  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+  $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" }
 
   # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
   # that MSBuild output as well as ones that custom tasks output.
@@ -364,6 +364,10 @@ function TestUsingRunTests() {
     }
   }
 
+  if ($ci) {
+    $env:ROSLYN_TEST_CI = "true"
+  }
+
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
@@ -372,10 +376,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
 
   if (!(Test-Path $runTests)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
+    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
@@ -385,8 +389,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net5.0"
-    $args += " --tfm netcoreapp3.1"
+    $args += " --tfm net6.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -455,6 +458,10 @@ function TestUsingRunTests() {
     Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
+    if ($ci) {
+      Remove-Item env:\ROSLYN_TEST_CI
+    }
+
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }

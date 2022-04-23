@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _differenceViewerPreview?.Dispose();
                 _differenceViewerPreview = null;
             }
+
             base.Dispose(disposing);
         }
     }

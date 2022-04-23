@@ -686,6 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If fieldInitializer IsNot Nothing Then
                 Return typeInference.InferType(semanticModel, fieldInitializer.Name, True, cancellationToken)
             End If
+
             Return Nothing
         End Function
 

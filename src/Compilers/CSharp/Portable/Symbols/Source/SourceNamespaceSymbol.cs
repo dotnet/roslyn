@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
-        private readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
 #if DEBUG
-        private readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
+        private readonly ImmutableSegmentedDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
-            var builder = ImmutableDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
 #if DEBUG
-            var builderForAsserts = ImmutableDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+            var builderForAsserts = ImmutableSegmentedDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
 #endif
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
             {
@@ -417,9 +417,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Submission:
                 case DeclarationKind.ImplicitClass:
                     return new ImplicitNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
-
-                case DeclarationKind.SimpleProgram:
-                    return new SimpleProgramNamedTypeSymbol(this, (MergedTypeDeclaration)declaration, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind);

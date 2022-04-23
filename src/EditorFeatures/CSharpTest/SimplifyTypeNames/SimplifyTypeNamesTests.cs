@@ -124,6 +124,30 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseAlias00_FileScopedNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    [|System.IO.File|] c;
+}
+",
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    MyType c;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias()
         {
             var source =
@@ -751,6 +775,40 @@ namespace Root
     {
         [|System|].Exception c;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyTypeName1_FileScopedNamespace()
+        {
+            var source =
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System.Exception|] c;
+}";
+
+            await TestInRegularAndScriptAsync(source,
+@"using System;
+
+namespace Root;
+
+class A
+{
+    Exception c;
+}");
+            await TestActionCountAsync(source, 1);
+            await TestSpansAsync(
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System|].Exception c;
 }");
         }
 

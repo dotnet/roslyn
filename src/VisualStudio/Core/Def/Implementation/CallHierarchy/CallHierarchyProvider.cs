@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property ||
-                symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field)
+            if (symbol.Kind is SymbolKind.Method or
+                SymbolKind.Property or
+                SymbolKind.Event or
+                SymbolKind.Field)
             {
                 symbol = GetTargetSymbol(symbol);
 
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (symbol.Kind == SymbolKind.Property ||
-                    symbol.Kind == SymbolKind.Event ||
-                    symbol.Kind == SymbolKind.Method)
+            if (symbol.Kind is SymbolKind.Property or
+                    SymbolKind.Event or
+                    SymbolKind.Method)
             {
                 var finders = new List<AbstractCallFinder>();
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
             var workspace = project.Solution.Workspace;
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            var options = project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
             symbolNavigationService.TryNavigateToSymbol(resolution.Symbol, project, options, cancellationToken);

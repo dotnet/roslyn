@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c)),
                 variableDeclarator.Span);
         }
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var identifierNode = identifier
                 .Ancestors()
-                .TakeWhile(n => n.Kind() == SyntaxKind.ParenthesizedExpression || n.Kind() == SyntaxKind.CastExpression)
+                .TakeWhile(n => n.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                 .LastOrDefault();
 
             if (identifierNode == null)
@@ -631,8 +630,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument, nameof(CSharpFeaturesResources.Inline_temporary_variable))
             {
             }
         }

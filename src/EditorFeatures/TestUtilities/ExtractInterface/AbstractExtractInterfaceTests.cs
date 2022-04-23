@@ -6,6 +6,8 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
@@ -93,7 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedInterfaceCode = null,
             CompilationOptions compilationOptions = null)
         {
-            using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions);
+            using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions,
+                options: new OptionsCollection(languageName)
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Silent }
+                });
 
             var result = await testState.ExtractViaCommandAsync();
 

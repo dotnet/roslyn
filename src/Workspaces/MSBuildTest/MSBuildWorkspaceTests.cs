@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.NotNull(pref);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/54818"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestInternalsVisibleToSigned()
         {
             var solution = await SolutionAsync(
@@ -340,7 +340,7 @@ class C1
             var project2 = solution.GetProjectsByName("Project2").First();
             var compilation = await project2.GetCompilationAsync();
             var diagnostics = compilation.GetDiagnostics()
-                .Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning)
+                .Where(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning)
                 .ToArray();
 
             Assert.Empty(diagnostics);

@@ -327,9 +327,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var needPopStyle = false;
             (string target, string hint)? navigationTarget = null;
 
-            if (name == DocumentationCommentXmlNames.SeeElementName ||
-                name == DocumentationCommentXmlNames.SeeAlsoElementName ||
-                name == "a")
+            if (name is DocumentationCommentXmlNames.SeeElementName or
+                DocumentationCommentXmlNames.SeeAlsoElementName or
+                "a")
             {
                 if (element.IsEmpty || element.FirstNode == null)
                 {
@@ -349,8 +349,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     }
                 }
             }
-            else if (name == DocumentationCommentXmlNames.ParameterReferenceElementName ||
-                     name == DocumentationCommentXmlNames.TypeParameterReferenceElementName)
+            else if (name is DocumentationCommentXmlNames.ParameterReferenceElementName or
+                     DocumentationCommentXmlNames.TypeParameterReferenceElementName)
             {
                 var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
@@ -365,17 +365,17 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Code);
             }
-            else if (name == DocumentationCommentXmlNames.CodeElementName)
+            else if (name is DocumentationCommentXmlNames.CodeElementName)
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
             }
-            else if (name == "em" || name == "i")
+            else if (name is "em" or "i")
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Emphasis);
             }
-            else if (name == "strong" || name == "b" || name == DocumentationCommentXmlNames.TermElementName)
+            else if (name is "strong" or "b" or DocumentationCommentXmlNames.TermElementName)
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Strong);
@@ -403,8 +403,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 state.NextListItem();
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName
-                || name == DocumentationCommentXmlNames.CodeElementName)
+            if (name is DocumentationCommentXmlNames.ParaElementName
+                or DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -418,8 +418,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 AppendTextFromNode(state, childNode, compilation);
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName
-                || name == DocumentationCommentXmlNames.CodeElementName)
+            if (name is DocumentationCommentXmlNames.ParaElementName
+                or DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }

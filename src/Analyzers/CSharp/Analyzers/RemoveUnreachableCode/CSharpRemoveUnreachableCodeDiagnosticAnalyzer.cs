@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
@@ -148,8 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                     additionalUnnecessaryLocations = ImmutableArray.Create(location);
                 }
 
-                context.ReportDiagnostic(
-                    DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations, additionalUnnecessaryLocations, s_subsequentSectionProperties));
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    location,
+                    ReportDiagnostic.Default,
+                    additionalLocations,
+                    additionalUnnecessaryLocations,
+                    s_subsequentSectionProperties));
             }
         }
     }

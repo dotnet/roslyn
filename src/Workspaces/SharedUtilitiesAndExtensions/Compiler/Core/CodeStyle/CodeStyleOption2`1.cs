@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private bool IsZeroOrOneValueOfEnum()
         {
             var intVal = EnumValueAsInt32;
-            return intVal == 0 || intVal == 1;
+            return intVal is 0 or 1;
         }
 
         public static CodeStyleOption2<T> FromXElement(XElement element)

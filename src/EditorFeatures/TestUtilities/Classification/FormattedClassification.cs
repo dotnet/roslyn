@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                         case ",":
                             return "Punctuation.Comma";
                     }
+
                     goto default;
 
                 case "operator":
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                         case "++":
                             return "Operators.PlusPlus";
                     }
+
                     goto default;
 
                 default:

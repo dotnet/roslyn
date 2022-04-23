@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -72,10 +73,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Return up to date diagnostics for the given span for the document
-        ///
-        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-        /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
+        /// <para>
+        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet. If
+        /// <paramref name="diagnosticId"/> is not null, it gets diagnostics only for this given <paramref
+        /// name="diagnosticId"/> value.
+        /// </para>
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+    }
+
+    internal static class IDiagnosticAnalyzerServiceExtensions
+    {
+        public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service, Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
+            => service.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics, CodeActionRequestPriority.None, addOperationScope, cancellationToken);
     }
 }

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
     [ProvidesMethod(MutatingRequestHandler.MethodName)]
     internal class MutatingRequestHandlerProvider : AbstractRequestHandlerProvider
     {
