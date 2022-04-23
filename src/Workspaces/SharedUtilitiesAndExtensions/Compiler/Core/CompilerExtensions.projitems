@@ -180,6 +180,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeActionRequestPriority.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AccessibilityModifiersRequired.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AddImportPlacement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleHelpers.cs" />
@@ -196,6 +197,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
