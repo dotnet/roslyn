@@ -457,7 +457,7 @@ ref struct B
         return r.F;
     }
 }";
-            var verifier = CompileAndVerify(sourceB, new[] { refA });
+            var verifier = CompileAndVerify(sourceB, new[] { refA }, verify: Verification.Skipped);
             // MemberRefMetadataDecoder.FindFieldBySignature() is used to find fields when realIL: true.
             verifier.VerifyIL("Program.Main", realIL: true, expectedIL:
 @"{
@@ -546,10 +546,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (8,12): error CS0171: Field 'S2<T>.F' must be fully assigned before control is returned to the caller
-                //     public S2(ref T t) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2<T>.F").WithLocation(8, 12));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -635,9 +632,6 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
-                // (7,9): error CS0170: Use of possibly unassigned field 'F'
-                //         F = tValue; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tRef; // 2
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
@@ -723,9 +717,6 @@ class Program
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
-                // (7,9): error CS0170: Use of possibly unassigned field 'F'
-                //         F = tValue; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "F").WithArguments("F").WithLocation(7, 9),
                 // (8,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tRef; // 2
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
@@ -2964,15 +2955,9 @@ class Program
                 // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         P = ref t;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9),
-                // (8,9): error CS8079: Use of possibly unassigned auto-implemented property 'P'
-                //         P = ref t;
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "P").WithArguments("P").WithLocation(8, 9),
                 // (9,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         Q = ref t;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Q").WithLocation(9, 9),
-                // (9,9): error CS8079: Use of possibly unassigned auto-implemented property 'Q'
-                //         Q = ref t;
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Q").WithArguments("Q").WithLocation(9, 9),
                 // (26,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         s.P = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P").WithLocation(26, 9),
