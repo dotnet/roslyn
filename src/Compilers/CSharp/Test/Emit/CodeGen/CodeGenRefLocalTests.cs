@@ -3713,7 +3713,7 @@ unsafe
 
         [Fact]
         [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
-        public void DiscardedUse()
+        public void ReadValueAndDiscard_01()
         {
             var source =
 @"struct S { }
@@ -3754,9 +3754,145 @@ class Program
   IL_0007:  pop
   IL_0008:  ret
 }");
-            // PROTOTYPE: Verify that if 'b' is null, a NRE is thrown at runtime.
-            // PROTOTYPE: Test: _ = ref b;
-            // PROTOTYPE: Test read of `ref` and `in` parameters.
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_02()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldflda     ""T S<T>.F""
+  IL_0008:  stloc.0
+  IL_0009:  nop
+  IL_000a:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     ""T S<T>.F""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_03()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T S<T>.F""
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""T S<T>.F""
+  IL_0006:  pop
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_04()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        ref readonly T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""T S<T>.F""
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""T S<T>.F""
+  IL_0006:  pop
+  IL_0007:  ret
+}");
         }
     }
 }
