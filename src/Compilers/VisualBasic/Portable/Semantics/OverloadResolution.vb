@@ -3401,14 +3401,18 @@ Bailout:
                binder.Compilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(candidate.Candidate.UnderlyingSymbol.ContainingType, useSiteInfo) Then
 
                 Debug.Assert(Not argument.HasErrors)
-                Dim passedExpression As BoundExpression = binder.PassArgumentByVal(argument, conv, targetType, BindingDiagnosticBag.Discarded)
+                If Not targetType.IsValidTypeForAttributeArgument(binder.Compilation) Then
+                    candidate.SetIllegalInAttribute()
+                Else
+                    Dim passedExpression As BoundExpression = binder.PassArgumentByVal(argument, conv, targetType, BindingDiagnosticBag.Discarded)
 
-                If Not passedExpression.IsConstant Then ' Trying to match native compiler behavior in Semantics::IsValidAttributeConstant
-                    Dim visitor As New Binder.AttributeExpressionVisitor(binder, passedExpression.HasErrors)
-                    visitor.VisitExpression(passedExpression, BindingDiagnosticBag.Discarded)
+                    If Not passedExpression.IsConstant Then ' Trying to match native compiler behavior in Semantics::IsValidAttributeConstant
+                        Dim visitor As New Binder.AttributeExpressionVisitor(binder, passedExpression.HasErrors)
+                        visitor.VisitExpression(passedExpression, BindingDiagnosticBag.Discarded)
 
-                    If visitor.HasErrors Then
-                        candidate.SetIllegalInAttribute()
+                        If visitor.HasErrors Then
+                            candidate.SetIllegalInAttribute()
+                        End If
                     End If
                 End If
             End If
