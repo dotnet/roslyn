@@ -323,5 +323,99 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: '<%= attribut
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestConversion()
+            Dim source = <![CDATA[
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(x As Double)
+    End Sub
+End Class
+
+<My(0.0D)>'BIND:"My"
+Class C
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(0.0D)')
+    IObjectCreationOperation (Constructor: Sub MyAttribute..ctor(x As System.Double)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(0.0D)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0.0D')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, Constant: 0, IsImplicit) (Syntax: '0.0D')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+                ILiteralOperation (OperationKind.Literal, Type: System.Decimal, Constant: 0.0) (Syntax: '0.0D')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub BadAttributeParameterType()
+            Dim source = <![CDATA[
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My>'BIND:"My"
+Class C
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer?', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My>'BIND:"My"
+ ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub BadAttributeParameterType2()
+            Dim source = <![CDATA[
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My(Nothing)>'BIND:"My"
+Class C
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
