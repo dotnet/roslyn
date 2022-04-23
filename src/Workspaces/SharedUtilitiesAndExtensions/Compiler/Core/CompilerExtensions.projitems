@@ -235,6 +235,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AutoFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.IndentStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.Indenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
