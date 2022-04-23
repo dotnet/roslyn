@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isStatic,
             bool hasInitializer,
             bool isCreatedForFieldKeyword,
-            bool isEarlyConstructed,
-            BindingDiagnosticBag diagnostics)
+            bool isEarlyConstructed)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
 
@@ -66,14 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _backingFieldFlags |= Flags.IsCreatedForFieldKeyword;
             }
 
+
             if (isEarlyConstructed)
             {
                 _backingFieldFlags |= Flags.IsEarlyConstructed;
-            }
-
-            if (ContainingType.IsInterface && !isStatic)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
             }
 
             // If it's not early constructed, it must have been created for field keyword.

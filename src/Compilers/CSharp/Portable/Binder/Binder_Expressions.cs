@@ -1563,12 +1563,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
                         ContainingMember().CanHaveFieldKeywordBackingField())
                     {
-                        if (GetSymbolForPossibleFieldKeyword(diagnostics) is { } backingField)
+                        if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                             if (IsInsideNameof)
                             {
                                 Error(diagnostics, ErrorCode.ERR_FieldKeywordInsideNameOf, node);
+                            }
+                            else if (backingField.ContainingType.IsInterface && !backingField.IsStatic)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InterfacesCantContainFields, node);
                             }
                         }
                     }

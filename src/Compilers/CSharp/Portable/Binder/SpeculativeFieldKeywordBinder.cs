@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _accessor = accessor;
         }
 
-        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword(BindingDiagnosticBag diagnostics)
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
             // field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
             return _accessor.Property.FieldKeywordBackingField;
