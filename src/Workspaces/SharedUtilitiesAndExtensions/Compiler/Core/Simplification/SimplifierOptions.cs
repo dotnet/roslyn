@@ -25,39 +25,29 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = new(value: true, notification: NotificationOption2.Silent);
 
         [DataContract]
-        internal sealed record class CommonOptions
+        internal sealed record class CommonOptions(
+            CodeStyleOption2<bool>? QualifyFieldAccess = null,
+            CodeStyleOption2<bool>? QualifyPropertyAccess = null,
+            CodeStyleOption2<bool>? QualifyMethodAccess = null,
+            CodeStyleOption2<bool>? QualifyEventAccess = null,
+            CodeStyleOption2<bool>? PreferPredefinedTypeKeywordInMemberAccess = null,
+            CodeStyleOption2<bool>? PreferPredefinedTypeKeywordInDeclaration = null)
         {
-            [DataMember(Order = 0)] public readonly CodeStyleOption2<bool> QualifyFieldAccess;
-            [DataMember(Order = 1)] public readonly CodeStyleOption2<bool> QualifyPropertyAccess;
-            [DataMember(Order = 2)] public readonly CodeStyleOption2<bool> QualifyMethodAccess;
-            [DataMember(Order = 3)] public readonly CodeStyleOption2<bool> QualifyEventAccess;
-            [DataMember(Order = 4)] public readonly CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess;
-            [DataMember(Order = 5)] public readonly CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration;
-
-            public CommonOptions(
-                CodeStyleOption2<bool>? qualifyFieldAccess = null,
-                CodeStyleOption2<bool>? qualifyPropertyAccess = null,
-                CodeStyleOption2<bool>? qualifyMethodAccess = null,
-                CodeStyleOption2<bool>? qualifyEventAccess = null,
-                CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess = null,
-                CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration = null)
-            {
-                QualifyFieldAccess = qualifyFieldAccess ?? DefaultQualifyAccess;
-                QualifyPropertyAccess = qualifyPropertyAccess ?? DefaultQualifyAccess;
-                QualifyMethodAccess = qualifyMethodAccess ?? DefaultQualifyAccess;
-                QualifyEventAccess = qualifyEventAccess ?? DefaultQualifyAccess;
-                PreferPredefinedTypeKeywordInMemberAccess = preferPredefinedTypeKeywordInMemberAccess ?? DefaultPreferPredefinedTypeKeyword;
-                PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
-            }
+            [property: DataMember(Order = 0)] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = QualifyFieldAccess ?? DefaultQualifyAccess;
+            [property: DataMember(Order = 1)] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = QualifyPropertyAccess ?? DefaultQualifyAccess;
+            [property: DataMember(Order = 2)] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = QualifyMethodAccess ?? DefaultQualifyAccess;
+            [property: DataMember(Order = 3)] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = QualifyEventAccess ?? DefaultQualifyAccess;
+            [property: DataMember(Order = 4)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = PreferPredefinedTypeKeywordInMemberAccess ?? DefaultPreferPredefinedTypeKeyword;
+            [property: DataMember(Order = 5)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = PreferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
 
             internal static CommonOptions Create(AnalyzerConfigOptions options, CommonOptions fallbackOptions)
                 => new(
-                    qualifyFieldAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
-                    qualifyPropertyAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
-                    qualifyMethodAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
-                    qualifyEventAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
-                    preferPredefinedTypeKeywordInMemberAccess: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
-                    preferPredefinedTypeKeywordInDeclaration: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration));
+                    QualifyFieldAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
+                    QualifyPropertyAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
+                    QualifyMethodAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
+                    QualifyEventAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
+                    PreferPredefinedTypeKeywordInMemberAccess: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
+                    PreferPredefinedTypeKeywordInDeclaration: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration));
 
             public static readonly CommonOptions Default = new();
         }

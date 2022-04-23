@@ -29,90 +29,60 @@ internal abstract class IdeCodeStyleOptions
         new(ForEachExplicitCastInSourcePreference.WhenStronglyTyped, NotificationOption2.Suggestion);
 
     [DataContract]
-    internal sealed class CommonOptions
+    internal sealed record class CommonOptions(
+        CodeStyleOption2<bool>? PreferObjectInitializer = null,
+        CodeStyleOption2<bool>? PreferCollectionInitializer = null,
+        CodeStyleOption2<bool>? PreferSimplifiedBooleanExpressions = null,
+        OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping = OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+        CodeStyleOption2<bool>? PreferCoalesceExpression = null,
+        CodeStyleOption2<bool>? PreferNullPropagation = null,
+        CodeStyleOption2<bool>? PreferExplicitTupleNames = null,
+        CodeStyleOption2<bool>? PreferAutoProperties = null,
+        CodeStyleOption2<bool>? PreferInferredTupleNames = null,
+        CodeStyleOption2<bool>? PreferInferredAnonymousTypeMemberNames = null,
+        CodeStyleOption2<bool>? PreferIsNullCheckOverReferenceEqualityMethod = null,
+        CodeStyleOption2<bool>? PreferConditionalExpressionOverAssignment = null,
+        CodeStyleOption2<bool>? PreferConditionalExpressionOverReturn = null,
+        CodeStyleOption2<bool>? PreferCompoundAssignment = null,
+        CodeStyleOption2<bool>? PreferSimplifiedInterpolation = null,
+        CodeStyleOption2<UnusedParametersPreference>? UnusedParameters = null,
+        CodeStyleOption2<AccessibilityModifiersRequired>? RequireAccessibilityModifiers = null,
+        CodeStyleOption2<bool>? PreferReadonly = null,
+        CodeStyleOption2<ParenthesesPreference>? ArithmeticBinaryParentheses = null,
+        CodeStyleOption2<ParenthesesPreference>? OtherBinaryParentheses = null,
+        CodeStyleOption2<ParenthesesPreference>? RelationalBinaryParentheses = null,
+        CodeStyleOption2<ParenthesesPreference>? OtherParentheses = null,
+        CodeStyleOption2<ForEachExplicitCastInSourcePreference>? ForEachExplicitCastInSource = null,
+        CodeStyleOption2<bool>? PreferNamespaceAndFolderMatchStructure = null,
+        CodeStyleOption2<bool>? AllowMultipleBlankLines = null,
+        CodeStyleOption2<bool>? AllowStatementImmediatelyAfterBlock = null)
     {
-        [DataMember(Order = 0)] public readonly CodeStyleOption2<bool> PreferObjectInitializer;
-        [DataMember(Order = 1)] public readonly CodeStyleOption2<bool> PreferCollectionInitializer;
-        [DataMember(Order = 2)] public readonly CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions;
-        [DataMember(Order = 3)] public readonly OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping;
-        [DataMember(Order = 4)] public readonly CodeStyleOption2<bool> PreferCoalesceExpression;
-        [DataMember(Order = 5)] public readonly CodeStyleOption2<bool> PreferNullPropagation;
-        [DataMember(Order = 6)] public readonly CodeStyleOption2<bool> PreferExplicitTupleNames;
-        [DataMember(Order = 7)] public readonly CodeStyleOption2<bool> PreferAutoProperties;
-        [DataMember(Order = 8)] public readonly CodeStyleOption2<bool> PreferInferredTupleNames;
-        [DataMember(Order = 9)] public readonly CodeStyleOption2<bool> PreferInferredAnonymousTypeMemberNames;
-        [DataMember(Order = 10)] public readonly CodeStyleOption2<bool> PreferIsNullCheckOverReferenceEqualityMethod;
-        [DataMember(Order = 11)] public readonly CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment;
-        [DataMember(Order = 12)] public readonly CodeStyleOption2<bool> PreferConditionalExpressionOverReturn;
-        [DataMember(Order = 13)] public readonly CodeStyleOption2<bool> PreferCompoundAssignment;
-        [DataMember(Order = 14)] public readonly CodeStyleOption2<bool> PreferSimplifiedInterpolation;
-        [DataMember(Order = 15)] public readonly CodeStyleOption2<UnusedParametersPreference> UnusedParameters;
-        [DataMember(Order = 16)] public readonly CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers;
-        [DataMember(Order = 17)] public readonly CodeStyleOption2<bool> PreferReadonly;
-        [DataMember(Order = 18)] public readonly CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses;
-        [DataMember(Order = 19)] public readonly CodeStyleOption2<ParenthesesPreference> OtherBinaryParentheses;
-        [DataMember(Order = 20)] public readonly CodeStyleOption2<ParenthesesPreference> RelationalBinaryParentheses;
-        [DataMember(Order = 21)] public readonly CodeStyleOption2<ParenthesesPreference> OtherParentheses;
-        [DataMember(Order = 22)] public readonly CodeStyleOption2<ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSource;
-        [DataMember(Order = 23)] public readonly CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure;
-        [DataMember(Order = 24)] public readonly CodeStyleOption2<bool> AllowMultipleBlankLines;
-        [DataMember(Order = 25)] public readonly CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock;
-
-        public CommonOptions(
-            CodeStyleOption2<bool>? PreferObjectInitializer = null,
-            CodeStyleOption2<bool>? PreferCollectionInitializer = null,
-            CodeStyleOption2<bool>? PreferSimplifiedBooleanExpressions = null,
-            OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping = OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-            CodeStyleOption2<bool>? PreferCoalesceExpression = null,
-            CodeStyleOption2<bool>? PreferNullPropagation = null,
-            CodeStyleOption2<bool>? PreferExplicitTupleNames = null,
-            CodeStyleOption2<bool>? PreferAutoProperties = null,
-            CodeStyleOption2<bool>? PreferInferredTupleNames = null,
-            CodeStyleOption2<bool>? PreferInferredAnonymousTypeMemberNames = null,
-            CodeStyleOption2<bool>? PreferIsNullCheckOverReferenceEqualityMethod = null,
-            CodeStyleOption2<bool>? PreferConditionalExpressionOverAssignment = null,
-            CodeStyleOption2<bool>? PreferConditionalExpressionOverReturn = null,
-            CodeStyleOption2<bool>? PreferCompoundAssignment = null,
-            CodeStyleOption2<bool>? PreferSimplifiedInterpolation = null,
-            CodeStyleOption2<UnusedParametersPreference>? UnusedParameters = null,
-            CodeStyleOption2<AccessibilityModifiersRequired>? RequireAccessibilityModifiers = null,
-            CodeStyleOption2<bool>? PreferReadonly = null,
-            CodeStyleOption2<ParenthesesPreference>? ArithmeticBinaryParentheses = null,
-            CodeStyleOption2<ParenthesesPreference>? OtherBinaryParentheses = null,
-            CodeStyleOption2<ParenthesesPreference>? RelationalBinaryParentheses = null,
-            CodeStyleOption2<ParenthesesPreference>? OtherParentheses = null,
-            CodeStyleOption2<ForEachExplicitCastInSourcePreference>? ForEachExplicitCastInSource = null,
-            CodeStyleOption2<bool>? PreferNamespaceAndFolderMatchStructure = null,
-            CodeStyleOption2<bool>? AllowMultipleBlankLines = null,
-            CodeStyleOption2<bool>? AllowStatementImmediatelyAfterBlock = null)
-        {
-            this.PreferObjectInitializer = PreferObjectInitializer ?? s_trueWithSuggestionEnforcement;
-            this.PreferCollectionInitializer = PreferCollectionInitializer ?? s_trueWithSuggestionEnforcement;
-            this.PreferSimplifiedBooleanExpressions = PreferSimplifiedBooleanExpressions ?? s_trueWithSuggestionEnforcement;
-            this.OperatorPlacementWhenWrapping = OperatorPlacementWhenWrapping;
-            this.PreferCoalesceExpression = PreferCoalesceExpression ?? s_trueWithSuggestionEnforcement;
-            this.PreferNullPropagation = PreferNullPropagation ?? s_trueWithSuggestionEnforcement;
-            this.PreferExplicitTupleNames = PreferExplicitTupleNames ?? s_trueWithSuggestionEnforcement;
-            this.PreferAutoProperties = PreferAutoProperties ?? s_trueWithSilentEnforcement;
-            this.PreferInferredTupleNames = PreferInferredTupleNames ?? s_trueWithSuggestionEnforcement;
-            this.PreferInferredAnonymousTypeMemberNames = PreferInferredAnonymousTypeMemberNames ?? s_trueWithSuggestionEnforcement;
-            this.PreferIsNullCheckOverReferenceEqualityMethod = PreferIsNullCheckOverReferenceEqualityMethod ?? s_trueWithSuggestionEnforcement;
-            this.PreferConditionalExpressionOverAssignment = PreferConditionalExpressionOverAssignment ?? s_trueWithSilentEnforcement;
-            this.PreferConditionalExpressionOverReturn = PreferConditionalExpressionOverReturn ?? s_trueWithSilentEnforcement;
-            this.PreferCompoundAssignment = PreferCompoundAssignment ?? s_trueWithSuggestionEnforcement;
-            this.PreferSimplifiedInterpolation = PreferSimplifiedInterpolation ?? s_trueWithSuggestionEnforcement;
-            this.UnusedParameters = UnusedParameters ?? s_preferAllMethodsUnusedParametersPreference;
-            this.RequireAccessibilityModifiers = RequireAccessibilityModifiers ?? s_requireAccessibilityModifiersDefault;
-            this.PreferReadonly = PreferReadonly ?? s_trueWithSuggestionEnforcement;
-            this.ArithmeticBinaryParentheses = ArithmeticBinaryParentheses ?? s_alwaysForClarityPreference;
-            this.OtherBinaryParentheses = OtherBinaryParentheses ?? s_alwaysForClarityPreference;
-            this.RelationalBinaryParentheses = RelationalBinaryParentheses ?? s_alwaysForClarityPreference;
-            this.OtherParentheses = OtherParentheses ?? s_neverIfUnnecessaryPreference;
-            this.ForEachExplicitCastInSource = ForEachExplicitCastInSource ?? s_forEachExplicitCastInSourceNonLegacyPreference;
-            this.PreferNamespaceAndFolderMatchStructure = PreferNamespaceAndFolderMatchStructure ?? s_trueWithSuggestionEnforcement;
-            this.AllowMultipleBlankLines = AllowMultipleBlankLines ?? s_trueWithSilentEnforcement;
-            this.AllowStatementImmediatelyAfterBlock = AllowStatementImmediatelyAfterBlock ?? s_trueWithSilentEnforcement;
-        }
+        [property: DataMember(Order = 0)] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = PreferObjectInitializer ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 1)] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = PreferCollectionInitializer ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 2)] public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions { get; init; } = PreferSimplifiedBooleanExpressions ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 3)] public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping { get; init; } = OperatorPlacementWhenWrapping;
+        [property: DataMember(Order = 4)] public CodeStyleOption2<bool> PreferCoalesceExpression { get; init; } = PreferCoalesceExpression ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 5)] public CodeStyleOption2<bool> PreferNullPropagation { get; init; } = PreferNullPropagation ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 6)] public CodeStyleOption2<bool> PreferExplicitTupleNames { get; init; } = PreferExplicitTupleNames ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 7)] public CodeStyleOption2<bool> PreferAutoProperties { get; init; } = PreferAutoProperties ?? s_trueWithSilentEnforcement;
+        [property: DataMember(Order = 8)] public CodeStyleOption2<bool> PreferInferredTupleNames { get; init; } = PreferInferredTupleNames ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 9)] public CodeStyleOption2<bool> PreferInferredAnonymousTypeMemberNames { get; init; } = PreferInferredAnonymousTypeMemberNames ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 10)] public CodeStyleOption2<bool> PreferIsNullCheckOverReferenceEqualityMethod { get; init; } = PreferIsNullCheckOverReferenceEqualityMethod ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 11)] public CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment { get; init; } = PreferConditionalExpressionOverAssignment ?? s_trueWithSilentEnforcement;
+        [property: DataMember(Order = 12)] public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn { get; init; } = PreferConditionalExpressionOverReturn ?? s_trueWithSilentEnforcement;
+        [property: DataMember(Order = 13)] public CodeStyleOption2<bool> PreferCompoundAssignment { get; init; } = PreferCompoundAssignment ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 14)] public CodeStyleOption2<bool> PreferSimplifiedInterpolation { get; init; } = PreferSimplifiedInterpolation ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 15)] public CodeStyleOption2<UnusedParametersPreference> UnusedParameters { get; init; } = UnusedParameters ?? s_preferAllMethodsUnusedParametersPreference;
+        [property: DataMember(Order = 16)] public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers { get; init; } = RequireAccessibilityModifiers ?? s_requireAccessibilityModifiersDefault;
+        [property: DataMember(Order = 17)] public CodeStyleOption2<bool> PreferReadonly { get; init; } = PreferReadonly ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 18)] public CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses { get; init; } = ArithmeticBinaryParentheses ?? s_alwaysForClarityPreference;
+        [property: DataMember(Order = 19)] public CodeStyleOption2<ParenthesesPreference> OtherBinaryParentheses { get; init; } = OtherBinaryParentheses ?? s_alwaysForClarityPreference;
+        [property: DataMember(Order = 20)] public CodeStyleOption2<ParenthesesPreference> RelationalBinaryParentheses { get; init; } = RelationalBinaryParentheses ?? s_alwaysForClarityPreference;
+        [property: DataMember(Order = 21)] public CodeStyleOption2<ParenthesesPreference> OtherParentheses { get; init; } = OtherParentheses ?? s_neverIfUnnecessaryPreference;
+        [property: DataMember(Order = 22)] public CodeStyleOption2<ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSource { get; init; } = ForEachExplicitCastInSource ?? s_forEachExplicitCastInSourceNonLegacyPreference;
+        [property: DataMember(Order = 23)] public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure { get; init; } = PreferNamespaceAndFolderMatchStructure ?? s_trueWithSuggestionEnforcement;
+        [property: DataMember(Order = 24)] public CodeStyleOption2<bool> AllowMultipleBlankLines { get; init; } = AllowMultipleBlankLines ?? s_trueWithSilentEnforcement;
+        [property: DataMember(Order = 25)] public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock { get; init; } = AllowStatementImmediatelyAfterBlock ?? s_trueWithSilentEnforcement;
 
         public static readonly CommonOptions Default = new();
     }
