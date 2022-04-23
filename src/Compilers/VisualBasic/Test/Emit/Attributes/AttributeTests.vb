@@ -4670,7 +4670,8 @@ End Class
 Class C
 End Class
 "
-            CreateCompilation(code).VerifyDiagnostics()
+            CreateCompilation(code).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadAttributeConstructor1, "My").WithArguments("Integer?").WithLocation(10, 2))
         End Sub
     End Class
 End Namespace
