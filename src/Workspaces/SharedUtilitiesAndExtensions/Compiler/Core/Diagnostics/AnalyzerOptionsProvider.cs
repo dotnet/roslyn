@@ -70,6 +70,8 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure => GetOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure, FallbackCodeStyleOptions.PreferNamespaceAndFolderMatchStructure);
     public CodeStyleOption2<bool> AllowMultipleBlankLines => GetOption(CodeStyleOptions2.AllowMultipleBlankLines, FallbackCodeStyleOptions.AllowMultipleBlankLines);
     public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock => GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, FallbackCodeStyleOptions.AllowStatementImmediatelyAfterBlock);
+    public string RemoveUnnecessarySuppressionExclusions => GetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, FallbackCodeStyleOptions.RemoveUnnecessarySuppressionExclusions);
+
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate, defaultValue: string.Empty); // no fallback IDE option
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
@@ -105,6 +107,9 @@ internal static partial class AnalyzerOptionsProviders
         => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
 #endif
 
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
+        => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), analyzerOptions);
+
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context)
         => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
 
@@ -117,6 +122,9 @@ internal static partial class AnalyzerOptionsProviders
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this OperationAnalysisContext context)
         => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree), context.Options);
 
+    public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context)
+        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree), context.Options);
+
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SemanticModelAnalysisContext context)
         => context.Options.GetIdeOptions();
 
@@ -127,5 +135,8 @@ internal static partial class AnalyzerOptionsProviders
         => context.Options.GetIdeOptions();
 
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this OperationAnalysisContext context)
+        => context.Options.GetIdeOptions();
+
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this CodeBlockAnalysisContext context)
         => context.Options.GetIdeOptions();
 }

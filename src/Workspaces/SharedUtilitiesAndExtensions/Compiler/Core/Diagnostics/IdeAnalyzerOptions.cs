@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// IDE specific options available to analyzers in a specific project (language).
 /// </summary>
 /// <param name="CleanupOptions">Default values for <see cref="CodeCleanupOptions"/>, or null if not available (the project language does not support these options).</param>
+/// <param name="CodeStyleOptions">Default values for <see cref="IdeCodeStyleOptions"/>, or null if not available (the project language does not support these options).</param>
 [DataContract]
 internal sealed record class IdeAnalyzerOptions(
     [property: DataMember(Order = 0)] bool CrashOnAnalyzerException = IdeAnalyzerOptions.DefaultCrashOnAnalyzerException,
@@ -24,9 +25,13 @@ internal sealed record class IdeAnalyzerOptions(
     [property: DataMember(Order = 6)] bool ReportInvalidRegexPatterns = IdeAnalyzerOptions.DefaultReportInvalidRegexPatterns,
     [property: DataMember(Order = 7)] bool ReportInvalidJsonPatterns = IdeAnalyzerOptions.DefaultReportInvalidJsonPatterns,
     [property: DataMember(Order = 8)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = IdeAnalyzerOptions.DefaultDetectAndOfferEditorFeaturesForProbableJsonStrings,
-    [property: DataMember(Order = 9)] CodeCleanupOptions? CleanupOptions = null,
-    [property: DataMember(Order = 10)] IdeCodeStyleOptions? CodeStyleOptions = null)
+    CodeStyleOption2<bool>? PreferSystemHashCode = null,
+    [property: DataMember(Order = 10)] CodeCleanupOptions? CleanupOptions = null,
+    [property: DataMember(Order = 11)] IdeCodeStyleOptions? CodeStyleOptions = null)
 {
+    [property: DataMember(Order = 9)]
+    public CodeStyleOption2<bool> PreferSystemHashCode { get; init; } = PreferSystemHashCode ?? DefaultPreferSystemHashCode;
+
     public const bool DefaultCrashOnAnalyzerException = false;
     public const bool DefaultFadeOutUnusedImports = true;
     public const bool DefaultFadeOutUnreachableCode = true;
@@ -36,6 +41,8 @@ internal sealed record class IdeAnalyzerOptions(
     public const bool DefaultReportInvalidRegexPatterns = true;
     public const bool DefaultReportInvalidJsonPatterns = true;
     public const bool DefaultDetectAndOfferEditorFeaturesForProbableJsonStrings = true;
+
+    public static readonly CodeStyleOption2<bool> DefaultPreferSystemHashCode = new(value: true, notification: NotificationOption2.Suggestion);
 
     public static readonly IdeAnalyzerOptions CodeStyleDefault = new(
         CrashOnAnalyzerException: false,

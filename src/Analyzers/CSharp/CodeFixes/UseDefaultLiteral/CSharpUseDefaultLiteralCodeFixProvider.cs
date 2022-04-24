@@ -55,10 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var preferSimpleDefaultExpression = document.Project.AnalyzerOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, tree, cancellationToken).Value;
+            var options = (CSharpAnalyzerOptionsProvider)await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
 
-            var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;
 
             var originalNodes = diagnostics.SelectAsArray(

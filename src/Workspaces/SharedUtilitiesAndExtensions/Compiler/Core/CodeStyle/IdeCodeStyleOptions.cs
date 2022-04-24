@@ -55,7 +55,8 @@ internal abstract class IdeCodeStyleOptions
         CodeStyleOption2<ForEachExplicitCastInSourcePreference>? ForEachExplicitCastInSource = null,
         CodeStyleOption2<bool>? PreferNamespaceAndFolderMatchStructure = null,
         CodeStyleOption2<bool>? AllowMultipleBlankLines = null,
-        CodeStyleOption2<bool>? AllowStatementImmediatelyAfterBlock = null)
+        CodeStyleOption2<bool>? AllowStatementImmediatelyAfterBlock = null,
+        string RemoveUnnecessarySuppressionExclusions = "")
     {
         [property: DataMember(Order = 0)] public CodeStyleOption2<bool> PreferObjectInitializer { get; init; } = PreferObjectInitializer ?? s_trueWithSuggestionEnforcement;
         [property: DataMember(Order = 1)] public CodeStyleOption2<bool> PreferCollectionInitializer { get; init; } = PreferCollectionInitializer ?? s_trueWithSuggestionEnforcement;
@@ -83,6 +84,7 @@ internal abstract class IdeCodeStyleOptions
         [property: DataMember(Order = 23)] public CodeStyleOption2<bool> PreferNamespaceAndFolderMatchStructure { get; init; } = PreferNamespaceAndFolderMatchStructure ?? s_trueWithSuggestionEnforcement;
         [property: DataMember(Order = 24)] public CodeStyleOption2<bool> AllowMultipleBlankLines { get; init; } = AllowMultipleBlankLines ?? s_trueWithSilentEnforcement;
         [property: DataMember(Order = 25)] public CodeStyleOption2<bool> AllowStatementImmediatelyAfterBlock { get; init; } = AllowStatementImmediatelyAfterBlock ?? s_trueWithSilentEnforcement;
+        [property: DataMember(Order = 26)] public string RemoveUnnecessarySuppressionExclusions { get; init; } = RemoveUnnecessarySuppressionExclusions;
 
         public static readonly CommonOptions Default = new();
     }

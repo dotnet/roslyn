@@ -48,6 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         <DataMember(Order:=BaseMemberCount + 4)>
         Public ReadOnly UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference)
 
+#Disable Warning IDE1006 ' Record Naming Style
         Public Sub New(
             Optional Common As CommonOptions = Nothing,
             Optional PreferredModifierOrder As CodeStyleOption2(Of String) = Nothing,
@@ -55,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             Optional PreferSimplifiedObjectCreation As CodeStyleOption2(Of Boolean) = Nothing,
             Optional UnusedValueExpressionStatement As CodeStyleOption2(Of UnusedValuePreference) = Nothing,
             Optional UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference) = Nothing)
+#Enable Warning
 
             MyBase.New(Common)
 

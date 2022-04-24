@@ -28,6 +28,7 @@ internal static class CSharpCodeStyleOptionsStorage
 
     public static CSharpIdeCodeStyleOptions GetCSharpCodeStyleOptions(this IGlobalOptionService globalOptions)
         => new(
+            Common: globalOptions.GetCommonCodeStyleOptions(LanguageNames.CSharp),
             ImplicitObjectCreationWhenTypeIsApparent: globalOptions.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent),
             PreferNullCheckOverTypeCheck: globalOptions.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck),
             PreferParameterNullChecking: globalOptions.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking),
@@ -47,7 +48,6 @@ internal static class CSharpCodeStyleOptionsStorage
             PreferIndexOperator: globalOptions.GetOption(CSharpCodeStyleOptions.PreferIndexOperator),
             PreferRangeOperator: globalOptions.GetOption(CSharpCodeStyleOptions.PreferRangeOperator),
             PreferredModifierOrder: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder),
-            PreferStaticLocalFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction),
             PreferSimpleUsingStatement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement),
             PreferLocalOverAnonymousFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction),
             PreferTupleSwap: globalOptions.GetOption(CSharpCodeStyleOptions.PreferTupleSwap),
@@ -55,5 +55,8 @@ internal static class CSharpCodeStyleOptionsStorage
             UnusedValueAssignment: globalOptions.GetOption(CSharpCodeStyleOptions.UnusedValueAssignment),
             PreferMethodGroupConversion: globalOptions.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion),
             PreferTopLevelStatements: globalOptions.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements),
-            NamespaceDeclarations: globalOptions.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations));
+            PreferExpressionBodiedLambdas: globalOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
+            PreferStaticLocalFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction),
+            NamespaceDeclarations: globalOptions.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations),
+            PreferredUsingDirectivePlacement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement));
 }
