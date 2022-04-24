@@ -7468,7 +7468,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     int F1 = sizeof(null);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(","),
                 // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //     int F1 = sizeof(null);
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));

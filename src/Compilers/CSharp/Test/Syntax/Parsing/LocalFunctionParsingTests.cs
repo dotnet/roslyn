@@ -1098,7 +1098,7 @@ class C
             CreateCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
                 //             goo<T>) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
                 //             goo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),

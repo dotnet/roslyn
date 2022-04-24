@@ -312,10 +312,10 @@ class C
                     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(10, 31),
                     // (10,34): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(10, 34),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(10, 34),
                     // (10,36): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(10, 36),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(10, 36),
                     // (11,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { 1: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(11, 26));

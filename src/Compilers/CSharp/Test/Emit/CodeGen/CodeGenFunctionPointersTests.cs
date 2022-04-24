@@ -10466,7 +10466,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Expression", isSuppressed: false).WithArguments("Expression").WithLocation(5, 59),
                 // (5,69): error CS1003: Syntax error, ',' expected
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(Bad, Expression) })]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",", ")").WithLocation(5, 69),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",").WithLocation(5, 69),
                 // (9,43): error CS8786: Calling convention of 'A.F()' is not compatible with 'Unmanaged'.
                 //         delegate* unmanaged<void> ptr2 = &F;
                 Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "F", isSuppressed: false).WithArguments("A.F()", "Unmanaged").WithLocation(9, 43)

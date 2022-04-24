@@ -1119,7 +1119,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
                     // (1,24): error CS1003: Syntax error, ',' expected
                     // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 24)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1229,7 +1229,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1285,7 +1285,7 @@ class C {
             UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1341,10 +1341,10 @@ class C {
             UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32),
                     // (1,33): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1400,7 +1400,7 @@ class C {
             UsingDeclaration("Func<string, string> func3 = x! => x;", options: TestOptions.RegularPreview,
                     // (1,33): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func3 = x! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1450,7 +1450,7 @@ class C {
             UsingDeclaration("Func<string, string> func4 = x ! => x;", options: TestOptions.RegularPreview,
                     // (1,34): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func4 = x ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 34));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 34));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1552,7 +1552,7 @@ class C {
             UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
                     // (1,34): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 34));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 34));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1660,7 +1660,7 @@ class C {
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1716,7 +1716,7 @@ class C {
             UsingDeclaration("Func<string, string> func9 = x! ! => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1775,7 +1775,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 34),
                     // (1,36): error CS1003: Syntax error, ',' expected
                     // Func<string[], string> func0 = x[] => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 36));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 36));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1943,7 +1943,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 40),
                     // (1,40): error CS1003: Syntax error, ',' expected
                     // Func<string[], string> func0 = (string x[]) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 40));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 40));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2007,7 +2007,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x = null => x;", options: TestOptions.RegularPreview,
                     // (1,39): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func0 = x = null => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 39));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 39));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2324,7 +2324,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x!! = null => x;", options: TestOptions.RegularPreview,
                     // (1,41): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func0 = x!! = null => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 41));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 41));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2653,7 +2653,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2709,7 +2709,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2770,7 +2770,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,35): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (y, x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 35));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 35));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2836,7 +2836,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,39): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 39));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 39));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2901,7 +2901,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,49): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (string y, string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 49));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 49));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);

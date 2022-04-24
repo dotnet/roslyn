@@ -10034,7 +10034,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 27),
                 // (7,27): error CS1003: Syntax error, ']' expected
                 //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]", "").WithLocation(7, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 27),
                 // (7,28): error CS1002: ; expected
                 //         var b = a with { [0] = 20 };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 28),

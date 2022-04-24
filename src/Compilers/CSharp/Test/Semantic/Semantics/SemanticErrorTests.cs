@@ -985,7 +985,7 @@ class Program
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,30): error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", ""));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(","));
         }
 
         [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
@@ -1004,7 +1004,7 @@ class Program
             // NOTE: Dev10 just gives a parse error on '2'
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,30): error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(","),
                 // (6,35): error CS0846: A nested array initializer is expected
                 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "1"));
         }
@@ -14311,7 +14311,7 @@ public class A : Attribute
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
                 // (5,19): error CS1003: Syntax error, ':' expected
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":"),
                 // (5,19): error CS1525: Invalid expression term ';'
                 //         var s = 1?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
@@ -14339,15 +14339,15 @@ public class A : Attribute
 }
 ")
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":"),
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":"),
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "("),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(","),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(","),
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":"));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(","));
         }
 
         [WorkItem(528657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528657")]

@@ -2148,7 +2148,7 @@ public struct S
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         M2(readonly () => 42);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 24),
                 // (6,27): error CS1002: ; expected
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "42").WithLocation(6, 27),
