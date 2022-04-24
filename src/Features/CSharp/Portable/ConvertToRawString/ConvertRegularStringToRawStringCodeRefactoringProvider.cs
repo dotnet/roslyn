@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 //
                 // This changes the contents of the literal, but that can be fine for the domain the user is working in.
                 // Offer this, but let the user know that this will change runtime semantics.
-                if (token.IsVerbatimStringLiteral() && HasLeadingWhitespace(characters, out _))
+                if (token.IsVerbatimStringLiteral() && HasLeadingWhitespace(characters))
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
@@ -136,17 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             }
         }
 
-        private static bool HasLeadingWhitespace(VirtualCharSequence characters, out int index)
+        private static bool HasLeadingWhitespace(VirtualCharSequence characters)
         {
-            index = 0;
+            var index = 0;
             while (index < characters.Length && IsCSharpWhitespace(characters[index]))
                 index++;
 
-            if (index >= characters.Length || !IsCSharpNewLine(characters[index]))
-                return false;
-
-            index++;
-            return true;
+            return index < characters.Length && IsCSharpNewLine(characters[index]);
         }
 
         private static async Task<Document> UpdateDocumentAsync(
