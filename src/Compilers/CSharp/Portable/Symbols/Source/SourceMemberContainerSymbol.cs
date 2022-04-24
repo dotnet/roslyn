@@ -2131,6 +2131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         var diagnostics = BindingDiagnosticBag.GetInstance();
+                        Debug.Assert(diagnostics.DiagnosticBag is not null);
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
