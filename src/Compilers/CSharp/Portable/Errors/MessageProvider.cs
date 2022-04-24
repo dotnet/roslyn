@@ -145,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               out hasPragmaSuppression);
         }
 
-        internal override bool AssertExpectedMessageArgumentsLength(int errorCode)
+#if DEBUG
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode)
         {
             return (ErrorCode)errorCode switch
             {
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => true
             };
         }
+#endif
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;

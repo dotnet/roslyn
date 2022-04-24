@@ -4243,30 +4243,30 @@ Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?"));
 ";
 
             ParseAndValidate(test,
-    // (7,27): error CS1003: Syntax error, ':' expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":"),
-    // (7,27): error CS1525: Invalid expression term ','
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-    // (7,30): error CS1002: ; expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "++"),
-    // (7,33): error CS1525: Invalid expression term ':'
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-    // (7,33): error CS1002: ; expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (7,33): error CS1513: } expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"),
-    // (8,29): error CS1002: ; expected
-    //         s = true ? x++ : x++, y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
-    // (8,29): error CS1513: } expected
-    //         s = true ? x++ : x++, y++; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
+                // (7,27): error CS1003: Syntax error, ':' expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(7, 27),
+                // (7,27): error CS1525: Invalid expression term ','
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(7, 27),
+                // (7,30): error CS1002: ; expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "++").WithLocation(7, 30),
+                // (7,33): error CS1525: Invalid expression term ':'
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(7, 33),
+                // (7,33): error CS1002: ; expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(7, 33),
+                // (7,33): error CS1513: } expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(7, 33),
+                // (8,29): error CS1002: ; expected
+                //         s = true ? x++ : x++, y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 29),
+                // (8,29): error CS1513: } expected
+                //         s = true ? x++ : x++, y++; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 29));
         }
 
         [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
@@ -4297,24 +4297,24 @@ class Program
 }
 ";
             ParseAndValidate(test,
-    // (5,23): error CS1525: Invalid expression term 'return'
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-    // (5,23): error CS1003: Syntax error, ':' expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(":"),
-    // (5,23): error CS1525: Invalid expression term 'return'
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-    // (5,23): error CS1002: ; expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "return"),
-    // (5,31): error CS1002: ; expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (5,31): error CS1513: } expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
+                // (5,23): error CS1525: Invalid expression term 'return'
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return").WithLocation(5, 23),
+                // (5,23): error CS1003: Syntax error, ':' expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(":").WithLocation(5, 23),
+                // (5,23): error CS1525: Invalid expression term 'return'
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return").WithLocation(5, 23),
+                // (5,23): error CS1002: ; expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(5, 23),
+                // (5,31): error CS1002: ; expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(5, 31),
+                // (5,31): error CS1513: } expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(5, 31));
         }
 
         [Fact]
@@ -4333,24 +4333,24 @@ class Program
 }
 ";
             ParseAndValidate(test,
-    // (5,24): error CS1525: Invalid expression term 'goto'
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-    // (5,24): error CS1003: Syntax error, ':' expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, "goto").WithArguments(":"),
-    // (5,24): error CS1525: Invalid expression term 'goto'
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-    // (5,24): error CS1002: ; expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "goto"),
-    // (5,33): error CS1002: ; expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (5,33): error CS1513: } expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
+                // (5,24): error CS1525: Invalid expression term 'goto'
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto").WithLocation(5, 24),
+                // (5,24): error CS1003: Syntax error, ':' expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, "goto").WithArguments(":").WithLocation(5, 24),
+                // (5,24): error CS1525: Invalid expression term 'goto'
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto").WithLocation(5, 24),
+                // (5,24): error CS1002: ; expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "goto").WithLocation(5, 24),
+                // (5,33): error CS1002: ; expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(5, 33),
+                // (5,33): error CS1513: } expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(5, 33));
         }
 
         [Fact]

@@ -91,9 +91,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return True
         End Function
 
-        Friend Overrides Function AssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
+#If DEBUG Then
+        Friend Overrides Function ShouldAssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
             Return False
         End Function
+#End If
     End Class
 
     Friend Class RedIdentityRewriter

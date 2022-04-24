@@ -500,15 +500,18 @@ enum En
                 // (7,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(4)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(7, 6),
+                // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
                 // (17,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
                 //     [FieldOffset(-1)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(17, 18),
                 // (17,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(-1)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(17, 6),
-                // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
-                //     [FieldOffset(4)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
+                // (24,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
+                //     [FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(24, 18),
                 // (27,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [FieldOffset(5)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(27, 6),
@@ -524,9 +527,6 @@ enum En
                 // (42,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [FieldOffset(5)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(42, 6),
-                // (24,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
-                //     [FieldOffset(-1)]
-                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(24, 18),
                 // (48,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [FieldOffset(5)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(48, 6));

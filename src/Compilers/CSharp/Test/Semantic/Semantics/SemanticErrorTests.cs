@@ -8043,9 +8043,11 @@ public class Derived : Base2
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                Diagnostic(ErrorCode.ERR_RefProperty, "P"),
+                //         M(ref P); // CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
                 // (15,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                Diagnostic(ErrorCode.ERR_RefProperty, "this.Q"));
+                //         M(out this.Q); // CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
         }
 
         [Fact]
@@ -8071,9 +8073,11 @@ public class Derived : Base2
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (13,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]"),
+                //         R(ref this[0]); // CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
                 // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]"));
+                //         O(out this[0]); // CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
         }
 
         [Fact]
@@ -14319,17 +14323,16 @@ public class A : Attribute
             .VerifyDiagnostics(
                 // (5,19): error CS1525: Invalid expression term ';'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(5, 19),
                 // (5,19): error CS1003: Syntax error, ':' expected
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(5, 19),
                 // (5,19): error CS1525: Invalid expression term ';'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(5, 19),
                 // (5,17): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(5, 17));
         }
 
         [Fact]
@@ -14349,16 +14352,37 @@ public class A : Attribute
     }
 }
 ")
-                .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":"),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":"),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(","),
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(","),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(","));
+                .VerifyDiagnostics(
+                // (7,46): error CS1525: Invalid expression term ')'
+                //         System.Console.WriteLine(((x == y)) ?); // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 46),
+                // (7,46): error CS1003: Syntax error, ':' expected
+                //         System.Console.WriteLine(((x == y)) ?); // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(7, 46),
+                // (7,46): error CS1525: Invalid expression term ')'
+                //         System.Console.WriteLine(((x == y)) ?); // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 46),
+                // (8,52): error CS1003: Syntax error, ':' expected
+                //         System.Console.WriteLine(((x == y)) ? (x++)); // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(8, 52),
+                // (8,52): error CS1525: Invalid expression term ')'
+                //         System.Console.WriteLine(((x == y)) ? (x++)); // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 52),
+                // (9,61): error CS1003: Syntax error, ',' expected
+                //         System.Console.WriteLine(((x == y)) ? (x++) : (x++) : ((((y++)))));    // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(9, 61),
+                // (9,63): error CS1003: Syntax error, ',' expected
+                //         System.Console.WriteLine(((x == y)) ? (x++) : (x++) : ((((y++)))));    // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(9, 63),
+                // (10,48): error CS1525: Invalid expression term ':'
+                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(10, 48),
+                // (10,50): error CS1525: Invalid expression term ':'
+                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(10, 50),
+                // (10,50): error CS1003: Syntax error, ',' expected
+                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(10, 50));
         }
 
         [WorkItem(528657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528657")]
@@ -21631,12 +21655,12 @@ public class MyClass2
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
-                // (15,20): warning CS1581: Invalid return type in XML comment cref attribute
+                // (15,46): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt"),
-                // (15,20): warning CS1574: XML comment has cref attribute 'MyClass.explicit operator intt(MyClass)' that could not be resolved
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt").WithLocation(15, 46),
+                // (15,20): warning CS1574: XML comment has cref attribute 'explicit operator intt(MyClass)' that could not be resolved
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("explicit operator intt(MyClass)"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("explicit operator intt(MyClass)").WithLocation(15, 20));
         }
 
         [Fact]

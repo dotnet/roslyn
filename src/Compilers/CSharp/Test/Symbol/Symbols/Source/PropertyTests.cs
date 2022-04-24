@@ -1165,12 +1165,12 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
-    //     B y = A.Goo; 
-    Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E"),
-    // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
-    //     B y = A.Goo; 
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
+                // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
+                //     B y = A.Goo; 
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E").WithLocation(5, 11),
+                // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
+                //     B y = A.Goo; 
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B").WithLocation(5, 11)
                 );
             // Dev10 errors:
             // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.

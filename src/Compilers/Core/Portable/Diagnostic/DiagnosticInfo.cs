@@ -126,16 +126,19 @@ namespace Microsoft.CodeAnalysis
         private static void AssertExpectedMessageArgumentsLength(CommonMessageProvider messageProvider, int errorCode, int actualLength)
         {
 #if DEBUG
-            if (!messageProvider.AssertExpectedMessageArgumentsLength(errorCode))
+            if (!messageProvider.ShouldAssertExpectedMessageArgumentsLength(errorCode))
             {
                 return;
             }
             string message = messageProvider.LoadMessage(errorCode, language: null) ?? string.Empty;
             var matches = Regex.Matches(message, @"\{\d+}");
             int expectedLength = 0;
-            foreach (Match match in matches)
+            foreach (object? m in matches)
             {
-                expectedLength = Math.Max(int.Parse(match.Value[1..^1]) + 1, expectedLength);
+                if (m is Match { } match)
+                {
+                    expectedLength = Math.Max(int.Parse(match.Value[1..^1]) + 1, expectedLength);
+                }
             }
             Debug.Assert(expectedLength == actualLength);
 #endif

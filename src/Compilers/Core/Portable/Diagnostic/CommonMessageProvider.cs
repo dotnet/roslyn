@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         }
 
 #if DEBUG
-        internal abstract bool AssertExpectedMessageArgumentsLength(int errorCode);
+        internal abstract bool ShouldAssertExpectedMessageArgumentsLength(int errorCode);
 #endif
 
         // Common error messages 

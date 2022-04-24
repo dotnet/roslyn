@@ -2769,7 +2769,9 @@ class Program
                 return true;
             }
 
-            internal override bool AssertExpectedMessageArgumentsLength(int errorCode) => false;
+#if DEBUG
+            internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => false;
+#endif
         }
 
         #endregion
