@@ -265,7 +265,7 @@ In C..ctor: 0").VerifyIL("C..ctor", @"
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 51)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -331,7 +331,7 @@ In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 69)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact] // PROTOTYPE(semi-auto-props): Add test with semi-colon setter when mixed scenarios are supported.
@@ -395,7 +395,7 @@ In C..ctor after assignment: 5
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 69)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -442,7 +442,7 @@ public struct C
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(16, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -485,7 +485,7 @@ public struct C
     Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -1532,7 +1532,7 @@ public {type} C
   IL_0009:  ret
 }
 ").VerifyIL("C..ctor", ctorExpectedIL);
-            Assert.Equal(type == "struct" ? 1 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
@@ -3096,7 +3096,7 @@ public ref struct S2
             comp.VerifyDiagnostics(
             // PROTOTYPE(semi-auto-props): This should have ERR_FieldAutoPropCantBeByRefLike
             );
-            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3116,7 +3116,7 @@ public struct S
                 //     public readonly string P { set => field = value; }
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 39)
             );
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3139,7 +3139,7 @@ public readonly struct S
                 //     public string P { set => field = value; }
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(4, 30)
             );
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3385,7 +3385,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(19, 37)
             );
 
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(structTreeFirst ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory, CombinatorialData]
@@ -3452,7 +3452,7 @@ class C
 
             comp.VerifyDiagnostics();
 
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(structTreeFirst ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory, CombinatorialData]
@@ -3524,7 +3524,7 @@ class C
 
             comp.VerifyDiagnostics();
 
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(structTreeFirst ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3546,7 +3546,7 @@ struct S
             Assert.Empty(comp.GetTypeByMetadataName("S").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics();
 
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3591,6 +3591,7 @@ struct S2
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
+            // PROTOTYPE(semi-auto-props): Diagnostic is sometimes duplicated.
             comp.VerifyDiagnostics(
                 // (5,15): error CS0523: Struct member 'S1.P' of type 'S2' causes a cycle in the struct layout
                 //     public S2 P { get; }
@@ -3599,7 +3600,7 @@ struct S2
                 //     public S1 P { get; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(11, 15)
                 );
-            Assert.Equal(firstIsSemi ? 2 : (secondIsSemi ? 1 : 0), accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): Not passing, and also flaky!
         }
 
         [Fact]
@@ -3619,7 +3620,7 @@ struct S
                 //     public S P { get => field; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S.P", "S").WithLocation(5, 14)
                 );
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]

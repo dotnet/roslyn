@@ -2581,7 +2581,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A bag in which circular struct diagnostics should be reported.
+        /// </summary>
+        internal DiagnosticBag CircularStructDiagnostics
+        {
+            get
+            {
+                return _circularStructDiagnostics;
+            }
+        }
+
         private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
+        private readonly DiagnosticBag _circularStructDiagnostics = new DiagnosticBag();
 
         internal DeclarationTable Declarations
         {
@@ -2735,8 +2747,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                      builder.DependenciesBag is object ? new ConcurrentSet<AssemblySymbol>() : null);
                 RoslynDebug.Assert(methodBodyDiagnostics.DiagnosticBag is object);
                 GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
+                AddCircularStructDiagnostics(GlobalNamespace);
                 builder.AddRange(methodBodyDiagnostics);
+                builder.AddRange(CircularStructDiagnostics);
                 methodBodyDiagnostics.DiagnosticBag.Free();
+            }
+        }
+
+        private void AddCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
+        {
+            if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol)
+            {
+                _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+            }
+
+            foreach (var member in symbol.GetMembersUnordered())
+            {
+                if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                {
+                    AddCircularStructDiagnostics(namespaceOrTypeSymbol);
+                }
             }
         }
 

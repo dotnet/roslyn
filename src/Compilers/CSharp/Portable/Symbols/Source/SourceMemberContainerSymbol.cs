@@ -1617,8 +1617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
 
-            bool unused = KnownCircularStruct;
-
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
@@ -2137,7 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            AddDeclarationDiagnostics(diagnostics);
+                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics.DiagnosticBag);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
