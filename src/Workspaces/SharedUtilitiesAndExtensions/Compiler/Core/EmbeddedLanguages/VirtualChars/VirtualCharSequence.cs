@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -79,6 +81,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public VirtualChar First() => this[0];
         public VirtualChar Last() => this[^1];
+
+        public IEnumerable<VirtualChar> AsEnumerable()
+            => new Enumerable(this);
 
         public Enumerator GetEnumerator()
             => new(this);

@@ -559,8 +559,8 @@
   <data name="Convert_to_raw_string" xml:space="preserve">
     <value>Convert to raw string</value>
   </data>
-  <data name="Convert_to_raw_string_no_indent" xml:space="preserve">
-    <value>Convert to raw string (no indent)</value>
+  <data name="without_leading_whitespace_may_change_semantics" xml:space="preserve">
+    <value>... without leading whitespace (may change semantics)</value>
   </data>
   <data name="Apply_blank_lines_between_consecutive_braces_preferences_experimental" xml:space="preserve">
     <value>Apply blank lines between consecutive braces preferences (experimental)</value>

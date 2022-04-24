@@ -157,11 +157,6 @@
         <target state="translated">원시 문자열로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="translated">원시 문자열로 변환(한 수준 내리기 안 함)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">일반 문자열로 변환</target>
@@ -756,6 +751,11 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' 문 지정</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="new">... without leading whitespace (may change semantics)</target>
+        <note />
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>
