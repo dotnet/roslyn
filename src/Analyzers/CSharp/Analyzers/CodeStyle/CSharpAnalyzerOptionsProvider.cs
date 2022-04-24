@@ -16,7 +16,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal readonly struct CSharpAnalyzerOptionsProvider
 {
+    /// <summary>
+    /// Document editorconfig options.
+    /// </summary>
     private readonly AnalyzerConfigOptions _options;
+
+    /// <summary>
+    /// Fallback options - the default options in Code Style layer.
+    /// </summary>
     private readonly IdeAnalyzerOptions _fallbackOptions;
 
     public CSharpAnalyzerOptionsProvider(AnalyzerConfigOptions options, IdeAnalyzerOptions fallbackOptions)
@@ -80,13 +87,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => (CSharpIdeCodeStyleOptions?)_fallbackOptions.CodeStyleOptions ?? CSharpIdeCodeStyleOptions.Default;
 
-#if CODE_STYLE
-    private static CSharpSimplifierOptions FallbackSimplifierOptions
-        => CSharpSimplifierOptions.Default;
-#else
     private CSharpSimplifierOptions FallbackSimplifierOptions
         => (CSharpSimplifierOptions?)_fallbackOptions.CleanupOptions?.SimplifierOptions ?? CSharpSimplifierOptions.Default;
-#endif
 
     public static explicit operator CSharpAnalyzerOptionsProvider(AnalyzerOptionsProvider provider)
         => new(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions());

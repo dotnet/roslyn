@@ -42,16 +42,22 @@ internal interface CodeCleanupOptionsProvider :
 #if !CODE_STYLE
 internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsProvider
 {
-    public abstract ValueTask<CodeCleanupOptions> GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+    public abstract ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+
+    ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => GetCodeCleanupOptionsAsync(languageServices, cancellationToken);
+
+    async ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions.LineFormatting;
 
     async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
+        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
 
     async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
+        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
 
     async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
+        => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
 }
 #endif
 

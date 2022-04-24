@@ -48,10 +48,11 @@ internal abstract class SyntaxFormattingOptions
 #endif
 }
 
-internal interface SyntaxFormattingOptionsProvider
+internal interface SyntaxFormattingOptionsProvider :
 #if !CODE_STYLE
-    : OptionsProvider<SyntaxFormattingOptions>
+    OptionsProvider<SyntaxFormattingOptions>,
 #endif
+    LineFormattingOptionsProvider
 {
 }
 
@@ -65,6 +66,6 @@ internal static partial class SyntaxFormattingOptionsProviders
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetSyntaxFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetSyntaxFormattingOptionsAsync(document, await ((OptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }
 #endif

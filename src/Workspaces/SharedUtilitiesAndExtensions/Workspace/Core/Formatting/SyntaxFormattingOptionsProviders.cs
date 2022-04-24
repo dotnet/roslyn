@@ -22,4 +22,14 @@ internal static partial class SyntaxFormattingOptionsProviders
         return await document.GetSyntaxFormattingOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
 #endif
     }
+
+#if CODE_STYLE
+#pragma warning disable IDE0060 // Fallback options currently unused in code style fixers
+    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+#pragma warning restore
+    {
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        return LineFormattingOptions.Create(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), fallbackOptions: null);
+    }
+#endif
 }

@@ -12,7 +12,14 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
     ''' Provides convenient access to Visual Basic editorconfig options with fallback to IDE default values.
     ''' </summary>
     Friend Structure VisualBasicAnalyzerOptionsProvider
+        ''' <summary>
+        ''' Document editorconfig options.
+        ''' </summary>
         Private ReadOnly _options As AnalyzerConfigOptions
+
+        ''' <summary>
+        ''' Fallback options - the default options in Code Style layer.
+        ''' </summary>
         Private ReadOnly _fallbackOptions As IdeAnalyzerOptions
 
         Public Sub New(options As AnalyzerConfigOptions, fallbackOptions As IdeAnalyzerOptions)

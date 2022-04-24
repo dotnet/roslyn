@@ -42,27 +42,21 @@ internal interface CleanCodeGenerationOptionsProvider :
 {
 }
 
-internal abstract class AbstractCleanCodeGenerationOptionsProvider : CleanCodeGenerationOptionsProvider
+internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCodeCleanupOptionsProvider, CleanCodeGenerationOptionsProvider
 {
-    public abstract ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+    public abstract ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
 
-    async ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions;
+    public sealed override async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions;
 
-    async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions.FormattingOptions;
-
-    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions.SimplifierOptions;
-
-    async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions.AddImportOptions;
+    ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken);
 
     async ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CodeAndImportGenerationOptions;
+        => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CodeAndImportGenerationOptions;
 
     async ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
-        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).GenerationOptions;
+        => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).GenerationOptions;
 }
 
 internal static class CleanCodeGenerationOptionsProviders

@@ -32,12 +32,26 @@ internal sealed record class LineFormattingOptions(
             IndentationSize: options.GetEditorConfigOption(FormattingOptions2.IndentationSize, fallbackOptions.IndentationSize),
             NewLine: options.GetEditorConfigOption(FormattingOptions2.NewLine, fallbackOptions.NewLine));
     }
+}
+
+internal interface LineFormattingOptionsProvider
+#if !CODE_STYLE
+    : OptionsProvider<LineFormattingOptions>
+#endif
+{
+}
 
 #if !CODE_STYLE
-    public static async Task<LineFormattingOptions> FromDocumentAsync(Document document, LineFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
+internal static partial class LineFormattingOptionsProviders
+{
+    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var documentOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return Create(documentOptions, fallbackOptions);
+        return LineFormattingOptions.Create(documentOptions, fallbackOptions);
     }
-#endif
+
+    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+        => await GetLineFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }
+#endif
+

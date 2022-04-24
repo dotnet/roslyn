@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public abstract CodeActionOptions GetOptions(HostLanguageServices languageService);
 
 #if !CODE_STYLE
+        ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions.LineFormatting);
+
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
 
