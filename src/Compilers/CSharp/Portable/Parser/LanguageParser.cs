@@ -6649,7 +6649,7 @@ tryAgain:
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     }
 
                     // If the left hand side is not an identifier name then the user has done
@@ -9962,7 +9962,7 @@ tryAgain:
                 else if (list.Any(mod.RawKind))
                 {
                     // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
                 }
 
                 list.Add(mod);

@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));
                         return (object)forwardedToAssembly == null
-                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText, qualifierOpt)
+                            ? diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFound, location, whereText)
                             : diagnostics.Add(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly);
                     }
                     else

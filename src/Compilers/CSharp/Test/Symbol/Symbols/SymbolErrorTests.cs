@@ -3880,10 +3880,10 @@ namespace N
             comp.VerifyDiagnostics(
                 // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2"),
                 // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -4573,7 +4573,7 @@ public class NormalType
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G"),
                 // (14,19): warning CS0169: The field 'NS.S.field' is never used
                 //         global::G field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
@@ -12993,10 +12993,12 @@ static class D : B { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
-                // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
+                // (7,29): error CS0714: 'C': static classes cannot implement interfaces
+                //     public static class C : I
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C").WithLocation(7, 29),
+                // (15,25): error CS0714: 'D<V>': static classes cannot implement interfaces
+                //     static class D<V> : IGoo<string, V>
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -16574,13 +16576,13 @@ namespace N1
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
                 // (6,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
                 // (7,19): error CS8050: Only auto-implemented properties can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
         }
 

@@ -130,6 +130,12 @@ namespace Microsoft.CodeAnalysis
             {
                 return;
             }
+            // PROTOTYPE: If this is necessary, delegate to a virtual method on DiagnosticInfo
+            // or on MessageProvider to decide whether to analyze arguments.
+            if (errorCode == 1570)
+            {
+                return;
+            }
             string message = messageProvider.LoadMessage(errorCode, language: null) ?? string.Empty;
             var matches = Regex.Matches(message, @"\{\d+}");
             int expectedLength = 0;

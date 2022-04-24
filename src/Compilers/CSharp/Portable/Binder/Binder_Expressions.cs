@@ -4226,7 +4226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsNullableType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
+                    diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location);
                 }
 
                 switch (type.TypeKind)
@@ -4261,7 +4261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Array:
                         // ex: new ref[]
                         type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
-                            diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, type));
+                            diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location));
                         goto case TypeKind.Class;
 
                     default:

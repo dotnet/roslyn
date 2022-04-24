@@ -1090,7 +1090,7 @@ class Test
             // Semantic error
             // (6,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
             CreateCompilation(test).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>")
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType")
                 );
         }
 
