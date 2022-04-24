@@ -145,6 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               out hasPragmaSuppression);
         }
 
+        internal override bool AssertExpectedMessageArgumentsLength(int errorCode)
+        {
+            return (ErrorCode)errorCode switch
+            {
+                0 => false,
+                ErrorCode.Unknown => false,
+                ErrorCode.Void => false,
+                ErrorCode.WRN_XMLParseError => false, // should investigate failures here
+                _ => true
+            };
+        }
+
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
 

@@ -90,6 +90,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Overrides Function GetIsEnabledByDefault(code As Integer) As Boolean
             Return True
         End Function
+
+        Friend Overrides Function AssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
+            Return False
+        End Function
     End Class
 
     Friend Class RedIdentityRewriter

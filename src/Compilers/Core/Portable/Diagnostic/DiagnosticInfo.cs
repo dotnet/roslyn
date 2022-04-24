@@ -123,16 +123,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        internal static void AssertExpectedMessageArgumentsLength(CommonMessageProvider messageProvider, int errorCode, int actualLength)
+        private static void AssertExpectedMessageArgumentsLength(CommonMessageProvider messageProvider, int errorCode, int actualLength)
         {
 #if DEBUG
-            if (errorCode <= 0)
-            {
-                return;
-            }
-            // PROTOTYPE: If this is necessary, delegate to a virtual method on DiagnosticInfo
-            // or on MessageProvider to decide whether to analyze arguments.
-            if (errorCode == 1570)
+            if (!messageProvider.AssertExpectedMessageArgumentsLength(errorCode))
             {
                 return;
             }
