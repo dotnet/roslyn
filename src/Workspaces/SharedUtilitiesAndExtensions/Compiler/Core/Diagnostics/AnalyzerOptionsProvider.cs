@@ -98,6 +98,13 @@ internal readonly struct AnalyzerOptionsProvider
 
 internal static partial class AnalyzerOptionsProviders
 {
+    public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
+#if CODE_STYLE
+        => IdeAnalyzerOptions.CodeStyleDefault;
+#else
+        => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
+#endif
+
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context)
         => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
 

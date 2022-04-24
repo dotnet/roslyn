@@ -21,13 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerOptionsExtensions
     {
-        public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
         public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerOptions options, SyntaxTree tree, ISyntaxFormatting formatting)
         {
 #if CODE_STYLE
