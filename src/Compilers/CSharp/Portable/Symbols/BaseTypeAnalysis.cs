@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Debug.Assert(!field.IsStatic);
                     var fieldType = field.NonPointerType();
-                    if (fieldType.TypeKind != TypeKind.Struct)
+                    if (fieldType is null || fieldType.TypeKind != TypeKind.Struct)
                     {
                         continue;
                     }
