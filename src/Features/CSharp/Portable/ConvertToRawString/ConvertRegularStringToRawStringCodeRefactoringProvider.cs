@@ -200,16 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             foreach (var line in lines)
             {
-                var lineEnumerable = line.AsEnumerable();
                 if (AllWhitespace(line))
                 {
                     // For an all-whitespace line, just add the trailing newlines on the line (if present).
-                    result.AddRange(lineEnumerable.SkipWhile(IsCSharpWhitespace));
+                    AddRange(result, line.SkipWhile(IsCSharpWhitespace));
                 }
                 else
                 {
                     // Normal line.  Skip the common whitespace.
-                    result.AddRange(lineEnumerable.Skip(commonWhitespacePrefix));
+                    AddRange(result, line.Skip(commonWhitespacePrefix));
                 }
             }
 
@@ -218,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 result.RemoveAt(result.Count - 1);
 
             return VirtualCharSequence.Create(result.ToImmutable());
+        }
+
+        private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
+        {
+            foreach (var c in sequence)
+                result.Add(c);
         }
 
         private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)

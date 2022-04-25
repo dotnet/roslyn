@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,12 +25,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// This allows for embedded language processing that can refer back to the user's original code
     /// instead of the escaped value we're processing.
     /// </summary>
-    /// <remarks>
-    /// This type intentionally does not implement <see cref="IEnumerable{T}"/>.  That is because it is primarily
-    /// intended for high perf scenarios where the allocation overhead of Linq would be problematic.  To get such a view
-    /// over the sequence though, the <see cref="AsEnumerable"/> method can be used to explicitly opt-in to that
-    /// behavior.
-    /// </remarks>
     internal partial struct VirtualCharSequence
     {
         public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
@@ -82,14 +73,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public VirtualCharSequence GetSubSequence(TextSpan span)
            => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
-        public VirtualChar First() => this[0];
-        public VirtualChar Last() => this[^1];
-
-        public IEnumerable<VirtualChar> AsEnumerable()
-            => new Enumerable(this);
-
         public Enumerator GetEnumerator()
             => new(this);
+
+        public VirtualChar First() => this[0];
+        public VirtualChar Last() => this[^1];
 
         /// <summary>
         /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
@@ -135,6 +123,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             return true;
+        }
+
+        public VirtualCharSequence Skip(int count)
+            => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
+
+        public VirtualCharSequence SkipWhile(Func<VirtualChar, bool> predicate)
+        {
+            var start = 0;
+            foreach (var ch in this)
+            {
+                if (!predicate(ch))
+                    break;
+
+                start++;
+            }
+
+            return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
         }
 
         public string CreateString()
