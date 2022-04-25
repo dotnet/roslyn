@@ -18,16 +18,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// The difference between this and the result from token.ValueText is that for each collapsed character
     /// returned the original span of text in the original token can be found.  i.e. if you had the
     /// following in C#:
-    ///
-    /// "G\u006fo"
-    ///
+    /// <para/>
+    /// <c>"G\u006fo"</c>
+    /// <para/>
     /// Then you'd get back:
-    ///
-    /// 'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)
-    ///
+    /// <para/>
+    /// <c>'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)</c>
+    /// <para/>
     /// This allows for embedded language processing that can refer back to the user's original code
     /// instead of the escaped value we're processing.
     /// </summary>
+    /// <remarks>
+    /// This type intentionally does not implement <see cref="IEnumerable{T}"/>.  That is because it is primarily
+    /// intended for high perf scenarios where the allocation overhead of Linq would be problematic.  To get such a view
+    /// over the sequence though, the <see cref="AsEnumerable"/> method can be used to explicitly opt-in to that
+    /// behavior.
+    /// </remarks>
     internal partial struct VirtualCharSequence
     {
         public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
@@ -49,21 +55,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         private readonly TextSpan _span;
 
-        private VirtualCharSequence(Chunk sequence) : this(sequence, new TextSpan(0, sequence.Length))
+        private VirtualCharSequence(Chunk sequence)
+            : this(sequence, new TextSpan(0, sequence.Length))
         {
         }
 
         private VirtualCharSequence(Chunk sequence, TextSpan span)
         {
             if (span.Start > sequence.Length)
-            {
                 throw new ArgumentException();
-            }
 
             if (span.End > sequence.Length)
-            {
                 throw new ArgumentException();
-            }
 
             _leafCharacters = sequence;
             _span = span;
