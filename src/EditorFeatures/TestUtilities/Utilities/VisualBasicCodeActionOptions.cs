@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.VisualBasic.CodeGeneration;
 using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
@@ -24,7 +25,8 @@ internal static class VisualBasicCodeActionOptions
         new CodeCleanupOptions(
             VisualBasicSyntaxFormattingOptions.Default,
             VisualBasicSimplifierOptions.Default,
-            AddImportPlacementOptions.Default),
+            AddImportPlacementOptions.Default,
+            DocumentFormattingOptions.Default),
         VisualBasicCodeGenerationOptions.Default,
         VisualBasicIdeCodeStyleOptions.Default);
 

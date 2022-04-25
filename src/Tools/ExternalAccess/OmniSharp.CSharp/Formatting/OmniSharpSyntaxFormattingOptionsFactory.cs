@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                     wrappingKeepStatementsOnSingleLine: wrappingKeepStatementsOnSingleLine,
                     wrappingPreserveSingleLine: wrappingPreserveSingleLine),
                 SimplifierOptions: CSharpSimplifierOptions.Default,
-                AddImportOptions: AddImportPlacementOptions.Default));
+                AddImportOptions: AddImportPlacementOptions.Default,
+                DocumentFormattingOptions: DocumentFormattingOptions.Default));
     }
 }

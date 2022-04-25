@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -63,7 +64,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     FormattingOptions: CSharpSyntaxFormattingOptions.Default,
                     SimplifierOptions: new CSharpSimplifierOptions(
                         varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
-                    AddImportOptions: AddImportPlacementOptions.Default));
+                    AddImportOptions: AddImportPlacementOptions.Default,
+                    DocumentFormattingOptions: DocumentFormattingOptions.Default));
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
 

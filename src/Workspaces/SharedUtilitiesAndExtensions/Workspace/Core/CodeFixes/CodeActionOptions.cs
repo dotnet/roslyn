@@ -114,6 +114,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions.LineFormatting);
 
+        ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.DocumentFormattingOptions);
+
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
 

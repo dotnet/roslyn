@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         internal static readonly Option2<string> FileHeaderTemplate = CreateCommonOption(
             CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
-            defaultValue: "",
+            DocumentFormattingOptions.Default.FileHeaderTemplate,
             EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
         internal static readonly Option2<string> RemoveUnnecessarySuppressionExclusions = CreateCommonOption(

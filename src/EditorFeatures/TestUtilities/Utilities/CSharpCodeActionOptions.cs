@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -23,7 +24,8 @@ internal static class CSharpCodeActionOptions
         new CodeCleanupOptions(
             CSharpSyntaxFormattingOptions.Default,
             CSharpSimplifierOptions.Default,
-            AddImportPlacementOptions.Default),
+            AddImportPlacementOptions.Default,
+            DocumentFormattingOptions.Default),
         CSharpCodeGenerationOptions.Default,
         CSharpIdeCodeStyleOptions.Default);
 }
