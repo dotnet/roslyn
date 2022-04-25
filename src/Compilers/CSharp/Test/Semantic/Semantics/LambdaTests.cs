@@ -6311,6 +6311,69 @@ class A : Attribute { }
         }
 
         [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'ref' is a keyword
+                //         Action<int> a = ref => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8171: Cannot initialize a by-value variable with a reference
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "a = ref int => { }").WithLocation(6, 21),
+                // (6,29): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
+        }
+
+        [Fact]
         public void ParameterScope_NotInMethodAttributeNameOf()
         {
             var comp = CreateCompilation(@"
