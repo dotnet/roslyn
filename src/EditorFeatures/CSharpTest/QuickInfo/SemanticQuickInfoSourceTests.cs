@@ -8475,5 +8475,49 @@ class Program
             await TestAsync(markup,
                 MainDescription($"({FeaturesResources.parameter}) string[] args"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInMethodAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    [My(nameof($$s))]
+    void M(string s) { }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInMethodParameterAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    void M([My(nameof($$s))] string s) { }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestParameterInLocalFunctionAttributeNameof()
+        {
+            var source = @"
+class Program
+{
+    void M()
+    {
+        [My(nameof($$s))]
+        void local(string s) { }
+    }
+}
+";
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+                MainDescription($"({FeaturesResources.parameter}) string s"));
+        }
     }
 }

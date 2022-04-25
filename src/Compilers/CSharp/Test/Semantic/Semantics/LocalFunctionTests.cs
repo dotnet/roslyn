@@ -8725,6 +8725,82 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_GetSymbolInfoOnSpeculativeMethodBodySemanticModel()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [My(nameof(parameter))]
+        void local(int parameter) { }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local(int parameter) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tree2 = CSharpSyntaxTree.ParseText(source);
+            var method = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
+
+            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("nameof(parameter)", invocation.ToString());
+            var symbolInfo = speculativeModel.GetSymbolInfo(invocation);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void ParameterScope_InMethodAttributeNameOf_LookupInEmptyNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [My(nameof())]
+        void local(int parameter) { }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0103: The name 'nameof' does not exist in the current context
+                //         [My(nameof())]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(6, 13),
+                // (7,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local(int parameter) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nameofExpression = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            // An invocation may not be considered a 'nameof' operator unless it has one argument
+            Assert.False(model.LookupSymbols(nameofExpression.ArgumentList.CloseParenToken.SpanStart).ToTestDisplayStrings().Contains("parameter"));
+        }
+
+        [Fact]
         public void ParameterScope_InMethodAttributeNameOf_ConflictingNames()
         {
             var source = @"
