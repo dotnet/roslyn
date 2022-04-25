@@ -2134,6 +2134,24 @@ class Program
         }
 
         [Fact]
+        public void RefParameter_ReadonlyRefReadonly_PEVerifyCompat()
+        {
+            var source =
+@"#pragma warning disable 649
+ref struct S<T>
+{
+    public readonly ref readonly T F;
+}
+class Program
+{
+    static void M4<T>(in T t) { }
+    static void FromValue4B<T>(S<T> s) { M4(s.F); }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void InitobjField()
         {
             var source =

@@ -3842,7 +3842,7 @@ moreArguments:
                 return false;
             }
 
-            if (field.RefKind == RefKind.Ref)
+            if (field.RefKind is RefKind.Ref or RefKind.RefReadOnly)
             {
                 return true;
             }
@@ -3858,8 +3858,6 @@ moreArguments:
             {
                 return true;
             }
-
-            Debug.Assert(field.RefKind != RefKind.RefReadOnly);
 
             // Some field accesses must be values; values do not have homes.
             if (fieldAccess.IsByValue)
