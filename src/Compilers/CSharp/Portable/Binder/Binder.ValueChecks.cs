@@ -801,7 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var canModifyReadonly = false;
 
-                    // PROTOTYPE: Test all of these cases with ref fields (ref, ref readonly, readonly ref, readonly ref readonly) and value kinds (Ref, RefReadOnly, Out).
                     Symbol containing = this.ContainingMemberOrLambda;
                     if ((object)containing != null &&
                         fieldIsStatic == containing.IsStatic &&
@@ -3843,7 +3842,7 @@ moreArguments:
                 return false;
             }
 
-            if (field.RefKind == RefKind.Ref) // PROTOTYPE: What about RefReadOnly?
+            if (field.RefKind == RefKind.Ref)
             {
                 return true;
             }
@@ -3859,6 +3858,8 @@ moreArguments:
             {
                 return true;
             }
+
+            Debug.Assert(field.RefKind != RefKind.RefReadOnly);
 
             // Some field accesses must be values; values do not have homes.
             if (fieldAccess.IsByValue)

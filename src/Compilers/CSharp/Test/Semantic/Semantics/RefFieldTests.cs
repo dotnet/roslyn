@@ -833,6 +833,7 @@ class Program
 }";
             // PROTOTYPE: Report a ref-safe-to-escape error for: F = ref tValue;
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            // PROTOTYPE: Consider changing ERR_AssignReadonlyNotField to "Cannot take a writable 'ref' to a readonly variable".
             comp.VerifyEmitDiagnostics(
                 // (10,17): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
                 //         F = ref tIn; // 1
