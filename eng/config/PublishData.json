@@ -145,23 +145,5 @@
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.3p1]"
     }
-  },
-  "releases": {
-    "dev15.5": {
-      "nugetKind": "Release",
-      "version": "2.3.*",
-      "nuget": [
-        "https://api.nuget.org/v3/index.json"
-      ],
-      "channels": []
-    },
-    "dev15.6": {
-      "nugetKind": "Release",
-      "version": "2.7.*",
-      "nuget": [
-        "https://api.nuget.org/v3/index.json"
-      ],
-      "channels": []
-    }
   }
 }
