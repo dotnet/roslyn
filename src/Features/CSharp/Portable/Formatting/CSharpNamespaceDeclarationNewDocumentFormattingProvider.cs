@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -44,12 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var declarations = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>();
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
 
             foreach (var declaration in declarations)
             {
                 // Passing in forAnalyzer: true means we'll only get a result if the declaration doesn't match the preferences
-                if (ConvertNamespaceAnalysis.CanOfferUseBlockScoped(optionSet, declaration, forAnalyzer: true) ||
-                    ConvertNamespaceAnalysis.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
+                if (ConvertNamespaceAnalysis.CanOfferUseBlockScoped(option, declaration, forAnalyzer: true) ||
+                    ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
                 {
                     yield return declaration;
                 }

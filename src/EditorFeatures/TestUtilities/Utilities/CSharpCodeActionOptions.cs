@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 
@@ -23,5 +24,6 @@ internal static class CSharpCodeActionOptions
             CSharpSyntaxFormattingOptions.Default,
             CSharpSimplifierOptions.Default,
             AddImportPlacementOptions.Default),
-        CSharpCodeGenerationOptions.Default);
+        CSharpCodeGenerationOptions.Default,
+        CSharpIdeCodeStyleOptions.Default);
 }

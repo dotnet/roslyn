@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -34,12 +35,14 @@ internal readonly record struct ExtractMethodGenerationOptions(
     ExtractMethodOptions ExtractOptions,
     CodeGenerationOptions CodeGenerationOptions,
     AddImportPlacementOptions AddImportOptions,
+    LineFormattingOptions LineFormattingOptions,
     NamingStylePreferencesProvider NamingPreferences)
 {
     public static ExtractMethodGenerationOptions GetDefault(HostLanguageServices languageServices)
         => new(ExtractMethodOptions.Default,
                CodeGenerationOptions.GetDefault(languageServices),
                AddImportPlacementOptions.Default,
+               LineFormattingOptions.Default,
                new NamingStylePreferencesProvider(_ => NamingStylePreferences.Default));
 }
 

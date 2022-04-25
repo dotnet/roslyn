@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -134,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 ExtractOptions: new ExtractMethodOptions(dontPutOutOrRefOnStruct),
                 CodeGenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
                 AddImportOptions: AddImportPlacementOptions.Default,
+                LineFormattingOptions: LineFormattingOptions.Default,
                 NamingPreferences: _ => NamingStylePreferences.Default);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);

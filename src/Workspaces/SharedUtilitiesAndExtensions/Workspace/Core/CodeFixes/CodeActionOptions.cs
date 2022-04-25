@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; }
         [DataMember(Order = 3)] public CodeCleanupOptions CleanupOptions { get; init; }
         [DataMember(Order = 4)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
+        [DataMember(Order = 5)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
         [DataMember(Order = 5)] public bool HideAdvancedMembers { get; init; }
         [DataMember(Order = 7)] public int WrappingColumn { get; init; }
 
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public CodeActionOptions(
             CodeCleanupOptions CleanupOptions,
             CodeGenerationOptions CodeGenerationOptions,
+            IdeCodeStyleOptions CodeStyleOptions,
             SymbolSearchOptions? SearchOptions = null,
             ImplementTypeOptions? ImplementTypeOptions = null,
             ExtractMethodOptions? ExtractMethodOptions = null,
@@ -63,11 +66,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             int WrappingColumn = DefaultWrappingColumn)
 #pragma warning restore
         {
+            this.CleanupOptions = CleanupOptions;
+            this.CodeGenerationOptions = CodeGenerationOptions;
+            this.CodeStyleOptions = CodeStyleOptions;
             this.SearchOptions = SearchOptions ?? SymbolSearchOptions.Default;
             this.ImplementTypeOptions = ImplementTypeOptions ?? ImplementType.ImplementTypeOptions.Default;
             this.ExtractMethodOptions = ExtractMethodOptions ?? ExtractMethod.ExtractMethodOptions.Default;
-            this.CleanupOptions = CleanupOptions;
-            this.CodeGenerationOptions = CodeGenerationOptions;
             this.HideAdvancedMembers = HideAdvancedMembers;
             this.WrappingColumn = WrappingColumn;
         }
@@ -76,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
+                IdeCodeStyleOptions.GetDefault(languageServices),
                 SymbolSearchOptions.Default,
                 ImplementTypeOptions.Default,
                 ExtractMethodOptions.Default);
@@ -177,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 codeActionOptions.ExtractMethodOptions,
                 codeActionOptions.CodeGenerationOptions,
                 codeActionOptions.CleanupOptions.AddImportOptions,
+                codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting,
                 new NamingStylePreferencesProvider(languageServices => NamingStylePreferences.Default)); // TODO: https://github.com/dotnet/roslyn/issues/60849
         }
 #endif

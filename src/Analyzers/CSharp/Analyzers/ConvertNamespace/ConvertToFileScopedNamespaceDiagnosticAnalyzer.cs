@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var tree = declaration.SyntaxTree;
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
 
-            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(optionSet, root, declaration, forAnalyzer: true))
+            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
                 return null;
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.

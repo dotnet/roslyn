@@ -4,6 +4,7 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
@@ -98,4 +99,9 @@ internal abstract class IdeCodeStyleOptions
     {
         Common = common ?? CommonOptions.Default;
     }
+
+#if !CODE_STYLE
+    public static IdeCodeStyleOptions GetDefault(HostLanguageServices languageServices)
+        => languageServices.GetRequiredService<ICodeStyleService>().DefaultOptions;
+#endif
 }

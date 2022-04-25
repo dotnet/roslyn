@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (option.Value)
                 return document;
 
-            return await ConvertProgramTransform.ConvertToProgramMainAsync(document, cancellationToken).ConfigureAwait(false);
+            var accessibilityModifiersRequired = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers).Value;
+            return await ConvertProgramTransform.ConvertToProgramMainAsync(document, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
         }
     }
 }

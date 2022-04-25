@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var tree = declaration.SyntaxTree;
             var option = optionSet.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
 
-            if (!ConvertNamespaceAnalysis.CanOfferUseBlockScoped(optionSet, declaration, forAnalyzer: true))
+            if (!ConvertNamespaceAnalysis.CanOfferUseBlockScoped(option, declaration, forAnalyzer: true))
                 return null;
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.

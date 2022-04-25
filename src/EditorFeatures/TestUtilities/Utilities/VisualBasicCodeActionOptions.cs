@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.VisualBasic.CodeGeneration;
+using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Microsoft.CodeAnalysis.VisualBasic.Simplification;
 
@@ -24,7 +25,8 @@ internal static class VisualBasicCodeActionOptions
             VisualBasicSyntaxFormattingOptions.Default,
             VisualBasicSimplifierOptions.Default,
             AddImportPlacementOptions.Default),
-        VisualBasicCodeGenerationOptions.Default);
+        VisualBasicCodeGenerationOptions.Default,
+        VisualBasicIdeCodeStyleOptions.Default);
 
     public static CodeActionOptions WithWrappingColumn(this CodeActionOptions options, int value)
         => options with { WrappingColumn = value };
