@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var completionItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
-            var generatedLSPSnippet = commit.LSPSnippet;
+            commit.Properties.TryGetValue("LSPSnippet", out var generatedLSPSnippet);
             AssertEx.EqualOrDiff(expectedLSPSnippet, generatedLSPSnippet);
         }
     }

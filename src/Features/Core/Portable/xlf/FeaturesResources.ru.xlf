@@ -936,8 +936,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Insert_an_if_statement">
-        <source>Insert an if statement</source>
-        <target state="new">Insert an if statement</target>
+        <source>Insert an 'if' statement</source>
+        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">

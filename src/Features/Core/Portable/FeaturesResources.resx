@@ -3133,6 +3133,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Sort Imports or usings</value>
   </data>
   <data name="Insert_an_if_statement" xml:space="preserve">
-    <value>Insert an if statement</value>
+    <value>Insert an 'if' statement</value>
   </data>
 </root>

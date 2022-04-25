@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        /*protected override List<(string, List<TextSpan>)> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var renameLocationsMap = new List<(string, List<TextSpan>)>();
             var openParenToken = GetOpenParenToken(node, syntaxFacts);
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             renameLocationsMap.Add(("", list1));
 
             return renameLocationsMap;
-        }
+        }*/
 
         private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)
         {

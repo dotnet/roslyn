@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
@@ -72,44 +73,28 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var renameLocationsMap = new List<(string, List<TextSpan>)>();
+            using var pooledDisposer = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
             GetPartsOfIfStatement(node, out _, out var condition, out var statement);
 
-            var list1 = new List<TextSpan>
-            {
-                // Need to add 1 to the span start because we are retrieving a block and want the cursor to appear inside the block.
-                new TextSpan(statement.SpanStart + 1, statement.Span.Length)
-            };
-
-            renameLocationsMap.Add(("", list1));
+            arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: null, 0, statement.SpanStart + 1, ImmutableArray<TextSpan>.Empty));
 
             var list2 = new List<TextSpan>
             {
-                new TextSpan(condition.SpanStart, condition.Span.Length)
+                new TextSpan(condition.SpanStart, 0)
             };
 
-            renameLocationsMap.Add((condition.ToString(), list2));
+            arrayBuilder.Add(new RoslynLSPSnippetItem(condition.ToString(), 1, caretPosition: null, list2.ToImmutableArray()));
 
-            return renameLocationsMap;
+            return arrayBuilder.ToImmutableArray();
         }
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
 
-            SyntaxNode? statementOfGlobalStatement = null;
-            if (syntaxFacts.IsGlobalStatement(closestNode))
-            {
-                statementOfGlobalStatement = syntaxFacts.GetStatementOfGlobalStatement(closestNode);
-            }
-
-            var nearestStatement = statementOfGlobalStatement is not null
-                ? syntaxFacts.IsIfStatement(statementOfGlobalStatement)
-                    ? statementOfGlobalStatement
-                    : null
-                : closestNode.DescendantNodesAndSelf(syntaxFacts.IsIfStatement).FirstOrDefault();
+            var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsIfStatement).FirstOrDefault();
 
             if (nearestStatement is null)
             {

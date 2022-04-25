@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -40,21 +41,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
-        internal string? LSPSnippet { get; }
+        internal ImmutableDictionary<string, string>? Properties { get; }
 
         private CompletionChange(
             TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
+            : this(textChange, textChanges, newPosition, includesCommitCharacter, null)
         {
-            TextChange = textChange;
-            NewPosition = newPosition;
-            IncludesCommitCharacter = includesCommitCharacter;
-            TextChanges = textChanges.NullToEmpty();
-            if (TextChanges.IsEmpty)
-                TextChanges = ImmutableArray.Create(textChange);
         }
 
         private CompletionChange(
-            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, string? lspSnippet)
+            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, ImmutableDictionary<string, string>? properties)
         {
             TextChange = textChange;
             NewPosition = newPosition;
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
             TextChanges = textChanges.NullToEmpty();
             if (TextChanges.IsEmpty)
                 TextChanges = ImmutableArray.Create(textChange);
-            LSPSnippet = lspSnippet;
+            Properties = properties;
         }
 
         /// <summary>
@@ -114,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static CompletionChange Create(
             TextChange textChange,
             ImmutableArray<TextChange> textChanges,
-            string? lspSnippet,
-            int? newPosition = null,
-            bool includesCommitCharacter = false)
+            ImmutableDictionary<string, string>? properties,
+            int? newPosition,
+            bool includesCommitCharacter)
         {
-            return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter, lspSnippet);
+            return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter, properties);
         }
 
         /// <summary>

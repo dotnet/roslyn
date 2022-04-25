@@ -26,7 +26,5 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Called upon by the AbstractSnippetCompletionProvider
         /// </summary>
         ISnippetProvider GetSnippetProvider(string snippetIdentifier);
-
-
     }
 }

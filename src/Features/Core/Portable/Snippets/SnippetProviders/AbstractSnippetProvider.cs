@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             // Gets a listing of the identifiers that need to be found in the snippet TextChange
             // and their associated TextSpan so they can later be converted into an LSP snippet format.
-            var placeholders = GetRenameLocationsMap(mainChangeNode, syntaxFacts, cancellationToken);
+            var placeholders = GetPlaceHolderLocationsList(mainChangeNode, syntaxFacts, cancellationToken);
 
             // All the changes from the original document to the most updated. Will later be
             // collpased into one collapsed TextChange.
@@ -131,16 +131,12 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true), AddAnnotations);
+            var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
+                (oldToken, _) => oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                    .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
+                    .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
 
             return nodeWithTrivia;
-
-            SyntaxToken AddAnnotations(SyntaxToken oldToken, SyntaxToken newToken)
-            {
-                return oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
-                    .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
-                    .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
-            }
         }
 
         private async Task<Document> CleanupDocumentAsync(
@@ -207,9 +203,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
-        protected virtual List<(string, List<TextSpan>)> GetRenameLocationsMap(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected virtual ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return new List<(string, List<TextSpan>)>();
+            return ImmutableArray<RoslynLSPSnippetItem>.Empty;
         }
     }
 }

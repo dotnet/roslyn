@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The items that we will want to rename as well as the ordering
         /// in which to visit those items.
         /// </summary>
-        public readonly List<(string, List<TextSpan>)> Placeholders;
+        public readonly ImmutableArray<RoslynLSPSnippetItem> Placeholders;
 
         public SnippetChange(
             ImmutableArray<TextChange> textChanges,
             int? cursorPosition,
-            List<(string, List<TextSpan>)> placeholders)
+            ImmutableArray<RoslynLSPSnippetItem> placeholders)
         {
             if (textChanges.IsEmpty)
             {
-                throw new ArgumentException($"{ textChanges.Length } must not be empty");
+                throw new ArgumentException($"textChanges must not be empty");
             }
 
             TextChanges = textChanges;

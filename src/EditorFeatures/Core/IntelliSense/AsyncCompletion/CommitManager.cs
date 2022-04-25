@@ -248,7 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // TryExpand method and determine if it succeeded or not.
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
-                var lspSnippetText = change.LSPSnippet;
+                change.Properties!.TryGetValue("LSPSnippet", out var lspSnippetText);
+
                 if (!document.TryGetText(out var sourceText))
                 {
                     FatalError.ReportAndCatch(new InvalidOperationException("Document is not loaded and available."), ErrorSeverity.Critical);
