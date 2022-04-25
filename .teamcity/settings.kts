@@ -17,7 +17,8 @@ project {
    buildType(ReleaseBuild)
    buildType(PublicBuild)
    buildType(PublicDeployment)
-   buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment)
+   buildType(VersionBump)
+   buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment,VersionBump)
 }
 
 object DebugBuild : BuildType({
@@ -199,6 +200,50 @@ object PublicDeployment : BuildType({
         }
 
      }
+
+})
+
+object VersionBump : BuildType({
+
+    name = "Version Bump"
+
+    type = Type.DEPLOYMENT
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        powerShell {
+            scriptMode = file {
+                path = "Build.ps1"
+            }
+            noProfile = false
+            param("jetbrains_powershell_scriptArguments", "bump")
+        }
+    }
+
+    requirements {
+        equals("env.BuildAgentType", "caravela02")
+    }
+
+    features {
+        swabra {
+            lockingProcesses = Swabra.LockingProcessPolicy.KILL
+            verbose = true
+        }
+    }
+
+    triggers {
+
+        finishBuildTrigger {
+            buildType = "Metalama_MetalamaBackstage_VersionBump"
+            // Only successful dependency version bump will trigger version bump of this product.
+            successfulOnly = true
+            branchFilter = "+:<default>"
+        }        
+
+    }
 
 })
 
