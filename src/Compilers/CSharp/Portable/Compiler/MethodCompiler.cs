@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
+            AddCircularStructDiagnostics(compilation.GlobalNamespace);
+            diagnostics.AddRange(compilation.CircularStructDiagnostics);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
             // we can get unused field warnings only if compiling whole compilation.
@@ -212,6 +214,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
                 {
                     moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics.DiagnosticBag);
+                }
+            }
+        }
+
+        private static void AddCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
+        {
+            if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol)
+            {
+                _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+            }
+
+            foreach (var member in symbol.GetMembersUnordered())
+            {
+                if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                {
+                    AddCircularStructDiagnostics(namespaceOrTypeSymbol);
                 }
             }
         }

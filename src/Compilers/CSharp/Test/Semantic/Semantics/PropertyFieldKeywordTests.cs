@@ -3591,7 +3591,6 @@ struct S2
 ");
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
-            // PROTOTYPE(semi-auto-props): Diagnostic is sometimes duplicated.
             comp.VerifyDiagnostics(
                 // (5,15): error CS0523: Struct member 'S1.P' of type 'S2' causes a cycle in the struct layout
                 //     public S2 P { get; }
