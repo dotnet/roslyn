@@ -44,6 +44,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> VarWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, FallbackSimplifierOptions.VarWhenTypeIsApparent);
     public CodeStyleOption2<bool> VarElsewhere => GetOption(CSharpCodeStyleOptions.VarElsewhere, FallbackSimplifierOptions.VarElsewhere);
     public CodeStyleOption2<bool> PreferSimpleDefaultExpression => GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, FallbackSimplifierOptions.PreferSimpleDefaultExpression);
+    public CodeStyleOption2<bool> PreferParameterNullChecking => GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, FallbackSimplifierOptions.PreferParameterNullChecking);
+    public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine => GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, FallbackSimplifierOptions.AllowEmbeddedStatementsOnSameLine);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     // SyntaxFormattingOptions
@@ -59,8 +61,6 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, FallbackCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent);
     public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck => GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, FallbackCodeStyleOptions.PreferNullCheckOverTypeCheck);
-    public CodeStyleOption2<bool> PreferParameterNullChecking => GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, FallbackCodeStyleOptions.PreferParameterNullChecking);
-    public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine => GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, FallbackCodeStyleOptions.AllowEmbeddedStatementsOnSameLine);
     public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces => GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, FallbackCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces);
     public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, FallbackCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer);
     public CodeStyleOption2<bool> PreferConditionalDelegateCall => GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, FallbackCodeStyleOptions.PreferConditionalDelegateCall);

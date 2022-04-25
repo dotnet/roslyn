@@ -297,13 +297,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         internal static readonly Option2<CodeStyleOption2<bool>> PreferParameterNullChecking = CreateOption(
             CSharpCodeStyleOptionGroups.NullCheckingPreferences, nameof(PreferParameterNullChecking),
-            CSharpIdeCodeStyleOptions.Default.PreferParameterNullChecking,
+            CSharpSimplifierOptions.Default.PreferParameterNullChecking,
             "csharp_style_prefer_parameter_null_checking",
             "TextEditor.CSharp.Specific.PreferParameterNullChecking");
 
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowEmbeddedStatementsOnSameLine),
-            CSharpIdeCodeStyleOptions.Default.AllowEmbeddedStatementsOnSameLine,
+            CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine,
             EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_embedded_statements_on_same_line_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.AllowEmbeddedStatementsOnSameLine"));
 

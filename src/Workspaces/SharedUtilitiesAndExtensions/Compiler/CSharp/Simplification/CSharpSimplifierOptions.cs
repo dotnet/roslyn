@@ -14,7 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     [DataContract]
     internal sealed class CSharpSimplifierOptions : SimplifierOptions
     {
-        private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces = new(PreferBracesPreference.Always, NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces =
+            new(PreferBracesPreference.Always, NotificationOption2.Silent);
+
+        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
+            new(value: true, notification: NotificationOption2.Suggestion);
+
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
+            new(value: true, notification: NotificationOption2.Silent);
 
         [DataMember(Order = BaseMemberCount + 0)]
         public readonly CodeStyleOption2<bool> VarForBuiltInTypes;
@@ -29,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public readonly CodeStyleOption2<bool> PreferSimpleDefaultExpression;
 
         [DataMember(Order = BaseMemberCount + 4)]
+        public readonly CodeStyleOption2<bool> PreferParameterNullChecking;
+
+        [DataMember(Order = BaseMemberCount + 5)]
+        public readonly CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine;
+
+        [DataMember(Order = BaseMemberCount + 6)]
         public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
 
         public CSharpSimplifierOptions(
@@ -37,13 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             CodeStyleOption2<bool>? varWhenTypeIsApparent = null,
             CodeStyleOption2<bool>? varElsewhere = null,
             CodeStyleOption2<bool>? preferSimpleDefaultExpression = null,
+            CodeStyleOption2<bool>? preferParameterNullChecking = null,
+            CodeStyleOption2<bool>? allowEmbeddedStatementsOnSameLine = null,
             CodeStyleOption2<PreferBracesPreference>? preferBraces = null)
             : base(common)
         {
             VarForBuiltInTypes = varForBuiltInTypes ?? CodeStyleOption2<bool>.Default;
             VarWhenTypeIsApparent = varWhenTypeIsApparent ?? CodeStyleOption2<bool>.Default;
             VarElsewhere = varElsewhere ?? CodeStyleOption2<bool>.Default;
-            PreferSimpleDefaultExpression = preferSimpleDefaultExpression ?? CodeStyleOptions2.TrueWithSuggestionEnforcement;
+            PreferSimpleDefaultExpression = preferSimpleDefaultExpression ?? s_trueWithSuggestionEnforcement;
+            PreferParameterNullChecking = preferParameterNullChecking ?? s_trueWithSuggestionEnforcement;
+            AllowEmbeddedStatementsOnSameLine = allowEmbeddedStatementsOnSameLine ?? s_trueWithSilentEnforcement;
             PreferBraces = preferBraces ?? s_defaultPreferBraces;
         }
 
@@ -59,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 varWhenTypeIsApparent: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent),
                 varElsewhere: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarElsewhere, fallbackOptions.VarElsewhere),
                 preferSimpleDefaultExpression: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
+                preferParameterNullChecking: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferParameterNullChecking, fallbackOptions.PreferParameterNullChecking),
+                allowEmbeddedStatementsOnSameLine: options.GetEditorConfigOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine),
                 preferBraces: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces));
         }
     }

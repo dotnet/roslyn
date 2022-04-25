@@ -31,8 +31,6 @@ internal static class CSharpCodeStyleOptionsStorage
             Common: globalOptions.GetCommonCodeStyleOptions(LanguageNames.CSharp),
             ImplicitObjectCreationWhenTypeIsApparent: globalOptions.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent),
             PreferNullCheckOverTypeCheck: globalOptions.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck),
-            PreferParameterNullChecking: globalOptions.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking),
-            AllowEmbeddedStatementsOnSameLine: globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
             AllowBlankLinesBetweenConsecutiveBraces: globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces),
             AllowBlankLineAfterColonInConstructorInitializer: globalOptions.GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer),
             PreferConditionalDelegateCall: globalOptions.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall),

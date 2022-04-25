@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
-                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, syntaxTree);
                     break;
                 case SyntaxKind.NameEquals:
-                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, options, syntaxTree, cancellationToken);
+                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, syntaxTree);
                     break;
             }
         }
 
-        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree)
         {
             if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
             {
@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             }
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
             if (!preference.Value ||
                 !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
@@ -61,15 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
-        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree)
         {
             if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
             {
                 return;
             }
 
-            var preference = options.GetOption(
-                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
+            var preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames;
             if (!preference.Value ||
                 !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {

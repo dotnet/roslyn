@@ -5,11 +5,13 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -64,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return input.Replace("""", """""")
         End Function
 
-        Protected Overrides Function CreateParameterCheckIfStatement(options As DocumentOptionSet, condition As ExpressionSyntax, ifTrueStatement As StatementSyntax) As StatementSyntax
+        Protected Overrides Function CreateParameterCheckIfStatement(condition As ExpressionSyntax, ifTrueStatement As StatementSyntax, options As SimplifierOptions) As StatementSyntax
             Return SyntaxFactory.MultiLineIfBlock(
                 ifStatement:=SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
                 statements:=New SyntaxList(Of StatementSyntax)(ifTrueStatement),
@@ -72,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                 elseBlock:=Nothing)
         End Function
 
-        Protected Overrides Function TryAddNullCheckToParameterDeclarationAsync(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Function TryAddNullCheckToParameterDeclarationAsync(document As Document, parameterSyntax As ParameterSyntax, options As SimplifierOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Return Task.FromResult(Of Document)(Nothing)
         End Function
     End Class

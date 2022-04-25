@@ -40,41 +40,38 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
 
     [DataMember(Order = BaseMemberCount + 0)] public readonly CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent;
     [DataMember(Order = BaseMemberCount + 1)] public readonly CodeStyleOption2<bool> PreferNullCheckOverTypeCheck;
-    [DataMember(Order = BaseMemberCount + 2)] public readonly CodeStyleOption2<bool> PreferParameterNullChecking;
-    [DataMember(Order = BaseMemberCount + 3)] public readonly CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine;
-    [DataMember(Order = BaseMemberCount + 4)] public readonly CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces;
-    [DataMember(Order = BaseMemberCount + 5)] public readonly CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer;
-    [DataMember(Order = BaseMemberCount + 6)] public readonly CodeStyleOption2<bool> PreferConditionalDelegateCall;
-    [DataMember(Order = BaseMemberCount + 7)] public readonly CodeStyleOption2<bool> PreferSwitchExpression;
-    [DataMember(Order = BaseMemberCount + 8)] public readonly CodeStyleOption2<bool> PreferPatternMatching;
-    [DataMember(Order = BaseMemberCount + 9)] public readonly CodeStyleOption2<bool> PreferPatternMatchingOverAsWithNullCheck;
-    [DataMember(Order = BaseMemberCount + 10)] public readonly CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck;
-    [DataMember(Order = BaseMemberCount + 11)] public readonly CodeStyleOption2<bool> PreferNotPattern;
-    [DataMember(Order = BaseMemberCount + 12)] public readonly CodeStyleOption2<bool> PreferExtendedPropertyPattern;
-    [DataMember(Order = BaseMemberCount + 13)] public readonly CodeStyleOption2<bool> PreferThrowExpression;
-    [DataMember(Order = BaseMemberCount + 14)] public readonly CodeStyleOption2<bool> PreferInlinedVariableDeclaration;
-    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration;
-    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<bool> PreferIndexOperator;
-    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferRangeOperator;
-    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
-    [DataMember(Order = BaseMemberCount + 19)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
-    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
-    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
-    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
-    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
-    [DataMember(Order = BaseMemberCount + 24)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
+
+    [DataMember(Order = BaseMemberCount + 2)] public readonly CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces;
+    [DataMember(Order = BaseMemberCount + 3)] public readonly CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer;
+    [DataMember(Order = BaseMemberCount + 4)] public readonly CodeStyleOption2<bool> PreferConditionalDelegateCall;
+    [DataMember(Order = BaseMemberCount + 5)] public readonly CodeStyleOption2<bool> PreferSwitchExpression;
+    [DataMember(Order = BaseMemberCount + 6)] public readonly CodeStyleOption2<bool> PreferPatternMatching;
+    [DataMember(Order = BaseMemberCount + 7)] public readonly CodeStyleOption2<bool> PreferPatternMatchingOverAsWithNullCheck;
+    [DataMember(Order = BaseMemberCount + 8)] public readonly CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck;
+    [DataMember(Order = BaseMemberCount + 9)] public readonly CodeStyleOption2<bool> PreferNotPattern;
+    [DataMember(Order = BaseMemberCount + 10)] public readonly CodeStyleOption2<bool> PreferExtendedPropertyPattern;
+    [DataMember(Order = BaseMemberCount + 11)] public readonly CodeStyleOption2<bool> PreferThrowExpression;
+    [DataMember(Order = BaseMemberCount + 12)] public readonly CodeStyleOption2<bool> PreferInlinedVariableDeclaration;
+    [DataMember(Order = BaseMemberCount + 13)] public readonly CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration;
+    [DataMember(Order = BaseMemberCount + 14)] public readonly CodeStyleOption2<bool> PreferIndexOperator;
+    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<bool> PreferRangeOperator;
+    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
+    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
+    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
+    [DataMember(Order = BaseMemberCount + 19)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
+    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
+    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
+    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
 
     // the following are also used in code generation features, consider sharing:
-    [DataMember(Order = BaseMemberCount + 25)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
-    [DataMember(Order = BaseMemberCount + 26)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
+    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
+    [DataMember(Order = BaseMemberCount + 24)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
 
 #pragma warning disable IDE1006 // Record naming style
     public CSharpIdeCodeStyleOptions(
         CommonOptions? Common = null,
         CodeStyleOption2<bool>? ImplicitObjectCreationWhenTypeIsApparent = null,
         CodeStyleOption2<bool>? PreferNullCheckOverTypeCheck = null,
-        CodeStyleOption2<bool>? PreferParameterNullChecking = null,
-        CodeStyleOption2<bool>? AllowEmbeddedStatementsOnSameLine = null,
         CodeStyleOption2<bool>? AllowBlankLinesBetweenConsecutiveBraces = null,
         CodeStyleOption2<bool>? AllowBlankLineAfterColonInConstructorInitializer = null,
         CodeStyleOption2<bool>? PreferConditionalDelegateCall = null,
@@ -103,8 +100,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     {
         this.ImplicitObjectCreationWhenTypeIsApparent = ImplicitObjectCreationWhenTypeIsApparent ?? s_trueWithSuggestionEnforcement;
         this.PreferNullCheckOverTypeCheck = PreferNullCheckOverTypeCheck ?? s_trueWithSuggestionEnforcement;
-        this.PreferParameterNullChecking = PreferParameterNullChecking ?? s_trueWithSuggestionEnforcement;
-        this.AllowEmbeddedStatementsOnSameLine = AllowEmbeddedStatementsOnSameLine ?? s_trueWithSilentEnforcement;
         this.AllowBlankLinesBetweenConsecutiveBraces = AllowBlankLinesBetweenConsecutiveBraces ?? s_trueWithSilentEnforcement;
         this.AllowBlankLineAfterColonInConstructorInitializer = AllowBlankLineAfterColonInConstructorInitializer ?? s_trueWithSilentEnforcement;
         this.PreferConditionalDelegateCall = PreferConditionalDelegateCall ?? s_trueWithSuggestionEnforcement;
