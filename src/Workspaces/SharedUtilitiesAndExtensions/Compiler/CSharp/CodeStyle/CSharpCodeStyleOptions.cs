@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Options;
 
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<NamespaceDeclarationPreference>> NamespaceDeclarations = CreateNamespaceDeclarationOption(
             "NamespaceDeclarations",
-            CSharpIdeCodeStyleOptions.Default.NamespaceDeclarations,
+            CSharpSyntaxFormattingOptions.Default.NamespaceDeclarations,
             "csharp_style_namespace_declarations");
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferTopLevelStatements = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferTopLevelStatements),
-            CSharpIdeCodeStyleOptions.Default.PreferTopLevelStatements,
+            CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements,
             "csharp_style_prefer_top_level_statements",
             "TextEditor.CSharp.Specific.PreferTopLevelStatements");
 

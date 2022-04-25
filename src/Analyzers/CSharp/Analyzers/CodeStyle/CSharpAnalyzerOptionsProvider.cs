@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -12,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// Provides convenient access to C# editorconfig options with fallback to IDE default values.
+/// Provides C# analyzers a convenient access to editorconfig options with fallback to IDE default values.
 /// </summary>
 internal readonly struct CSharpAnalyzerOptionsProvider
 {
@@ -45,6 +46,11 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferSimpleDefaultExpression => GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, FallbackSimplifierOptions.PreferSimpleDefaultExpression);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
+    // SyntaxFormattingOptions
+
+    public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackSyntaxFormattingOptions.NamespaceDeclarations);
+    public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
+
     // CodeStyleOptions
 
     public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, FallbackCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent);
@@ -72,13 +78,11 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement => GetOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement, FallbackCodeStyleOptions.UnusedValueExpressionStatement);
     public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment => GetOption(CSharpCodeStyleOptions.UnusedValueAssignment, FallbackCodeStyleOptions.UnusedValueAssignment);
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, FallbackCodeStyleOptions.PreferMethodGroupConversion);
-    public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackCodeStyleOptions.PreferTopLevelStatements);
 
     // CodeGenerationOptions
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
-    public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackCodeStyleOptions.NamespaceDeclarations);
     public CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackCodeStyleOptions.PreferredUsingDirectivePlacement);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
@@ -89,6 +93,9 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     private CSharpSimplifierOptions FallbackSimplifierOptions
         => (CSharpSimplifierOptions?)_fallbackOptions.CleanupOptions?.SimplifierOptions ?? CSharpSimplifierOptions.Default;
+
+    private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
+        => (CSharpSyntaxFormattingOptions?)_fallbackOptions.CleanupOptions?.FormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
     public static explicit operator CSharpAnalyzerOptionsProvider(AnalyzerOptionsProvider provider)
         => new(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions());

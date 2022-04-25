@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 [DataContract]
 internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
 {
-    private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_defaultNamespaceDeclarations = new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent);
-    private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSilentEnforcement = new(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent);
-
     private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
         SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
         SyntaxKind.StaticKeyword,
@@ -26,6 +23,9 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         SyntaxKind.UnsafeKeyword,
         SyntaxKind.VolatileKeyword,
         SyntaxKind.AsyncKeyword);
+
+    private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSilentEnforcement =
+        new(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<string> s_defaultModifierOrder =
         new(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption2.Silent);
@@ -63,13 +63,11 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
     [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
     [DataMember(Order = BaseMemberCount + 24)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
-    [DataMember(Order = BaseMemberCount + 25)] public readonly CodeStyleOption2<bool> PreferTopLevelStatements;
 
     // the following are also used in code generation features, consider sharing:
-    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
-    [DataMember(Order = BaseMemberCount + 27)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
-    [DataMember(Order = BaseMemberCount + 28)] public readonly CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations;
-    [DataMember(Order = BaseMemberCount + 29)] public readonly CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement;
+    [DataMember(Order = BaseMemberCount + 25)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
+    [DataMember(Order = BaseMemberCount + 26)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
+    [DataMember(Order = BaseMemberCount + 27)] public readonly CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement;
 
 #pragma warning disable IDE1006 // Record naming style
     public CSharpIdeCodeStyleOptions(
@@ -99,10 +97,8 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         CodeStyleOption2<UnusedValuePreference>? UnusedValueExpressionStatement = null,
         CodeStyleOption2<UnusedValuePreference>? UnusedValueAssignment = null,
         CodeStyleOption2<bool>? PreferMethodGroupConversion = null,
-        CodeStyleOption2<bool>? PreferTopLevelStatements = null,
         CodeStyleOption2<ExpressionBodyPreference>? PreferExpressionBodiedLambdas = null,
         CodeStyleOption2<bool>? PreferStaticLocalFunction = null,
-        CodeStyleOption2<NamespaceDeclarationPreference>? NamespaceDeclarations = null,
         CodeStyleOption2<AddImportPlacement>? PreferredUsingDirectivePlacement = null)
 #pragma warning restore
         : base(Common)
@@ -132,10 +128,8 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         this.UnusedValueExpressionStatement = UnusedValueExpressionStatement ?? s_discardVariableWithSilentEnforcement;
         this.UnusedValueAssignment = UnusedValueAssignment ?? s_discardVariableWithSilentEnforcement;
         this.PreferMethodGroupConversion = PreferMethodGroupConversion ?? s_trueWithSilentEnforcement;
-        this.PreferTopLevelStatements = PreferTopLevelStatements ?? s_trueWithSilentEnforcement;
         this.PreferExpressionBodiedLambdas = PreferExpressionBodiedLambdas ?? s_whenPossibleWithSilentEnforcement;
         this.PreferStaticLocalFunction = PreferStaticLocalFunction ?? s_trueWithSuggestionEnforcement;
-        this.NamespaceDeclarations = NamespaceDeclarations ?? s_defaultNamespaceDeclarations;
         this.PreferredUsingDirectivePlacement = PreferredUsingDirectivePlacement ?? s_outsideNamespacePlacementWithSilentEnforcement;
     }
 }

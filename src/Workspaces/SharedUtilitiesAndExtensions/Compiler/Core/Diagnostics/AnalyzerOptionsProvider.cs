@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// Provides convenient access to editorconfig options common to C# and Visual Basic with fallback to IDE default values.
+/// Provides C# and VB analyzers a convenient access to common editorconfig options with fallback to IDE default values.
 /// </summary>
 internal readonly struct AnalyzerOptionsProvider
 {

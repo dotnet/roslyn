@@ -31,8 +31,9 @@ internal static class CSharpSyntaxFormattingOptionsStorage
 
     public static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(this IGlobalOptionService globalOptions)
         => new(
-            lineFormatting: globalOptions.GetLineFormattingOptions(LanguageNames.CSharp),
-            separateImportDirectiveGroups: globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp),
+            globalOptions.GetLineFormattingOptions(LanguageNames.CSharp),
+            globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp),
+            globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, LanguageNames.CSharp).Value,
             spacing:
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName) ? SpacePlacement.AfterMethodDeclarationName : 0) |
@@ -57,7 +58,7 @@ internal static class CSharpSyntaxFormattingOptionsStorage
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpaceBeforeComma) ? SpacePlacement.BeforeComma : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpaceAfterDot) ? SpacePlacement.AfterDot : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpaceBeforeDot) ? SpacePlacement.BeforeDot : 0),
-            spacingAroundBinaryOperator: globalOptions.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator),
+            globalOptions.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator),
             newLines:
                 (globalOptions.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes) ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
@@ -74,7 +75,7 @@ internal static class CSharpSyntaxFormattingOptionsStorage
                 (globalOptions.GetOption(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody) ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks) ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery) ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
-            labelPositioning: globalOptions.GetOption(CSharpFormattingOptions2.LabelPositioning),
+            globalOptions.GetOption(CSharpFormattingOptions2.LabelPositioning),
             indentation:
                 (globalOptions.GetOption(CSharpFormattingOptions2.IndentBraces) ? IndentationPlacement.Braces : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.IndentBlock) ? IndentationPlacement.BlockContents : 0) |
@@ -82,5 +83,7 @@ internal static class CSharpSyntaxFormattingOptionsStorage
                 (globalOptions.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0),
             wrappingKeepStatementsOnSingleLine: globalOptions.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine),
-            wrappingPreserveSingleLine: globalOptions.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine));
+            wrappingPreserveSingleLine: globalOptions.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine),
+            globalOptions.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations),
+            globalOptions.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements));
 }

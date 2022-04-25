@@ -5,6 +5,7 @@
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -18,15 +19,25 @@ internal abstract class SyntaxFormattingOptions
     [DataMember(Order = 1)]
     public readonly bool SeparateImportDirectiveGroups;
 
-    protected const int BaseMemberCount = 2;
+    [DataMember(Order = 2)]
+    public readonly AccessibilityModifiersRequired AccessibilityModifiersRequired;
+
+    protected const int BaseMemberCount = 3;
 
     protected SyntaxFormattingOptions(
         LineFormattingOptions? lineFormatting,
-        bool separateImportDirectiveGroups)
+        bool separateImportDirectiveGroups,
+        AccessibilityModifiersRequired accessibilityModifiersRequired)
     {
         LineFormatting = lineFormatting ?? LineFormattingOptions.Default;
+
+        // note: not using nullable optional parameters since parameter types must match field types for serialization.
         SeparateImportDirectiveGroups = separateImportDirectiveGroups;
+        AccessibilityModifiersRequired = accessibilityModifiersRequired;
     }
+
+    public const bool DefaultSeparateImportDirectiveGroups = false;
+    public const AccessibilityModifiersRequired DefaultAccessibilityModifiersRequired = AccessibilityModifiersRequired.ForNonInterfaceMembers;
 
     public abstract SyntaxFormattingOptions With(LineFormattingOptions lineFormatting);
 

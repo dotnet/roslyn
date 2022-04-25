@@ -54,9 +54,7 @@ internal static class CSharpCodeStyleOptionsStorage
             UnusedValueExpressionStatement: globalOptions.GetOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement),
             UnusedValueAssignment: globalOptions.GetOption(CSharpCodeStyleOptions.UnusedValueAssignment),
             PreferMethodGroupConversion: globalOptions.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion),
-            PreferTopLevelStatements: globalOptions.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements),
             PreferExpressionBodiedLambdas: globalOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
             PreferStaticLocalFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction),
-            NamespaceDeclarations: globalOptions.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations),
             PreferredUsingDirectivePlacement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement));
 }

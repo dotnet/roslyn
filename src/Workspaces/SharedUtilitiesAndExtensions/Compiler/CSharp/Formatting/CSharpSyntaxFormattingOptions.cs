@@ -4,6 +4,8 @@
 
 using System;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -71,48 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [DataContract]
     internal sealed class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions
     {
-        [DataMember(Order = BaseMemberCount + 0)]
-        public readonly SpacePlacement Spacing;
+        private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_defaultNamespaceDeclarations =
+            new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent);
 
-        [DataMember(Order = BaseMemberCount + 1)]
-        public readonly BinaryOperatorSpacingOptions SpacingAroundBinaryOperator;
-
-        [DataMember(Order = BaseMemberCount + 2)]
-        public readonly NewLinePlacement NewLines;
-
-        [DataMember(Order = BaseMemberCount + 3)]
-        public readonly LabelPositionOptions LabelPositioning;
-
-        [DataMember(Order = BaseMemberCount + 4)]
-        public readonly IndentationPlacement Indentation;
-
-        [DataMember(Order = BaseMemberCount + 5)]
-        public readonly bool WrappingKeepStatementsOnSingleLine;
-
-        [DataMember(Order = BaseMemberCount + 6)]
-        public readonly bool WrappingPreserveSingleLine;
-
-        public CSharpSyntaxFormattingOptions(
-            LineFormattingOptions? lineFormatting = null,
-            bool separateImportDirectiveGroups = false,
-            SpacePlacement spacing = SpacingDefault,
-            BinaryOperatorSpacingOptions spacingAroundBinaryOperator = BinaryOperatorSpacingOptions.Single,
-            NewLinePlacement newLines = NewLinesDefault,
-            LabelPositionOptions labelPositioning = LabelPositionOptions.OneLess,
-            IndentationPlacement indentation = IndentationDefault,
-            bool wrappingKeepStatementsOnSingleLine = true,
-            bool wrappingPreserveSingleLine = true)
-            : base(lineFormatting,
-                   separateImportDirectiveGroups)
-        {
-            Spacing = spacing;
-            SpacingAroundBinaryOperator = spacingAroundBinaryOperator;
-            NewLines = newLines;
-            LabelPositioning = labelPositioning;
-            Indentation = indentation;
-            WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine;
-            WrappingPreserveSingleLine = wrappingPreserveSingleLine;
-        }
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
+            new(value: true, notification: NotificationOption2.Silent);
 
         public const SpacePlacement SpacingDefault =
             SpacePlacement.AfterControlFlowStatementKeyword |
@@ -146,13 +111,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static readonly CSharpSyntaxFormattingOptions Default = new();
 
+        [DataMember(Order = BaseMemberCount + 0)]
+        public readonly SpacePlacement Spacing;
+
+        [DataMember(Order = BaseMemberCount + 1)]
+        public readonly BinaryOperatorSpacingOptions SpacingAroundBinaryOperator;
+
+        [DataMember(Order = BaseMemberCount + 2)]
+        public readonly NewLinePlacement NewLines;
+
+        [DataMember(Order = BaseMemberCount + 3)]
+        public readonly LabelPositionOptions LabelPositioning;
+
+        [DataMember(Order = BaseMemberCount + 4)]
+        public readonly IndentationPlacement Indentation;
+
+        [DataMember(Order = BaseMemberCount + 5)]
+        public readonly bool WrappingKeepStatementsOnSingleLine;
+
+        [DataMember(Order = BaseMemberCount + 6)]
+        public readonly bool WrappingPreserveSingleLine;
+
+        [DataMember(Order = BaseMemberCount + 7)]
+        public readonly CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations;
+
+        [DataMember(Order = BaseMemberCount + 8)]
+        public readonly CodeStyleOption2<bool> PreferTopLevelStatements;
+
+        public CSharpSyntaxFormattingOptions(
+            LineFormattingOptions? lineFormatting = null,
+            bool separateImportDirectiveGroups = DefaultSeparateImportDirectiveGroups,
+            AccessibilityModifiersRequired accessibilityModifiersRequired = DefaultAccessibilityModifiersRequired,
+            SpacePlacement spacing = SpacingDefault,
+            BinaryOperatorSpacingOptions spacingAroundBinaryOperator = BinaryOperatorSpacingOptions.Single,
+            NewLinePlacement newLines = NewLinesDefault,
+            LabelPositionOptions labelPositioning = LabelPositionOptions.OneLess,
+            IndentationPlacement indentation = IndentationDefault,
+            bool wrappingKeepStatementsOnSingleLine = true,
+            bool wrappingPreserveSingleLine = true,
+            CodeStyleOption2<NamespaceDeclarationPreference>? namespaceDeclarations = null,
+            CodeStyleOption2<bool>? preferTopLevelStatements = null)
+            : base(lineFormatting,
+                   separateImportDirectiveGroups,
+                   accessibilityModifiersRequired)
+        {
+            Spacing = spacing;
+            SpacingAroundBinaryOperator = spacingAroundBinaryOperator;
+            NewLines = newLines;
+            LabelPositioning = labelPositioning;
+            Indentation = indentation;
+            WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine;
+            WrappingPreserveSingleLine = wrappingPreserveSingleLine;
+            NamespaceDeclarations = namespaceDeclarations ?? s_defaultNamespaceDeclarations;
+            PreferTopLevelStatements = preferTopLevelStatements ?? s_trueWithSilentEnforcement;
+        }
+
         public static CSharpSyntaxFormattingOptions Create(AnalyzerConfigOptions options, CSharpSyntaxFormattingOptions? fallbackOptions)
         {
             fallbackOptions ??= Default;
 
             return new(
                 LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
-                separateImportDirectiveGroups: options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
+                options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
+                options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired),
                 spacing:
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration)) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterMethodDeclarationName)) ? SpacePlacement.AfterMethodDeclarationName : 0) |
@@ -177,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpaceBeforeComma, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeComma)) ? SpacePlacement.BeforeComma : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpaceAfterDot, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterDot)) ? SpacePlacement.AfterDot : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpaceBeforeDot, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeDot)) ? SpacePlacement.BeforeDot : 0),
-                spacingAroundBinaryOperator: options.GetEditorConfigOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, fallbackOptions.SpacingAroundBinaryOperator),
+                options.GetEditorConfigOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, fallbackOptions.SpacingAroundBinaryOperator),
                 newLines:
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers)) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes)) ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
@@ -194,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody)) ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks)) ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.NewLineForClausesInQuery, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses)) ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
-                labelPositioning: options.GetEditorConfigOption(CSharpFormattingOptions2.LabelPositioning, fallbackOptions.LabelPositioning),
+                options.GetEditorConfigOption(CSharpFormattingOptions2.LabelPositioning, fallbackOptions.LabelPositioning),
                 indentation:
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.IndentBraces, fallbackOptions.Indentation.HasFlag(IndentationPlacement.Braces)) ? IndentationPlacement.Braces : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.IndentBlock, fallbackOptions.Indentation.HasFlag(IndentationPlacement.BlockContents)) ? IndentationPlacement.BlockContents : 0) |
@@ -202,19 +223,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock, fallbackOptions.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock)) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.IndentSwitchSection, fallbackOptions.Indentation.HasFlag(IndentationPlacement.SwitchSection)) ? IndentationPlacement.SwitchSection : 0),
                 wrappingKeepStatementsOnSingleLine: options.GetEditorConfigOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, fallbackOptions.WrappingKeepStatementsOnSingleLine),
-                wrappingPreserveSingleLine: options.GetEditorConfigOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, fallbackOptions.WrappingPreserveSingleLine));
+                wrappingPreserveSingleLine: options.GetEditorConfigOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, fallbackOptions.WrappingPreserveSingleLine),
+                options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations),
+                options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferTopLevelStatements, fallbackOptions.PreferTopLevelStatements));
         }
 
         public override SyntaxFormattingOptions With(LineFormattingOptions lineFormatting)
             => new CSharpSyntaxFormattingOptions(
                 lineFormatting,
                 SeparateImportDirectiveGroups,
+                AccessibilityModifiersRequired,
                 Spacing,
                 SpacingAroundBinaryOperator,
                 NewLines,
                 LabelPositioning,
                 Indentation,
                 WrappingKeepStatementsOnSingleLine,
-                WrappingPreserveSingleLine);
+                WrappingPreserveSingleLine,
+                NamespaceDeclarations,
+                PreferTopLevelStatements);
     }
 }

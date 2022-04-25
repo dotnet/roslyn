@@ -364,7 +364,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(updatedSolution, null, _semanticDocument.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
+                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(
+                        updatedSolution, modifiedRoot: null, _semanticDocument.Document, _state.SimpleName,
+                        includeUsingsOrImports, _fallbackOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
@@ -459,6 +461,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                                         _semanticDocument.Document,
                                         _state.SimpleName,
                                         includeUsingsOrImports,
+                                        _fallbackOptions,
                                         _cancellationToken).ConfigureAwait(false);
                 }
 

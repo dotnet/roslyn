@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.Diagnostics
     ''' <summary>
-    ''' Provides convenient access to Visual Basic editorconfig options with fallback to IDE default values.
+    ''' Provides Visual Basic analyzers a convenient access to editorconfig options with fallback to IDE default values.
     ''' </summary>
     Friend Structure VisualBasicAnalyzerOptionsProvider
         ''' <summary>

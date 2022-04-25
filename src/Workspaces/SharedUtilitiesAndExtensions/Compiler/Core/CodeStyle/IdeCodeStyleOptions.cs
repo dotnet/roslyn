@@ -4,6 +4,7 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -11,14 +12,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle;
 
 internal abstract class IdeCodeStyleOptions
 {
-    protected static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
-    protected static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+    protected static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
+        new(value: true, notification: NotificationOption2.Suggestion);
+
+    protected static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
+        new(value: true, notification: NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
         new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 
     private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
-            new(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption2.Silent);
+        new(SyntaxFormattingOptions.DefaultAccessibilityModifiersRequired, NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<ParenthesesPreference> s_alwaysForClarityPreference =
         new(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Silent);

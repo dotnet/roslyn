@@ -58,18 +58,19 @@ internal readonly struct CSharpCodeFixOptionsProvider
 
     // FormattingOptions
 
+    public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackSyntaxFormattingOptions.NamespaceDeclarations);
+    public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
+
     internal SyntaxFormattingOptions GetFormattingOptions()
         => CSharpSyntaxFormattingOptions.Create(_options, FallbackSyntaxFormattingOptions);
 
     // CodeStyleOptions
 
     public CodeStyleOption2<string> PreferredModifierOrder => GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder);
-    public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackCodeStyleOptions.PreferTopLevelStatements);
     public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, FallbackCodeStyleOptions.Common.RequireAccessibilityModifiers);
 
     // CodeGenerationOptions
 
-    public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackCodeStyleOptions.NamespaceDeclarations);
     public CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackCodeStyleOptions.PreferredUsingDirectivePlacement);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
