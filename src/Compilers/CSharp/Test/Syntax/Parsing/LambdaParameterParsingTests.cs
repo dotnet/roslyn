@@ -3289,6 +3289,86 @@ class C {
         [Fact]
         public void KeywordParameterName_10()
         {
+            string source = "(int) => { }";
+            UsingExpression(source,
+                // (1,5): error CS1001: Identifier expected
+                // (int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 5));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_11()
+        {
+            string source = "(int, int) => { }";
+            UsingExpression(source,
+                // (1,5): error CS1001: Identifier expected
+                // (int, int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 5),
+                // (1,10): error CS1001: Identifier expected
+                // (int, int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 10));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_12()
+        {
             string source = "Action<object> a = public => { };";
             var tree = UsingTree(source);
             tree.GetDiagnostics().Verify(
