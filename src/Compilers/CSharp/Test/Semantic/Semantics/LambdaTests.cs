@@ -6312,7 +6312,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
-        public void KeywordParameterName()
+        public void KeywordParameterName_01()
         {
             var source =
 @"using System;
@@ -6328,6 +6328,26 @@ class Program
                 // (6,25): error CS1041: Identifier expected; 'int' is a keyword
                 //         Action<int> a = int => { };
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'ref' is a keyword
+                //         Action<int> a = ref => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(6, 25));
         }
 
         [Fact]
