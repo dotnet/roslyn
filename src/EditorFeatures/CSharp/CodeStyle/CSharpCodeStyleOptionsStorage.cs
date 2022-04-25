@@ -55,6 +55,5 @@ internal static class CSharpCodeStyleOptionsStorage
             UnusedValueAssignment: globalOptions.GetOption(CSharpCodeStyleOptions.UnusedValueAssignment),
             PreferMethodGroupConversion: globalOptions.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion),
             PreferExpressionBodiedLambdas: globalOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
-            PreferStaticLocalFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction),
-            PreferredUsingDirectivePlacement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement));
+            PreferStaticLocalFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction));
 }

@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{optionName}"));
 
         public static readonly Option2<CodeStyleOption2<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateUsingDirectivePlacementOption(
-            "PreferredUsingDirectivePlacement", defaultValue: PreferOutsidePlacementWithSilentEnforcement, "csharp_using_directive_placement");
+            "PreferredUsingDirectivePlacement", AddImportPlacementOptions.Default.UsingDirectivePlacement, "csharp_using_directive_placement");
 
         internal static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(

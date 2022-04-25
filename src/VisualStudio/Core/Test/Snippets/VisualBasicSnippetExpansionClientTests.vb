@@ -415,8 +415,8 @@ End Class</Test>
 
                 Dim addImportOptions = New AddImportPlacementOptions(
                     PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                    PlaceImportsInsideNamespaces:=False,
-                    AllowInHiddenRegions:=False)
+                    UsingDirectivePlacement:=AddImportPlacementOptions.Default.UsingDirectivePlacement,
+                    AllowInHiddenRegions:=AddImportPlacementOptions.Default.AllowInHiddenRegions)
 
                 Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 

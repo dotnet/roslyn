@@ -5,21 +5,41 @@
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
 [DataContract]
-internal readonly record struct AddImportPlacementOptions(
-    [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst = true,
-    [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces = false,
-    [property: DataMember(Order = 2)] bool AllowInHiddenRegions = false)
+internal sealed record class AddImportPlacementOptions
 {
-    public AddImportPlacementOptions()
-        : this(PlaceSystemNamespaceFirst: true)
+    public static readonly CodeStyleOption2<AddImportPlacement> s_outsideNamespacePlacementWithSilentEnforcement =
+       new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
+
+    [property: DataMember(Order = 0)]
+    public bool PlaceSystemNamespaceFirst { get; init; }
+
+    /// <summary>
+    /// Where to place C# usings relative to namespace declaration, ignored by VB.
+    /// </summary>
+    [property: DataMember(Order = 1)]
+    public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement { get; init; }
+
+    [property: DataMember(Order = 2)]
+    public bool AllowInHiddenRegions { get; init; }
+
+    public AddImportPlacementOptions(
+        bool PlaceSystemNamespaceFirst = true,
+        CodeStyleOption2<AddImportPlacement>? UsingDirectivePlacement = null,
+        bool AllowInHiddenRegions = false)
     {
+        this.PlaceSystemNamespaceFirst = PlaceSystemNamespaceFirst;
+        this.UsingDirectivePlacement = UsingDirectivePlacement ?? s_outsideNamespacePlacementWithSilentEnforcement;
+        this.AllowInHiddenRegions = AllowInHiddenRegions;
     }
+
+    public bool PlaceImportsInsideNamespaces => UsingDirectivePlacement.Value == AddImportPlacement.InsideNamespace;
 
     public static readonly AddImportPlacementOptions Default = new();
 }

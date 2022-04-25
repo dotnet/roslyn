@@ -608,7 +608,7 @@ namespace A
         /// <param name="separateUsingGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
         private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
-            => AssertCodeCleanupResult(expected, code, CSharpCodeStyleOptions.PreferOutsidePlacementWithSilentEnforcement, systemUsingsFirst, separateUsingGroups);
+            => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups);
 
         /// <summary>
         /// Assert the expected code value equals the actual processed input <paramref name="code"/>.

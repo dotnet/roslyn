@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Read the preferred placement option and verify if it can be applied to this code file.
             // There are cases where we will not be able to fix the diagnostic and the user will need to resolve
             // it manually.
-            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options.PreferredUsingDirectivePlacement);
+            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options.UsingDirectivePlacement);
             if (preferPreservation)
                 return;
 

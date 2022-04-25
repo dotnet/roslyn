@@ -67,7 +67,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     // the following are also used in code generation features, consider sharing:
     [DataMember(Order = BaseMemberCount + 25)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
     [DataMember(Order = BaseMemberCount + 26)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
-    [DataMember(Order = BaseMemberCount + 27)] public readonly CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement;
 
 #pragma warning disable IDE1006 // Record naming style
     public CSharpIdeCodeStyleOptions(
@@ -98,8 +97,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         CodeStyleOption2<UnusedValuePreference>? UnusedValueAssignment = null,
         CodeStyleOption2<bool>? PreferMethodGroupConversion = null,
         CodeStyleOption2<ExpressionBodyPreference>? PreferExpressionBodiedLambdas = null,
-        CodeStyleOption2<bool>? PreferStaticLocalFunction = null,
-        CodeStyleOption2<AddImportPlacement>? PreferredUsingDirectivePlacement = null)
+        CodeStyleOption2<bool>? PreferStaticLocalFunction = null)
 #pragma warning restore
         : base(Common)
     {
@@ -130,6 +128,5 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         this.PreferMethodGroupConversion = PreferMethodGroupConversion ?? s_trueWithSilentEnforcement;
         this.PreferExpressionBodiedLambdas = PreferExpressionBodiedLambdas ?? s_whenPossibleWithSilentEnforcement;
         this.PreferStaticLocalFunction = PreferStaticLocalFunction ?? s_trueWithSuggestionEnforcement;
-        this.PreferredUsingDirectivePlacement = PreferredUsingDirectivePlacement ?? s_outsideNamespacePlacementWithSilentEnforcement;
     }
 }

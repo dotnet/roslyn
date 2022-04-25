@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().PreferredUsingDirectivePlacement;
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             if (option.Value != AddImportPlacement.OutsideNamespace)
                 return;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().PreferredUsingDirectivePlacement;
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace

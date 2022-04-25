@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
 
-        bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue);
-
         /// <summary>
         /// Returns true if the tree already has an existing import syntactically equivalent to
         /// <paramref name="import"/> in scope at <paramref name="contextLocation"/>.  This includes

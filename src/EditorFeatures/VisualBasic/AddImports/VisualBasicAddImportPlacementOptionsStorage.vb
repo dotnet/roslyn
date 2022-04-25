@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Function GetVisualBasicAddImportPlacementOptions(globalOptions As IGlobalOptionService) As AddImportPlacementOptions
             Return New AddImportPlacementOptions(
                 PlaceSystemNamespaceFirst:=globalOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic),
-                PlaceImportsInsideNamespaces:=False, ' VB does not support imports in namespace declarations
-                AllowInHiddenRegions:=False)         ' no global option available
+                UsingDirectivePlacement:=AddImportPlacementOptions.Default.UsingDirectivePlacement, ' VB does not support imports in namespace declarations
+                AllowInHiddenRegions:=AddImportPlacementOptions.Default.AllowInHiddenRegions)       ' no global option available
         End Function
     End Module
 End Namespace

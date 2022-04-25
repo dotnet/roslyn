@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
@@ -85,8 +86,8 @@ End NameSpace"
 
             Dim addImportOptions = New AddImportPlacementOptions(
                 PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces:=False,
-                AllowInHiddenRegions:=False)
+                UsingDirectivePlacement:=AddImportPlacementOptions.Default.UsingDirectivePlacement,
+                AllowInHiddenRegions:=AddImportPlacementOptions.Default.AllowInHiddenRegions)
 
             Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
             Dim simplifierOptions = VisualBasicSimplifierOptions.Default

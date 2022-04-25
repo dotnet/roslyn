@@ -51,6 +51,10 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackSyntaxFormattingOptions.NamespaceDeclarations);
     public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
 
+    // AddImportPlacementOptions
+
+    public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackAddImportPlacementOptions.UsingDirectivePlacement);
+
     // CodeStyleOptions
 
     public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, FallbackCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent);
@@ -83,7 +87,6 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
-    public CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackCodeStyleOptions.PreferredUsingDirectivePlacement);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
@@ -96,6 +99,9 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
         => (CSharpSyntaxFormattingOptions?)_fallbackOptions.CleanupOptions?.FormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
+
+    private AddImportPlacementOptions FallbackAddImportPlacementOptions
+        => _fallbackOptions.CleanupOptions?.AddImportOptions ?? AddImportPlacementOptions.Default;
 
     public static explicit operator CSharpAnalyzerOptionsProvider(AnalyzerOptionsProvider provider)
         => new(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions());

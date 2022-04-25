@@ -64,14 +64,14 @@ internal readonly struct CSharpCodeFixOptionsProvider
     internal SyntaxFormattingOptions GetFormattingOptions()
         => CSharpSyntaxFormattingOptions.Create(_options, FallbackSyntaxFormattingOptions);
 
+    // AddImportPlacementOptions
+
+    public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackAddImportPlacementOptions.UsingDirectivePlacement);
+
     // CodeStyleOptions
 
     public CodeStyleOption2<string> PreferredModifierOrder => GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder);
     public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, FallbackCodeStyleOptions.Common.RequireAccessibilityModifiers);
-
-    // CodeGenerationOptions
-
-    public CodeStyleOption2<AddImportPlacement> PreferredUsingDirectivePlacement => GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, FallbackCodeStyleOptions.PreferredUsingDirectivePlacement);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
@@ -80,7 +80,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
         => _options.GetEditorConfigOption(option, defaultValue);
 
 #if CODE_STYLE
-    private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
+    private static CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => CSharpIdeCodeStyleOptions.Default;
 #else
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
@@ -88,7 +88,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
 #endif
 
 #if CODE_STYLE
-    private CSharpSimplifierOptions FallbackSimplifierOptions
+    private static CSharpSimplifierOptions FallbackSimplifierOptions
         => CSharpSimplifierOptions.Default;
 #else
     private CSharpSimplifierOptions FallbackSimplifierOptions
@@ -96,7 +96,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
 #endif
 
 #if CODE_STYLE
-    private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
+    private static CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
         => CSharpSyntaxFormattingOptions.Default;
 #else
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
@@ -104,11 +104,19 @@ internal readonly struct CSharpCodeFixOptionsProvider
 #endif
 
 #if CODE_STYLE
-    private LineFormattingOptions FallbackLineFormattingOptions
+    private static LineFormattingOptions FallbackLineFormattingOptions
         => LineFormattingOptions.Default;
 #else
     private LineFormattingOptions FallbackLineFormattingOptions
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
+#endif
+
+#if CODE_STYLE
+    private static AddImportPlacementOptions FallbackAddImportPlacementOptions
+        => AddImportPlacementOptions.Default;
+#else
+    private AddImportPlacementOptions FallbackAddImportPlacementOptions
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.AddImportOptions;
 #endif
 }
 

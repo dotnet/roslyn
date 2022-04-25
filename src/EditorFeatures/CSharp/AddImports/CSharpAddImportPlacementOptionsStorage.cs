@@ -31,6 +31,6 @@ internal class CSharpAddImportPlacementOptionsStorage
     internal static AddImportPlacementOptions GetCSharpAddImportPlacementOptions(IGlobalOptionService globalOptions)
         => new(
             PlaceSystemNamespaceFirst: globalOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp),
-            PlaceImportsInsideNamespaces: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value == AddImportPlacement.InsideNamespace,
-            AllowInHiddenRegions: false); // no global option available);
+            UsingDirectivePlacement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
+            AllowInHiddenRegions: AddImportPlacementOptions.Default.AllowInHiddenRegions); // no global option available);
 }

@@ -30,13 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
 
-            var organizeOptions = await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var codeStyleOption = documentOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
+            var organizeOptions = new OrganizeImportsOptions(
+                options.AddImportOptions.PlaceSystemNamespaceFirst,
+                options.FormattingOptions.SeparateImportDirectiveGroups,
+                options.FormattingOptions.LineFormatting.NewLine);
 
             var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
 
-            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, options.SimplifierOptions, codeStyleOption, cancellationToken).ConfigureAwait(false);
+            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(
+                organizedDocument, options.SimplifierOptions, options.AddImportOptions.UsingDirectivePlacement, cancellationToken).ConfigureAwait(false);
         }
     }
 }

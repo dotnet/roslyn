@@ -396,8 +396,8 @@ using G=   H.I;
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim addImportOptions = New AddImportPlacementOptions(
                     PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                    PlaceImportsInsideNamespaces:=False,
-                    AllowInHiddenRegions:=False)
+                    UsingDirectivePlacement:=AddImportPlacementOptions.Default.UsingDirectivePlacement,
+                    AllowInHiddenRegions:=AddImportPlacementOptions.Default.AllowInHiddenRegions)
 
                 Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
