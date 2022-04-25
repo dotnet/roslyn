@@ -2309,7 +2309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-
         private bool EmitAssignmentPreamble(BoundAssignmentOperator assignmentOperator)
         {
             var assignmentTarget = assignmentOperator.Left;

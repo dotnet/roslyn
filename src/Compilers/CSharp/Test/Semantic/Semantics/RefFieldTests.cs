@@ -2142,10 +2142,27 @@ ref struct S<T>
 {
     public readonly ref readonly T F;
 }
+
 class Program
 {
+    static void M1<T>(T t) { }
     static void M4<T>(in T t) { }
+
+    static void FromValue1<T>(S<T> s)  { M1(s.F); }
+    static void FromValue4A<T>(S<T> s) { M4(in s.F); }
     static void FromValue4B<T>(S<T> s) { M4(s.F); }
+
+    static void FromRef1<T>(ref S<T> s)  { M1(s.F); }
+    static void FromRef4A<T>(ref S<T> s) { M4(in s.F); }
+    static void FromRef4B<T>(ref S<T> s) { M4(s.F); }
+
+    static void FromOut1<T>(out S<T> s)  { s = default; M1(s.F); }
+    static void FromOut4A<T>(out S<T> s) { s = default; M4(in s.F); }
+    static void FromOut4B<T>(out S<T> s) { s = default; M4(s.F); }
+
+    static void FromIn1<T>(in S<T> s)  { M1(s.F); }
+    static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
+    static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"));
             comp.VerifyEmitDiagnostics();
