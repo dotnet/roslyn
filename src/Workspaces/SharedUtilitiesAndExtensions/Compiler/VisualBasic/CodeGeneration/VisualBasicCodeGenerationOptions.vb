@@ -19,8 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly [Default] As New VisualBasicCodeGenerationOptions()
 
+#If Not CODE_STYLE Then
         Public Overrides Function GetInfo(context As CodeGenerationContext, parseOptions As ParseOptions) As CodeGenerationContextInfo
             Return New VisualBasicCodeGenerationContextInfo(context, Me)
         End Function
+#End If
     End Class
 End Namespace

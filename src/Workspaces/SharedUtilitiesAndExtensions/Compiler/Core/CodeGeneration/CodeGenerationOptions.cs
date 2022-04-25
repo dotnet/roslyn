@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -50,12 +49,12 @@ internal abstract class CodeGenerationOptions
 #endif
 }
 
-#if !CODE_STYLE
 [DataContract]
 internal readonly record struct CodeAndImportGenerationOptions(
     [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
     [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
 {
+#if !CODE_STYLE
     internal static CodeAndImportGenerationOptions GetDefault(HostLanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
 
@@ -78,19 +77,26 @@ internal readonly record struct CodeAndImportGenerationOptions(
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.AddImportOptions);
     }
+#endif
 }
 
-internal interface CodeGenerationOptionsProvider : OptionsProvider<CodeGenerationOptions>
+internal interface CodeGenerationOptionsProvider
+#if !CODE_STYLE
+    : OptionsProvider<CodeGenerationOptions>
+#endif
 {
 }
 
 internal interface CodeAndImportGenerationOptionsProvider :
+#if !CODE_STYLE
     OptionsProvider<CodeAndImportGenerationOptions>,
+#endif
     CodeGenerationOptionsProvider,
     AddImportPlacementOptionsProvider
 {
 }
 
+#if !CODE_STYLE
 internal static class CodeGenerationOptionsProviders
 {
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)

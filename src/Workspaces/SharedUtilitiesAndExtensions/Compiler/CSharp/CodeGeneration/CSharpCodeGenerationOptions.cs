@@ -68,6 +68,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
 
     public static readonly CSharpCodeGenerationOptions Default = new();
 
+#if !CODE_STYLE
     public static CSharpCodeGenerationOptions Create(AnalyzerConfigOptions options, CSharpCodeGenerationOptions? fallbackOptions)
     {
         fallbackOptions ??= Default;
@@ -87,4 +88,5 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
 
     public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions)
         => new CSharpCodeGenerationContextInfo(context, this, ((CSharpParseOptions)parseOptions).LanguageVersion);
+#endif
 }

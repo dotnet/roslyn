@@ -13,8 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\AnalyzerOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />

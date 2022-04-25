@@ -33,15 +33,17 @@ internal readonly record struct CleanCodeGenerationOptions(
 #endif
 }
 
-#if !CODE_STYLE
 internal interface CleanCodeGenerationOptionsProvider :
+#if !CODE_STYLE
     OptionsProvider<CleanCodeGenerationOptions>,
+#endif
     CodeGenerationOptionsProvider,
     CodeCleanupOptionsProvider,
     CodeAndImportGenerationOptionsProvider
 {
 }
 
+#if !CODE_STYLE
 internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCodeCleanupOptionsProvider, CleanCodeGenerationOptionsProvider
 {
     public abstract ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
