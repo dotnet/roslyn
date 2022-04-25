@@ -1136,6 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.CheckedMultiplyOperatorName:
                         case WellKnownMemberNames.MultiplyOperatorName:
                         case WellKnownMemberNames.RightShiftOperatorName:
+                        case WellKnownMemberNames.UnsignedRightShiftOperatorName:
                         case WellKnownMemberNames.CheckedSubtractionOperatorName:
                         case WellKnownMemberNames.SubtractionOperatorName:
                             return IsValidUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;

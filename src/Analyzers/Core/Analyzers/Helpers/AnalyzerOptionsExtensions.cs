@@ -4,12 +4,8 @@
 
 using System.Runtime.Serialization;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 
 #if CODE_STYLE
 using TOption = Microsoft.CodeAnalysis.Options.IOption2;
@@ -27,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [property: DataMember(Order = 3)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
         [property: DataMember(Order = 4)] bool ReportInvalidRegexPatterns = true,
         [property: DataMember(Order = 5)] bool ReportInvalidJsonPatterns = true,
-        [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true)
+        [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true,
+        [property: DataMember(Order = 7)] SimplifierOptions? SimplifierOptions = null)
     {
         public IdeAnalyzerOptions()
             : this(CrashOnAnalyzerException: false)

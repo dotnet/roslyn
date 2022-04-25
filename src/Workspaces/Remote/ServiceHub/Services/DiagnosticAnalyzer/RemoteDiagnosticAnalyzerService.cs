@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
-        public async ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, CancellationToken cancellationToken)
+        public async ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken)
         {
             // Complete RPC right away so the client can start reading from the stream.
             // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
             {
                 return await RunWithSolutionAsync(
-                    solutionInfo,
+                    solutionChecksum,
                     async solution =>
                     {
                         var documentId = arguments.DocumentId;

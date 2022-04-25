@@ -82,17 +82,15 @@ namespace Microsoft.CodeAnalysis.Remote
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
         protected async ValueTask<T> RunWithSolutionAsync<T>(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
-                solutionInfo.SolutionChecksum,
-                solutionInfo.WorkspaceVersion,
-                solutionInfo.FromPrimaryBranch,
+                solutionChecksum,
                 implementation,
                 cancellationToken).ConfigureAwait(false);
 
@@ -106,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         protected ValueTask<T> RunServiceAsync<T>(
-            PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            Checksum solutionChecksum, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
-                c => RunWithSolutionAsync(solutionInfo, implementation, c), cancellationToken);
+                c => RunWithSolutionAsync(solutionChecksum, implementation, c), cancellationToken);
         }
 
         internal static async ValueTask<T> RunServiceImplAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
@@ -131,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         protected ValueTask RunServiceAsync(
-            PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
+            Checksum solutionChecksum, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
                 async c =>
                 {
                     await RunWithSolutionAsync(
-                        solutionInfo,
+                        solutionChecksum,
                         async s =>
                         {
                             await implementation(s).ConfigureAwait(false);

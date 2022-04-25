@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             QualifiedCrefSyntax crefSyntax,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out CrefSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var memberCref = crefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language) &&
+            if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
                 memberCref.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);

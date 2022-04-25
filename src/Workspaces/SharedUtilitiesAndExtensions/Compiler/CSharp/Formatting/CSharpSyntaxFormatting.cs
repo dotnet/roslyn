@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
+        public override SyntaxFormattingOptions DefaultOptions
+            => CSharpSyntaxFormattingOptions.Default;
+
         public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
             => CSharpSyntaxFormattingOptions.Create(options);
 

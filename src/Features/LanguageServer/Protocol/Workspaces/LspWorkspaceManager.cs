@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 {
     /// <summary>
+    /// Indicates whether the LSP solution has changed in a non-tracked document context.
+    /// 
+    /// <b>IMPORTANT:</b> Implementations of this event handler should do as little synchronous work as possible since this will block.
+    /// </summary>
+    public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
+
+    /// <summary>
     /// Lock to gate access to the <see cref="_workspaceToLspSolution"/> and <see cref="_trackedDocuments"/>
     /// Access from the LSP server is serial as the LSP queue is processed serially until
     /// after we give the solution to the request handlers.  However workspace events can interleave
@@ -163,7 +170,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             _workspaceToLspSolution[workspace] = null;
         }
 
-        bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, ImmutableDictionary<Uri, SourceText> trackedDocuments)
+        // Send a solution changed notification to anyone subscribed. For example, this is important for semantic tokens refresh.
+        LspSolutionChanged?.Invoke(sender, e);
+
+        static bool IsDocumentTrackedByLsp(DocumentId changedDocumentId, Solution newWorkspaceSolution, ImmutableDictionary<Uri, SourceText> trackedDocuments)
         {
             var changedDocument = newWorkspaceSolution.GetRequiredDocument(changedDocumentId);
             var documentUri = changedDocument.TryGetURI();

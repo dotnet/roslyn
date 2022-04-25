@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// This will run all provided code cleaners in an order that is given to the method.
         /// </summary>
-        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken);
+        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken);
 
         /// <summary>
         /// This will run all provided code cleaners in an order that is given to the method.

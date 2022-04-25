@@ -366,7 +366,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // update remote workspace
             remoteSolution = remoteSolution.WithDocumentText(remoteSolution.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
-            await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(remoteSolution, solution.WorkspaceVersion + 1);
+            await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(remoteSolution, solution.WorkspaceVersion + 1);
 
             // check solution update correctly ran solution crawler
             Assert.True(await testAnalyzerProvider.Analyzer.Called);
@@ -392,27 +392,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // update remote workspace
             var currentSolution = remoteSolution1.WithDocumentText(remoteSolution1.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
-            var (oopSolution2, _) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(currentSolution, ++version);
+            var (oopSolution2, _) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(currentSolution, ++version);
 
             await Verify(currentSolution, oopSolution2, expectRemoteSolutionToCurrent: true);
 
             // move backward
-            await Verify(remoteSolution1, (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(remoteSolution1, solution1.WorkspaceVersion)).solution, expectRemoteSolutionToCurrent: false);
+            await Verify(remoteSolution1, (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(remoteSolution1, solution1.WorkspaceVersion)).solution, expectRemoteSolutionToCurrent: false);
 
             // move forward
             currentSolution = oopSolution2.WithDocumentText(oopSolution2.Projects.First().Documents.First().Id, SourceText.From(code + " class Test3 { }"));
-            var remoteSolution3 = (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(currentSolution, ++version)).solution;
+            var remoteSolution3 = (await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(currentSolution, ++version)).solution;
 
             await Verify(currentSolution, remoteSolution3, expectRemoteSolutionToCurrent: true);
 
             // move to new solution backward
             var (solutionInfo2, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
             var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfoAndOptions(solutionInfo2, options);
-            Assert.False((await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(
+            Assert.False((await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(
                 solution2, solution1.WorkspaceVersion)).updated);
 
             // move to new solution forward
-            var (solution3, updated3) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceAsync(
+            var (solution3, updated3) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(
                 solution2, ++version);
             Assert.NotNull(solution3);
             Assert.True(updated3);
@@ -563,7 +563,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = project2.Solution;
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             // Syncing project 1 should just since it over.
             await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -604,7 +605,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = project3.Solution.AddProjectReference(project3.Id, new(project3.Solution.Projects.Single(p => p.Name == "P2").Id));
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
             var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
@@ -636,7 +638,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = project3.Solution.AddProjectReference(project3.Id, new(project3.Solution.Projects.Single(p => p.Name == "P2").Id));
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             // syncing P3 should since project P2 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -677,7 +680,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                                         .AddProjectReference(project2.Id, new(project1.Id));
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             // syncing project3 should since project2 and project1 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -714,7 +718,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                                         .AddProjectReference(project3.Id, new(project1.Id));
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             // syncing project3 should since project2 and project1 as well because of the p2p ref
             await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -749,7 +754,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = project2.Solution;
 
             var map = new Dictionary<Checksum, object>();
-            var assetProvider = new AssetProvider(scopeId: 0, new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            var assetProvider = new AssetProvider(
+                Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
 
             // Syncing over project1 should give us 1 set of options on the OOP side.
             await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -855,7 +861,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             map ??= new Dictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
-            var sessionId = 0;
+            var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 

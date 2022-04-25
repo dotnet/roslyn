@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         [Obsolete]
         bool ITypeScriptCodeRefactoringContext.IsBlocking
-            => Options("TypeScript").IsBlocking;
+            => Options(Document.Project.LanguageServices).IsBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 

@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Public Overrides Function TrySimplify(expression As ExpressionSyntax,
                                               semanticModel As SemanticModel,
-                                              optionSet As OptionSet,
+                                              options As VisualBasicSimplifierOptions,
                                               ByRef replacementNode As ExpressionSyntax,
                                               ByRef issueSpan As TextSpan,
                                               cancellationToken As CancellationToken) As Boolean
-            If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, optionSet, cancellationToken) Then
+            If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, options, cancellationToken) Then
                 Return True
             End If
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
             <Out> ByRef issueSpan As TextSpan,
-            optionSet As OptionSet,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             replacementNode = Nothing
@@ -50,12 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 Return TryReduce(memberAccess, semanticModel,
                                               replacementNode,
                                               issueSpan,
-                                              optionSet,
+                                              options,
                                               cancellationToken)
             ElseIf TypeOf expression Is NameSyntax Then
                 Dim name = DirectCast(expression, NameSyntax)
                 Return NameSimplifier.Instance.TrySimplify(
-                    name, semanticModel, optionSet,
+                    name, semanticModel, options,
                     replacementNode, issueSpan, cancellationToken)
             End If
 
@@ -65,9 +65,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Private Shared Function TryReduce(
             memberAccess As MemberAccessExpressionSyntax,
             semanticModel As SemanticModel,
-            <Out()> ByRef replacementNode As ExpressionSyntax,
-            <Out()> ByRef issueSpan As TextSpan,
-            optionSet As OptionSet,
+            <Out> ByRef replacementNode As ExpressionSyntax,
+            <Out> ByRef issueSpan As TextSpan,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             If memberAccess.Expression Is Nothing OrElse memberAccess.Name Is Nothing Then
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             End If
 
             If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
-               Not SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol) Then
+               Not SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(options, symbol) Then
                 Return False
             End If
 
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return True
                 End If
 
-                If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
+                If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options) Then
                     If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
                         Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
                         If keywordKind <> SyntaxKind.None Then

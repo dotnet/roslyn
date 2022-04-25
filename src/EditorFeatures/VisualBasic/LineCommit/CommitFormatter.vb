@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
@@ -13,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -88,13 +90,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
+                Dim simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim addImportOptions = AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
                     finalDocument = cleanupService.CleanupAsync(
                         document,
                         ImmutableArray.Create(textSpanToFormat),
-                        formattingOptions,
+                        cleanupOptions,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
