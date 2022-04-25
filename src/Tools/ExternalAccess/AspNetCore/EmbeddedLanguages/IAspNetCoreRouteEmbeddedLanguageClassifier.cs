@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {
     internal interface IAspNetCoreRouteEmbeddedLanguageClassifier
     {
-        void RegisterClassifications(AspNetCoreEmbeddedLanguageClassificationContext aspNetCoreEmbeddedLanguageClassificationContext);
+        void RegisterClassifications(AspNetCoreEmbeddedLanguageClassificationContext context);
     }
 }
