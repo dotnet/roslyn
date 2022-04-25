@@ -546,7 +546,19 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (28,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new S1<int>().F = ref i;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S1<int>().F").WithLocation(28, 9),
+                // (29,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new S2<int>().F = ref i;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S2<int>().F").WithLocation(29, 9),
+                // (30,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new S3<int>().F = ref i;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S3<int>().F").WithLocation(30, 9),
+                // (31,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new S4<int>().F = ref i;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S4<int>().F").WithLocation(31, 9));
         }
 
         [Fact]
@@ -1163,12 +1175,18 @@ class Program
                 // (22,93): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
                 //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 5
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(22, 93),
-                // (24,61): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                // (24,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 6
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sIn.F = ref tValue").WithArguments("F", "tValue").WithLocation(24, 61),
-                // (27,73): error CS8331: Cannot assign to variable 'in T' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
+                // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
+                // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
+                // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(27, 73));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
         }
 
         [Fact]
@@ -1211,9 +1229,18 @@ class Program
                 // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
-                // (24,61): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
+                // (24,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 3
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sIn.F = ref tValue").WithArguments("F", "tValue").WithLocation(24, 61));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
+                // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
+                // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
+                // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; }
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
         }
 
         [Fact]
@@ -2341,52 +2368,10 @@ class Program
         }
 
         [Fact]
-        public void ReadWriteFieldWithTemp_01()
+        public void ReadWriteFieldWithTemp()
         {
             var source =
-@"using System;
-ref struct S<T>
-{
-    public ref T F;
-}
-class Program
-{
-    static void Main()
-    {
-        int i = 42;
-        Console.WriteLine(ReadWrite(ref i));
-    }
-    static T ReadWrite<T>(ref T t)
-    {
-        return new S<T>().F = ref t;
-    }
-}";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"42"));
-            verifier.VerifyIL("Program.ReadWrite<T>",
-@"{
-  // Code size       24 (0x18)
-  .maxstack  3
-  .locals init (S<T> V_0,
-                T& V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    ""S<T>""
-  IL_0009:  ldarg.0
-  IL_000a:  dup
-  IL_000b:  stloc.1
-  IL_000c:  stfld      ""ref T S<T>.F""
-  IL_0011:  ldloc.1
-  IL_0012:  ldobj      ""T""
-  IL_0017:  ret
-}");
-        }
-
-        [Fact]
-        public void ReadWriteFieldWithTemp_02()
-        {
-            var source =
-@"using System;
-ref struct S<T>
+@"ref struct S<T>
 {
     public ref T F;
     private int _other;
@@ -2394,35 +2379,23 @@ ref struct S<T>
 }
 class Program
 {
-    static void Main()
+    static T ReadWrite1<T>(ref T t)
     {
-        int i = 42;
-        Console.WriteLine(ReadWrite(ref i));
+        return new S<T>().F = ref t;
     }
-    static T ReadWrite<T>(ref T t)
+    static T ReadWrite2<T>(ref T t)
     {
         return new S<T>(1).F = ref t;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"42"));
-            verifier.VerifyIL("Program.ReadWrite<T>",
-@"{
-  // Code size       24 (0x18)
-  .maxstack  3
-  .locals init (S<T> V_0,
-                T& V_1)
-  IL_0000:  ldc.i4.1
-  IL_0001:  newobj     ""S<T>..ctor(int)""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  ldarg.0
-  IL_000a:  dup
-  IL_000b:  stloc.1
-  IL_000c:  stfld      ""ref T S<T>.F""
-  IL_0011:  ldloc.1
-  IL_0012:  ldobj      ""T""
-  IL_0017:  ret
-}");
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         return new S<T>().F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S<T>().F").WithLocation(11, 16),
+                // (15,16): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         return new S<T>(1).F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S<T>(1).F").WithLocation(15, 16));
         }
 
         [Fact]

@@ -855,6 +855,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
+                Debug.Assert(!fieldIsStatic);
+                Debug.Assert(valueKind == BindValueKind.RefAssignable);
+
                 switch (fieldSymbol.RefKind)
                 {
                     case RefKind.None:
@@ -862,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     case RefKind.Ref:
                     case RefKind.RefReadOnly:
-                        return true;
+                        return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, BindValueKind.Assignable, diagnostics);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
                 }

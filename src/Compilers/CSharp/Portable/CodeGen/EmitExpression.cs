@@ -2331,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         else if (!left.FieldSymbol.IsStatic)
                         {
                             var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
-                            FreeOptTemp(temp);
+                            Debug.Assert(temp == null, "temp is unexpected when assigning to a field");
                             lhsUsesStack = true;
                         }
                     }
