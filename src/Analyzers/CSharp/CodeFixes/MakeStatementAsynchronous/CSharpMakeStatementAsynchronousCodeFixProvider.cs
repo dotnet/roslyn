@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             var constructToFix = TryGetStatementToFix(node);
@@ -46,14 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, diagnostic, c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Add_await, nameof(CSharpCodeFixesResources.Add_await));
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -100,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
             editor.ReplaceNode(statementToFix, newStatement);
         }
 
-        private static SyntaxNode TryGetStatementToFix(SyntaxNode node)
+        private static SyntaxNode? TryGetStatementToFix(SyntaxNode node)
         {
             if (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement, SyntaxKind.UsingStatement))
             {
@@ -113,16 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
             }
 
             return null;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Add_await,
-                       createChangedDocument,
-                       CSharpCodeFixesResources.Add_await)
-            {
-            }
         }
     }
 }

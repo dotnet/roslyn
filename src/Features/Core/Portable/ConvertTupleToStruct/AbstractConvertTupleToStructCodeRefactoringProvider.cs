@@ -585,8 +585,10 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     // so that our generated methods follow any special formatting rules specific to
                     // them.
                     var equalsAndGetHashCodeService = startingDocument.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
+                    var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+
                     updatedDocument = await equalsAndGetHashCodeService.FormatDocumentAsync(
-                        updatedDocument, cancellationToken).ConfigureAwait(false);
+                        updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 currentSolution = updatedDocument.Project.Solution;

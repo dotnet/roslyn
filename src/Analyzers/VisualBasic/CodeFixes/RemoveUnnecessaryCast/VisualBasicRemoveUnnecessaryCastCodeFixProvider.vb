@@ -31,11 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Remove_Unnecessary_Cast,
-                Function(c) FixAsync(context.Document, context.Diagnostics.First(), c),
-                NameOf(AnalyzersResources.Remove_Unnecessary_Cast)),
-                context.Diagnostics)
+            RegisterCodeFix(context, AnalyzersResources.Remove_Unnecessary_Cast, NameOf(AnalyzersResources.Remove_Unnecessary_Cast))
             Return Task.CompletedTask
         End Function
 
@@ -54,8 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
         End Function
 
         Protected Overrides Async Function FixAllAsync(
-            document As Document, diagnostics As ImmutableArray(Of Diagnostic),
-            editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+            document As Document,
+            diagnostics As ImmutableArray(Of Diagnostic),
+            editor As SyntaxEditor,
+            options As CodeActionOptionsProvider,
+            cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a
             ' cast.  For example, if the cast is at the statement level, it may contain an

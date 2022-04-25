@@ -50,13 +50,17 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
                     var typeName = symbol.Name;
-                    var codeActionPreviewText = GetTextPreviewOfChange(typeName, symbol);
-                    codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
+                    var title = GetTextPreviewOfChange(typeName, symbol);
+
+                    codeActionsBuilder.Add(CodeAction.Create(
+                        title,
+                        cancellationToken =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
                             var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, options, cancellationToken);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
-                        }));
+                        },
+                        title));
                 }
 
                 var groupingTitle = string.Format(CodeFixesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
@@ -72,13 +76,5 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                // It is unlikely that the user wants that and so generic types are not supported.
                symbolInfo.CandidateSymbols.All(symbol => symbol.IsKind(SymbolKind.NamedType) &&
                                                          symbol.GetArity() == 0);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
     }
 }

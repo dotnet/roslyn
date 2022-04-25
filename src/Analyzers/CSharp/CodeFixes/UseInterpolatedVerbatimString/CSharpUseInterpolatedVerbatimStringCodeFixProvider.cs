@@ -39,15 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpCodeFixesResources.Use_interpolated_verbatim_string, nameof(CSharpCodeFixesResources.Use_interpolated_verbatim_string));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -73,14 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
             var interpolatedVerbatim = verbatimInterpolated.WithStringStartToken(newStartToken);
 
             editor.ReplaceNode(verbatimInterpolated, interpolatedVerbatim);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Use_interpolated_verbatim_string, createChangedDocument, nameof(CSharpCodeFixesResources.Use_interpolated_verbatim_string))
-            {
-            }
         }
     }
 }

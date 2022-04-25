@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
             var services = document.Project.Solution.Workspace.Services;
 
-            var searchOptions = context.Options.SearchOptions;
+            var searchOptions = context.Options(document.Project.LanguageServices).SearchOptions;
 
             var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
@@ -71,12 +72,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchOptions = searchOptions with { SearchNuGetPackages = false };
             }
 
-            var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var addImportOptions = new AddImportOptions(
                 searchOptions,
-                context.Options.HideAdvancedMembers,
-                placement);
+                cleanupOptions,
+                context.Options(document.Project.LanguageServices).HideAdvancedMembers);
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
                 document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);

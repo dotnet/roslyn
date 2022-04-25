@@ -43,17 +43,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 if (root.FindNode(diagnostic.Location.SourceSpan) is { } node && syntaxFacts.IsAttribute(node) ||
                     root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            AnalyzersResources.Remove_unnecessary_suppression,
-                            c => FixAsync(context.Document, diagnostic, c),
-                            nameof(AnalyzersResources.Remove_unnecessary_suppression)),
-                        diagnostic);
+                    RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             // We need to track unique set of processed nodes when removing the nodes.
             // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location

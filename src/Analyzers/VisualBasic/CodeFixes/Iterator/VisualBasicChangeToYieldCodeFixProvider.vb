@@ -43,16 +43,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
             root = root.ReplaceNode(returnStatement, yieldStatement)
 
-            Return Task.FromResult(Of CodeAction)(New MyCodeAction(document.WithSyntaxRoot(root)))
+            Return Task.FromResult(
+                CodeAction.Create(
+                    VisualBasicCodeFixesResources.Replace_Return_with_Yield,
+                    Function(c) Task.FromResult(document.WithSyntaxRoot(root)),
+                    NameOf(VisualBasicCodeFixesResources.Replace_Return_with_Yield)))
         End Function
-
-        Private Class MyCodeAction
-            Inherits CustomCodeActions.DocumentChangeAction
-
-            Public Sub New(newDocument As Document)
-                MyBase.New(VisualBasicCodeFixesResources.Replace_Return_with_Yield, Function(c) Task.FromResult(newDocument), NameOf(VisualBasicCodeFixesResources.Replace_Return_with_Yield))
-            End Sub
-        End Class
     End Class
 End Namespace
 

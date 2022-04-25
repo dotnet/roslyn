@@ -27,18 +27,14 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Simplify_LINQ_expression,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                nameof(AnalyzersResources.Simplify_LINQ_expression)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Simplify_LINQ_expression, nameof(AnalyzersResources.Simplify_LINQ_expression));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(Document document,
                                             ImmutableArray<Diagnostic> diagnostics,
                                             SyntaxEditor editor,
-                                            CancellationToken cancellationToken)
+                                            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
             var expressionsToReWrite = diagnostics.Select(d => GetInvocation(root, d)).OrderByDescending(i => i.SpanStart);

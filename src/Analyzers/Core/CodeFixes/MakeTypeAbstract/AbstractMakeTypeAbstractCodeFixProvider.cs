@@ -23,16 +23,14 @@ namespace Microsoft.CodeAnalysis.MakeTypeAbstract
         {
             if (IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, CodeFixesResources.Make_class_abstract, CodeFixesResources.Make_class_abstract);
             }
 
             return Task.CompletedTask;
         }
 
         protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -44,14 +42,6 @@ namespace Microsoft.CodeAnalysis.MakeTypeAbstract
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Make_class_abstract, createChangedDocument, CodeFixesResources.Make_class_abstract)
-            {
-            }
         }
     }
 }

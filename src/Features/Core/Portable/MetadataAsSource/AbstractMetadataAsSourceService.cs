@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,15 +22,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(
+            Document document,
+            Compilation symbolCompilation,
+            ISymbol symbol,
+            SyntaxFormattingOptions formattingOptions,
+            SimplifierOptions simplifierOptions,
+            CancellationToken cancellationToken)
         {
             if (document == null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var rootNamespace = newSemanticModel.GetEnclosingNamespace(0, cancellationToken);
+            var newSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var rootNamespace = newSemanticModel.GetEnclosingNamespace(position: 0, cancellationToken);
+            Contract.ThrowIfNull(rootNamespace);
 
             var context = new CodeGenerationContext(
                 contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
@@ -51,22 +56,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
-            var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
+            var node = await docWithAssemblyInfo.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                options,
+                formattingOptions,
                 GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
-            return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDoc, reducers, simplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var topLevelNamespaceSymbol = symbol.ContainingNamespace;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
 
-            var canImplementImplicitly = document.GetLanguageService<ISemanticFactsService>().SupportsImplicitInterfaceImplementation;
+            var canImplementImplicitly = document.GetRequiredLanguageService<ISemanticFactsService>().SupportsImplicitInterfaceImplementation;
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
 
             INamespaceOrTypeSymbol wrappedType = new WrappedNamedTypeSymbol(topLevelNamedType, canImplementImplicitly, docCommentFormattingService);

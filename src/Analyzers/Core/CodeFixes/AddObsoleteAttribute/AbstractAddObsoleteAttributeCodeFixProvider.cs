@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var diagnotic = context.Diagnostics[0];
-            var node = diagnotic.Location.FindNode(cancellationToken);
+            var node = context.Diagnostics[0].Location.FindNode(cancellationToken);
 
             var container = GetContainer(root, node);
 
@@ -53,11 +52,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
                 return;
             }
 
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    _title,
-                    c => FixAsync(document, diagnotic, c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, _title, _title);
         }
 
         private static async Task<INamedTypeSymbol?> GetObsoleteAttributeAsync(Document document, CancellationToken cancellationToken)
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var obsoleteAttribute = await GetObsoleteAttributeAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -93,14 +88,6 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
             {
                 editor.AddAttribute(container,
                     generator.Attribute(editor.Generator.TypeExpression(obsoleteAttribute)));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -82,8 +83,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 }
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
-                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, options, cancellationToken);
+                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
+
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, codeGenOptions, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var service = _document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 var formattedDocument = await service.FormatDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
+                    newDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
             }

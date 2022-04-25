@@ -1103,5 +1103,44 @@ class Test
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_1()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_2()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_3()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X { get; set; }
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
     }
 }

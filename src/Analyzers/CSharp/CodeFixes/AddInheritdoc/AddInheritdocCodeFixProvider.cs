@@ -79,14 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     if (symbol.IsOverride ||
                         symbol.ImplicitInterfaceImplementations().Any())
                     {
-                        context.RegisterCodeFix(new MyCodeAction(CSharpCodeFixesResources.Explicitly_inherit_documentation,
-                            c => FixAsync(context.Document, diagnostic, c)), context.Diagnostics);
+                        RegisterCodeFix(context, CSharpCodeFixesResources.Explicitly_inherit_documentation, nameof(CSharpCodeFixesResources.Explicitly_inherit_documentation), diagnostic);
                     }
                 }
             }
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             string? newLine = null;
             SourceText? sourceText = null;
@@ -99,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                 }
 
 #if CODE_STYLE
-                var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(node.SyntaxTree, cancellationToken);
+                var optionSet = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(node.SyntaxTree, cancellationToken);
 #else
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
-                newLine ??= options.GetOption(FormattingOptions2.NewLine);
+                newLine ??= optionSet.GetOption(FormattingOptions2.NewLine);
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new /// <inheritdoc/> comment.
                 var xmlSpaceAfterTripleSlash = Token(leading: TriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
@@ -129,14 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     Trivia(singleLineInheritdocComment));
 
                 editor.ReplaceNode(node, node.WithPrependedLeadingTrivia(newLeadingTrivia));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: nameof(CSharpCodeFixesResources.Explicitly_inherit_documentation))
-            {
             }
         }
     }

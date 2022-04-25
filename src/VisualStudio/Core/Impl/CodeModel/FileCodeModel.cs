@@ -343,8 +343,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
-                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+                    var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(result, CancellationToken.None).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
                     return formatted;
                 });
@@ -702,8 +703,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                        {
+                            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(_batchDocument, fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
+                            return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
+                        });
 
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 

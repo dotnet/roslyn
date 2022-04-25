@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             using var resultsBuilder = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
-                var intentResult = await GetIntentProcessorResultAsync(action, cancellationToken).ConfigureAwait(false);
+                var intentResult = await GetIntentProcessorResultAsync(action, priorDocument.Id, cancellationToken).ConfigureAwait(false);
                 results.AddIfNotNull(intentResult);
             }
 
             return results.ToImmutable();
 
-            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, CancellationToken cancellationToken)
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, DocumentId document, CancellationToken cancellationToken)
             {
                 var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var type = codeAction.GetType();
-                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, codeAction.Title, type.Name);
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, ImmutableArray.Create(document), codeAction.Title, type.Name);
             }
 
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(

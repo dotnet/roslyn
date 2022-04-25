@@ -255,20 +255,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 string language,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection,
-                bool includeFileContentLoadAnalyzer)
+                bool includeWorkspacePlaceholderAnalyzers)
             {
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
 
-                if (includeFileContentLoadAnalyzer)
+                if (includeWorkspacePlaceholderAnalyzers)
                 {
                     builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, PredefinedBuildTools.Live));
                 }
 
                 foreach (var analyzers in analyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
 
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache

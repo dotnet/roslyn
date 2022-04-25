@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         {
             if (context.Diagnostics.First().Properties.ContainsKey(ForEachCastHelpers.IsFixable))
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<SyntaxNode>));
             }
 
             return Task.CompletedTask;
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -111,14 +109,6 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                     generator.ValueReturningLambdaExpression(
                         "v",
                         generator.ConvertExpression(iterationVariableType, generator.IdentifierName("v"))));
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_explicit_cast, createChangedDocument, nameof(AbstractForEachCastCodeFixProvider<SyntaxNode>))
-            {
             }
         }
     }

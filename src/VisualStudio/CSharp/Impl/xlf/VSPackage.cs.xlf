@@ -91,7 +91,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Podtrhnout znovu přiřazené proměnné;
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;
 Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz;
@@ -100,6 +100,7 @@ Nahlásit neplatné regulární výrazy;
 Povolit úplnou analýzu řešení;
 Provést analýzu funkcí editoru v externím procesu;
 Povolit navigaci na dekompilované zdroje;
+Pro navigaci vždy používat výchozí servery symbolů;
 Direktivy using;
 Při řazení direktiv using umístit systémové direktivy jako první;
 Oddělovat skupiny direktiv using;
@@ -136,11 +137,18 @@ na konec;
 Při generování vlastnosti;
 preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
-reg. výr.;
+regex;
 regulární výraz;
+Obarvit regulární výrazy;
+Zvýraznit související komponenty pod kurzorem;
+Nahlásit neplatné regulární výrazy;
+JSON;
+Obarvit řetězce JSON;
+Nahlásit neplatné řetězce JSON;
+Rozpoznat a nabízet funkce editoru pro řetězce JSON;
 Používat rozšířené barvy;
 Barevné schéma editoru;
-Okraj dědičnosti</target>
+Okraj dědičnosti;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

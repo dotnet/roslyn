@@ -24,17 +24,13 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var title = GetCodeFixTitle();
-            context.RegisterCodeFix(CodeAction.Create(
-                title,
-                c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                title),
-                context.Diagnostics);
+            RegisterCodeFix(context, title, title);
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)

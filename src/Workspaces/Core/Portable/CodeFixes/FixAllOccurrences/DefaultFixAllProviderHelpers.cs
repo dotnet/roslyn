@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static async Task<CodeAction?> GetFixAsync(
             string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
-            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
-
             var solution = fixAllContext.Scope switch
             {
-                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
+                    => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.SimplifyThisOrMe
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
@@ -19,19 +20,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             SyntaxKind,
             ExpressionSyntax,
             MeExpressionSyntax,
-            MemberAccessExpressionSyntax)
+            MemberAccessExpressionSyntax,
+            VisualBasicSimplifierOptions)
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function
 
+        Protected Overrides Function GetSimplifierOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicSimplifierOptions
+            Return options.GetVisualBasicSimplifierOptions(syntaxTree)
+        End Function
+
         Protected Overrides Function CanSimplifyTypeNameExpression(
                 model As SemanticModel, memberAccess As MemberAccessExpressionSyntax,
-                optionSet As OptionSet, ByRef issueSpan As TextSpan,
+                options As VisualBasicSimplifierOptions, ByRef issueSpan As TextSpan,
                 cancellationToken As CancellationToken) As Boolean
 
             Dim replacementSyntax As ExpressionSyntax = Nothing
-            Return ExpressionSimplifier.Instance.TrySimplify(memberAccess, model, optionSet, replacementSyntax, issueSpan, cancellationToken)
+            Return ExpressionSimplifier.Instance.TrySimplify(memberAccess, model, options, replacementSyntax, issueSpan, cancellationToken)
         End Function
     End Class
 End Namespace

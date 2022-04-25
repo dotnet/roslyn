@@ -1054,10 +1054,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagsForCurrentMethod,
                         processedInitializers.AfterInitializersState,
                         ReportNullableDiagnostics,
-                        includesFieldInitializers: includeInitializersInBody && !processedInitializers.BoundInitializers.IsEmpty,
                         out importChain,
                         out originalBodyNested,
+                        out bool prependedDefaultValueTypeConstructorInitializer,
                         out forSemanticModel);
+
+                    Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || originalBodyNested);
+                    Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || methodSymbol.ContainingType.IsStructType());
 
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
                     {
@@ -1081,7 +1084,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
-                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
+                            int insertAt = 0;
+                            if (originalBodyNested &&
+                                prependedDefaultValueTypeConstructorInitializer)
+                            {
+                                insertAt = 1;
+                            }
+                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(insertAt, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1704,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, reportNullableDiagnostics: true, includesFieldInitializers: false, out _, out _, out _);
+            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, reportNullableDiagnostics: true, out _, out _, out _, out _);
         }
 
         // NOTE: can return null if the method has no body.
@@ -1714,12 +1723,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             NullableWalker.VariableState nullableInitialState,
             bool reportNullableDiagnostics,
-            bool includesFieldInitializers,
             out ImportChain importChain,
             out bool originalBodyNested,
+            out bool prependedDefaultValueTypeConstructorInitializer,
             out MethodBodySemanticModel.InitialState forSemanticModel)
         {
             originalBodyNested = false;
+            prependedDefaultValueTypeConstructorInitializer = false;
             importChain = null;
             forSemanticModel = default;
 
@@ -1754,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics, includesFieldInitializers);
+                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
@@ -1801,13 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var constructor = (BoundConstructorMethodBody)methodBody;
                             body = constructor.BlockBody ?? constructor.ExpressionBody;
 
-                            if (constructor.Initializer is BoundNoOpStatement)
-                            {
-                                // We have field initializers and `: this()` is a default value type constructor.
-                                Debug.Assert(body is not null);
-                                return body;
-                            }
-                            else if (constructor.Initializer is BoundExpressionStatement expressionStatement)
+                            if (constructor.Initializer is BoundExpressionStatement expressionStatement)
                             {
                                 ReportCtorInitializerCycles(method, expressionStatement.Expression, compilationState, diagnostics);
 
@@ -1819,6 +1823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     body = new BoundBlock(constructor.Syntax, constructor.Locals, ImmutableArray.Create<BoundStatement>(constructor.Initializer, body));
                                     originalBodyNested = true;
+                                    prependedDefaultValueTypeConstructorInitializer =
+                                        expressionStatement.Expression is BoundCall { Method: var initMethod } && initMethod.IsDefaultValueTypeConstructor();
                                 }
 
                                 return body;

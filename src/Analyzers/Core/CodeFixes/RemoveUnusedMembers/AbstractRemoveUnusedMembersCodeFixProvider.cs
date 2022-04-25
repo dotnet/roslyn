@@ -35,11 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(CodeAction.Create(
-                AnalyzersResources.Remove_unused_member,
-                c => FixAsync(context.Document, context.Diagnostics[0], c),
-                nameof(AnalyzersResources.Remove_unused_member)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Remove_unused_member, nameof(AnalyzersResources.Remove_unused_member));
             return Task.CompletedTask;
         }
 
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();

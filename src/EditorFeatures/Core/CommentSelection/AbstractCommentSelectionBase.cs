@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -197,8 +198,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 return null;
             }
 
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var textSpans = changes.SelectAsArray(change => change.Span.ToTextSpan());
-            return service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
+            return service.FormatAsync(document, textSpans, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
         /// <summary>

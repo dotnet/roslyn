@@ -2,43 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
+using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.DocumentationComments
-{
-    internal readonly record struct DocumentationCommentOptions(
-        bool AutoXmlDocCommentGeneration,
-        int TabSize,
-        bool UseTabs,
-        string NewLine)
-    {
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class Metadata : IOptionProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Metadata()
-            {
-            }
+namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                AutoXmlDocCommentGeneration);
-
-            public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(DocumentationCommentOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
-        }
-
-        public static DocumentationCommentOptions From(DocumentOptionSet options)
-          => new(
-              AutoXmlDocCommentGeneration: options.GetOption(Metadata.AutoXmlDocCommentGeneration),
-              TabSize: options.GetOption(FormattingOptions.TabSize),
-              UseTabs: options.GetOption(FormattingOptions.UseTabs),
-              NewLine: options.GetOption(FormattingOptions.NewLine));
-    }
-}
+[DataContract]
+internal readonly record struct DocumentationCommentOptions(
+    [property: DataMember(Order = 0)] bool AutoXmlDocCommentGeneration,
+    [property: DataMember(Order = 1)] int TabSize,
+    [property: DataMember(Order = 2)] bool UseTabs,
+    [property: DataMember(Order = 3)] string NewLine);

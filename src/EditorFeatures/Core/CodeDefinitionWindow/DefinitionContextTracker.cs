@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             }
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                var options = _globalOptions.GetMetadataAsSourceOptions();
+                var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.LanguageServices);
                 var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
