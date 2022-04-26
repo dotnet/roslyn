@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Remote
         //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
         //    CancellationToken cancellationToken);
 
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Project project,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken);
+        //public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+        //    Project project,
+        //    Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
+        //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        //    CancellationToken cancellationToken);
     }
 }
