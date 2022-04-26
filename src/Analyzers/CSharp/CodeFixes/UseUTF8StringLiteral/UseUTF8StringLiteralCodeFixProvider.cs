@@ -3,22 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -115,9 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             Contract.ThrowIfNull(arrayOp.Initializer);
 
             // Get our list of bytes from the array elements
-            var values = new SegmentedList<byte>(arrayOp.Initializer.ElementValues.Select(v => (byte)v.ConstantValue.Value!));
             using var _ = PooledStringBuilder.GetInstance(out var builder);
-            if (!UseUTF8StringLiteralDiagnosticAnalyzer.TryConvertToUTF8String(builder, values))
+            if (!UseUTF8StringLiteralDiagnosticAnalyzer.TryConvertToUTF8String(builder, arrayOp.Initializer.ElementValues))
             {
                 // We shouldn't get here, because the code fix shouldn't ask for a string value
                 // if the analyzer couldn't convert it

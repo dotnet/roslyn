@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -83,16 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationOperation.IsImplicit && elements.Length == 0)
                 return;
 
-            // We need to ensure that each element is a byte, and that they are representable as a string
-            // but to avoid LOH allocations from large user data, we use a SegmentedList here, and
-            // only create a small array when necessary later.
-            var values = new SegmentedList<byte>(elements.Where(v => v.ConstantValue.Value is byte).Select(v => (byte)v.ConstantValue.Value!));
-
-            // If we couldn't get constant values for all elements then we can't offer
-            if (values.Count != elements.Length)
-                return;
-
-            if (!TryConvertToUTF8String(builder: null, values))
+            if (!TryConvertToUTF8String(builder: null, elements))
                 return;
 
             // Only raise the diagnostic on the first token (usually "new")
@@ -116,19 +105,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations, properties: null));
         }
 
-        internal static bool TryConvertToUTF8String(StringBuilder? builder, SegmentedList<byte> values)
+        internal static bool TryConvertToUTF8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)
         {
             // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
             // we can just use one array and reuse it. Using an array pool would do the same
             // thing but with more locks.
             var array = new byte[4];
-            for (var i = 0; i < values.Count;)
+            for (var i = 0; i < arrayCreationElements.Length;)
             {
                 // We only need max 4 elements for a single Rune
-                var count = Math.Min(values.Count - i, 4);
+                var count = Math.Min(arrayCreationElements.Length - i, 4);
 
                 // Need to copy to a regular array to get a ROS for Rune to process
-                values.CopyTo(i, array, 0, count);
+                for (var j = 0; j < count; j++)
+                {
+                    var element = arrayCreationElements[i + j];
+
+                    // First basic check is that the array element is actually a byte
+                    if (element.ConstantValue.Value is not byte)
+                        return false;
+
+                    array[j] = (byte)element.ConstantValue.Value;
+                }
+
                 var ros = new ReadOnlySpan<byte>(array, 0, count);
 
                 // If we can't decode a rune from the array then it can't be represented as a string
