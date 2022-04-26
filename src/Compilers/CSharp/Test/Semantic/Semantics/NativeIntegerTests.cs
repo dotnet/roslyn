@@ -4519,6 +4519,7 @@ False
                     BinaryOperatorKind.Or,
                     BinaryOperatorKind.And,
                     BinaryOperatorKind.Xor,
+                    BinaryOperatorKind.UnsignedRightShift,
                 };
 
                 foreach (var operatorKind in unaryOperators)

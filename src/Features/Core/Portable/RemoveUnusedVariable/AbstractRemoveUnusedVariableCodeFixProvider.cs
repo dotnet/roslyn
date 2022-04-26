@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), diagnostic);
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToRemove = new HashSet<SyntaxNode>();
 

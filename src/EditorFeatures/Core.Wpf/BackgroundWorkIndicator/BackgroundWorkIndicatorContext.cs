@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -187,10 +188,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             }
         }
 
-        private ValueTask UpdateUIAsync(ImmutableArray<UIUpdateRequest> requests, CancellationToken cancellationToken)
+        private ValueTask UpdateUIAsync(ImmutableSegmentedList<UIUpdateRequest> requests, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(requests.IsDefaultOrEmpty, "We must have gotten an actual request to process.");
-            Contract.ThrowIfTrue(requests.Length > 2, "At most we can have two requests in the queue (one to update, one to dismiss).");
+            Contract.ThrowIfTrue(requests.IsDefault || requests.IsEmpty, "We must have gotten an actual request to process.");
+            Contract.ThrowIfTrue(requests.Count > 2, "At most we can have two requests in the queue (one to update, one to dismiss).");
             Contract.ThrowIfFalse(
                 requests.Contains(UIUpdateRequest.DismissTooltip) || requests.Contains(UIUpdateRequest.UpdateTooltip),
                 "We didn't get an actual event we know about.");

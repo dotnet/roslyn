@@ -36,6 +36,10 @@
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="..\CommandLine\BuildProtocol.cs" />
+    <Compile Include="..\CommandLine\ConsoleUtil.cs" />
+    <Compile Include="..\CommandLine\NativeMethods.cs" />
+    <Compile Include="..\CommandLine\CompilerServerLogger.cs" />
     <Compile Include="..\Portable\CommitHashAttribute.cs" />
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
@@ -99,6 +103,4 @@
                       Lines="$(CompilerVersionTargetsFileContent)"
                       Overwrite="true" />
   </Target>
-
-  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

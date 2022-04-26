@@ -5203,6 +5203,7 @@ unsafe
         [InlineData("%")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("&&")]
         [InlineData("||")]
         [InlineData("&")]

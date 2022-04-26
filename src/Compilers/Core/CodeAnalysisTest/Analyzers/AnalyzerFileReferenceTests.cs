@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/60762")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();

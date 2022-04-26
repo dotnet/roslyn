@@ -1281,6 +1281,7 @@ class C
         var q = default && default;
         var r = default || default;
         var s = default ?? default;
+        var t = default >>> default;
     }
 }
 ";
@@ -1348,7 +1349,10 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 28),
                 // (24,17): error CS8716: There is no target type for the default literal.
                 //         var s = default ?? default;
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var t = default >>> default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >>> default").WithArguments(">>>", "default").WithLocation(25, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -1386,6 +1390,7 @@ class C
         var r = default || 1;
         var s = default ?? 1;
         var t = default ?? default(int?);
+        var u = default >>> 1;
     }
 }
 ";
@@ -1450,7 +1455,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = default != 1; // ok
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13),
+                // (26,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var u = default >>> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >>> 1").WithArguments(">>>", "default").WithLocation(26, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -1488,6 +1496,7 @@ class C
         var r = 1 || default;
         var s = new object() ?? default; // ok
         var t = 1 ?? default;
+        var u = 1 >>> default;
     }
 }
 ";
@@ -1549,7 +1558,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = 1 != default; // ok
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13),
+                // (26,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var u = 1 >>> default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >>> default").WithArguments(">>>", "default").WithLocation(26, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
