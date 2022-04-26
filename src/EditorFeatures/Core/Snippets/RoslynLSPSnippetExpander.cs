@@ -20,17 +20,22 @@ namespace Microsoft.CodeAnalysis.Snippets
     [Export(typeof(RoslynLSPSnippetExpander))]
     internal class RoslynLSPSnippetExpander : IRoslynLSPSnippetExpander
     {
-        protected object _lspSnippetExpander;
-        protected Type _expanderType;
+        protected object? _lspSnippetExpander;
+        protected Type? _expanderType;
         protected MethodInfo? _expanderMethodInfo;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynLSPSnippetExpander([Import("Microsoft.VisualStudio.LanguageServer.Client.Snippets.LanguageServerSnippetExpander")] object languageServerSnippetExpander)
+        public RoslynLSPSnippetExpander(
+            [Import("Microsoft.VisualStudio.LanguageServer.Client.Snippets.LanguageServerSnippetExpander", AllowDefault = true)] object? languageServerSnippetExpander)
         {
             _lspSnippetExpander = languageServerSnippetExpander;
-            _expanderType = languageServerSnippetExpander.GetType();
-            _expanderMethodInfo = _expanderType.GetMethod("TryExpand");
+
+            if (_lspSnippetExpander is not null)
+            {
+                _expanderType = _lspSnippetExpander.GetType();
+                _expanderMethodInfo = _expanderType.GetMethod("TryExpand");
+            }
         }
 
         public bool TryExpand(TextChange textChange, SourceText sourceText, string? lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)

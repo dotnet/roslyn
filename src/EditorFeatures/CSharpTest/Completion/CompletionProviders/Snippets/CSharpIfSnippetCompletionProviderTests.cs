@@ -4,10 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         private static readonly string s_itemToCommit = FeaturesResources.Insert_an_if_statement;
+
+        protected override TestComposition GetComposition()
+            => base.GetComposition()
+            .AddExcludedPartTypes(typeof(IRoslynLSPSnippetExpander))
+            .AddParts(typeof(TestRoslynLanguageServerSnippetExpander));
 
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSnippetCompletionProvider);
