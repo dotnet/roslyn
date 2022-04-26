@@ -276,7 +276,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.OperationTreeAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageAnalysis.Walker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\SymbolUsageAnalysis\SymbolUsageResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractSyntaxFormatting.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ContextIntervalTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Context\FormattingContext.AnchorData.cs" />
@@ -401,9 +401,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractSimplification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\AliasAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAddImportsAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAllowVarAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\ISimplification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />

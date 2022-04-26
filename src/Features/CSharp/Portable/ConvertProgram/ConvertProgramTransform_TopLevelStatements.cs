@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
     internal static partial class ConvertProgramTransform
     {
         public static async Task<Document> ConvertToTopLevelStatementsAsync(
-            Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
+            Document document, MethodDeclarationSyntax methodDeclaration, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var typeDeclaration = (TypeDeclarationSyntax?)methodDeclaration.Parent;
             Contract.ThrowIfNull(typeDeclaration); // checked by analyzer
@@ -44,8 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             // We were parented by a namespace.  Add using statements to bring in all the symbols that were
             // previously visible within the namespace.  Then remove any that we don't need once we've done that.
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
             document = await AddUsingDirectivesAsync(
-                document, rootWithGlobalStatements, namespaceDeclaration, cancellationToken).ConfigureAwait(false);
+                document, rootWithGlobalStatements, namespaceDeclaration, cleanupOptions, cancellationToken).ConfigureAwait(false);
 
             // if we have a file scoped namespace after converting to top-level-statements, then convert it to a
             // block-namespace.  Top level statements and file-scoped-namespaces are not allowed together.
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         }
 
         private static async Task<Document> AddUsingDirectivesAsync(
-            Document document, SyntaxNode root, BaseNamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
+            Document document, SyntaxNode root, BaseNamespaceDeclarationSyntax namespaceDeclaration, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
             var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
@@ -74,16 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-            var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
             var documentWithImportsAdded = document.WithSyntaxRoot(addImportsService.AddImports(
                 compilation: null!, root, contextLocation: null, directives, generator,
-                addImportOptions,
+                options.AddImportOptions,
                 cancellationToken));
 
             return await removeImportsService.RemoveUnnecessaryImportsAsync(
-                documentWithImportsAdded, n => n.HasAnnotation(annotation), formattingOptions, cancellationToken).ConfigureAwait(false);
+                documentWithImportsAdded, n => n.HasAnnotation(annotation), options.FormattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)

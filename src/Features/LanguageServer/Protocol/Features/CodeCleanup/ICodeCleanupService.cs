@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal interface ICodeCleanupService : ILanguageService
     {
-        Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgressTracker progressTracker, CodeActionOptionsProvider options, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
+        Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         EnabledDiagnosticOptions GetAllDiagnostics();
     }
 }
