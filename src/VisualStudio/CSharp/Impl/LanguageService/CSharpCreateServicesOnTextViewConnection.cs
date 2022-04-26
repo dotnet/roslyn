@@ -39,11 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override async Task InitializeServiceForOpenedDocumentAsync(Document document)
         {
-            // Preload project completion providers on a background thread since loading extensions can be slow
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
-            if (document.GetRequiredLanguageService<CompletionService>() is CompletionServiceWithProviders compeltionServiceWithProviders)
-                _ = compeltionServiceWithProviders.GetProjectCompletionProviders(document.Project);
-
             // Only pre-populate cache if import completion is enabled
             if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
                 return;

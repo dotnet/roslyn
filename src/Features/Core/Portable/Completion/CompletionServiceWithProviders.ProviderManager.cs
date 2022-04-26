@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Following CWTs are used to cache completion providers from projects' references,
             // so we can avoid the slow path unless there's any change to the references.
-            private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, Task<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap = new();
+            private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap = new();
             private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap = new();
 
             private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
@@ -125,14 +124,20 @@ namespace Microsoft.CodeAnalysis.Completion
                     return ImmutableArray<CompletionProvider>.Empty;
                 }
 
-                var completionProvidersTask = _projectCompletionProvidersMap.GetValue(project.AnalyzerReferences, pId => GetProjectCompletionProvidersTask(project));
-                return completionProvidersTask.IsCompleted ? completionProvidersTask.Result : ImmutableArray<CompletionProvider>.Empty;
+                if (_projectCompletionProvidersMap.TryGetValue(project.AnalyzerReferences, out var completionProviders))
+                {
+                    return completionProviders.Value;
+                }
+
+                return GetProjectCompletionProvidersSlow(project);
 
                 // Local functions
-                Task<ImmutableArray<CompletionProvider>> GetProjectCompletionProvidersTask(Project project)
-                    => Task.Run(() => ComputeProjectCompletionProvidersSlow(project));
+                ImmutableArray<CompletionProvider> GetProjectCompletionProvidersSlow(Project project)
+                {
+                    return _projectCompletionProvidersMap.GetValue(project.AnalyzerReferences, _ => new(ComputeProjectCompletionProviders(project))).Value;
+                }
 
-                ImmutableArray<CompletionProvider> ComputeProjectCompletionProvidersSlow(Project project)
+                ImmutableArray<CompletionProvider> ComputeProjectCompletionProviders(Project project)
                 {
                     using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var builder);
                     foreach (var reference in project.AnalyzerReferences)
