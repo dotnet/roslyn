@@ -897,7 +897,9 @@ class Program
         public void AssignValueTo_RefField()
         {
             var source =
-@"ref struct S<T>
+@"using System;
+
+ref struct S<T>
 {
     public ref T F;
     public S(ref T t) { F = ref t; }
@@ -915,18 +917,300 @@ class Program
     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; }
     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; }
 
-    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; }
-    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; }
-    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; }
-    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; }
+    static void AssignValueToOut<T>(out S<T> sOut, S<T> sInit, T tValue) { sOut = sInit; sOut.F = tValue; }
+    static void AssignRefToOut<T>(out S<T> sOut, S<T> sInit, ref T tRef) { sOut = sInit; sOut.F = tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, S<T> sInit, out T tOut) { sOut = sInit; tOut = default; sOut.F = tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, S<T> sInit, in T tIn)    { sOut = sInit; sOut.F = tIn; }
 
     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; }
     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; }
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; }
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; }
+
+    static void Main()
+    {
+        int x, y;
+        S<int> s;
+
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignValueToValue(s, y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignRefToValue(s, ref y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignOutToValue(s, out y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignInToValue(s, y);
+        Console.WriteLine(s.F);
+
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignValueToRef(ref s, y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignRefToRef(ref s, ref y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignOutToRef(ref s, out y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignInToRef(ref s, y);
+        Console.WriteLine(s.F);
+
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignValueToOut(out s, new S<int>(ref x), y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignRefToOut(out s, new S<int>(ref x), ref y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignOutToOut(out s, new S<int>(ref x), out y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignInToOut(out s, new S<int>(ref x), y);
+        Console.WriteLine(s.F);
+
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignValueToIn(s, y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignRefToIn(s, ref y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignOutToIn(s, out y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignInToIn(s, y);
+        Console.WriteLine(s.F);
+    }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+@"2
+2
+0
+2
+4
+4
+0
+4
+6
+6
+0
+6
+8
+8
+0
+8"));
+            verifier.VerifyILMultiple(
+                "Program.AssignValueToValue<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToValue<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToValue<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToValue<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignValueToRef<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToRef<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToRef<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToRef<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignValueToOut<T>",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  stobj      ""T""
+  IL_0013:  ret
+}",
+                "Program.AssignRefToOut<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignOutToOut<T>",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.2
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""ref T S<T>.F""
+  IL_0014:  ldarg.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stobj      ""T""
+  IL_001f:  ret
+}",
+                "Program.AssignInToOut<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignValueToIn<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToIn<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToIn<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToIn<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}");
         }
 
         [Fact]
@@ -1017,7 +1301,9 @@ class Program
         public void AssignValueTo_ReadonlyRefField()
         {
             var source =
-@"ref struct S<T>
+@"using System;
+
+ref struct S<T>
 {
     public readonly ref T F;
     public S(ref T t) { F = ref t; }
@@ -1035,18 +1321,300 @@ class Program
     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; }
     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; }
 
-    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; }
-    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; }
-    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; }
-    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; }
+    static void AssignValueToOut<T>(out S<T> sOut, S<T> sInit, T tValue) { sOut = sInit; sOut.F = tValue; }
+    static void AssignRefToOut<T>(out S<T> sOut, S<T> sInit, ref T tRef) { sOut = sInit; sOut.F = tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, S<T> sInit, out T tOut) { sOut = sInit; tOut = default; sOut.F = tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, S<T> sInit, in T tIn)    { sOut = sInit; sOut.F = tIn; }
 
     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; }
     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; }
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; }
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; }
+
+    static void Main()
+    {
+        int x, y;
+        S<int> s;
+
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignValueToValue(s, y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignRefToValue(s, ref y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignOutToValue(s, out y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignInToValue(s, y);
+        Console.WriteLine(s.F);
+
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignValueToRef(ref s, y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignRefToRef(ref s, ref y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignOutToRef(ref s, out y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignInToRef(ref s, y);
+        Console.WriteLine(s.F);
+
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignValueToOut(out s, new S<int>(ref x), y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignRefToOut(out s, new S<int>(ref x), ref y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignOutToOut(out s, new S<int>(ref x), out y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignInToOut(out s, new S<int>(ref x), y);
+        Console.WriteLine(s.F);
+
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignValueToIn(s, y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignRefToIn(s, ref y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignOutToIn(s, out y);
+        Console.WriteLine(s.F);
+        x = 7; y = 8;
+        s = new S<int>(ref x);
+        AssignInToIn(s, y);
+        Console.WriteLine(s.F);
+    }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+@"2
+2
+0
+2
+4
+4
+0
+4
+6
+6
+0
+6
+8
+8
+0
+8"));
+            verifier.VerifyILMultiple(
+                "Program.AssignValueToValue<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToValue<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToValue<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToValue<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignValueToRef<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToRef<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToRef<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToRef<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignValueToOut<T>",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  stobj      ""T""
+  IL_0013:  ret
+}",
+                "Program.AssignRefToOut<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignOutToOut<T>",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.2
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""ref T S<T>.F""
+  IL_0014:  ldarg.2
+  IL_0015:  ldobj      ""T""
+  IL_001a:  stobj      ""T""
+  IL_001f:  ret
+}",
+                "Program.AssignInToOut<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.2
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignValueToIn<T>",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  stobj      ""T""
+  IL_000c:  ret
+}",
+                "Program.AssignRefToIn<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}",
+                "Program.AssignOutToIn<T>",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""ref T S<T>.F""
+  IL_000d:  ldarg.1
+  IL_000e:  ldobj      ""T""
+  IL_0013:  stobj      ""T""
+  IL_0018:  ret
+}",
+                "Program.AssignInToIn<T>",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""ref T S<T>.F""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""T""
+  IL_000c:  stobj      ""T""
+  IL_0011:  ret
+}");
         }
 
         [Fact]
@@ -1194,6 +1762,148 @@ class Program
                 // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 9
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
+
+            // Valid cases from above.
+            source =
+@"using System;
+
+ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; }
+
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; }
+
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; }
+
+    static void Main()
+    {
+        int x, y;
+        S<int> s;
+
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignValueToValue(s, y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignRefToValue(s, ref y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignOutToValue(s, out y);
+        Console.WriteLine(s.F);
+
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignRefToRef(ref s, ref y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignOutToRef(ref s, out y);
+        Console.WriteLine(s.F);
+
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignRefToOut(out s, ref y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignOutToOut(out s, out y);
+        Console.WriteLine(s.F);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+@"1
+1
+1
+4
+0
+6
+0"));
+            verifier.VerifyILMultiple(
+                "Program.AssignValueToValue<T>",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_1
+  IL_0004:  stfld      ""ref T S<T>.F""
+  IL_0009:  ret
+}",
+                "Program.AssignRefToValue<T>",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stfld      ""ref T S<T>.F""
+  IL_0008:  ret
+}",
+                "Program.AssignOutToValue<T>",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarga.s   V_0
+  IL_0009:  ldarg.1
+  IL_000a:  stfld      ""ref T S<T>.F""
+  IL_000f:  ret
+}",
+                "Program.AssignRefToRef<T>",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""ref T S<T>.F""
+  IL_0007:  ret
+}",
+                "Program.AssignOutToRef<T>",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""ref T S<T>.F""
+  IL_000e:  ret
+}",
+                "Program.AssignRefToOut<T>",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""ref T S<T>.F""
+  IL_000e:  ret
+}",
+                "Program.AssignOutToOut<T>",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S<T>""
+  IL_0007:  ldarg.1
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""ref T S<T>.F""
+  IL_0015:  ret
+}");
         }
 
         [Fact]
@@ -1248,6 +1958,195 @@ class Program
                 // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 6
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
+
+            // Valid cases from above.
+            source =
+@"using System;
+
+ref struct S<T>
+{
+    public ref readonly T F;
+    public S(ref T t) { F = ref t; }
+}
+
+class Program
+{
+    static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; }
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; }
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
+
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; }
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
+
+    static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; }
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; }
+
+    static void Main()
+    {
+        int x, y;
+        S<int> s;
+
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignValueToValue(s, y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignRefToValue(s, ref y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignOutToValue(s, out y);
+        Console.WriteLine(s.F);
+        x = 1; y = 2;
+        s = new S<int>(ref x);
+        AssignInToValue(s, y);
+        Console.WriteLine(s.F);
+
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignRefToRef(ref s, ref y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignOutToRef(ref s, out y);
+        Console.WriteLine(s.F);
+        x = 3; y = 4;
+        s = new S<int>(ref x);
+        AssignInToRef(ref s, y);
+        Console.WriteLine(s.F);
+
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignRefToOut(out s, ref y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignOutToOut(out s, out y);
+        Console.WriteLine(s.F);
+        x = 5; y = 6;
+        s = new S<int>(ref x);
+        AssignInToOut(out s, y);
+        Console.WriteLine(s.F);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+@"1
+1
+1
+1
+4
+0
+4
+6
+0
+6"));
+            verifier.VerifyILMultiple(
+                "Program.AssignValueToValue<T>",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_1
+  IL_0004:  stfld      ""ref readonly T S<T>.F""
+  IL_0009:  ret
+}",
+                "Program.AssignRefToValue<T>",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stfld      ""ref readonly T S<T>.F""
+  IL_0008:  ret
+}",
+                "Program.AssignOutToValue<T>",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarga.s   V_0
+  IL_0009:  ldarg.1
+  IL_000a:  stfld      ""ref readonly T S<T>.F""
+  IL_000f:  ret
+}",
+                "Program.AssignInToValue<T>",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stfld      ""ref readonly T S<T>.F""
+  IL_0008:  ret
+}",
+                "Program.AssignRefToRef<T>",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""ref readonly T S<T>.F""
+  IL_0007:  ret
+}",
+                "Program.AssignOutToRef<T>",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  initobj    ""T""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""ref readonly T S<T>.F""
+  IL_000e:  ret
+}",
+                "Program.AssignInToRef<T>",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""ref readonly T S<T>.F""
+  IL_0007:  ret
+}",
+                "Program.AssignRefToOut<T>",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""ref readonly T S<T>.F""
+  IL_000e:  ret
+}",
+                "Program.AssignOutToOut<T>",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S<T>""
+  IL_0007:  ldarg.1
+  IL_0008:  initobj    ""T""
+  IL_000e:  ldarg.0
+  IL_000f:  ldarg.1
+  IL_0010:  stfld      ""ref readonly T S<T>.F""
+  IL_0015:  ret
+}",
+                "Program.AssignInToOut<T>",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S<T>""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""ref readonly T S<T>.F""
+  IL_000e:  ret
+}");
         }
 
         [Fact]
