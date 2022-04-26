@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             int tabSize,
             bool useTabs,
             string newLine)
-            : this(new(autoXmlDocCommentGeneration, tabSize, useTabs, newLine))
+            : this(new(new LineFormattingOptions(useTabs, tabSize, tabSize, newLine), autoXmlDocCommentGeneration))
         {
         }
 
@@ -33,11 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
         {
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
 
-            return new(new DocumentationCommentOptions(
-                AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration,
-                TabSize: formattingOptions.TabSize,
-                UseTabs: formattingOptions.UseTabs,
-                NewLine: formattingOptions.NewLine));
+            return new(new DocumentationCommentOptions(formattingOptions.LineFormatting, AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration));
         }
     }
 }

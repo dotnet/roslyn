@@ -3,12 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 [DataContract]
 internal readonly record struct DocumentationCommentOptions(
-    [property: DataMember(Order = 0)] bool AutoXmlDocCommentGeneration,
-    [property: DataMember(Order = 1)] int TabSize,
-    [property: DataMember(Order = 2)] bool UseTabs,
-    [property: DataMember(Order = 3)] string NewLine);
+    [property: DataMember(Order = 0)] LineFormattingOptions LineFormatting,
+    [property: DataMember(Order = 1)] bool AutoXmlDocCommentGeneration)
+{
+    public bool UseTabs => LineFormatting.UseTabs;
+    public int TabSize => LineFormatting.TabSize;
+    public string NewLine => LineFormatting.NewLine;
+}
