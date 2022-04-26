@@ -62,37 +62,25 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var node = (TThisExpressionSyntax)context.Node;
 
             if (node.Parent is not TMemberAccessExpressionSyntax expr)
-            {
                 return;
-            }
 
             var syntaxTree = node.SyntaxTree;
-
             var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
 
             var model = context.SemanticModel;
-            if (!CanSimplifyTypeNameExpression(
-                    model, expr, simplifierOptions, out var issueSpan, cancellationToken))
-            {
-                return;
-            }
-
-            if (model.SyntaxTree.OverlapsHiddenPosition(issueSpan, cancellationToken))
-            {
-                return;
-            }
-
             var symbolInfo = model.GetSymbolInfo(expr, cancellationToken);
             if (symbolInfo.Symbol == null)
-            {
                 return;
-            }
 
             var optionValue = simplifierOptions.QualifyMemberAccess(symbolInfo.Symbol.Kind);
             if (optionValue == null)
-            {
                 return;
-            }
+
+            if (!CanSimplifyTypeNameExpression(model, expr, simplifierOptions, out var issueSpan, cancellationToken))
+                return;
+
+            if (model.SyntaxTree.OverlapsHiddenPosition(issueSpan, cancellationToken))
+                return;
 
             var severity = optionValue.Notification.Severity;
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
@@ -102,11 +90,9 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = model.Language;
 
-            var diagnostic = DiagnosticHelper.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor, syntaxTree.GetLocation(issueSpan), severity,
-                ImmutableArray.Create(expr.GetLocation()), builder.ToImmutable());
-
-            context.ReportDiagnostic(diagnostic);
+                ImmutableArray.Create(expr.GetLocation()), builder.ToImmutable()));
         }
     }
 }
