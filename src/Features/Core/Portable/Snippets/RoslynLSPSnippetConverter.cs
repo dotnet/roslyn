@@ -82,22 +82,22 @@ namespace Microsoft.CodeAnalysis.Snippets
             return (string.Empty, 0);
         }
 
-        public static TextChange ExtendSnippetTextChange(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> lspSnippetItems)
+        public static TextChange ExtendSnippetTextChange(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> placeholders)
         {
             var newTextChange = textChange;
-            foreach (var lspSnippetItem in lspSnippetItems)
+            foreach (var placeholder in placeholders)
             {
-                foreach (var placeholder in lspSnippetItem.PlaceHolderSpans)
+                foreach (var span in placeholder.PlaceHolderSpans)
                 {
-                    if (newTextChange.Span.Start > placeholder.Start)
+                    if (newTextChange.Span.Start > span.Start)
                     {
-                        newTextChange = new TextChange(new TextSpan(placeholder.Start, 0), textChange.NewText!);
+                        newTextChange = new TextChange(new TextSpan(span.Start, 0), textChange.NewText!);
                     }
                 }
 
-                if (lspSnippetItem.CaretPosition is not null && textChange.Span.Start > lspSnippetItem.CaretPosition)
+                if (placeholder.CaretPosition is not null && textChange.Span.Start > placeholder.CaretPosition)
                 {
-                    newTextChange = new TextChange(new TextSpan(lspSnippetItem.CaretPosition.Value, 0), textChange.NewText!);
+                    newTextChange = new TextChange(new TextSpan(placeholder.CaretPosition.Value, 0), textChange.NewText!);
                 }
             }
 
