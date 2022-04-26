@@ -220,19 +220,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // streaming
 
-        /// <summary>
-        /// Invokes a remote API that streams data back to the caller via a pipe.
-        /// </summary>
-        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
-            Solution solution,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
-            where TService : class
-        {
-            using var connection = CreateConnection<TService>(callbackTarget: null);
-            return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
-        }
+        ///// <summary>
+        ///// Invokes a remote API that streams data back to the caller via a pipe.
+        ///// </summary>
+        //public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        //    Solution solution,
+        //    Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
+        //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        //    CancellationToken cancellationToken)
+        //    where TService : class
+        //{
+        //    using var connection = CreateConnection<TService>(callbackTarget: null);
+        //    return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
+        //}
 
         /// <summary>
         /// Equivalent to <see cref="TryInvokeAsync{TService, TResult}(Project, Func{TService, Checksum, PipeWriter, CancellationToken, ValueTask}, Func{PipeReader, CancellationToken, ValueTask{TResult}}, CancellationToken)"/>

@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // streaming
 
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Solution solution,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken);
+        //public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+        //    Solution solution,
+        //    Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
+        //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        //    CancellationToken cancellationToken);
 
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Project project,
