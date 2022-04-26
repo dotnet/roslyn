@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     Debug.Assert(constantValue != null);
-                    return constantValue;
+                    return constantValue!;
                 }
             }
 
