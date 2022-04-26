@@ -111,15 +111,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (symbol.IsStatic)
                 return true;
 
-            if ((symbol.IsKind(SymbolKind.Field) && options.QualifyFieldAccess.Value ||
-                (symbol.IsKind(SymbolKind.Property) && options.QualifyPropertyAccess.Value) ||
-                (symbol.IsKind(SymbolKind.Method) && options.QualifyMethodAccess.Value) ||
-                (symbol.IsKind(SymbolKind.Event) && options.QualifyEventAccess.Value)))
-            {
-                return false;
-            }
-
-            return true;
+            return !options.QualifyMemberAccess(symbol.Kind).Value;
         }
     }
 }

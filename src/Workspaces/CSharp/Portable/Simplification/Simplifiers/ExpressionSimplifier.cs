@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
-    internal class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
+    internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
     {
         public static readonly ExpressionSimplifier Instance = new();
 
@@ -38,6 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
+            if (expression is MemberAccessExpressionSyntax memberAccessExpression &&
+                MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(memberAccessExpression, semanticModel, options, out _, cancellationToken))
+            {
+                replacementNode = memberAccessExpression.GetNameWithTriviaMoved();
+                issueSpan = memberAccessExpression.Expression.Span;
+                return true;
+            }
+
             if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, options, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
@@ -236,31 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Compares symbols by their original definition.
-        /// </summary>
-        private sealed class CandidateSymbolEqualityComparer : IEqualityComparer<ISymbol>
-        {
-            public static CandidateSymbolEqualityComparer Instance { get; } = new CandidateSymbolEqualityComparer();
-
-            private CandidateSymbolEqualityComparer()
-            {
-            }
-
-            public bool Equals(ISymbol x, ISymbol y)
-            {
-                if (x is null || y is null)
-                {
-                    return x == y;
-                }
-
-                return x.OriginalDefinition.Equals(y.OriginalDefinition);
-            }
-
-            public int GetHashCode(ISymbol obj)
-                => obj?.OriginalDefinition.GetHashCode() ?? 0;
         }
 
         private static bool TrySimplify(

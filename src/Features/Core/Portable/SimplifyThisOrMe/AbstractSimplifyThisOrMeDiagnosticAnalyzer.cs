@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+            : base(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.RemoveQualification,
                    ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -38,56 +39,48 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         {
         }
 
-        protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
-        protected abstract bool CanSimplifyTypeNameExpression(
-            SemanticModel model, TMemberAccessExpressionSyntax memberAccess, TSimplifierOptions options, out TextSpan issueSpan, CancellationToken cancellationToken);
+        protected abstract AbstractMemberAccessExpressionSimplifier<TExpressionSyntax, TMemberAccessExpressionSyntax, TThisExpressionSyntax> Simplifier { get; }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, GetSyntaxFacts().SyntaxKinds.ThisExpression);
-
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxFacts.SyntaxKinds.ThisExpression);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
             var node = (TThisExpressionSyntax)context.Node;
+            var semanticModel = context.SemanticModel;
 
-            if (node.Parent is not TMemberAccessExpressionSyntax expr)
+            if (node.Parent is not TMemberAccessExpressionSyntax memberAccessExpression)
+                return;
+
+            var syntaxFacts = this.SyntaxFacts;
+            if (!syntaxFacts.IsSimpleMemberAccessExpression(memberAccessExpression))
                 return;
 
             var syntaxTree = node.SyntaxTree;
             var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
 
-            var model = context.SemanticModel;
-            var symbolInfo = model.GetSymbolInfo(expr, cancellationToken);
-            if (symbolInfo.Symbol == null)
+            if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(memberAccessExpression, semanticModel, simplifierOptions, out var severity, cancellationToken))
                 return;
 
-            var optionValue = simplifierOptions.QualifyMemberAccess(symbolInfo.Symbol.Kind);
-            if (optionValue == null)
-                return;
-
-            if (!CanSimplifyTypeNameExpression(model, expr, simplifierOptions, out var issueSpan, cancellationToken))
-                return;
-
-            if (model.SyntaxTree.OverlapsHiddenPosition(issueSpan, cancellationToken))
-                return;
-
-            var severity = optionValue.Notification.Severity;
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
 
             // used so we can provide a link in the preview to the options page. This value is
             // hard-coded there to be the one that will go to the code-style page.
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
-            builder["OptionLanguage"] = model.Language;
+            builder["OptionLanguage"] = semanticModel.Language;
 
+            var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression);
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, syntaxTree.GetLocation(issueSpan), severity,
-                ImmutableArray.Create(expr.GetLocation()), builder.ToImmutable()));
+                Descriptor, expression!.GetLocation(), severity,
+                ImmutableArray.Create(memberAccessExpression.GetLocation()),
+                builder.ToImmutable()));
         }
     }
 }
