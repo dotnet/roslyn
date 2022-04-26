@@ -35,6 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 memberAccessExpression, semanticModel, options, meExpression, severity, cancellationToken) Then
 
                 replacementNode = memberAccessExpression.GetNameWithTriviaMoved()
+                issueSpan = meExpression.Span
+                Return True
             End If
 
             If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, options, cancellationToken) Then
