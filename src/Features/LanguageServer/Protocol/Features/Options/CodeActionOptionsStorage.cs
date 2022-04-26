@@ -31,12 +31,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ImplementTypeOptions: globalOptions.GetImplementTypeOptions(languageServices.Language),
                 ExtractMethodOptions: globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
-                WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language));
+                WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language),
+                ConditionalExpressionWrappingLength: globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language));
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
             return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions));
         }
+
+        public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
+            "UseConditionalExpressionOptions",
+            "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
     }
 }

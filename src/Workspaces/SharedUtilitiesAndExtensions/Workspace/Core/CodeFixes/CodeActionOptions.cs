@@ -28,19 +28,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// Options available to code fixes that are supplied by the IDE (i.e. not stored in editorconfig).
     /// </summary>
     [DataContract]
-    internal record class CodeActionOptions
+    internal sealed record class CodeActionOptions
     {
         public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
-
-#if !CODE_STYLE
-        [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; }
-        [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; }
-        [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; }
-        [DataMember(Order = 3)] public CodeCleanupOptions CleanupOptions { get; init; }
-        [DataMember(Order = 4)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
-        [DataMember(Order = 5)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
-        [DataMember(Order = 5)] public bool HideAdvancedMembers { get; init; }
-        [DataMember(Order = 7)] public int WrappingColumn { get; init; }
 
         /// <summary>
         /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
@@ -54,6 +44,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public const int DefaultWrappingColumn = 120;
 
+        public const int DefaultConditionalExpressionWrappingLength = 120;
+
+#if !CODE_STYLE
+        [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; }
+        [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; }
+        [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; }
+        [DataMember(Order = 3)] public CodeCleanupOptions CleanupOptions { get; init; }
+        [DataMember(Order = 4)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
+        [DataMember(Order = 5)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
+        [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; }
+        [DataMember(Order = 7)] public int WrappingColumn { get; init; }
+        [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; }
+
 #pragma warning disable IDE1006 // Record-style parameter naming
         public CodeActionOptions(
             CodeCleanupOptions CleanupOptions,
@@ -63,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             ImplementTypeOptions? ImplementTypeOptions = null,
             ExtractMethodOptions? ExtractMethodOptions = null,
             bool HideAdvancedMembers = false,
-            int WrappingColumn = DefaultWrappingColumn)
+            int WrappingColumn = DefaultWrappingColumn,
+            int ConditionalExpressionWrappingLength = DefaultConditionalExpressionWrappingLength)
 #pragma warning restore
         {
             this.CleanupOptions = CleanupOptions;
@@ -74,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             this.ExtractMethodOptions = ExtractMethodOptions ?? ExtractMethod.ExtractMethodOptions.Default;
             this.HideAdvancedMembers = HideAdvancedMembers;
             this.WrappingColumn = WrappingColumn;
+            this.ConditionalExpressionWrappingLength = ConditionalExpressionWrappingLength;
         }
 
         public static CodeActionOptions GetDefault(HostLanguageServices languageServices)

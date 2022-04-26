@@ -85,7 +85,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\UseConditionalExpressionForReturnHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullConstants.cs" />
