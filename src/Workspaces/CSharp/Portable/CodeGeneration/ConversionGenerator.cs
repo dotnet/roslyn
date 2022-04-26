@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = GenerateConversionDeclaration(method, options, cancellationToken);
+            var methodDeclaration = GenerateConversionDeclaration(method, GetDestination(destination), options, cancellationToken);
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -31,16 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConversionOperatorDeclarationSyntax GenerateConversionDeclaration(
             IMethodSymbol method,
+            CodeGenerationDestination destination,
             CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateConversionDeclarationWorker(method, options);
+            var declaration = GenerateConversionDeclarationWorker(method, destination, options);
             return AddFormatterAndCodeGeneratorAnnotationsTo(AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options, cancellationToken)));
         }
 
         private static ConversionOperatorDeclarationSyntax GenerateConversionDeclarationWorker(
             IMethodSymbol method,
+            CodeGenerationDestination destination,
             CSharpCodeGenerationOptions options)
         {
             var hasNoBody = !options.Context.GenerateMethodBodies || method.IsExtern;
@@ -55,14 +56,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? SyntaxFactory.Token(SyntaxKind.ImplicitKeyword)
                 : SyntaxFactory.Token(SyntaxKind.ExplicitKeyword);
 
+            var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
+                ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword)
+                : default;
+
             var declaration = SyntaxFactory.ConversionOperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(),
+                modifiers: GenerateModifiers(destination),
                 implicitOrExplicitKeyword: keyword,
+                explicitInterfaceSpecifier: null,
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+                checkedKeyword: checkedToken,
                 type: method.ReturnType.GenerateTypeSyntax(),
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options: options),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: null,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             declaration = UseExpressionBodyIfDesired(options, declaration);
@@ -88,8 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static SyntaxTokenList GenerateModifiers()
+        private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination)
         {
+            // If these appear in interfaces they must be static abstract
+            if (destination is CodeGenerationDestination.InterfaceType)
+            {
+                return SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                    SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+            }
+
             return SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.StaticKeyword));

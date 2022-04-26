@@ -64,9 +64,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                      IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
 
-#if CODE_STYLE
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
-#endif
+
         /// <summary>
         /// Method to update the identifier token for the local/parameter declaration or reference
         /// that was flagged as an unused value write by the analyzer.
@@ -173,13 +172,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
             }
 
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title,
-                    c => FixAsync(context.Document, diagnostic, c),
-                    equivalenceKey: GetEquivalenceKey(preference, isRemovableAssignment)),
-                diagnostic);
-
+            RegisterCodeFix(context, title, GetEquivalenceKey(preference, isRemovableAssignment));
             return;
         }
 
@@ -264,17 +257,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return document.WithSyntaxRoot(root);
         }
 
-        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var provider = GetSyntaxFormatting();
-            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
-#else
-            var provider = document.Project.Solution.Workspace.Services;
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-#endif
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), fallbackOptions, cancellationToken).ConfigureAwait(false);
             var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            var newRoot = await GetNewRootAsync(preprocessedDocument, options, diagnostics, cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 

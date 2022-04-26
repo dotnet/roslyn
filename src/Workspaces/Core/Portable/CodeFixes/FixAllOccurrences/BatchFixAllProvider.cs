@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = fixAllContext.State.CodeActionOptionsProvider(document.Project.Language) with { IsBlocking = false };
+                var options = new CodeActionOptionsProvider(language => fixAllContext.State.CodeActionOptionsProvider(language) with { IsBlocking = false });
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>

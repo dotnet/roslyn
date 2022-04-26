@@ -91,7 +91,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Yeniden atanan değişkenleri altını çiz;
+        <target state="translated">Yeniden atanan değişkenlerin altını çiz;
 Satır içi ipuçlarını göster;
 Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
@@ -100,6 +100,7 @@ Geçersiz normal ifadeleri bildir;
 Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
 Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
+Gezinti için her zaman varsayılan sembol sunucularını kullan;
 Using yönergeleri;
 Using yönergelerini sıralarken sistem yönergelerini en başa yerleştir;
 Using yönerge gruplarını ayır;
@@ -116,7 +117,7 @@ Kod düzeyinde yapılar için ana hattı göster;
 Açıklamalar ve ön işlemci bölgeleri için ana hattı göster;
 Tanımlara daraltırken bölgeleri daralt;
 Soluklaştırma;
-Kullanılmayan using deyimlerini soluklaştır;
+Kullanılmayan using yönergelerini soluklaştır;
 Erişilemeyen kodu soluklaştır;
 Blok Yapısı Kılavuzları;
 Bildirim düzeyinde yapılar için kılavuzları göster;
@@ -134,13 +135,20 @@ Arabirim veya Soyut Sınıfı uygula;
 aynı türdeki başka üyelerle birlikte;
 sona yerleştir;
 Özellik oluştururken;
-özel durum oluşturan özellikleri tercih et;
+oluşturma özelliklerini tercih et;
 otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
+Normal ifadeleri renklendir;
+İmleç altındaki ilgili bileşenleri vurgula;
+Geçersiz normal ifadeleri bildir;
+JSON;
+JSON dizelerini renklendir;
+Geçersiz JSON dizelerini bildir;
+JSON dizeleri için düzenleyici özelliklerini algıla ve sun;
 Gelişmiş renkleri kullan;
 Düzenleyici Renk Düzeni;
-İçe Aktarma Kenar Boşluğu;</target>
+Devralma Kenar Boşluğu;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

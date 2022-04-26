@@ -1511,7 +1511,7 @@ class C
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
                 AutoFormattingOptions.Default);
 
             Assert.True(
@@ -1553,7 +1553,7 @@ class C
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
                 AutoFormattingOptions.Default,
                 IndentStyle: indentStyle);
 

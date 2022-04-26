@@ -1,41 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
-    <LargeAddressAware>true</LargeAddressAware>
-    <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
     <TargetFrameworks>net472;net6.0</TargetFrameworks>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
     <UseAppHost>false</UseAppHost>
-    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
-    <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
-    <Compile Include="..\..\Shared\BuildClient.cs" />
-    <Compile Include="..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
-    <Compile Include="..\..\Shared\Vbc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="vbc.rsp" Condition="'$(TargetFramework)' == 'net472'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
-  <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
+  <Import Project="..\CommandLine\VbcCommandLine.projitems" Label="Shared" />
 </Project>

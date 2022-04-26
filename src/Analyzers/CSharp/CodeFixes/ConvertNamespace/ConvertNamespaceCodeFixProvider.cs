@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 });
 
             context.RegisterCodeFix(
-                CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
+                CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -64,19 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-#if CODE_STYLE
-            var configOptions = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(namespaceDecl.SyntaxTree, cancellationToken);
-            var options = CSharpSyntaxFormattingOptions.Create(configOptions);
-#else
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-#endif
-            var converted = await ConvertAsync(document, namespaceDecl, options, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CSharpSyntaxFormatting.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var converted = await ConvertAsync(document, namespaceDecl, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(
                 editor.OriginalRoot,

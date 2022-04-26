@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters);
 
         private protected async Task TestDiagnosticsAsync(
-            string initialMarkup, TestParameters? parameters = null, params DiagnosticDescription[] expected)
+            string initialMarkup, TestParameters parameters = null, params DiagnosticDescription[] expected)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    options,
+                    _ => options,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
             CodeActionOptions? codeActionOptions = null,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            IdeAnalyzerOptions ideAnalyzerOptions = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal async Task TestSpansAsync(
             string initialMarkup,
             string diagnosticId = null,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
 

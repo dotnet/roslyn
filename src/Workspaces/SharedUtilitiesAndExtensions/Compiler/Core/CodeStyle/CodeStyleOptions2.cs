@@ -5,8 +5,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => CreateOption(
                 CodeStyleOptionGroups.ThisOrMe,
                 optionName,
-                defaultValue: CodeStyleOption2<bool>.Default,
+                defaultValue: SimplifierOptions.DefaultQualifyAccess,
                 editorconfigKeyName,
                 $"TextEditor.%LANGUAGE%.Specific.{optionName}");
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage, nameof(PreferIntrinsicPredefinedTypeKeywordInDeclaration),
-            defaultValue: TrueWithSilentEnforcement,
+            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
             "dotnet_style_predefined_type_for_locals_parameters_members",
             "TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInDeclaration.CodeStyle");
 
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = CreateOption(
             CodeStyleOptionGroups.PredefinedTypeNameUsage, nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
-            defaultValue: TrueWithSilentEnforcement,
+            defaultValue: SimplifierOptions.DefaultPreferPredefinedTypeKeyword,
             "dotnet_style_predefined_type_for_member_access",
             "TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle");
 

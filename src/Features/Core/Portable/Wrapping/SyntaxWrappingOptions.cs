@@ -22,5 +22,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             WrappingColumn = wrappingColumn;
             OperatorPlacement = operatorPlacement;
         }
+
+        public bool UseTabs => FormattingOptions.UseTabs;
+        public int TabSize => FormattingOptions.TabSize;
+        public string NewLine => FormattingOptions.NewLine;
     }
 }
