@@ -221,13 +221,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+                var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
                     FeaturesResources.Add_null_checks,
-                    optionValue));
+                    options.AddNullChecksToConstructorsGeneratedFromMembers));
             }
 
             return (new GenerateConstructorWithDialogCodeAction(

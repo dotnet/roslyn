@@ -43,6 +43,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
     [DataMember(Order = BaseMemberCount + 9)] public readonly CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations;
 
     public CSharpCodeGenerationOptions(
+        bool addNullChecksToConstructorsGeneratedFromMembers = DefaultAddNullChecksToConstructorsGeneratedFromMembers,
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedMethods = null,
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedAccessors = null,
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedProperties = null,
@@ -53,6 +54,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedLambdas = null,
         CodeStyleOption2<bool>? preferStaticLocalFunction = null,
         CodeStyleOption2<NamespaceDeclarationPreference>? namespaceDeclarations = null)
+        : base(addNullChecksToConstructorsGeneratedFromMembers)
     {
         PreferExpressionBodiedMethods = preferExpressionBodiedMethods ?? s_neverWithSilentEnforcement;
         PreferExpressionBodiedAccessors = preferExpressionBodiedAccessors ?? s_whenPossibleWithSilentEnforcement;

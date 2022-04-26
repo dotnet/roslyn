@@ -33,4 +33,9 @@ internal static class CodeGenerationOptionsStorage
 
     public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetCodeCleanupOptions(languageServices));
+
+    public static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
+        "GenerateConstructorFromMembersOptions",
+        "AddNullChecks", CodeGenerationOptions.DefaultAddNullChecksToConstructorsGeneratedFromMembers,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
 }

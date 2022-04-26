@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend NotInheritable Class VisualBasicCodeGenerationOptions
         Inherits CodeGenerationOptions
 
-        Public Sub New()
-            MyBase.New()
+        Public Sub New(Optional AddNullChecksToConstructorsGeneratedFromMembers As Boolean = DefaultAddNullChecksToConstructorsGeneratedFromMembers)
+            MyBase.New(AddNullChecksToConstructorsGeneratedFromMembers)
         End Sub
 
         Public Shared ReadOnly [Default] As New VisualBasicCodeGenerationOptions()

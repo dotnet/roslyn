@@ -25,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Sub
 
             Public Function GetOptions(globalOptions As IGlobalOptionService) As CodeGenerationOptions Implements ICodeGenerationOptionsStorage.GetOptions
-                Return VisualBasicCodeGenerationOptions.Default
+                Return New VisualBasicCodeGenerationOptions(
+                    globalOptions.GetOption(CodeGenerationOptionsStorage.AddNullChecksToConstructorsGeneratedFromMembers, LanguageNames.VisualBasic))
             End Function
         End Class
     End Module

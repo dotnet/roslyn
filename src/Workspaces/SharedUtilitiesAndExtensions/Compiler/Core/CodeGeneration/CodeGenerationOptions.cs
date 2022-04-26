@@ -22,11 +22,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 /// </summary>
 internal abstract class CodeGenerationOptions
 {
-    protected const int BaseMemberCount = 0;
+    [DataMember(Order = 0)]
+    public readonly bool AddNullChecksToConstructorsGeneratedFromMembers;
 
-    public CodeGenerationOptions()
+    protected const int BaseMemberCount = 1;
+
+    public CodeGenerationOptions(
+        bool addNullChecksToConstructorsGeneratedFromMembers)
     {
+        AddNullChecksToConstructorsGeneratedFromMembers = addNullChecksToConstructorsGeneratedFromMembers;
     }
+
+    public const bool DefaultAddNullChecksToConstructorsGeneratedFromMembers = false;
 
 #if !CODE_STYLE
     public static CodeGenerationOptions GetDefault(HostLanguageServices languageServices)
