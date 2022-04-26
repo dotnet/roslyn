@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments = false,
                 string? sourceWithSymbolReference = null,
                 string? languageVersion = null,
-                string? metadataLanguageVersion = null)
+                string? metadataLanguageVersion = null,
+                string? metadataCommonReferences = null)
             {
                 projectLanguage ??= LanguageNames.CSharp;
                 metadataSources ??= SpecializedCollections.EmptyEnumerable<string>();
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 var workspace = CreateWorkspace(
                     projectLanguage, metadataSources, includeXmlDocComments,
-                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion);
+                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion, metadataCommonReferences);
 
                 return new TestContext(workspace);
             }
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.Default);
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.LanguageServices));
             }
 
             public async Task<MetadataAsSourceFile> GenerateSourceAsync(string? symbolMetadataName = null, Project? project = null, bool signaturesOnly = true)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.Default);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.LanguageServices));
 
                 return result;
             }
@@ -237,7 +238,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments,
                 string? sourceWithSymbolReference,
                 string? languageVersion,
-                string? metadataLanguageVersion)
+                string? metadataLanguageVersion,
+                string? metadataCommonReferences)
             {
                 var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
@@ -251,10 +253,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 foreach (var source in metadataSources)
                 {
+                    var commonReferencesAttributeName = metadataCommonReferences ?? "CommonReferences";
                     var metadataLanguage = DeduceLanguageString(source);
                     var metadataLanguageVersionAttribute = metadataLanguageVersion is null ? "" : $@" LanguageVersion=""{metadataLanguageVersion}""";
                     xmlString = string.Concat(xmlString, $@"
-        <MetadataReferenceFromSource Language=""{metadataLanguage}"" CommonReferences=""true"" {metadataLanguageVersionAttribute} IncludeXmlDocComments=""{includeXmlDocComments}"">
+        <MetadataReferenceFromSource Language=""{metadataLanguage}"" {commonReferencesAttributeName}= ""true"" {metadataLanguageVersionAttribute} IncludeXmlDocComments=""{includeXmlDocComments}"">
             <Document FilePath=""MetadataDocument"">
 {SecurityElement.Escape(source)}
             </Document>

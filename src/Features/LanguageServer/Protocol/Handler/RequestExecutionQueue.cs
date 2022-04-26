@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +12,6 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -89,24 +85,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public RequestExecutionQueue(
             ILspLogger logger,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
+            WellKnownLspServerKinds serverKind,
+            RequestTelemetryLogger requestTelemetryLogger,
+            LspWorkspaceManager lspWorkspaceManager)
         {
             _logger = logger;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverKind = serverKind;
-
-            // Pass the language client instance type name to the telemetry logger to ensure we can
-            // differentiate between the different C# LSP servers that have the same client name.
-            // We also don't use the language client's name property as it is a localized user facing string
-            // which is difficult to write telemetry queries for.
-            _requestTelemetryLogger = new RequestTelemetryLogger(_serverKind.ToTelemetryString());
-
-            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
+            _requestTelemetryLogger = requestTelemetryLogger;
+            _lspWorkspaceManager = lspWorkspaceManager;
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -125,9 +115,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
             // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
             _queue.Complete();
-
-            _requestTelemetryLogger.Dispose();
-            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>
@@ -178,6 +165,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _requestTelemetryLogger,
                 combinedCancellationToken);
 
+            // Run a continuation to ensure the cts is disposed of.
+            // We pass CancellationToken.None as we always want to dispose of the source
+            // even when the request is cancelled or the queue is shutting down.
+            _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
             var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
 
             // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
@@ -196,7 +188,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-
                     // First attempt to de-queue the work item in its own try-catch.
                     // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
                     (IQueueItem work, CancellationToken cancellationToken) queueItem;

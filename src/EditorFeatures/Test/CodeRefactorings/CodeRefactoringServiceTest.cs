@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             var document = project.Documents.Single();
             var options = CodeActionOptions.Default;
-            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), options, CancellationToken.None);
+            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), _ => options, CancellationToken.None);
 
             var stubRefactoringAction = refactorings.Single(refactoring => refactoring.CodeActions.FirstOrDefault().action?.Title == nameof(StubRefactoring));
             Assert.True(stubRefactoringAction is object);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             var document = project.Documents.Single();
             var extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var options = CodeActionOptions.Default;
-            var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), options, CancellationToken.None);
+            var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), _ => options, CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codeRefactoring));
             Assert.False(extensionManager.IsIgnored(codeRefactoring));
 

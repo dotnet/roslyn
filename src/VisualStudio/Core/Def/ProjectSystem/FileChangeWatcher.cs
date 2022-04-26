@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -50,12 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 CancellationToken.None);
         }
 
-        private async ValueTask ProcessBatchAsync(ImmutableArray<WatcherOperation> workItems, CancellationToken cancellationToken)
+        private async ValueTask ProcessBatchAsync(ImmutableSegmentedList<WatcherOperation> workItems, CancellationToken cancellationToken)
         {
             var service = await _fileChangeService.ConfigureAwait(false);
 
             var prior = WatcherOperation.Empty;
-            for (var i = 0; i < workItems.Length; i++)
+            for (var i = 0; i < workItems.Count; i++)
             {
                 if (prior.TryCombineWith(workItems[i], out var combined))
                 {

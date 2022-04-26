@@ -27,16 +27,6 @@
         <target state="translated">“{0}”的反序列化读取器读取到错误数量的值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error">
-        <source>Error</source>
-        <target state="translated">错误</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_formatting">
-        <source>Fix formatting</source>
-        <target state="translated">修正格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">缩进和间距</target>
@@ -47,24 +37,9 @@
         <target state="translated">新行首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="None">
-        <source>None</source>
-        <target state="translated">无</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Refactoring_Only">
-        <source>Refactoring Only</source>
-        <target state="translated">仅重构</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">“流”过长。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggestion">
-        <source>Suggestion</source>
-        <target state="translated">建议</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
@@ -75,11 +50,6 @@
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">值太大，无法表示为 30 位无符号整数。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning">
-        <source>Warning</source>
-        <target state="translated">警告</target>
         <note />
       </trans-unit>
     </body>

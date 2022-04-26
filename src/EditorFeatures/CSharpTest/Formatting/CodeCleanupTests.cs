@@ -13,14 +13,17 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -620,8 +623,6 @@ namespace A
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            var options = CodeActionOptions.Default;
-
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
@@ -646,8 +647,14 @@ namespace A
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
+            var fallbackOptions = new CodeActionOptions(
+                CleanupOptions: CodeCleanupOptions.GetDefault(document.Project.LanguageServices) with
+                {
+                    FormattingOptions = new CSharpSyntaxFormattingOptions(separateImportDirectiveGroups: separateUsingGroups)
+                });
+
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), _ => fallbackOptions, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

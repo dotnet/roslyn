@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -21,6 +20,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">Set of formatting options.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

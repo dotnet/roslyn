@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
-            PinnedSolutionInfo pinnedSolutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
-            => RunServiceAsync(pinnedSolutionInfo, async solution =>
+            => RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await InheritanceMarginServiceHelper
                     .GetInheritanceMemberItemAsync(solution, projectId, symbolKeyAndLineNumbers, cancellationToken)

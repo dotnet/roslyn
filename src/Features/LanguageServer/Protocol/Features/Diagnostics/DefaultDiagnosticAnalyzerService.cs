@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 
-                var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project);
 
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                     project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);

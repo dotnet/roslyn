@@ -3402,7 +3402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             switch (syntax)
             {
@@ -3412,7 +3412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3484,7 +3484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
         {
             ConstructorInitializerSyntax initializer = constructor.Initializer;
             if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
@@ -3517,16 +3517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
 
-            // The `: this()` initializer is ignored when it is a default value type constructor
-            // and we need to include field initializers into the constructor.
-            bool skipInitializer = includesFieldInitializers
-                && isDefaultValueTypeInitializer;
-
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
-                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                  initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :

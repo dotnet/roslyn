@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     {
         public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 
-        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-            => Simplifier.ReduceAsync(document, spans, null, cancellationToken);
+        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
+            => Simplifier.ReduceAsync(document, spans, options.SimplifierOptions, cancellationToken);
 
         public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, CancellationToken cancellationToken)
         {

@@ -25,6 +25,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters);
 
         private protected async Task TestDiagnosticsAsync(
-            string initialMarkup, TestParameters? parameters = null, params DiagnosticDescription[] expected)
+            string initialMarkup, TestParameters parameters = null, params DiagnosticDescription[] expected)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -162,6 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 "FixAllInDocument" => FixAllScope.Document,
                 "FixAllInProject" => FixAllScope.Project,
                 "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInContainingMember" => FixAllScope.ContainingMember,
+                "FixAllInContainingType" => FixAllScope.ContainingType,
                 "FixAllInSelection" => FixAllScope.Custom,
                 _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
             };
@@ -184,6 +187,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var scope = GetFixAllScope(annotation);
 
+            if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
+                document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
+            {
+                var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
+                    document, span, scope.Value, CancellationToken.None).ConfigureAwait(false);
+                if (documentsAndSpansToFix.IsEmpty)
+                {
+                    return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                }
+            }
+
             var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(span))
                                                      .ToImmutableArray();
 
@@ -196,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    options,
+                    _ => options,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -253,8 +267,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
-                ? new FixAllState(fixAllProvider, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
-                : new FixAllState(fixAllProvider, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
+                ? new FixAllState(fixAllProvider, diagnostic.Location.SourceSpan, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
+                : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
         }
 
         private protected Task TestActionCountInAllFixesAsync(
@@ -264,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
             CodeActionOptions? codeActionOptions = null,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            IdeAnalyzerOptions ideAnalyzerOptions = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
@@ -287,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal async Task TestSpansAsync(
             string initialMarkup,
             string diagnosticId = null,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
 

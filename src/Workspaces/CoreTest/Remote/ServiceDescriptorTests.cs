@@ -15,6 +15,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -152,6 +153,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                         type.GetGenericArguments().Single().IsEnum && type.GetGenericArguments().Single().IsNotPublic)
                     {
                         errors.Add($"{type} referenced by {declaringMember} is an internal enum and needs a custom formatter");
+                    }
+                    else if (type.IsAbstract)
+                    {
+                        // custom abstract types must be explicitly listed in MessagePackFormatters.AbstractTypeFormatters
+                        if (!MessagePackFormatters.Formatters.Any(
+                            formatter => formatter.GetType() is { IsGenericType: true } and var formatterType &&
+                                         formatterType.GetGenericTypeDefinition() == typeof(ForceTypelessFormatter<>) &&
+                                         formatterType.GenericTypeArguments[0] == type))
+                        {
+                            errors.Add($"{type} referenced by {declaringMember} is abstract but ForceTypelessFormatter<{type}> is not listed in {nameof(MessagePackFormatters)}.{nameof(MessagePackFormatters.Formatters)}");
+                        }
+
+                        continue;
                     }
                     else
                     {

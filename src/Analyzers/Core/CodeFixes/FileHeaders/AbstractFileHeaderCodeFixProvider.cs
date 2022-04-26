@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(cancellationToken => GetTransformedDocumentAsync(context.Document, cancellationToken)),
+                    CodeAction.Create(
+                        CodeFixesResources.Add_file_header,
+                        cancellationToken => GetTransformedDocumentAsync(context.Document, cancellationToken),
+                        nameof(AbstractFileHeaderCodeFixProvider)),
                     diagnostic);
             }
 
@@ -227,14 +230,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     return prefixWithLeadingSpaces + " " + line;
                 }
             }));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
-            {
-            }
         }
 
         public override FixAllProvider GetFixAllProvider()

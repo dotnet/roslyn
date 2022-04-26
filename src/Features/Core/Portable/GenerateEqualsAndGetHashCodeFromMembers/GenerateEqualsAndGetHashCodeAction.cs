@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -82,8 +84,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 }
 
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
-                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, options, cancellationToken);
+
+                // fallback options: https://github.com/dotnet/roslyn/issues/60794
+                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, codeGenOptions, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -98,7 +104,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var service = _document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 var formattedDocument = await service.FormatDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
+                    newDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
 
                 return formattedDocument;
             }
@@ -126,7 +132,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
+
+                // fallback options: https://github.com/dotnet/roslyn/issues/60794
+                var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;

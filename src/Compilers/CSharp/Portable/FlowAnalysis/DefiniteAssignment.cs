@@ -1224,14 +1224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UseDefViolationThisSupportedVersion, node.Location, thisParameter.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UseDefViolationThisSupportedVersion, node.Location);
                 }
                 else
                 {
                     Diagnostics.Add(
                         ErrorCode.ERR_UseDefViolationThisUnsupportedVersion,
                         node.Location,
-                        thisParameter.Name,
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
                 }
             }
