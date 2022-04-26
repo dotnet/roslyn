@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Apply_utf8_string_literal_preferences">
-        <source>Apply UTF8 string literal preferences</source>
-        <target state="new">Apply UTF8 string literal preferences</target>
+        <source>Apply UTF-8 string literal preferences</source>
+        <target state="new">Apply UTF-8 string literal preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_var_preferences">

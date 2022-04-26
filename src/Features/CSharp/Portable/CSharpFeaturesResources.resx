@@ -618,6 +618,6 @@
     <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Apply_utf8_string_literal_preferences" xml:space="preserve">
-    <value>Apply UTF8 string literal preferences</value>
+    <value>Apply UTF-8 string literal preferences</value>
   </data>
 </root>

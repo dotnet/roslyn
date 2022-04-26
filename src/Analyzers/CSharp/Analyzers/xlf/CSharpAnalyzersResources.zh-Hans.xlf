@@ -33,8 +33,8 @@
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
       <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF8 string literal</source>
-        <target state="new">Convert to UTF8 string literal</target>
+        <source>Convert to UTF-8 string literal</source>
+        <target state="new">Convert to UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Use_UTF8_string_literal">
-        <source>Use UTF8 string literal</source>
-        <target state="new">Use UTF8 string literal</target>
+        <source>Use UTF-8 string literal</source>
+        <target state="new">Use UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
