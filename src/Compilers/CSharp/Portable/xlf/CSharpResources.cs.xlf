@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ nebo jeho parametr typu omezený na něj a druhý operand musí být typu int.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ nebo jeho parametr typu omezený na něj a druhý operand musí být typu int.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -1546,6 +1546,11 @@
         <source>record structs</source>
         <target state="translated">struktury záznamů</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
@@ -5856,8 +5861,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ a druhý operand musí být typu int.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ a druhý operand musí být typu int.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

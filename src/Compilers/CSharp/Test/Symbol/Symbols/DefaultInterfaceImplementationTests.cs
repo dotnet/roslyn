@@ -43902,10 +43902,10 @@ public interface I1
                 // (19,31): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static I1 operator ^(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "^").WithLocation(19, 31),
-                // (20,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (20,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static I1 operator <<(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(20, 31),
-                // (21,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (21,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static I1 operator >>(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(21, 31),
                 // (22,31): error CS0563: One of the parameters of a binary operator must be the containing type
@@ -43952,15 +43952,9 @@ public interface I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static I1 operator <<(I1 x, I1 y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(4, 31),
-                // (5,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static I1 operator >>(I1 x, I1 y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(5, 31),
                 // (10,33): error CS0216: The operator 'I2.operator true(I2)' requires a matching operator 'false' to also be defined
                 //     public static bool operator true(I2 x) => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("I2.operator true(I2)", "false").WithLocation(10, 33),
