@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
                                       .Where(_interfaceName)
-                                      .Select(n => service.GetCodeActions(document, context.Options.ImplementTypeOptions, model, n, cancellationToken))
+                                      .Select(n => service.GetCodeActions(document, context.Options(document.Project.LanguageServices).ImplementTypeOptions, model, n, cancellationToken))
                                       .FirstOrDefault(a => !a.IsEmpty);
 
             if (actions.IsDefaultOrEmpty)

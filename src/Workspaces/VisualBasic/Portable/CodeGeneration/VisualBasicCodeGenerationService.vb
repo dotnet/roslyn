@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Sub
 
         Public Overrides Function GetPreferences(parseOptions As ParseOptions, documentOptions As OptionSet) As CodeGenerationPreferences
-            Return New VisualBasicCodeGenerationPreferences(documentOptions)
+            Return VisualBasicCodeGenerationPreferences.Create(documentOptions)
         End Function
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination

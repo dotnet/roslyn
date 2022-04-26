@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -39,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult)
                 End If
 
-                throw ExceptionUtilities.UnexpectedValue(selectionResult)
+                Throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                MyBase.New(insertionPoint, selectionResult, analyzerResult)
+                MyBase.New(insertionPoint, selectionResult, analyzerResult, OptionValueSet.Empty)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

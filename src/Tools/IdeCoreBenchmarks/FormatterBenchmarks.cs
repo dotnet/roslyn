@@ -22,7 +22,7 @@ namespace IdeCoreBenchmarks
         private readonly int _iterationCount = 5;
 
         private Document _document;
-        private OptionSet _options;
+        private SyntaxFormattingOptions _options;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -55,10 +55,16 @@ namespace IdeCoreBenchmarks
             solution = solution.WithDocumentSyntaxRoot(documentId, root);
 
             _document = solution.GetDocument(documentId);
-            _options = _document.GetOptionsAsync().Result
-                .WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInTypes, true)
-                .WithChangedOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false)
-                .WithChangedOption(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            _options = new CSharpSyntaxFormattingOptions(
+                LineFormattingOptions.Default,
+                separateImportDirectiveGroups: CSharpSyntaxFormattingOptions.Default.SeparateImportDirectiveGroups,
+                spacing: CSharpSyntaxFormattingOptions.Default.Spacing,
+                spacingAroundBinaryOperator: CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
+                CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes,
+                labelPositioning: CSharpSyntaxFormattingOptions.Default.LabelPositioning,
+                indentation: CSharpSyntaxFormattingOptions.Default.Indentation,
+                wrappingKeepStatementsOnSingleLine: false,
+                wrappingPreserveSingleLine: false);
         }
 
         [Benchmark]

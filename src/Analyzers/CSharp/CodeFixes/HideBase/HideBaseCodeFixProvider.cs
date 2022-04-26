@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -33,28 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var token = root.FindToken(diagnosticSpan.Start);
-            SyntaxNode originalNode = token.GetAncestor<PropertyDeclarationSyntax>();
+
+            var originalNode = token.GetAncestor<PropertyDeclarationSyntax>() ??
+                token.GetAncestor<MethodDeclarationSyntax>() ??
+                (SyntaxNode?)token.GetAncestor<FieldDeclarationSyntax>();
 
             if (originalNode == null)
-            {
-                originalNode = token.GetAncestor<MethodDeclarationSyntax>();
-            }
-
-            if (originalNode == null)
-            {
-                originalNode = token.GetAncestor<FieldDeclarationSyntax>();
-            }
-
-            if (originalNode == null)
-            {
                 return;
-            }
 
             context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
         }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return;
                 }
 
-                var hideAdvancedMembers = context.Options.HideAdvancedMembers;
+                var hideAdvancedMembers = context.Options(document.Project.LanguageServices).HideAdvancedMembers;
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);

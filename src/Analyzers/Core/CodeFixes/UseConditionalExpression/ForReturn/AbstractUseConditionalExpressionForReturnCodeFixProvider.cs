@@ -35,12 +35,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    AnalyzersResources.Convert_to_conditional_expression,
-                    c => FixAsync(context.Document, context.Diagnostics.First(), c),
-                    nameof(AnalyzersResources.Convert_to_conditional_expression)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
             return Task.CompletedTask;
         }
 

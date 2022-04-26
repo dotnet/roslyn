@@ -81,7 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(document.WithSyntaxRoot(root));
+
+            return CodeAction.Create(
+                CSharpCodeFixesResources.Replace_return_with_yield_return,
+                _ => Task.FromResult(document.WithSyntaxRoot(root)),
+                nameof(CSharpCodeFixesResources.Replace_return_with_yield_return));
         }
 
         private static bool TryGetExpressionType(
@@ -218,14 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
             node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
             return node != null;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Document newDocument)
-                : base(CSharpCodeFixesResources.Replace_return_with_yield_return, c => Task.FromResult(newDocument), nameof(CSharpCodeFixesResources.Replace_return_with_yield_return))
-            {
-            }
         }
     }
 }

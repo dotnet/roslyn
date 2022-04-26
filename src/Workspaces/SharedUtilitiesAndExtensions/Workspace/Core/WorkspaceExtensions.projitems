@@ -20,7 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SimplificationHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />

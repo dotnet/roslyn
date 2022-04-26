@@ -30,5 +30,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         Multiplication = 1 << 20,
         RightShift = 1 << 21,
         Subtraction = 1 << 22,
+        UnsignedRightShift = 1 << 23,
     }
 }

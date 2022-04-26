@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             }
 
             // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            var options = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
@@ -148,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 textView.Caret.MoveTo(newCaretPoint.Value);
             }
 
-            transaction.Complete();
+            transaction?.Complete();
             return true;
         }
 

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpdateProje
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
                 var (oldSolution, newSolution) = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
                 Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions).AllowUnsafe);

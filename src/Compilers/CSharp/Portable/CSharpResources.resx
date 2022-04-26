@@ -7091,4 +7091,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FieldKeywordInsideNameOf" xml:space="preserve">
     <value>Cannot use 'field' keyword inside 'nameof' expressions.</value>
   </data>
+  <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
+    <value>unsigned right shift</value>
+  </data>
 </root>

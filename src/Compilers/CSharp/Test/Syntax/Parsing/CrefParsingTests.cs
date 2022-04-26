@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
@@ -344,6 +345,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region Unqualified
 
         [Fact]
+        public void UnqualifiedUnsignedRightShift_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingNode("operator >>>", options);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void UnqualifiedUnsignedRightShift_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingNode("operator > >>", options);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnqualifiedUnsignedRightShift_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingNode("operator >> >", options);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnqualifiedUnsignedRightShift_04()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingNode("operator >>>=", options);
+
+                N(SyntaxKind.OperatorMemberCref);
+                {
+                    N(SyntaxKind.OperatorKeyword);
+                    M(SyntaxKind.PlusToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void UnqualifiedOperatorMember1()
         {
             UsingNode("operator +");
@@ -585,6 +649,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OperatorKeyword);
                 N(SyntaxKind.CheckedKeyword);
                 N(SyntaxKind.GreaterThanGreaterThanToken); // >>
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CrefParameter);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken); // just >
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken); // just >
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(546992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546992")]
+        [Fact]
+        public void GreaterThanGreaterThanGreaterThan()
+        {
+            UsingNode("operator }}}(A{A{T}})").GetDiagnostics().Verify();
+
+            N(SyntaxKind.OperatorMemberCref);
+            {
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken); // >>>
                 N(SyntaxKind.CrefParameterList);
                 {
                     N(SyntaxKind.OpenParenToken);

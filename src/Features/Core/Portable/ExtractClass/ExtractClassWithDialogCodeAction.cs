@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     _selectedType.DeclaredAccessibility,
                     _selectedType.GetSymbolModifiers(),
                     TypeKind.Class,
-                    extractClassOptions.TypeName);
+                    extractClassOptions.TypeName,
+                    typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
 
                 var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
                     _selectedType,

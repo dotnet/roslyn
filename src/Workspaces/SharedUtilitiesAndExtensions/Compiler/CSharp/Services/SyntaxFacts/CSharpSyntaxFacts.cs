@@ -432,6 +432,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GreaterThanGreaterThanToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return PredefinedOperator.RightShift;
+
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return PredefinedOperator.UnsignedRightShift;
             }
 
             return PredefinedOperator.None;
@@ -1381,6 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
             => node.GetModifiers();
 
+        [return: NotNullIfNotNull("node")]
         public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 

@@ -36,18 +36,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return base.GetBetterItem(item, existingItem);
         }
 
-        internal override Task<CompletionList> GetCompletionsAsync(
-            Document document,
-            int caretPosition,
-            CompletionOptions options,
-            OptionSet passThroughOptions,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles,
-            CancellationToken cancellationToken)
-        {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
-        }
-
         protected static bool IsKeywordItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Keyword);
 
