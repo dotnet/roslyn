@@ -67,6 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (arrayCreationOperation.Initializer is null)
                 return;
 
+            // Using UTF8 string literals as nested array initializers is invalid
+            if (arrayCreationOperation.DimensionSizes.Length > 1)
+                return;
+
             // Must be a byte array
             if (arrayCreationOperation.Type is not IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_Byte })
                 return;

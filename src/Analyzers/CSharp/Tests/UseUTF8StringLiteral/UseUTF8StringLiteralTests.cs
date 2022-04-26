@@ -166,6 +166,24 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestNotWhenMultidimensionalArray()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[,] { { 65, 66 }, { 67, 68 }, { 69, 70 } };
+    }
+}",
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestSimpleByteArray()
         {
             await new VerifyCS.Test
