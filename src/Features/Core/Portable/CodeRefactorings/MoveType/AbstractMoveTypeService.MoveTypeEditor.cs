@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private class MoveTypeEditor : Editor
+        private sealed class MoveTypeEditor : Editor
         {
             public MoveTypeEditor(
                 TService service,
@@ -161,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
-                var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
+                var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
+                var insertFinalNewLine = documentFormattingOptions.InsertFinalNewLine;
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
@@ -172,8 +173,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                         !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                     {
+                        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                        var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
+                        var endOfLine = generator.EndOfLine(lineFormattingOptions.NewLine);
                         return modifiedRoot.ReplaceToken(
                             previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));
                     }

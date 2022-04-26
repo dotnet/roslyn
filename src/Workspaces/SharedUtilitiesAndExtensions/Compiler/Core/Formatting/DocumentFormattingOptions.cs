@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Formatting;
 
 internal readonly record struct DocumentFormattingOptions(
-    string FileHeaderTemplate = "")
+    string FileHeaderTemplate = "",
+    bool InsertFinalNewLine = false)
 {
     public DocumentFormattingOptions()
         : this(FileHeaderTemplate: "")
@@ -26,7 +27,8 @@ internal readonly record struct DocumentFormattingOptions(
         fallbackOptions ??= Default;
 
         return new(
-            options.GetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.Value.FileHeaderTemplate));
+            options.GetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.Value.FileHeaderTemplate),
+            InsertFinalNewLine: Default.InsertFinalNewLine); // not stored in global options
     }
 }
 
