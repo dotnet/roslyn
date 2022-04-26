@@ -5,6 +5,8 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
+using System.Transactions;
+using System.Diagnostics.CodeAnalysis;
 
 #if !CODE_STYLE
 using System.Threading;
@@ -53,15 +55,19 @@ namespace Microsoft.CodeAnalysis.Simplification
             PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration;
         }
 
-        public CodeStyleOption2<bool> QualifyMemberAccess(SymbolKind symbolKind)
-            => symbolKind switch
+        public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+        {
+            option = symbolKind switch
             {
                 SymbolKind.Field => QualifyFieldAccess,
                 SymbolKind.Property => QualifyPropertyAccess,
                 SymbolKind.Method => QualifyMethodAccess,
                 SymbolKind.Event => QualifyEventAccess,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
+                _ => null,
             };
+
+            return option != null;
+        }
 
 #if !CODE_STYLE
         public static SimplifierOptions Create(OptionSet options, HostWorkspaceServices services, SimplifierOptions? fallbackOptions, string language)

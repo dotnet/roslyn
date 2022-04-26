@@ -41,8 +41,10 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             if (symbolInfo.Symbol == null)
                 return false;
 
-            var optionValue = simplifierOptions.QualifyMemberAccess(symbolInfo.Symbol.Kind);
-            if (optionValue == null)
+            if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolInfo.Symbol.Kind, out var optionValue))
+                return false;
+
+            if (optionValue.Value)
                 return false;
 
             var speculationAnalyzer = GetSpeculationAnalyzer(semanticModel, memberAccessExpression, cancellationToken);

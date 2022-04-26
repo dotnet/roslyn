@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxFacts.SyntaxKinds.ThisExpression);
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxFacts.SyntaxKinds.Convert<TLanguageKindEnum>(this.SyntaxFacts.SyntaxKinds.ThisExpression));
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {

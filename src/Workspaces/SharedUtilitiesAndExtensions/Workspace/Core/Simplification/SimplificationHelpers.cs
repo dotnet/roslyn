@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (symbol.IsStatic)
                 return true;
 
-            return !options.QualifyMemberAccess(symbol.Kind).Value;
+            return options.TryGetQualifyMemberAccessOption(symbol.Kind, out var symbolOptions) && !symbolOptions.Value;
         }
     }
 }

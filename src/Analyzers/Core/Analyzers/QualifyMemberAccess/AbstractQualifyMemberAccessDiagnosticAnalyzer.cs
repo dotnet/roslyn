@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             };
 
             var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
-            var optionValue = simplifierOptions.QualifyMemberAccess(symbolKind);
+            if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
+                return;
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;
