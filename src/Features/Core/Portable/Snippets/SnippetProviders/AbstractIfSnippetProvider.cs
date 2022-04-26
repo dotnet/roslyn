@@ -22,13 +22,14 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractIfSnippetProvider : AbstractSnippetProvider
     {
-        /// <summary>
-        /// Gets the corresponding pieces of the if statement that will be implemented differently per language.
-        /// </summary>
-        protected abstract void GetPartsOfIfStatement(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode condition, out SyntaxNode statement);
         public override string SnippetIdentifier => "if";
 
         public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
+
+        /// <summary>
+        /// Gets the corresponding pieces of the if statement that will be implemented differently per language.
+        /// </summary>
+        protected abstract void GetPartsOfIfStatement(SyntaxNode node, out SyntaxNode condition, out SyntaxNode statement);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -54,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            GetPartsOfIfStatement(caretTarget, out _, out _, out var statement);
+            GetPartsOfIfStatement(caretTarget, out _, out var statement);
+
+            // Need to get the statement span start and add 1 to insert between the the curly braces
             return statement.SpanStart + 1;
         }
 
@@ -76,8 +79,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var pooledDisposer = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
-            GetPartsOfIfStatement(node, out _, out var condition, out var statement);
+            GetPartsOfIfStatement(node, out var condition, out var statement);
 
+            // Need to get the statement span start and add 1 to insert between the the curly braces
             arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: null, 0, statement.SpanStart + 1, ImmutableArray<TextSpan>.Empty));
 
             var list2 = new List<TextSpan>

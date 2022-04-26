@@ -81,6 +81,7 @@ class Program
 @"using System;
 
 Console.WriteLine($$);
+
 class Program
 {
     public async Task MethodAsync()

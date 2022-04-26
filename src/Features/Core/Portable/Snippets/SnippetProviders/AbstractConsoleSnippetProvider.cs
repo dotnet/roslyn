@@ -102,25 +102,25 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        /*protected override List<(string, List<TextSpan>)> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var renameLocationsMap = new List<(string, List<TextSpan>)>();
+            using var pooledDisposer = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
             var openParenToken = GetOpenParenToken(node, syntaxFacts);
 
             if (openParenToken is null)
             {
-                return renameLocationsMap;
+                return ImmutableArray<RoslynLSPSnippetItem>.Empty;
             }
 
             var list1 = new List<TextSpan>
             {
-                new TextSpan(openParenToken.Value.Span.End, openParenToken.Value.Span.Length)
+                new TextSpan(openParenToken.Value.Span.End, 0)
             };
 
-            renameLocationsMap.Add(("", list1));
+            arrayBuilder.Add(new RoslynLSPSnippetItem(null, 0, openParenToken.Value.Span.End, ImmutableArray<TextSpan>.Empty));
 
-            return renameLocationsMap;
-        }*/
+            return arrayBuilder.ToImmutable();
+        }
 
         private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)
         {
