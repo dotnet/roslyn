@@ -23,6 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class UseUTF8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        public enum ArrayCreationOperationLocation
+        {
+            Ancestors,
+            Descendants,
+            Current
+        }
+
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
@@ -84,25 +91,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             if (!TryConvertToUTF8String(builder: null, elements))
                 return;
 
-            // Only raise the diagnostic on the first token (usually "new")
-            var location = arrayCreationOperation.Syntax.GetFirstToken().GetLocation();
-
-            // Store the original syntax location so the code fix can find the operation again
-            var additionalLocations = ImmutableArray.Create(arrayCreationOperation.Syntax.GetLocation());
-
-            // If this array creation is not an array creation expression, then it must be from
-            // a parameter array, and the Syntax will be the entire invocation. To issue better
-            // diagnostics construct a different location for this case.
-            if (arrayCreationOperation.Syntax is not (ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax))
+            if (arrayCreationOperation.Syntax is ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax)
             {
-                // Issue the diagnostic for all of the parameters that make up the array. We could do just
-                // the first element, but that might be odd seeing: M(1, 2, [|3|], 4, 5)
-                var span = TextSpan.FromBounds(elements.First().Syntax.SpanStart, elements.Last().Syntax.Span.End);
-                location = Location.Create(location.SourceTree!, span);
+                ReportArrayCreationDiagnostic(context, arrayCreationOperation.Syntax, option.Notification.Severity);
+            }
+            else if (elements.Length > 0 && elements[0].Syntax.Parent is ArgumentSyntax)
+            {
+                // For regular parameter arrays the code fix will need to search down
+                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Descendants);
+            }
+            else if (elements.Length > 0 && elements[0].Syntax.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+            {
+                // For collection initializers where the Add method takes a parameter array, the code fix
+                // will have to search up
+                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Ancestors);
             }
 
+            // Otherwise this is an unsupported case
+        }
+
+        private void ReportParameterArrayDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ImmutableArray<IOperation> elements, ReportDiagnostic severity, ArrayCreationOperationLocation operationLocation)
+        {
+            // When the first elements parent is as argument, or an edge case for collection
+            // initializers where the Add method takes a param array, it means we have a parameter array.
+            // We raise the diagnostic on all of the parameters that make up the array. We could do just
+            // the first element, but that might be odd seeing: M(1, 2, [|3|], 4, 5)
+            var span = TextSpan.FromBounds(elements[0].Syntax.SpanStart, elements[^1].Syntax.Span.End);
+            var location = Location.Create(syntaxNode.SyntaxTree, span);
+
+            ReportDiagnostic(context, syntaxNode, severity, location, operationLocation);
+        }
+
+        private void ReportArrayCreationDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ReportDiagnostic severity)
+        {
+            // When the user writes the array creation we raise the diagnostic on the first token, which will be the "new" keyword
+            var location = syntaxNode.GetFirstToken().GetLocation();
+
+            ReportDiagnostic(context, syntaxNode, severity, location, ArrayCreationOperationLocation.Current);
+        }
+
+        private void ReportDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ReportDiagnostic severity, Location location, ArrayCreationOperationLocation operationLocation)
+        {
+            // Store the original syntax location so the code fix can find the operation again
+            var additionalLocations = ImmutableArray.Create(syntaxNode.GetLocation());
+
+            // Also let the code fix where to look to find the operation that originally trigger this diagnostic
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(ArrayCreationOperationLocation), operationLocation.ToString());
+
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, option.Notification.Severity, additionalLocations, properties: null));
+                DiagnosticHelper.Create(Descriptor, location, severity, additionalLocations, properties));
         }
 
         internal static bool TryConvertToUTF8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)

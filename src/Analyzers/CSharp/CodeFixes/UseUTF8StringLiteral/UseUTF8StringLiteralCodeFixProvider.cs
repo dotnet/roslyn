@@ -86,27 +86,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
             var operation = semanticModel.GetRequiredOperation(node, cancellationToken);
 
+            var operationLocationString = diagnostic.Properties[nameof(UseUTF8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation)];
+            if (!Enum.TryParse(operationLocationString, out UseUTF8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation operationLocation))
+                throw ExceptionUtilities.Unreachable;
+
+            IArrayCreationOperation arrayOp;
+
             // Because we get the location from an IOperation.Syntax, sometimes we have to look a
             // little harder to get back from syntax to the operation that triggered the diagnostic
-            if (operation is not IArrayCreationOperation arrayOp)
+            if (operationLocation == UseUTF8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation.Ancestors)
             {
-                if (node is LiteralExpressionSyntax)
-                {
-                    // For single literals, that likely means a collection initializer, and the array creation
-                    // will be a parent of the operation
-                    arrayOp = FindArrayCreationOperationAncestor(operation);
-                }
-                else
-                {
-                    // Otherwise, we must have an implicit array creation for a parameter array, so the location
-                    // will be the invocation, or similar, that has the argument, and we need to descend child
-                    // nodes to find the one we are interested in. To make sure we're finding the right one,
-                    // we can use the diagnostic location for that, since the analyzer raises it on the first element.
-                    arrayOp = operation.DescendantsAndSelf()
-                        .OfType<IArrayCreationOperation>()
-                        .Where(a => a.Initializer?.ElementValues.FirstOrDefault()?.Syntax.SpanStart == diagnostic.Location.SourceSpan.Start)
-                        .First();
-                }
+                // For collection initializers where the Add method takes a param array, and the array creation
+                // will be a parent of the operation
+                arrayOp = FindArrayCreationOperationAncestor(operation);
+            }
+            else if (operationLocation == UseUTF8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation.Descendants)
+            {
+                // Otherwise, we must have an implicit array creation for a parameter array, so the location
+                // will be the invocation, or similar, that has the argument, and we need to descend child
+                // nodes to find the one we are interested in. To make sure we're finding the right one,
+                // we can use the diagnostic location for that, since the analyzer raises it on the first element.
+                arrayOp = operation.DescendantsAndSelf()
+                    .OfType<IArrayCreationOperation>()
+                    .Where(a => a.Initializer?.ElementValues.FirstOrDefault()?.Syntax.SpanStart == diagnostic.Location.SourceSpan.Start)
+                    .First();
+            }
+            else
+            {
+                arrayOp = (IArrayCreationOperation)operation;
             }
 
             Contract.ThrowIfNull(arrayOp.Initializer);
