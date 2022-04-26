@@ -363,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!modifierErrors)
                 {
                     mods = ModifierUtils.CheckModifiers(
+                        isForType: true, isForInterfaceMember: false,
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
                         modifierTokens: null, modifierErrors: out modifierErrors);
 

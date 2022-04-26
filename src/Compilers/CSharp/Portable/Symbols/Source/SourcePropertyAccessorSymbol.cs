@@ -508,12 +508,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
+            bool isInterface = this.ContainingType.IsInterface;
+            if (isInterface && !isExplicitInterfaceImplementation)
             {
                 defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForType: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,

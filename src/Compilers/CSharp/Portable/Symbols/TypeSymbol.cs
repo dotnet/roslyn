@@ -453,11 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsInterfaceType())
             {
-                if (interfaceMember.IsStatic)
-                {
-                    return null;
-                }
-
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref discardedUseSiteInfo);
             }
@@ -943,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(!canBeImplementedImplicitlyInCSharp9 || (object)implementingBaseOpt == null);
 
-            bool tryDefaultInterfaceImplementation = !interfaceMember.IsStatic;
+            bool tryDefaultInterfaceImplementation = true;
 
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
@@ -1034,7 +1029,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                          BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
-            Debug.Assert(!interfaceMember.IsStatic);
 
             // If we are dealing with a property or event and an implementation of at least one accessor is not from an interface, it 
             // wouldn't be right to say that the event/property is implemented in an interface because its accessor isn't.
@@ -1358,7 +1352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
         {
             Debug.Assert(interfaceType.IsInterface);
-            Debug.Assert(!interfaceMember.IsStatic);
 
             NamedTypeSymbol containingType = interfaceMember.ContainingType;
             if (containingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
@@ -1611,23 +1604,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The default implementation is coming from a different module, which means that we probably didn't check
                 // for the required runtime capability or language version
 
-                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
-                LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
-                if (requiredVersion > availableVersion)
+                if (!implicitImpl.IsStatic)
                 {
-                    diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
-                                    GetInterfaceLocation(interfaceMember, implementingType),
-                                    implicitImpl, interfaceMember, implementingType,
-                                    MessageID.IDS_DefaultInterfaceImplementation.Localize(),
-                                    availableVersion.GetValueOrDefault().ToDisplayString(),
-                                    new CSharpRequiredLanguageVersion(requiredVersion));
-                }
+                    LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                    LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                    if (requiredVersion > availableVersion)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType,
+                                        MessageID.IDS_DefaultInterfaceImplementation.Localize(),
+                                        availableVersion.GetValueOrDefault().ToDisplayString(),
+                                        new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
 
-                if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType);
+                    }
+                }
+                else
                 {
-                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
-                                    GetInterfaceLocation(interfaceMember, implementingType),
-                                    implicitImpl, interfaceMember, implementingType);
+                    LanguageVersion requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
+                    LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                    if (requiredVersion > availableVersion)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType,
+                                        MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.Localize(),
+                                        availableVersion.GetValueOrDefault().ToDisplayString(),
+                                        new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
+
+                    if (!implementingType.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType);
+                    }
                 }
             }
         }

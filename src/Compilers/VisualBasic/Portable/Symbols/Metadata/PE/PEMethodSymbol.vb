@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      MethodAttributes.Abstract Or
                                      MethodAttributes.NewSlot))
 
-                Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
+                Return flagsToCheck = (MethodAttributes.Virtual Or If(IsShared, 0, MethodAttributes.NewSlot)) OrElse
                        (Not _containingType.IsInterface AndAlso
                         flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
             End Get

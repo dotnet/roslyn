@@ -4788,9 +4788,9 @@ namespace PushUpTest
 using System;
 namespace PushUpTest
 {
-    public abstract class Base2
+    public class Base2
     {
-        private static abstract event EventHandler Event3;
+        private static event EventHandler Event3;
     }
 
     public abstract class Testclass2 : Base2
