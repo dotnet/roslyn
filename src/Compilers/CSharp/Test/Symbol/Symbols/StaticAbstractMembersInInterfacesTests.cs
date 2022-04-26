@@ -9997,7 +9997,7 @@ IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) 
         [CombinatorialData]
         public void ConsumeAbstractLogicalBinaryOperator_03([CombinatorialValues("&", "|")] string op, bool binaryIsAbstract, bool unaryIsAbstract, bool isVirtual)
         {
-            if(!binaryIsAbstract && !unaryIsAbstract)
+            if (!binaryIsAbstract && !unaryIsAbstract)
             {
                 return;
             }
@@ -17115,7 +17115,7 @@ interface I14 : I1
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
-            foreach(var name in new[] { "I8", "I9", "I10", "I12", "I13" })
+            foreach (var name in new[] { "I8", "I9", "I10", "I12", "I13" })
             {
                 var iX = compilation1.GlobalNamespace.GetTypeMember(name);
                 var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
