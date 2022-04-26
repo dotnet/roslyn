@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
                 return false;
 
             var syntaxFacts = this.SyntaxFacts;
+            if (!syntaxFacts.IsSimpleMemberAccessExpression(memberAccessExpression))
+                return false;
+
             thisExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression) as TThisExpressionSyntax;
             if (!syntaxFacts.IsThisExpression(thisExpression))
                 return false;

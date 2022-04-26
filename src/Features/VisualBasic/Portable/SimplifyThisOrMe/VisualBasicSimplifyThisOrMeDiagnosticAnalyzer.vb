@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             MemberAccessExpressionSyntax,
             VisualBasicSimplifierOptions)
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance
 
         Protected Overrides Function GetSimplifierOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicSimplifierOptions
             Return options.GetVisualBasicSimplifierOptions(syntaxTree)

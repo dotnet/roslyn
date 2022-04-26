@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         {
         }
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract ISyntaxKinds SyntaxKinds { get; }
         protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
         protected abstract AbstractMemberAccessExpressionSimplifier<TExpressionSyntax, TMemberAccessExpressionSyntax, TThisExpressionSyntax> Simplifier { get; }
@@ -48,19 +48,15 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxFacts.SyntaxKinds.Convert<TLanguageKindEnum>(this.SyntaxFacts.SyntaxKinds.ThisExpression));
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKinds.Convert<TLanguageKindEnum>(this.SyntaxKinds.ThisExpression));
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var node = (TThisExpressionSyntax)context.Node;
+            var node = context.Node;
             var semanticModel = context.SemanticModel;
 
             if (node.Parent is not TMemberAccessExpressionSyntax memberAccessExpression)
-                return;
-
-            var syntaxFacts = this.SyntaxFacts;
-            if (!syntaxFacts.IsSimpleMemberAccessExpression(memberAccessExpression))
                 return;
 
             var syntaxTree = node.SyntaxTree;

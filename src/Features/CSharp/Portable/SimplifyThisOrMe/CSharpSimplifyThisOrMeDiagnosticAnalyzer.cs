@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             MemberAccessExpressionSyntax,
             CSharpSimplifierOptions>
     {
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
 
         protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree)
             => options.GetCSharpSimplifierOptions(syntaxTree);

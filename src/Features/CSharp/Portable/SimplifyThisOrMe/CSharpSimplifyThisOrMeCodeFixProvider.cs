@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
                 => _memberAccessNodes = memberAccessNodes;
 
-            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
                 => _memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
