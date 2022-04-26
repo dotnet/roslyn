@@ -11,12 +11,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        private static readonly string s_itemToCommit = FeaturesResources.Write_to_the_console;
-
-        internal override Type GetCompletionProviderType()
-            => typeof(CSharpSnippetCompletionProvider);
+        protected override string ItemToCommit => FeaturesResources.Write_to_the_console;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInMethodTest()
@@ -40,7 +37,7 @@ class Program
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -65,7 +62,7 @@ class Program
         await Console.Out.WriteLineAsync($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -90,7 +87,7 @@ class Program
     {
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -108,7 +105,7 @@ namespace Namespace
         }
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -125,7 +122,7 @@ class Program
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -152,7 +149,7 @@ class Program
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         /// <summary>
@@ -189,7 +186,7 @@ class Program
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         /// <summary>
@@ -222,7 +219,7 @@ static void Main(string[] args)
     };
 
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         /// <summary>
@@ -249,7 +246,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
     global::System.Console.WriteLine($$);
     return x == y;
 };";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -272,7 +269,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
         };
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -286,7 +283,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
        Func<int, int> f = x => $$;
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -301,7 +298,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -326,7 +323,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -340,7 +337,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -354,7 +351,7 @@ class Test
     public string LastName { get; init; } = default!;
 };";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -369,7 +366,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -394,7 +391,7 @@ class Program
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -419,7 +416,7 @@ class Program
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
 }

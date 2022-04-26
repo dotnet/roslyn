@@ -17,17 +17,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        private static readonly string s_itemToCommit = FeaturesResources.Insert_an_if_statement;
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition()
-            .AddExcludedPartTypes(typeof(IRoslynLSPSnippetExpander))
-            .AddParts(typeof(TestRoslynLanguageServerSnippetExpander));
-
-        internal override Type GetCompletionProviderType()
-            => typeof(CSharpSnippetCompletionProvider);
+        protected override string ItemToCommit => FeaturesResources.Insert_an_if_statement;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertIfSnippetInMethodTest()
@@ -51,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -66,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {$$
 }
 ";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -84,7 +76,7 @@ namespace Namespace
         }
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -101,7 +93,7 @@ class Program
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -128,7 +120,7 @@ class Program
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -161,7 +153,7 @@ class Program
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -190,7 +182,7 @@ static void Main(string[] args)
     };
 
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -212,7 +204,7 @@ static void Main(string[] args)
 
     return x == y;
 };";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -235,7 +227,7 @@ static void Main(string[] args)
         };
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -249,7 +241,7 @@ static void Main(string[] args)
        Func<int, int> f = x => $$;
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -264,7 +256,7 @@ static void Main(string[] args)
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -289,7 +281,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -303,7 +295,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -317,7 +309,7 @@ class Test
     public string LastName { get; init; } = default!;
 };";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -332,7 +324,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -357,7 +349,7 @@ class Test
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -382,7 +374,7 @@ class Test
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
 }

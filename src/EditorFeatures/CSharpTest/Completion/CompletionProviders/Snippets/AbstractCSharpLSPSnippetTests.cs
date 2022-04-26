@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var completionItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
-            commit.Properties.TryGetValue("LSPSnippet", out var generatedLSPSnippet);
+            commit.Properties!.TryGetValue("LSPSnippet", out var generatedLSPSnippet);
             AssertEx.EqualOrDiff(expectedLSPSnippet, generatedLSPSnippet);
         }
     }
