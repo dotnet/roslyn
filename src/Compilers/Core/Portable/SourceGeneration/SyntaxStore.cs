@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis
                             var model = state != EntryState.Removed ? _compilation.GetSemanticModel(tree) : null;
                             for (int i = 0; i < syntaxInputBuilders.Count; i++)
                             {
+                                var currentNode = syntaxInputBuilders[i].node;
                                 try
                                 {
                                     Stopwatch sw = Stopwatch.StartNew();
@@ -99,10 +100,10 @@ namespace Microsoft.CodeAnalysis
                                         var elapsed = sw.Elapsed;
 
                                         // if this node isn't the one that caused the update, ensure we remember it and remove the time it took from the requester
-                                        if (syntaxInputBuilders[i].node != syntaxInputNode)
+                                        if (currentNode != syntaxInputNode)
                                         {
                                             _syntaxTimes[syntaxInputNode] = _syntaxTimes[syntaxInputNode].Subtract(elapsed);
-                                            _syntaxTimes[syntaxInputBuilders[i].node] = _syntaxTimes[syntaxInputBuilders[i].node].Add(elapsed);
+                                            _syntaxTimes[currentNode] = _syntaxTimes[currentNode].Add(elapsed);
                                         }
                                     }
                                 }
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                                     // we're evaluating this node ahead of time, so we can't just throw the exception
                                     // instead we'll hold onto it, and throw the exception when a downstream node actually
                                     // attempts to read the value
-                                    _syntaxExceptions[syntaxInputBuilders[i].node] = ufe;
+                                    _syntaxExceptions[currentNode] = ufe;
                                     syntaxInputBuilders.RemoveAt(i);
                                     i--;
                                 }
@@ -156,9 +157,9 @@ namespace Microsoft.CodeAnalysis
                 foreach (var node in inputNodes)
                 {
                     // only add if this node ran at all during this pass
-                    if (_syntaxTimes.ContainsKey(node))
+                    if (_syntaxTimes.TryGetValue(node, out var adjustment))
                     {
-                        result = result.Add(_syntaxTimes[node]);
+                        result = result.Add(adjustment);
                     }
                 }
                 return result;
