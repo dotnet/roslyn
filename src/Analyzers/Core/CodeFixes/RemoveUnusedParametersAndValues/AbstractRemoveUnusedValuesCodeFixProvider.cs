@@ -147,6 +147,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         title = CodeFixesResources.Use_discard_underscore;
 
+                        // If diagnostic tells that this is unused local assignment, then it will be just cleared
+                        // and we need "Remove redundant assignment" codefix title. No need to check further logic
+                        if (AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsUnusedLocalDiagnostic(diagnostic))
+                        {
+                            title = CodeFixesResources.Remove_redundant_assignment;
+                            break;
+                        }
+
                         // Check if this is compound assignment which is not parented by an expression statement,
                         // for example "return x += M();" OR "=> x ??= new C();"
                         // If so, we will be replacing this compound assignment with the underlying binary operation.
@@ -158,13 +166,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
                         if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
                             !syntaxFacts.IsExpressionStatement(node.Parent))
-                        {
-                            title = CodeFixesResources.Remove_redundant_assignment;
-                        }
-
-                        // Also we want to show "Remove redundant assignment" title in pattern matching, e.g.
-                        // if (obj is SomeType someType) <-- "someType" will be fully removed here
-                        if (syntaxFacts.IsDeclarationPattern(node.Parent))
                         {
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
@@ -181,7 +182,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             RegisterCodeFix(context, title, GetEquivalenceKey(preference, isRemovableAssignment));
-            return;
         }
 
         private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
