@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
 
-        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
+        protected abstract SyntaxNode? GetInitializerNode(TSymbolSyntax declaration);
         protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

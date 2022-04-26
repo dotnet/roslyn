@@ -4,21 +4,25 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
     internal readonly record struct OmniSharpSyntaxFormattingOptionsWrapper
     {
-        internal readonly SyntaxFormattingOptions UnderlyingObject;
+        internal readonly CodeCleanupOptions CleanupOptions;
 
-        internal OmniSharpSyntaxFormattingOptionsWrapper(SyntaxFormattingOptions underlyingObject)
-            => UnderlyingObject = underlyingObject;
+        internal OmniSharpSyntaxFormattingOptionsWrapper(CodeCleanupOptions cleanupOptions)
+        {
+            CleanupOptions = cleanupOptions;
+        }
 
         public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return new OmniSharpSyntaxFormattingOptionsWrapper(options);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            return new OmniSharpSyntaxFormattingOptionsWrapper(cleanupOptions);
         }
     }
 }

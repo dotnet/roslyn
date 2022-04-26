@@ -1879,7 +1879,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <value>Paste a stack trace to view and navigate its values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -1938,6 +1938,6 @@ Additional information: {1}</value>
     <value>Always use default symbol servers for navigation</value>
   </data>
   <data name="Prefer_top_level_statements" xml:space="preserve">
-    <value>Prefer top level statements</value>
+    <value>Prefer top-level statements</value>
   </data>
 </root>

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         where TInvocationSyntax : SyntaxNode
     {
         protected abstract string GetTitle();
+        protected abstract TSimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
@@ -54,7 +55,5 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             return Task.CompletedTask;
         }
-
-        protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
     }
 }

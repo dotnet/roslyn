@@ -7,13 +7,16 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
+
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class CharLiteralBraceCompletionService : AbstractBraceCompletionService
+    internal class CharLiteralBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

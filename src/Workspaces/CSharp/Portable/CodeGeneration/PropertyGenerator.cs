@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -347,8 +346,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Most modifiers not allowed if we're an explicit impl.
             if (!property.ExplicitInterfaceImplementations.Any())
             {
-                if (destination is not CodeGenerationDestination.CompilationUnit and
-                    not CodeGenerationDestination.InterfaceType)
+                // If we're generating into an interface, then allow modifiers for static abstract members
+                if (destination is CodeGenerationDestination.InterfaceType)
+                {
+                    if (property.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+                        if (property.IsAbstract)
+                        {
+                            tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        }
+                    }
+                }
+                else if (destination is not CodeGenerationDestination.CompilationUnit)
                 {
                     AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, options, Accessibility.Private);
 

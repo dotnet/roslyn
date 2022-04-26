@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(SyntaxKind.ModuloExpression, SyntaxKind.PercentToken)]
         [InlineData(SyntaxKind.LeftShiftExpression, SyntaxKind.LessThanLessThanToken)]
         [InlineData(SyntaxKind.RightShiftExpression, SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(SyntaxKind.UnsignedRightShiftExpression, SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
         [InlineData(SyntaxKind.LogicalOrExpression, SyntaxKind.BarBarToken)]
         [InlineData(SyntaxKind.LogicalAndExpression, SyntaxKind.AmpersandAmpersandToken)]
         [InlineData(SyntaxKind.BitwiseOrExpression, SyntaxKind.BarToken)]
@@ -306,10 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken)]
         public void TestBinaryOperators(SyntaxKind expressionKind, SyntaxKind tokenKind)
         {
-            UsingExpression($"new(Int32,Int32){SyntaxFacts.GetText(tokenKind),2}", DefaultParseOptions,
-                // (1,18): error CS1733: Expected expression
-                // new(Int32,Int32) +
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 19));
+            UsingExpression($"new(Int32,Int32){SyntaxFacts.GetText(tokenKind),3}", DefaultParseOptions,
+                // (1,20): error CS1733: Expected expression
+                // new(Int32,Int32)  +
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 20));
 
             N(expressionKind);
             {

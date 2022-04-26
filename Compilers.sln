@@ -1,6 +1,6 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.87
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.UnitTests", "src\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -78,8 +78,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{E35DA3D1-16C0-4318-9187-6B664F12A870}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CommandLine", "src\Compilers\Core\CommandLine\CommandLine.shproj", "{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunTests", "src\Tools\Source\RunTests\RunTests.csproj", "{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test.Utilities", "src\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
@@ -124,10 +122,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicAnalyzerDriver", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{274B96B7-F815-47E3-9CA4-4024A57A478F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NETCore.Compilers.Package", "src\NuGet\Microsoft.NETCore.Compilers\Microsoft.NETCore.Compilers.Package.csproj", "{15FEBD1B-55CE-4EBD-85E3-04898260A25B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Package", "src\NuGet\Microsoft.Net.Compilers\Microsoft.Net.Compilers.Package.csproj", "{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Package", "src\NuGet\Microsoft.CodeAnalysis.Compilers.Package.csproj", "{E0756C89-603F-4B48-8E64-1D53E62654C8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Package", "src\NuGet\Microsoft.CodeAnalysis.Scripting.Package.csproj", "{7F8057D9-F70F-4EA7-BD64-AB2D0DD8057B}"
@@ -154,6 +148,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests", "src\Compilers\CSharp\Test\Emit2\Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests.csproj", "{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc-arm64", "src\Compilers\CSharp\csc-arm64\csc-arm64.csproj", "{B5A27411-77FF-4C43-B0E3-FE09FBA5F887}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CscCommandLine", "src\Compilers\CSharp\CommandLine\CscCommandLine.shproj", "{B021CCBC-B2AF-4560-AF28-ED055F0ED696}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VBCSCompilerCommandLine", "src\Compilers\Server\CommandLine\VBCSCompilerCommandLine.shproj", "{D8EF0777-9D65-4849-A7D6-AC81E58E2317}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler-arm64", "src\Compilers\Server\VBCSCompiler-arm64\VBCSCompiler-arm64.csproj", "{869E3B79-4E91-45FD-BA37-56DBD2F34721}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VbcCommandLine", "src\Compilers\VisualBasic\CommandLine\VbcCommandLine.shproj", "{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc-arm64", "src\Compilers\VisualBasic\vbc-arm64\vbc-arm64.csproj", "{48C93F90-8776-4847-96D8-127B896D6C80}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
@@ -163,7 +169,8 @@ Global
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 5
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 5
+		src\Compilers\VisualBasic\CommandLine\VbcCommandLine.projitems*{48c93f90-8776-4847-96d8-127b896d6c80}*SharedItemsImports = 5
+		src\Compilers\CSharp\CommandLine\CscCommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 5
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{54e08bf5-f819-404f-a18d-0ab9ea81ea04}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems*{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}*SharedItemsImports = 5
@@ -171,14 +178,14 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 5
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 5
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{ad6f474e-e6d4-4217-91f3-b7af1be31ccc}*SharedItemsImports = 13
+		src\Compilers\Server\CommandLine\VBCSCompilerCommandLine.projitems*{869e3b79-4e91-45fd-ba37-56dbd2f34721}*SharedItemsImports = 5
+		src\Compilers\Server\CommandLine\VBCSCompilerCommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 5
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 5
+		src\Compilers\CSharp\CommandLine\CscCommandLine.projitems*{b5a27411-77ff-4c43-b0e3-fe09fba5f887}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
+		src\Compilers\VisualBasic\CommandLine\VbcCommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{e8f0baa5-7327-43d1-9a51-644e81ae55f1}*SharedItemsImports = 13
 		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{e919dd77-34f8-4f57-8058-4d3ff4c2b241}*SharedItemsImports = 13
 	EndGlobalSection
@@ -371,14 +378,6 @@ Global
 		{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{15FEBD1B-55CE-4EBD-85E3-04898260A25B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15FEBD1B-55CE-4EBD-85E3-04898260A25B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15FEBD1B-55CE-4EBD-85E3-04898260A25B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15FEBD1B-55CE-4EBD-85E3-04898260A25B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E0756C89-603F-4B48-8E64-1D53E62654C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E0756C89-603F-4B48-8E64-1D53E62654C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0756C89-603F-4B48-8E64-1D53E62654C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -427,6 +426,18 @@ Global
 		{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5A27411-77FF-4C43-B0E3-FE09FBA5F887}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5A27411-77FF-4C43-B0E3-FE09FBA5F887}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5A27411-77FF-4C43-B0E3-FE09FBA5F887}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5A27411-77FF-4C43-B0E3-FE09FBA5F887}.Release|Any CPU.Build.0 = Release|Any CPU
+		{869E3B79-4E91-45FD-BA37-56DBD2F34721}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{869E3B79-4E91-45FD-BA37-56DBD2F34721}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{869E3B79-4E91-45FD-BA37-56DBD2F34721}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{869E3B79-4E91-45FD-BA37-56DBD2F34721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48C93F90-8776-4847-96D8-127B896D6C80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48C93F90-8776-4847-96D8-127B896D6C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48C93F90-8776-4847-96D8-127B896D6C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48C93F90-8776-4847-96D8-127B896D6C80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -465,7 +476,6 @@ Global
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{C1930979-C824-496B-A630-70F5369A636F} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
@@ -484,8 +494,6 @@ Global
 		{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C} = {D9591377-7868-4D64-9314-83E0C92A871B}
 		{54E08BF5-F819-404F-A18D-0AB9EA81EA04} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{E8F0BAA5-7327-43D1-9A51-644E81AE55F1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
-		{15FEBD1B-55CE-4EBD-85E3-04898260A25B} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
-		{27B1EAE2-2E06-48EF-8A67-06D6FB3DC275} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 		{E0756C89-603F-4B48-8E64-1D53E62654C8} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 		{7F8057D9-F70F-4EA7-BD64-AB2D0DD8057B} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
 		{2483917E-7024-4D10-99C6-2BEF338FF53B} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
@@ -498,6 +506,12 @@ Global
 		{321F9FED-AACC-42CB-93E5-541D79E099E8} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{B5A27411-77FF-4C43-B0E3-FE09FBA5F887} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{B021CCBC-B2AF-4560-AF28-ED055F0ED696} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{D8EF0777-9D65-4849-A7D6-AC81E58E2317} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
+		{869E3B79-4E91-45FD-BA37-56DBD2F34721} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
+		{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
+		{48C93F90-8776-4847-96D8-127B896D6C80} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

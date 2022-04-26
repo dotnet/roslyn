@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
@@ -67,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
             End If
 
+            Dim success = False
             Dim engineResult As RenameEngineResult = Nothing
             Try
                 If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
@@ -94,15 +96,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            Catch
-                ' Something blew up, so we still own the test workspace
-                If engineResult IsNot Nothing Then
-                    engineResult.Dispose()
-                Else
-                    workspace.Dispose()
+                success = True
+            Finally
+                If Not success Then
+                    ' Something blew up, so we still own the test workspace
+                    If engineResult IsNot Nothing Then
+                        engineResult.Dispose()
+                    Else
+                        workspace.Dispose()
+                    End If
                 End If
-
-                Throw
             End Try
 
             Return engineResult
@@ -120,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, AddressOf CodeCleanupOptions.GetDefaultAsync, CancellationToken.None).GetAwaiter().GetResult()
 
                 Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
             Else
@@ -128,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions,
+                    solution, symbol, renameTo, renameOptions, AddressOf CodeCleanupOptions.GetDefaultAsync,
                     nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

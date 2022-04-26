@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
             Document document, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-            var syntaxFormattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            return await service.RemoveUnnecessaryImportsAsync(document, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions: null, cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

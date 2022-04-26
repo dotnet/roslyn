@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    Function(language) options,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    Function(language) options,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    Function(language) options,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    Function(language) options,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    options,
+                    Function(language) options,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())

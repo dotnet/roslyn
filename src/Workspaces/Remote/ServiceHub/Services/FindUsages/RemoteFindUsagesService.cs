@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask FindReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask FindImplementationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var project = solution.GetProject(symbolAndProjectId.ProjectId);
 

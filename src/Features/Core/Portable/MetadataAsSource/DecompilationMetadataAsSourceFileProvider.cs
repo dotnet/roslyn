@@ -11,11 +11,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -78,8 +80,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                  .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(temporaryDocument, cancellationToken).ConfigureAwait(false);
-
                 if (useDecompiler)
                 {
                     try
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                         if (decompiledSourceService != null)
                         {
-                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, formattingOptions, cancellationToken).ConfigureAwait(false);
+                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!useDecompiler)
                 {
                     var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetRequiredService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, formattingOptions, cancellationToken).ConfigureAwait(false);
+                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We have the content, so write it out to disk

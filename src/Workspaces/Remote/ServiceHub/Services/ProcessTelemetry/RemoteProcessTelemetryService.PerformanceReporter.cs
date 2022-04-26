@@ -55,17 +55,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 Start();
             }
 
-            protected override void PauseOnGlobalOperation()
+            protected override void OnPaused()
             {
                 // we won't cancel report already running. we will just prevent
                 // new one from starting.
             }
 
-            protected override async Task ExecuteAsync()
+            protected override Task ExecuteAsync()
             {
-                // wait for global operation such as build
-                await GlobalOperationTask.ConfigureAwait(false);
-
                 using (var pooledObject = SharedPools.Default<List<ExpensiveAnalyzerInfo>>().GetPooledObject())
                 using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
                 {
@@ -100,6 +97,8 @@ namespace Microsoft.CodeAnalysis.Remote
                                 $"LOF: {analyzerInfo.LocalOutlierFactor}, Avg: {analyzerInfo.Average}, Stddev: {analyzerInfo.AdjustedStandardDeviation}");
                         }
                     }
+
+                    return Task.CompletedTask;
                 }
             }
 

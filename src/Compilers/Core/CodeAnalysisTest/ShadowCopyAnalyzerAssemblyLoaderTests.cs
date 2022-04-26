@@ -139,7 +139,7 @@ Delta: Epsilon: Test E
             File.Delete(gammaFile.Path);
 
             var actual = sb.ToString();
-            Assert.Equal(@"Delta: Gamma: Test G
+            Assert.Equal(@"Delta.2: Gamma: Test G
 ", actual);
         }
     }

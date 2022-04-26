@@ -146,7 +146,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static ISymbol GetSymbolsToPullUp(MemberAnalysisResult analysisResult)
         {
-            if (analysisResult.Member is IPropertySymbol propertySymbol)
+            var member = analysisResult.Member;
+            // We don't support generating static interface members, so we need to update to non-static before generating.
+            var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
+            if (member is IPropertySymbol propertySymbol)
             {
                 // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
                 // otherwise ICodeGenerationService won't give the expected declaration.
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
                         accessibility: Accessibility.Public,
+                        modifiers: modifier,
                         getMethod: MakePublicAccessor(propertySymbol.GetMethod),
                         setMethod: MakePublicAccessor(propertySymbol.SetMethod));
                 }
@@ -164,15 +168,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     // We are pulling a public property, filter the non-public getter/setter.
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
+                        modifiers: modifier,
                         getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
                         setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
                 }
             }
-            else
+            else if (member is IMethodSymbol methodSymbol)
             {
-                // ICodeGenerationService will give the right result if it is method or event
-                return analysisResult.Member;
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
             }
+            else if (member is IEventSymbol eventSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
+            }
+            else if (member is IFieldSymbol fieldSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateFieldSymbol(fieldSymbol, modifiers: modifier);
+            }
+
+            // ICodeGenerationService will give the right result if it is method or event
+            return member;
         }
 
         private static void ChangeMemberToPublicAndNonStatic(
@@ -280,9 +295,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
 
+            // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
             var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var importsPlacementOptions = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await destinationEditor.OriginalDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var importsPlacementOptions = await destinationEditor.OriginalDocument.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, codeGenOptions, cancellationToken);
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);

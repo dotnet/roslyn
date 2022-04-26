@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private static async Task<string> GetActualAsync(Document document)
         {
-            document = await Simplifier.ReduceAsync(document);
+            document = await Simplifier.ReduceAsync(document, CSharpSimplifierOptions.Default, CancellationToken.None);
             document = await Formatter.FormatAsync(document, Formatter.Annotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             return (await document.GetSyntaxRootAsync()).ToFullString();

@@ -618,12 +618,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, csharpOptions, cancellationToken);
+                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, csharpOptions, cancellationToken);
             }
 
             if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, csharpOptions, cancellationToken);
+                return ConversionGenerator.GenerateConversionDeclaration(method, destination, csharpOptions, cancellationToken);
             }
 
             if (method.IsLocalFunction())

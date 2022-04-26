@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Document document,
             TextSpan selection,
             CodeActionRequestPriority priority,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Document document,
             TextSpan selection,
             CodeActionRequestPriority priority,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
