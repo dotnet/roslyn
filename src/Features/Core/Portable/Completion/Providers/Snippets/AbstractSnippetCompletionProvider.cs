@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             }
 
             return (string.Empty, 0);
-
         }
 
         private static TextChange ExtendSnippetTextChange(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> lspSnippetItems)
@@ -124,7 +123,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 {
                     newTextChange = new TextChange(new TextSpan(lspSnippetItem.CaretPosition.Value, 0), textChange.NewText);
                 }
-
             }
 
             return newTextChange;
