@@ -70,8 +70,8 @@
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
     <InternalsVisibleTo Include="Microsoft.CSharp.VSCode.Extension" Key="$(VisualStudioKey)" />
-    <RestrictedInternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" Partner="VSMac" />
-    <RestrictedInternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" Partner="VSMac" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
 
   <ItemGroup>
