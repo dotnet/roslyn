@@ -1392,9 +1392,6 @@ hasRelatedInterfaces:
             }
         }
 
-        /// <summary>
-        /// Return true if the type has a public parameterless constructor.
-        /// </summary>
         private static ConstructorConstraintError SatisfiesPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
