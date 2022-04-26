@@ -186,16 +186,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);
 
-                if (actions.Count > 0)
-                {
-                    var fixAllProviderInfo = extensionManager.PerformFunction(
-                        provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
-                    return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
-                }
-                else
+                if (actions.Count == 0)
                 {
                     return null;
                 }
+
+                var fixAllProviderInfo = extensionManager.PerformFunction(
+                    provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
             }
             catch (OperationCanceledException)
             {

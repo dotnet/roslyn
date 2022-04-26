@@ -10,10 +10,13 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
+    /// <summary>
+    /// Represents a FixAllContext for code fixes or refactorings. 
+    /// </summary>
     internal interface IFixAllContext
     {
         IFixAllState State { get; }
-        IFixAllProvider? FixAllProvider { get; }
+        IFixAllProvider FixAllProvider { get; }
         Solution Solution { get; }
         Project Project { get; }
         Document? Document { get; }

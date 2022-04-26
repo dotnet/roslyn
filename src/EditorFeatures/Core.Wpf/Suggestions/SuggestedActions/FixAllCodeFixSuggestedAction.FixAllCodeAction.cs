@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class FixAllCodeFixSuggestedAction
     {
-        private sealed partial class FixAllCodeAction : FixSomeCodeAction
+        private sealed partial class FixAllCodeAction : AbstractFixAllCodeFixCodeAction
         {
             public FixAllCodeAction(IFixAllState fixAllState)
                 : base(fixAllState, showPreviewChangesDialog: true)

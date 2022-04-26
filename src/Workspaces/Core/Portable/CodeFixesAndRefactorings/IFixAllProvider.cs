@@ -9,6 +9,9 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
+    /// <summary>
+    /// Represents a FixAllProvider for code fixes or refactorings. 
+    /// </summary>
     internal interface IFixAllProvider
     {
         IEnumerable<FixAllScope> GetSupportedFixAllScopes();

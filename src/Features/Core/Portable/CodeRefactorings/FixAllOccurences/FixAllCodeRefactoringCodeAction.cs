@@ -8,9 +8,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
-    internal sealed class FixAllCodeRefactoringCodeAction : FixAllCodeAction
+    /// <summary>
+    /// Fix all code action for a code action registered by a <see cref="CodeRefactoringProvider"/>.
+    /// </summary>
+    internal sealed class FixAllCodeRefactoringCodeAction : AbstractFixAllCodeAction
     {
-        internal FixAllCodeRefactoringCodeAction(IFixAllState fixAllState)
+        public FixAllCodeRefactoringCodeAction(IFixAllState fixAllState)
             : base(fixAllState, showPreviewChangesDialog: true)
         {
         }

@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 
-            _ = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(filteredRefactorings.Length, out var orderedRefactorings);
+            using var _ = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(filteredRefactorings.Length, out var orderedRefactorings);
             foreach (var refactoring in filteredRefactorings)
             {
                 var orderedRefactoring = await OrganizeRefactoringsAsync(workspace, document, selection, refactoring, cancellationToken).ConfigureAwait(false);
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             CodeRefactoring refactoring,
             CancellationToken cancellationToken)
         {
-            using var refactoringSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var refactoringSuggestedActions);
+            using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var refactoringSuggestedActions);
 
             foreach (var (action, applicableToSpan) in refactoring.CodeActions)
             {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 if (codeAction.NestedCodeActions.Length > 0)
                 {
-                    _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedCodeActions.Length, out var nestedActions);
+                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedCodeActions.Length, out var nestedActions);
                     foreach (var nestedAction in codeAction.NestedCodeActions)
                     {
                         var unifiedAction = await GetUnifiedSuggestedActionSetAsync(nestedAction, applicableToSpan, selection, cancellationToken).ConfigureAwait(false);

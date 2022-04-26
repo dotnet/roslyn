@@ -18,20 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Suggested action for fix all occurrences for a code fix or a code refactoring.
     /// </summary>
-    internal abstract class FixAllSuggestedAction : SuggestedAction
+    internal abstract class AbstractFixAllSuggestedAction : SuggestedAction
     {
         public CodeAction OriginalCodeAction { get; }
 
         public IFixAllState FixAllState { get; }
 
-        protected FixAllSuggestedAction(
+        protected AbstractFixAllSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             CodeAction originalCodeAction,
-            FixAllCodeAction fixAllCodeAction)
+            AbstractFixAllCodeAction fixAllCodeAction)
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    fixAllState.FixAllProvider, fixAllCodeAction)
         {

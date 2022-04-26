@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public Document Document => State.Document!;
 
         /// <summary>
-        /// Original selection span with which fix all occurences was triggered.
-        /// </summary>
-        public TextSpan SelectionSpan => State.SelectionSpan;
-
-        /// <summary>
         /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
         /// </summary>
         public CodeRefactoringProvider CodeRefactoringProvider => State.Provider;
@@ -70,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
 
-        IFixAllProvider? IFixAllContext.FixAllProvider => this.FixAllProvider;
+        IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
         object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
@@ -110,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurences fix.
+        /// Empty array of spans indicates the entire document needs to be fixed.
         /// </summary>
         public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
             => State.GetFixAllSpansAsync(cancellationToken);

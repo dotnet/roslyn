@@ -104,7 +104,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
+                    var spansToFix = spans;
+                    if (spansToFix.IsEmpty && document.SupportsSyntaxTree)
+                    {
+                        // Empty span indicates entire document needs to be fixed.
+                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        spansToFix = ImmutableArray.Create(root.FullSpan);
+                    }
+
+                    var newDocument = await this.FixAllAsync(fixAllContext, document, spansToFix).ConfigureAwait(false);
                     if (newDocument == null || newDocument == document)
                         return default;
 

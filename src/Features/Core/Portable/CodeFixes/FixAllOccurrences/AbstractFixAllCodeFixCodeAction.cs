@@ -11,11 +11,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal abstract class FixSomeCodeAction : FixAllCodeAction
+    /// <summary>
+    /// Fix all code action for a code action registered by a <see cref="CodeFixProvider"/>.
+    /// </summary>
+    internal abstract class AbstractFixAllCodeFixCodeAction : AbstractFixAllCodeAction
     {
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
-        internal FixSomeCodeAction(
+        protected AbstractFixAllCodeFixCodeAction(
             IFixAllState fixAllState, bool showPreviewChangesDialog)
             : base(fixAllState, showPreviewChangesDialog)
         {

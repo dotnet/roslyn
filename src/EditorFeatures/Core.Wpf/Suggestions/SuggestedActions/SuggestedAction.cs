@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void CreateLogProperties(Dictionary<string, object> map)
         {
             // set various correlation info
-            if (CodeAction is FixSomeCodeAction fixSome)
+            if (CodeAction is AbstractFixAllCodeFixCodeAction fixSome)
             {
                 // fix all correlation info
                 map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;

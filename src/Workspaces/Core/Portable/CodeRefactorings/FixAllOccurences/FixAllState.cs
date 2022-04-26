@@ -19,16 +19,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, FixAllProvider, FixAllState>
     {
+        /// <summary>
+        /// Original selection span from which FixAll was invoked.
+        /// This is used in <see cref="GetFixAllSpansAsync(CancellationToken)"/>
+        /// to compute fix all spans for <see cref="FixAllScope.ContainingMember"/>
+        /// and <see cref="FixAllScope.ContainingType"/> scopes.
+        /// </summary>
+        private readonly TextSpan _selectionSpan;
+
         public override FixAllKind FixAllKind => FixAllKind.Refactoring;
 
         public string CodeActionTitle { get; }
 
-        /// <summary>
-        /// Original selection span from which FixAll was invoked
-        /// </summary>
-        public TextSpan SelectionSpan { get; }
-
-        internal FixAllState(
+        public FixAllState(
             FixAllProvider fixAllProvider,
             Document document!!,
             TextSpan selectionSpan,
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
         }
 
-        internal FixAllState(
+        public FixAllState(
             FixAllProvider fixAllProvider,
             Project project!!,
             TextSpan selectionSpan,
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             string? codeActionEquivalenceKey)
             : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope, codeActionEquivalenceKey)
         {
-            this.SelectionSpan = selectionSpan;
+            _selectionSpan = selectionSpan;
             this.CodeActionTitle = codeActionTitle;
         }
 
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 this.FixAllProvider,
                 document,
                 project,
-                this.SelectionSpan,
+                _selectionSpan,
                 this.Provider,
                 scope,
                 this.CodeActionTitle,
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurences fix.
+        /// Empty array of spans indicates the entire document needs to be fixed.
         /// </summary>
         internal async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
         {
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
                     return await spanMappingService.GetFixAllSpansAsync(
-                        Document, SelectionSpan, Scope, cancellationToken).ConfigureAwait(false);
+                        Document, _selectionSpan, Scope, cancellationToken).ConfigureAwait(false);
 
                 case FixAllScope.Document:
                     Contract.ThrowIfNull(Document);
@@ -112,24 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
             }
 
-            using var _ = PooledDictionary<Document, ImmutableArray<TextSpan>>.GetInstance(out var builder);
-            foreach (var document in documentsToFix)
-            {
-                TextSpan span;
-                if (document.SupportsSyntaxTree)
-                {
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    span = root.FullSpan;
-                }
-                else
-                {
-                    span = default;
-                }
-
-                builder.Add(document, ImmutableArray.Create(span));
-            }
-
-            return builder.ToImmutableDictionary();
+            return documentsToFix.ToImmutableDictionary(d => d, _ => ImmutableArray<TextSpan>.Empty);
         }
     }
 }

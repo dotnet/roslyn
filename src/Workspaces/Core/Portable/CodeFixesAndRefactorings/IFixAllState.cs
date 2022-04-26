@@ -8,17 +8,24 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
+    /// <summary>
+    /// Represents internal FixAllState for code fixes or refactorings. 
+    /// </summary>
     internal interface IFixAllState
     {
         int CorrelationId { get; }
         IFixAllProvider FixAllProvider { get; }
         string? CodeActionEquivalenceKey { get; }
-        object Provider { get; }
         FixAllScope Scope { get; }
         FixAllKind FixAllKind { get; }
         Document? Document { get; }
         Project Project { get; }
         Solution Solution { get; }
+
+        /// <summary>
+        /// Underlying code fix provider or code refactoring provider for the fix all occurrences fix.
+        /// </summary>
+        object Provider { get; }
 
         IFixAllState With(
             Optional<(Document? document, Project project)> documentAndProject = default,

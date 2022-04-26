@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         internal FixAllState State { get; }
 
-        internal FixAllProvider? FixAllProvider => State.FixAllProvider;
+        internal FixAllProvider FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Solution to fix all occurrences.
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
 
-        IFixAllProvider? IFixAllContext.FixAllProvider => this.FixAllProvider;
+        IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
         object IFixAllContext.Provider => this.CodeFixProvider;
 

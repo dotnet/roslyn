@@ -13,19 +13,31 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
-    internal abstract class FixAllCodeAction : CodeAction
+    /// <summary>
+    /// Fix all code action for a code action registered by
+    /// a <see cref="CodeFixes.CodeFixProvider"/> or a <see cref="CodeRefactorings.CodeRefactoringProvider"/>.
+    /// </summary>
+    internal abstract class AbstractFixAllCodeAction : CodeAction
     {
-        internal readonly IFixAllState FixAllState;
         private bool _showPreviewChangesDialog;
 
-        protected FixAllCodeAction(
+        public IFixAllState FixAllState { get; }
+
+        protected AbstractFixAllCodeAction(
             IFixAllState fixAllState, bool showPreviewChangesDialog)
         {
             FixAllState = fixAllState;
             _showPreviewChangesDialog = showPreviewChangesDialog;
         }
 
+        /// <summary>
+        /// Determine if the <see cref="IFixAllState.Provider"/> is an internal first-party provider or not.
+        /// </summary>
         protected abstract bool IsInternalProvider(IFixAllState fixAllState);
+
+        /// <summary>
+        /// Creates a new <see cref="IFixAllContext"/> with the given parameters.
+        /// </summary>
         protected abstract IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken);
 
         public override string Title
@@ -41,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
         internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             => await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
 
-        internal override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        internal sealed override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -72,14 +84,16 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             return service.GetFixAllChangedSolutionAsync(fixAllContext);
         }
 
+        // internal for testing purposes.
         internal TestAccessor GetTestAccessor()
             => new(this);
 
+        // internal for testing purposes.
         internal readonly struct TestAccessor
         {
-            private readonly FixAllCodeAction _fixAllCodeAction;
+            private readonly AbstractFixAllCodeAction _fixAllCodeAction;
 
-            internal TestAccessor(FixAllCodeAction fixAllCodeAction)
+            internal TestAccessor(AbstractFixAllCodeAction fixAllCodeAction)
                 => _fixAllCodeAction = fixAllCodeAction;
 
             /// <summary>

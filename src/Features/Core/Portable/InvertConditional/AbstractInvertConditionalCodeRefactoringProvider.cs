@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(conditionals));
 
+            // Process the conditional expressions in reverse so the nested conditionals are processed before the outer ones.
             foreach (var originalConditional in conditionals.Reverse())
             {
                 // Only process conditionals fully within fixAllSpan

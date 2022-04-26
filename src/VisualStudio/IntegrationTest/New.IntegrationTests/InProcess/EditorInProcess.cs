@@ -740,8 +740,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     action = fixAllAction;
 
                     if (willBlockUntilComplete
-                        && action is FixAllSuggestedAction fixAllSuggestedAction
-                        && fixAllSuggestedAction.CodeAction is FixAllCodeAction fixAllCodeAction)
+                        && action is AbstractFixAllSuggestedAction fixAllSuggestedAction
+                        && fixAllSuggestedAction.CodeAction is AbstractFixAllCodeAction fixAllCodeAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                         // the caller would not be able to interact with the preview changes dialog, and the tests would
@@ -828,7 +828,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return actions;
         }
 
-        private async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+        private async Task<AbstractFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -836,9 +836,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
+                    if (action is AbstractFixAllSuggestedAction fixAllSuggestedAction)
                     {
-                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixAllCodeAction;
+                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as AbstractFixAllCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
                         {
                             return fixAllSuggestedAction;
