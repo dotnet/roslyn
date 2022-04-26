@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 //
                 // This changes the contents of the literal, but that can be fine for the domain the user is working in.
                 // Offer this, but let the user know that this will change runtime semantics.
-                if (token.IsVerbatimStringLiteral() && HasLeadingWhitespace(characters))
+                if (token.IsVerbatimStringLiteral() &&
+                    HasLeadingWhitespace(characters) &&
+                    CleanupWhitespace(characters).Length > 0)
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
