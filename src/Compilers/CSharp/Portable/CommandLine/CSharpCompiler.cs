@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OrderedSet<string> embeddedFiles,
             DiagnosticBag diagnostics)
         {
-            foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
+            foreach (Syntax.LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
                 d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
             {
                 var path = (string?)directive.File.Value;
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var serviceProviderBuilder = new ServiceProviderBuilder();
-
+            
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
             if (this.RequiresMetalamaLicensingServices)
@@ -495,7 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException();
                 }
 
-                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(dotNetSdkDirectory);
+                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
+                    applicationInfo: new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false),
+                    addSupportServices: true,
+                    projectName: inputCompilation.AssemblyName,
+                    dotnetSdkDirectory: dotNetSdkDirectory);
             }
 
             void ReportException(Exception e, bool throwReporterExceptions)
