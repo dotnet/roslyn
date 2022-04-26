@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Check that we know about this file!
             var documentId = State.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
-            if (documentId == null)
+            if (documentId == null || State.Workspace.CurrentSolution.GetDocument(documentId) == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();
