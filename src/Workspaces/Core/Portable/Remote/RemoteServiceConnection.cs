@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken);
+        //public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+        //    Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+        //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        //    CancellationToken cancellationToken);
 
         // no solution, callback
 

@@ -301,22 +301,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // streaming
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await InvokeStreamingServiceAsync(rental.Service, invocation, reader, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
-            {
-                OnUnexpectedException(exception, cancellationToken);
-                return default;
-            }
-        }
+        //public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+        //    Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+        //    Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+        //    CancellationToken cancellationToken)
+        //{
+        //    try
+        //    {
+        //        using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+        //        return await InvokeStreamingServiceAsync(rental.Service, invocation, reader, cancellationToken).ConfigureAwait(false);
+        //    }
+        //    catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+        //    {
+        //        OnUnexpectedException(exception, cancellationToken);
+        //        return default;
+        //    }
+        //}
 
         public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Solution solution,
