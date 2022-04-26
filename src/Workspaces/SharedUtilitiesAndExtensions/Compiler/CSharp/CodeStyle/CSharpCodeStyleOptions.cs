@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
-            CSharpIdeCodeStyleOptions.Default.PreferThrowExpression,
+            CSharpSimplifierOptions.Default.PreferThrowExpression,
             "csharp_style_throw_expression",
             "TextEditor.CSharp.Specific.PreferThrowExpression");
 

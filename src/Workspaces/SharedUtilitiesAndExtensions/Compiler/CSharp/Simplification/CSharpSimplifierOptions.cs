@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         [DataMember(Order = BaseMemberCount + 6)]
         public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
 
+        [DataMember(Order = BaseMemberCount + 7)]
+        public readonly CodeStyleOption2<bool> PreferThrowExpression;
+
         public CSharpSimplifierOptions(
             CommonOptions? common = null,
             CodeStyleOption2<bool>? varForBuiltInTypes = null,
@@ -52,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             CodeStyleOption2<bool>? preferSimpleDefaultExpression = null,
             CodeStyleOption2<bool>? preferParameterNullChecking = null,
             CodeStyleOption2<bool>? allowEmbeddedStatementsOnSameLine = null,
-            CodeStyleOption2<PreferBracesPreference>? preferBraces = null)
+            CodeStyleOption2<PreferBracesPreference>? preferBraces = null,
+            CodeStyleOption2<bool>? preferThrowExpression = null)
             : base(common)
         {
             VarForBuiltInTypes = varForBuiltInTypes ?? CodeStyleOption2<bool>.Default;
@@ -62,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             PreferParameterNullChecking = preferParameterNullChecking ?? s_trueWithSuggestionEnforcement;
             AllowEmbeddedStatementsOnSameLine = allowEmbeddedStatementsOnSameLine ?? s_trueWithSilentEnforcement;
             PreferBraces = preferBraces ?? s_defaultPreferBraces;
+            PreferThrowExpression = preferThrowExpression ?? s_trueWithSuggestionEnforcement;
         }
 
         public static readonly CSharpSimplifierOptions Default = new();
@@ -78,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 preferSimpleDefaultExpression: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
                 preferParameterNullChecking: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferParameterNullChecking, fallbackOptions.PreferParameterNullChecking),
                 allowEmbeddedStatementsOnSameLine: options.GetEditorConfigOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine),
-                preferBraces: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces));
+                preferBraces: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces),
+                preferThrowExpression: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression));
         }
     }
 }

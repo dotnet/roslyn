@@ -50,22 +50,21 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     [DataMember(Order = BaseMemberCount + 8)] public readonly CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck;
     [DataMember(Order = BaseMemberCount + 9)] public readonly CodeStyleOption2<bool> PreferNotPattern;
     [DataMember(Order = BaseMemberCount + 10)] public readonly CodeStyleOption2<bool> PreferExtendedPropertyPattern;
-    [DataMember(Order = BaseMemberCount + 11)] public readonly CodeStyleOption2<bool> PreferThrowExpression;
-    [DataMember(Order = BaseMemberCount + 12)] public readonly CodeStyleOption2<bool> PreferInlinedVariableDeclaration;
-    [DataMember(Order = BaseMemberCount + 13)] public readonly CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration;
-    [DataMember(Order = BaseMemberCount + 14)] public readonly CodeStyleOption2<bool> PreferIndexOperator;
-    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<bool> PreferRangeOperator;
-    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
-    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
-    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
-    [DataMember(Order = BaseMemberCount + 19)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
-    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
-    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
-    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
+    [DataMember(Order = BaseMemberCount + 11)] public readonly CodeStyleOption2<bool> PreferInlinedVariableDeclaration;
+    [DataMember(Order = BaseMemberCount + 12)] public readonly CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration;
+    [DataMember(Order = BaseMemberCount + 13)] public readonly CodeStyleOption2<bool> PreferIndexOperator;
+    [DataMember(Order = BaseMemberCount + 14)] public readonly CodeStyleOption2<bool> PreferRangeOperator;
+    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
+    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
+    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
+    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
+    [DataMember(Order = BaseMemberCount + 29)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
+    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
+    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
 
     // the following are also used in code generation features, consider sharing:
-    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
-    [DataMember(Order = BaseMemberCount + 24)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
+    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
+    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
 
 #pragma warning disable IDE1006 // Record naming style
     public CSharpIdeCodeStyleOptions(
@@ -81,7 +80,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         CodeStyleOption2<bool>? PreferPatternMatchingOverIsWithCastCheck = null,
         CodeStyleOption2<bool>? PreferNotPattern = null,
         CodeStyleOption2<bool>? PreferExtendedPropertyPattern = null,
-        CodeStyleOption2<bool>? PreferThrowExpression = null,
         CodeStyleOption2<bool>? PreferInlinedVariableDeclaration = null,
         CodeStyleOption2<bool>? PreferDeconstructedVariableDeclaration = null,
         CodeStyleOption2<bool>? PreferIndexOperator = null,
@@ -109,7 +107,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         this.PreferPatternMatchingOverIsWithCastCheck = PreferPatternMatchingOverIsWithCastCheck ?? s_trueWithSuggestionEnforcement;
         this.PreferNotPattern = PreferNotPattern ?? s_trueWithSuggestionEnforcement;
         this.PreferExtendedPropertyPattern = PreferExtendedPropertyPattern ?? s_trueWithSuggestionEnforcement;
-        this.PreferThrowExpression = PreferThrowExpression ?? s_trueWithSuggestionEnforcement;
         this.PreferInlinedVariableDeclaration = PreferInlinedVariableDeclaration ?? s_trueWithSuggestionEnforcement;
         this.PreferDeconstructedVariableDeclaration = PreferDeconstructedVariableDeclaration ?? s_trueWithSuggestionEnforcement;
         this.PreferIndexOperator = PreferIndexOperator ?? s_trueWithSuggestionEnforcement;

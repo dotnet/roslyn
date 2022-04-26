@@ -40,7 +40,6 @@ internal static class CSharpCodeStyleOptionsStorage
             PreferPatternMatchingOverIsWithCastCheck: globalOptions.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck),
             PreferNotPattern: globalOptions.GetOption(CSharpCodeStyleOptions.PreferNotPattern),
             PreferExtendedPropertyPattern: globalOptions.GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern),
-            PreferThrowExpression: globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression),
             PreferInlinedVariableDeclaration: globalOptions.GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration),
             PreferDeconstructedVariableDeclaration: globalOptions.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration),
             PreferIndexOperator: globalOptions.GetOption(CSharpCodeStyleOptions.PreferIndexOperator),

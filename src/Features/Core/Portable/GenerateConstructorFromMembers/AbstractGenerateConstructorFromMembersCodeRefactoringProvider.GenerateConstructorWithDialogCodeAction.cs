@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly Accessibility? _desiredAccessibility;
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
             private bool? _addNullCheckOptionValue;
 
             internal ImmutableArray<ISymbol> ViableMembers { get; }
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> viableMembers,
                 ImmutableArray<PickMembersOption> pickMembersOptions,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;

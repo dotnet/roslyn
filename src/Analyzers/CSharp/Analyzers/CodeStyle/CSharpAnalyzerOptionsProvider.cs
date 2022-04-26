@@ -49,7 +49,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferSimpleDefaultExpression => GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, FallbackSimplifierOptions.PreferSimpleDefaultExpression);
     public CodeStyleOption2<bool> PreferParameterNullChecking => GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, FallbackSimplifierOptions.PreferParameterNullChecking);
     public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine => GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, FallbackSimplifierOptions.AllowEmbeddedStatementsOnSameLine);
-
+    public CodeStyleOption2<bool> PreferThrowExpression => GetOption(CSharpCodeStyleOptions.PreferThrowExpression, FallbackSimplifierOptions.PreferThrowExpression);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     // SyntaxFormattingOptions
@@ -74,7 +74,6 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck => GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, FallbackCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
     public CodeStyleOption2<bool> PreferNotPattern => GetOption(CSharpCodeStyleOptions.PreferNotPattern, FallbackCodeStyleOptions.PreferNotPattern);
     public CodeStyleOption2<bool> PreferExtendedPropertyPattern => GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, FallbackCodeStyleOptions.PreferExtendedPropertyPattern);
-    public CodeStyleOption2<bool> PreferThrowExpression => GetOption(CSharpCodeStyleOptions.PreferThrowExpression, FallbackCodeStyleOptions.PreferThrowExpression);
     public CodeStyleOption2<bool> PreferInlinedVariableDeclaration => GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, FallbackCodeStyleOptions.PreferInlinedVariableDeclaration);
     public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration => GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, FallbackCodeStyleOptions.PreferDeconstructedVariableDeclaration);
     public CodeStyleOption2<bool> PreferIndexOperator => GetOption(CSharpCodeStyleOptions.PreferIndexOperator, FallbackCodeStyleOptions.PreferIndexOperator);
