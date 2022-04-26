@@ -47,85 +47,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            var finalTextChange = ExtendSnippetTextChange(change, snippet.Placeholders);
-            var lspSnippet = GenerateLSPSnippet(finalTextChange, snippet.Placeholders);
+            var finalTextChange = RoslynLSPSnippetConverter.ExtendSnippetTextChange(change, snippet.Placeholders);
+            var lspSnippet = RoslynLSPSnippetConverter.GenerateLSPSnippet(finalTextChange, snippet.Placeholders);
             var props = ImmutableDictionary<string, string>.Empty
-                .Add("LSPSnippet", lspSnippet!);
+                .Add(SnippetCompletionItem.LSPSnippetKey, lspSnippet!);
 
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), properties: props, snippet.CursorPosition, includesCommitCharacter: true);
-        }
-
-        private static string? GenerateLSPSnippet(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> placeholders)
-        {
-            var textChangeStart = textChange.Span.Start;
-            var textChangeText = textChange.NewText!;
-            var lspSnippetString = "";
-
-            for (var i = 0; i < textChangeText.Length;)
-            {
-                var (str, strCount) = GetStringInPosition(placeholders, i, textChangeStart);
-                if (str.IsEmpty())
-                {
-                    lspSnippetString += textChangeText[i];
-                    i++;
-                }
-                else
-                {
-                    lspSnippetString += str;
-                    i += strCount;
-
-                    if (strCount == 0)
-                    {
-                        lspSnippetString += textChangeText[i];
-                        i++;
-                    }
-                }
-            }
-
-            return lspSnippetString;
-        }
-
-        private static (string, int) GetStringInPosition(ImmutableArray<RoslynLSPSnippetItem> placeholders, int position, int textChangeStart)
-        {
-            foreach (var placeholder in placeholders)
-            {
-                if (placeholder.CaretPosition.HasValue && placeholder.CaretPosition.Value - textChangeStart == position)
-                {
-                    return ("$0", 0);
-                }
-
-                foreach (var span in placeholder.PlaceHolderSpans)
-                {
-                    if (span.Start - textChangeStart == position)
-                    {
-                        return ($"${{{placeholder.Priority}:{placeholder.Identifier}}}", placeholder.Identifier!.Length);
-                    }
-                }
-            }
-
-            return (string.Empty, 0);
-        }
-
-        private static TextChange ExtendSnippetTextChange(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> lspSnippetItems)
-        {
-            var newTextChange = textChange;
-            foreach (var lspSnippetItem in lspSnippetItems)
-            {
-                foreach (var placeholder in lspSnippetItem.PlaceHolderSpans)
-                {
-                    if (newTextChange.Span.Start > placeholder.Start)
-                    {
-                        newTextChange = new TextChange(new TextSpan(placeholder.Start, 0), textChange.NewText);
-                    }
-                }
-
-                if (lspSnippetItem.CaretPosition is not null && textChange.Span.Start > lspSnippetItem.CaretPosition)
-                {
-                    newTextChange = new TextChange(new TextSpan(lspSnippetItem.CaretPosition.Value, 0), textChange.NewText);
-                }
-            }
-
-            return newTextChange;
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)

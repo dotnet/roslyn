@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal class SnippetCompletionItem
     {
+        public static string LSPSnippetKey = "LSPSnippet";
+
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,

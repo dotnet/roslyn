@@ -9,13 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -26,10 +27,6 @@ using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
@@ -248,21 +245,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // TryExpand method and determine if it succeeded or not.
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
-                change.Properties!.TryGetValue("LSPSnippet", out var lspSnippetText);
+                change.Properties!.TryGetValue(SnippetCompletionItem.LSPSnippetKey, out var lspSnippetText);
 
-                if (!document.TryGetText(out var sourceText))
-                {
-                    FatalError.ReportAndCatch(new InvalidOperationException("Document is not loaded and available."), ErrorSeverity.Critical);
-                    return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
-                }
-
-                if (!_roslynLSPSnippetExpander.TryExpand(change.TextChange, sourceText, lspSnippetText, _textView, triggerSnapshot))
+                if (!_roslynLSPSnippetExpander.TryExpand(change.TextChange.Span, lspSnippetText, _textView, triggerSnapshot))
                 {
                     FatalError.ReportAndCatch(new InvalidOperationException(""), ErrorSeverity.Critical);
                 }
 
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
-
             }
 
             var textChange = change.TextChange;

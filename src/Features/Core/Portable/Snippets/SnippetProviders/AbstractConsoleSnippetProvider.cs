@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            using var pooledDisposer = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
+            using var _ = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
             var openParenToken = GetOpenParenToken(node, syntaxFacts);
 
             if (openParenToken is null)
@@ -112,12 +112,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return ImmutableArray<RoslynLSPSnippetItem>.Empty;
             }
 
-            var list1 = new List<TextSpan>
-            {
-                new TextSpan(openParenToken.Value.Span.End, 0)
-            };
-
-            arrayBuilder.Add(new RoslynLSPSnippetItem(null, 0, openParenToken.Value.Span.End, ImmutableArray<TextSpan>.Empty));
+            arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: null, priority: 0, caretPosition: openParenToken.Value.Span.End, placeholderSpans: ImmutableArray<TextSpan>.Empty));
 
             return arrayBuilder.ToImmutable();
         }

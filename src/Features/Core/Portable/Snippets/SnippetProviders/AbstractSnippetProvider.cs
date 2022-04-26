@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts);
 
         /// <summary>
+        /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
+        /// </summary>
+        protected abstract ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
         /// </summary>
@@ -124,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// Descends into the inserted snippet to add back trivia on every token.
         /// </summary>
-        protected static SyntaxNode? GenerateElasticTriviaForSyntax(ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        private static SyntaxNode? GenerateElasticTriviaForSyntax(ISyntaxFacts syntaxFacts, SyntaxNode? node)
         {
             if (node is null)
             {
@@ -201,11 +206,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
-        }
-
-        protected virtual ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            return ImmutableArray<RoslynLSPSnippetItem>.Empty;
         }
     }
 }

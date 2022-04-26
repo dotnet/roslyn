@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
-        internal ImmutableDictionary<string, string>? Properties { get; }
+        internal ImmutableDictionary<string, string> Properties { get; }
 
         private CompletionChange(
             TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
-            : this(textChange, textChanges, newPosition, includesCommitCharacter, null)
+            : this(textChange, textChanges, newPosition, includesCommitCharacter, ImmutableDictionary<string, string>.Empty)
         {
         }
 
         private CompletionChange(
-            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, ImmutableDictionary<string, string>? properties)
+            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, ImmutableDictionary<string, string> properties)
         {
             TextChange = textChange;
             NewPosition = newPosition;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static CompletionChange Create(
             TextChange textChange,
             ImmutableArray<TextChange> textChanges,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string> properties,
             int? newPosition,
             bool includesCommitCharacter)
         {

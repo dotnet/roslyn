@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Special case for formatting if-statements blocks on new lines
             if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) &&
                 currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                currentToken.Parent is not null && currentToken.Parent.Parent.IsKind(SyntaxKind.IfStatement))
+                currentToken.Parent.IsParentKind(SyntaxKind.IfStatement))
             {
                 var num = LineBreaksAfter(previousToken, currentToken);
 
