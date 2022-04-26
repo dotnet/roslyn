@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -46,6 +49,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferSimpleDefaultExpression => GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, FallbackSimplifierOptions.PreferSimpleDefaultExpression);
     public CodeStyleOption2<bool> PreferParameterNullChecking => GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, FallbackSimplifierOptions.PreferParameterNullChecking);
     public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine => GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, FallbackSimplifierOptions.AllowEmbeddedStatementsOnSameLine);
+
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     // SyntaxFormattingOptions
@@ -85,6 +89,9 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     // CodeGenerationOptions
 
+    internal CSharpCodeGenerationOptions GetCodeGenerationOptions(CSharpParseOptions parseOptions)
+        => CSharpCodeGenerationOptions.Create(parseOptions, _options, FallbackCodeGenerationOptions);
+
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
 
@@ -102,6 +109,9 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     private AddImportPlacementOptions FallbackAddImportPlacementOptions
         => _fallbackOptions.CleanupOptions?.AddImportOptions ?? AddImportPlacementOptions.Default;
+
+    private CSharpCodeGenerationOptions FallbackCodeGenerationOptions
+        => (CSharpCodeGenerationOptions?)_fallbackOptions.GenerationOptions ?? CSharpCodeGenerationOptions.Default;
 
     public static explicit operator CSharpAnalyzerOptionsProvider(AnalyzerOptionsProvider provider)
         => new(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions());

@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -60,12 +62,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
             var ideOptions = new IdeAnalyzerOptions(
-                CleanupOptions: new CodeCleanupOptions(
-                    FormattingOptions: CSharpSyntaxFormattingOptions.Default,
-                    SimplifierOptions: new CSharpSimplifierOptions(
-                        varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
-                    AddImportOptions: AddImportPlacementOptions.Default,
-                    DocumentFormattingOptions: DocumentFormattingOptions.Default));
+                CleanCodeGenerationOptions: new CleanCodeGenerationOptions(
+                    CSharpCodeGenerationOptions.Default,
+                    new CodeCleanupOptions(
+                        FormattingOptions: CSharpSyntaxFormattingOptions.Default,
+                        SimplifierOptions: new CSharpSimplifierOptions(
+                            varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
+                        AddImportOptions: AddImportPlacementOptions.Default,
+                        DocumentFormattingOptions: DocumentFormattingOptions.Default)));
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
 

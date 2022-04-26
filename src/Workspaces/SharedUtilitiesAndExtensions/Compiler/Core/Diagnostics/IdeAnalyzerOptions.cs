@@ -4,6 +4,7 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// IDE specific options available to analyzers in a specific project (language).
 /// </summary>
-/// <param name="CleanupOptions">Default values for <see cref="CodeCleanupOptions"/>, or null if not available (the project language does not support these options).</param>
+/// <param name="CleanCodeGenerationOptions">Default values for <see cref="CleanCodeGenerationOptions"/>, or null if not available (the project language does not support these options).</param>
 /// <param name="CodeStyleOptions">Default values for <see cref="IdeCodeStyleOptions"/>, or null if not available (the project language does not support these options).</param>
 [DataContract]
 internal sealed record class IdeAnalyzerOptions(
@@ -26,7 +27,7 @@ internal sealed record class IdeAnalyzerOptions(
     [property: DataMember(Order = 7)] bool ReportInvalidJsonPatterns = IdeAnalyzerOptions.DefaultReportInvalidJsonPatterns,
     [property: DataMember(Order = 8)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = IdeAnalyzerOptions.DefaultDetectAndOfferEditorFeaturesForProbableJsonStrings,
     CodeStyleOption2<bool>? PreferSystemHashCode = null,
-    [property: DataMember(Order = 10)] CodeCleanupOptions? CleanupOptions = null,
+    [property: DataMember(Order = 10)] CleanCodeGenerationOptions? CleanCodeGenerationOptions = null,
     [property: DataMember(Order = 11)] IdeCodeStyleOptions? CodeStyleOptions = null)
 {
     [property: DataMember(Order = 9)]
@@ -49,8 +50,11 @@ internal sealed record class IdeAnalyzerOptions(
         FadeOutUnusedImports: false,
         FadeOutUnreachableCode: false);
 
+    public CodeCleanupOptions? CleanupOptions => CleanCodeGenerationOptions?.CleanupOptions;
+    public CodeGenerationOptions? GenerationOptions => CleanCodeGenerationOptions?.GenerationOptions;
+
 #if !CODE_STYLE
     public static IdeAnalyzerOptions GetDefault(HostLanguageServices languageServices)
-        => new(CleanupOptions: CodeCleanupOptions.GetDefault(languageServices));
+        => new(CleanCodeGenerationOptions: CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices));
 #endif
 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -30,7 +31,7 @@ internal static class IdeAnalyzerOptionsStorage
             ReportInvalidRegexPatterns: globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns: globalOptions.GetOption(ReportInvalidJsonPatterns, language),
             DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
-            CleanupOptions: supportsLanguageSpecificOptions ? globalOptions.GetCodeCleanupOptions(languageServices) : null,
+            CleanCodeGenerationOptions: supportsLanguageSpecificOptions ? globalOptions.GetCleanCodeGenerationOptions(languageServices) : null,
             CodeStyleOptions: supportsLanguageSpecificOptions ? globalOptions.GetCodeStyleOptions(languageServices) : null);
     }
 
