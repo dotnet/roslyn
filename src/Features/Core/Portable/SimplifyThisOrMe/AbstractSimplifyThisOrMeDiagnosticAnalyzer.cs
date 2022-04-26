@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TSimplifierOptions : SimplifierOptions
     {
-        private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
-
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                    EnforceOnBuildValues.RemoveQualification,
@@ -38,9 +36,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    isUnnecessary: true)
         {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            _kindsOfInterest = ImmutableArray.Create(
-                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ThisExpression));
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
@@ -52,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, GetSyntaxFacts().SyntaxKinds.ThisExpression);
 
         protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
