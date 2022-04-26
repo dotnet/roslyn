@@ -473,6 +473,10 @@ ref struct B
 }");
         }
 
+        /// <summary>
+        /// Determination of enum underlying type should ignore fields
+        /// with custom modifiers or ref custom modifiers.
+        /// </summary>
         [Fact]
         public void EnumUnderlyingType()
         {
@@ -536,29 +540,32 @@ ref struct S4<T>
 }
 class Program
 {
-    static void Main()
+    static void F<T>(ref T t)
     {
-        int i = 0;
-        new S1<int>().F = ref i;
-        new S2<int>().F = ref i;
-        new S3<int>().F = ref i;
-        new S4<int>().F = ref i;
+        new S1<T>().F = ref t;
+        new S2<T>().F = ref t;
+        new S3<T>().F = ref t;
+        new S4<T>().F = ref t;
+        new S1<T>().F = t;
+        new S2<T>().F = t;
+        new S3<T>().F = t;
+        new S4<T>().F = t;
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (27,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new S1<T>().F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S1<T>().F").WithLocation(27, 9),
                 // (28,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         new S1<int>().F = ref i;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S1<int>().F").WithLocation(28, 9),
+                //         new S2<T>().F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S2<T>().F").WithLocation(28, 9),
                 // (29,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         new S2<int>().F = ref i;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S2<int>().F").WithLocation(29, 9),
+                //         new S3<T>().F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S3<T>().F").WithLocation(29, 9),
                 // (30,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         new S3<int>().F = ref i;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S3<int>().F").WithLocation(30, 9),
-                // (31,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         new S4<int>().F = ref i;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S4<int>().F").WithLocation(31, 9));
+                //         new S4<T>().F = ref t;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S4<T>().F").WithLocation(30, 9));
         }
 
         [Fact]
@@ -1154,9 +1161,9 @@ class Program
     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 5
 
     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 6
-    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
-    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
-    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 7
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 7
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 8
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 9
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -1179,13 +1186,13 @@ class Program
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 6
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
                 // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 7
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
                 // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 8
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
                 // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 7
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 9
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
         }
 
@@ -1217,9 +1224,9 @@ class Program
     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; }
 
     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 3
-    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
-    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
-    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; }
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 4
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 5
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 6
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -1233,13 +1240,13 @@ class Program
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 3
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
                 // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; }
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 4
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
                 // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; }
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 5
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
                 // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' because it is a readonly variable
-                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; }
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 6
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
         }
 
