@@ -39,10 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             CancellationToken cancellationToken)
         {
             if (expression is MemberAccessExpressionSyntax memberAccessExpression &&
-                MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(memberAccessExpression, semanticModel, options, out _, cancellationToken))
+                MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
+                    memberAccessExpression, semanticModel, options, out var thisExpression, out _, cancellationToken))
             {
                 replacementNode = memberAccessExpression.GetNameWithTriviaMoved();
-                issueSpan = memberAccessExpression.Expression.Span;
+                issueSpan = thisExpression.Span;
                 return true;
             }
 

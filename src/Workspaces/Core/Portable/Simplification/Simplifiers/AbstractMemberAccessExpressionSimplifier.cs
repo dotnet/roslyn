@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,15 +26,18 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             TMemberAccessExpressionSyntax? memberAccessExpression,
             SemanticModel semanticModel,
             SimplifierOptions simplifierOptions,
+            [NotNullWhen(true)] out TThisExpressionSyntax? thisExpression,
             out ReportDiagnostic severity,
             CancellationToken cancellationToken)
         {
             severity = default;
+            thisExpression = null;
+
             if (memberAccessExpression is null)
                 return false;
 
             var syntaxFacts = this.SyntaxFacts;
-            var thisExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression);
+            thisExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression) as TThisExpressionSyntax;
             if (!syntaxFacts.IsThisExpression(thisExpression))
                 return false;
 

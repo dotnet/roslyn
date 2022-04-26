@@ -27,13 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                               ByRef replacementNode As ExpressionSyntax,
                                               ByRef issueSpan As TextSpan,
                                               cancellationToken As CancellationToken) As Boolean
+
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
+            Dim meExpression As MeExpressionSyntax = Nothing
             Dim severity As ReportDiagnostic
             If MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                memberAccessExpression, semanticModel, options, severity, cancellationToken) Then
+                memberAccessExpression, semanticModel, options, meExpression, severity, cancellationToken) Then
 
                 replacementNode = memberAccessExpression.GetNameWithTriviaMoved()
-                issueSpan = memberAccessExpression.Expression.Span
             End If
 
             If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, options, cancellationToken) Then

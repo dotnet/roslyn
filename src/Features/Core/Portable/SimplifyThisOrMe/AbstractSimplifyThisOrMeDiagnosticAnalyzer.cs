@@ -66,8 +66,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var syntaxTree = node.SyntaxTree;
             var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
 
-            if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(memberAccessExpression, semanticModel, simplifierOptions, out var severity, cancellationToken))
+            if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
+                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var severity, cancellationToken))
+            {
                 return;
+            }
 
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
 
@@ -76,9 +79,8 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = semanticModel.Language;
 
-            var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression);
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, expression!.GetLocation(), severity,
+                Descriptor, thisExpression.GetLocation(), severity,
                 ImmutableArray.Create(memberAccessExpression.GetLocation()),
                 builder.ToImmutable()));
         }
