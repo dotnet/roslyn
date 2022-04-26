@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -47,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
 
-            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false);
+            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(fallbackOptions), cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(editor.OriginalRoot, newRoot);

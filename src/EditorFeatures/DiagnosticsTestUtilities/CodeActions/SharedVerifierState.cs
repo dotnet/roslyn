@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
         internal CodeActionOptions CodeActionOptions { get; set; } = CodeActionOptions.Default;
-        internal IdeAnalyzerOptions IdeAnalyzerOptions { get; set; } = IdeAnalyzerOptions.Default;
+        internal IdeAnalyzerOptions? IdeAnalyzerOptions { get; set; }
+
+        internal IdeAnalyzerOptions GetIdeAnalyzerOptions(Project project)
+            => IdeAnalyzerOptions ?? IdeAnalyzerOptions.GetDefault(project.LanguageServices);
 #endif
         internal void Apply()
         {

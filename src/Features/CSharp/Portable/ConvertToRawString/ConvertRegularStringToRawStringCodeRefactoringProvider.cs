@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var canBeSingleLine = CanBeSingleLine(characters);
 
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             if (canBeSingleLine)
             {

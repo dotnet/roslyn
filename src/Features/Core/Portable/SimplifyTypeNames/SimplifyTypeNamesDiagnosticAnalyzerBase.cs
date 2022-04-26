@@ -88,15 +88,14 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-        public bool OpenFileOnly(OptionSet options)
+        public bool OpenFileOnly(SimplifierOptions? options)
         {
-            var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
-            var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
+            // analyzer is only active in C# and VB projects
+            Contract.ThrowIfNull(options);
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
+            return
+                !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                  options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
         public sealed override void Initialize(AnalysisContext context)
