@@ -1028,8 +1028,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Prefer_UTF8_string_literals">
-        <source>Prefer UTF8 string literals</source>
-        <target state="new">Prefer UTF8 string literals</target>
+        <source>Prefer UTF-8 string literals</source>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
