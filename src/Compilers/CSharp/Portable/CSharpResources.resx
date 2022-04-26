@@ -7124,4 +7124,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
     <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
   </data>
+  <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
+    <value>unsigned right shift</value>
+  </data>
 </root>

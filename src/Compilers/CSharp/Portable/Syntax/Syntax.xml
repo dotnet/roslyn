@@ -686,6 +686,7 @@
     <Kind Name="ModuloExpression"/>
     <Kind Name="LeftShiftExpression"/>
     <Kind Name="RightShiftExpression"/>
+    <Kind Name="UnsignedRightShiftExpression"/>
     <Kind Name="LogicalOrExpression"/>
     <Kind Name="LogicalAndExpression"/>
     <Kind Name="BitwiseOrExpression"/>
@@ -713,6 +714,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarBarToken"/>
       <Kind Name="AmpersandAmpersandToken"/>
       <Kind Name="BarToken"/>
@@ -755,6 +757,7 @@
       <Kind Name="OrAssignmentExpression"/>
       <Kind Name="LeftShiftAssignmentExpression"/>
       <Kind Name="RightShiftAssignmentExpression"/>
+      <Kind Name="UnsignedRightShiftAssignmentExpression"/>
       <Kind Name="CoalesceAssignmentExpression" />
       <Field Name="Left" Type="ExpressionSyntax">
         <PropertyComment>
@@ -773,6 +776,7 @@
         <Kind Name="BarEqualsToken"/>
         <Kind Name="LessThanLessThanEqualsToken"/>
         <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <Kind Name="GreaterThanGreaterThanGreaterThanEqualsToken"/>
         <Kind Name="QuestionQuestionEqualsToken" />
         <PropertyComment>
           <summary>SyntaxToken representing the operator of the assignment expression.</summary>
@@ -3823,6 +3827,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="CaretToken"/>
@@ -4375,6 +4380,7 @@
       <Kind Name="PercentToken"/>
       <Kind Name="LessThanLessThanToken"/>
       <Kind Name="GreaterThanGreaterThanToken"/>
+      <Kind Name="GreaterThanGreaterThanGreaterThanToken"/>
       <Kind Name="BarToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="CaretToken"/>

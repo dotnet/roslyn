@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             var updatedDocument = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
                 var options = new AddMissingImportsOptions(
                     CleanupOptions: cleanupOptions,
