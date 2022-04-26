@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (T)option.DefaultValue!;
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option2<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-            => GetOption<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
-
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption2<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             => GetOption<T>(analyzerOptions, (IOption2)option, language, syntaxTree, cancellationToken);
 

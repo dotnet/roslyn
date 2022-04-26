@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        cancellationToken => GetTransformedDocumentAsync(context.Document, cancellationToken),
+                        cancellationToken => GetTransformedDocumentAsync(context.Document, context.GetOptionsProvider(), cancellationToken),
                         nameof(AbstractFileHeaderCodeFixProvider)),
                     diagnostic);
             }
@@ -42,21 +42,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return Task.CompletedTask;
         }
 
-        private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
-            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
+        private async Task<Document> GetTransformedDocumentAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false));
 
-        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
-#else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-
-            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
+            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var newLineTrivia = generator.EndOfLine(newLine);
+            var newLineTrivia = generator.EndOfLine(options.NewLine);
 
             return await GetTransformedSyntaxRootAsync(generator.SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken).ConfigureAwait(false);
         }
@@ -238,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 if (diagnostics.IsEmpty)
                     return null;
 
-                return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
+                return await this.GetTransformedDocumentAsync(document, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false);
             });
     }
 }

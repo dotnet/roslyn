@@ -21,26 +21,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.NameColon, SyntaxKind.NameEquals);
 
-        protected override void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected override void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             switch (context.Node.Kind())
             {
                 case SyntaxKind.NameColon:
-                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context, syntaxTree);
+                    ReportDiagnosticsIfNeeded((NameColonSyntax)context.Node, context);
                     break;
                 case SyntaxKind.NameEquals:
-                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context, syntaxTree);
+                    ReportDiagnosticsIfNeeded((NameEqualsSyntax)context.Node, context);
                     break;
             }
         }
 
-        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameColonSyntax nameColon, SyntaxNodeAnalysisContext context)
         {
             if (!nameColon.Parent.IsKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
             {
                 return;
             }
 
+            var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
             if (!preference.Value ||
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
-        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree)
+        private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
         {
             if (!nameEquals.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonCtor))
             {
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     nameEquals.GetLocation(),
                     preference.Notification.Severity,
                     additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
+                    additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
         }
     }
 }
