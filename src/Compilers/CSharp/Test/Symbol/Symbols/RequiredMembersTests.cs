@@ -4069,9 +4069,9 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (1,1): error CS0310: 'C' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // (1,1): error CS9511: 'C' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'C' has required members.
             // M<C>();
-            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<C>").WithArguments("M<T>()", "T", "C").WithLocation(1, 1)
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<C>").WithArguments("M<T>()", "T", "C").WithLocation(1, 1)
         );
     }
 
@@ -4100,9 +4100,9 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
         comp.VerifyDiagnostics(
-            // (1,1): error CS0310: 'Derived' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // (1,1): error CS9511: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
             // M<Derived>();
-            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
         );
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
@@ -4110,9 +4110,9 @@ public class Derived : Base
 
         comp = CreateCompilation(code, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): error CS0310: 'Derived' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // (1,1): error CS9511: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
             // M<Derived>();
-            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+            Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
         );
     }
 

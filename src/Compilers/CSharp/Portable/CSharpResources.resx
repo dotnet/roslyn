@@ -7124,4 +7124,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
     <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
   </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
 </root>

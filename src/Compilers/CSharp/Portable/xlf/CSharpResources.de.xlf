@@ -922,6 +922,11 @@
         <target state="translated">Die new()-Einschränkung kann nicht mit der unmanaged-Einschränkung verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="new">'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
         <target state="translated">Zeilenumbrüche innerhalb einer nicht ausführlichen interpolierten Zeichenfolge werden in C#-{0} nicht unterstützt. Verwenden Sie die Sprachversion {1} oder höher.</target>

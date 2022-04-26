@@ -2086,5 +2086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RequiredMembersInvalid = 9508,
         ERR_RequiredMembersBaseTypeInvalid = 9509,
         ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9510,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9511,
     }
 }

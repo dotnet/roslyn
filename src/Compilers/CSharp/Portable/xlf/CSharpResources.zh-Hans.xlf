@@ -922,6 +922,11 @@
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="new">'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
         <target state="translated">C# {0}不支持非逐字内插字符串内的换行符。请使用语言版本 {1} 或更高版本。</target>
