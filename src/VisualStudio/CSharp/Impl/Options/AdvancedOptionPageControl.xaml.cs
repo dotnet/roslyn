@@ -84,9 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
 
             BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
-            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsOnFileOpen, LanguageNames.CSharp);
-            BindToOption(Collapse_usings_on_file_open, BlockStructureOptionsStorage.CollapseUsingsOnFileOpen, LanguageNames.CSharp);
-            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, LanguageNames.CSharp);
+            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_usings_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);

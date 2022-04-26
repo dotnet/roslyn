@@ -169,7 +169,7 @@ using System.Core;|}|}";
 
             var options = GetDefaultOptions() with
             {
-                CollapseUsingsOnFileOpen = collapseUsingsByDefault
+                CollapseImportsWhenFirstOpened = collapseUsingsByDefault
             };
 
             await VerifyBlockSpansAsync(code, options,

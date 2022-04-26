@@ -243,8 +243,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_on_file_open">
-        <source>Collapse implementations from metadata on file open</source>
-        <target state="new">Collapse implementations from metadata on file open</target>
+        <source>Collapse metadata implementations on file open</source>
+        <target state="new">Collapse metadata implementations on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">

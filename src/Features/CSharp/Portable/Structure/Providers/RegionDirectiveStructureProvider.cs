@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: autoCollapse,
-                    isDefaultCollapsed: options.CollapseRegionsOnFileOpen));
+                    isDefaultCollapsed: options.CollapseRegionsWhenFirstOpened));
             }
         }
     }

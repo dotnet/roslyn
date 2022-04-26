@@ -88,9 +88,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Outlining
             BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
-            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsOnFileOpen, LanguageNames.VisualBasic)
-            BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseUsingsOnFileOpen, LanguageNames.VisualBasic)
-            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, LanguageNames.VisualBasic)
+            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)

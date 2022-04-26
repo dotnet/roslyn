@@ -19,9 +19,9 @@ internal static class BlockStructureOptionsStorage
             ShowOutliningForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
             ShowOutliningForDeclarationLevelConstructs: globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
             ShowOutliningForCodeLevelConstructs: globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
-            CollapseRegionsOnFileOpen: globalOptions.GetOption(CollapseRegionsOnFileOpen, language),
-            CollapseUsingsOnFileOpen: globalOptions.GetOption(CollapseUsingsOnFileOpen, language),
-            CollapseImplementationsFromMetadataOnFileOpen: globalOptions.GetOption(CollapseImplementationsFromMetadataOnFileOpen, language),
+            CollapseRegionsWhenFirstOpened: globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
+            CollapseImportsWhenFirstOpened: globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
+            CollapseMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseMetadataImplementationsWhenFirstOpened, language),
             CollapseRegionsWhenCollapsingToDefinitions: globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
             MaximumBannerLength: globalOptions.GetOption(MaximumBannerLength, language),
             IsMetadataAsSource: isMetadataAsSource);
@@ -52,17 +52,17 @@ internal static class BlockStructureOptionsStorage
         FeatureName, "ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCodeLevelConstructs"));
 
-    public static readonly PerLanguageOption2<bool> CollapseRegionsOnFileOpen = new(
-        FeatureName, "CollapseRegionsOnFileOpen", BlockStructureOptions.Default.CollapseRegionsOnFileOpen,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseRegionsOnFileOpen"));
+    public static readonly PerLanguageOption2<bool> CollapseRegionsWhenFirstOpened = new(
+        FeatureName, "CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenFirstOpened"));
 
-    public static readonly PerLanguageOption2<bool> CollapseUsingsOnFileOpen = new(
-        FeatureName, "CollapseUsingsOnFileOpen", BlockStructureOptions.Default.CollapseUsingsOnFileOpen,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseUsingsOnFileOpen"));
+    public static readonly PerLanguageOption2<bool> CollapseImportsWhenFirstOpened = new(
+        FeatureName, "CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened"));
 
-    public static readonly PerLanguageOption2<bool> CollapseImplementationsFromMetadataOnFileOpen = new(
-        FeatureName, "CollapseImplementationsFromMetadataOnFileOpen", BlockStructureOptions.Default.CollapseImplementationsFromMetadataOnFileOpen,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseImplementationsFromMetadataOnFileOpen"));
+    public static readonly PerLanguageOption2<bool> CollapseMetadataImplementationsWhenFirstOpened = new(
+        FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
         FeatureName, "CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions,

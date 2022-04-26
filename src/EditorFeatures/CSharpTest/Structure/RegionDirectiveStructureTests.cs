@@ -76,7 +76,7 @@ namespace BasicGenerateFromUsage
 
         [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsOnFileOpen)
+        public async Task RegionsShouldBeCollapsedByDefault(bool CollapseRegionsWhenFirstOpened)
         {
             const string code = @"
 class C
@@ -90,11 +90,11 @@ class C
 
             var options = GetDefaultOptions() with
             {
-                CollapseRegionsOnFileOpen = collapseRegionsOnFileOpen
+                CollapseRegionsWhenFirstOpened = CollapseRegionsWhenFirstOpened
             };
 
             await VerifyBlockSpansAsync(code, options,
-                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsOnFileOpen));
+                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: CollapseRegionsWhenFirstOpened));
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]

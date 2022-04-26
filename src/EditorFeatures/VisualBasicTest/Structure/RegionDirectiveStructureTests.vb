@@ -41,7 +41,7 @@ $$#Region ""Goo""
 #End Region|}
 "
 
-            Dim options = New BlockStructureOptions(CollapseRegionsOnFileOpen:=collapseRegionsByDefault)
+            Dim options = New BlockStructureOptions(CollapseRegionsWhenFirstOpened:=collapseRegionsByDefault)
 
             Await VerifyBlockSpansAsync(code, options,
                 Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=collapseRegionsByDefault))

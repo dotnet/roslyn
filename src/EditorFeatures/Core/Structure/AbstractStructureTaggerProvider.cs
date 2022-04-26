@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
             if (openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource &&
-                GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, openDocument.Project.Language))
+                GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, openDocument.Project.Language))
             {
                 return true;
             }
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // If the user wants to collapse usings or #regions then we need to compute
             // synchronously, but only if there are usings or #regions in the file. To
             // save some work, we'll look for both in a single pass.
-            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsOnFileOpen, openDocument.Project.Language);
-            var collapseUsings = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseUsingsOnFileOpen, openDocument.Project.Language);
+            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
+            var collapseUsings = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
 
             if (!collapseRegions && !collapseUsings)
             {

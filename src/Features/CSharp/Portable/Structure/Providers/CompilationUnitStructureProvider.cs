@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 autoCollapse: true,
                 type: BlockTypes.Imports,
                 isCollapsible: true,
-                isDefaultCollapsed: options.CollapseUsingsOnFileOpen));
+                isDefaultCollapsed: options.CollapseImportsWhenFirstOpened));
 
             if (compilationUnit.Usings.Count > 0 ||
                 compilationUnit.Externs.Count > 0 ||

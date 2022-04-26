@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // If the file is metadata as source, and the user has the preference set to collapse them, then
             // always collapse all metadata as source
             var collapseAllImplementations = isOpenMetadataAsSource &&
-                workspace.Options.GetOption<bool>(BlockStructureOptionsStorage.CollapseImplementationsFromMetadataOnFileOpen, openDocument.Project.Language);
+                workspace.Options.GetOption<bool>(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, openDocument.Project.Language);
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, collapseAllImplementations);
 
