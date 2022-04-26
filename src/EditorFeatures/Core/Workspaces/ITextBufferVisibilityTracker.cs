@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             {
                 // Listen to when the active document changed so that we startup work on a document once it becomes visible.
                 var delayTask = asyncListener.Delay(DelayTimeSpan.NonFocus, cancellationToken);
-                
+
                 // ConfigureAwait(true) so that we come back to the UI thread when done.  This is needed as 
                 // UnregisterForVisibilityChanges (in our finally block) runs on the UI thread.
                 await Task.WhenAny(delayTask, visibilityChangedTaskSource.Task).ConfigureAwait(true);
