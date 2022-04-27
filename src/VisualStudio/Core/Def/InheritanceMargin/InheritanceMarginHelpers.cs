@@ -104,10 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 foreach (var target in targets)
                     nameToTargets.Add(target.DisplayName, target);
 
-                return targets.OrderBy(target => target.DisplayName)
-                    .GroupBy(target => target.RelationToMember)
-                    .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping, nameToTargets))
-                    .ToImmutableArray();
+                return targets.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageName).ThenBy(t => t.ProjectName ?? "")
+                              .GroupBy(t => t.RelationToMember)
+                              .SelectMany(g => CreateMenuItemsWithHeader(g.Key, g, nameToTargets))
+                              .ToImmutableArray();
             }
             finally
             {
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IEnumerable<InheritanceTargetItem> targets,
             MultiDictionary<string, InheritanceTargetItem> nameToTargets)
         {
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
             {
                 InheritanceRelationship.ImplementedInterface => ServicesVSResources.Implemented_interfaces,
@@ -169,14 +169,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     if (distinctLanguageCount == targetsWithSameName.Count)
                     {
                         builder.Add(TargetMenuItemViewModel.Create(
-                            target, string.Format(FeaturesResources._0_1, target.DisplayName, target.LanguageName)));
+                            target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.LanguageName)));
                         continue;
                     }
 
                     if (target.ProjectName != null)
                     {
                         builder.Add(TargetMenuItemViewModel.Create(
-                            target, string.Format(FeaturesResources._0_1, target.DisplayName, target.ProjectName)));
+                            target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName)));
                         continue;
                     }
                 }

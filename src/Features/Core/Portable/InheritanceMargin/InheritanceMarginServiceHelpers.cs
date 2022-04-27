@@ -367,8 +367,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
-            var projectName = definition.SourceSpans.Length > 0
-                ? definition.SourceSpans[0].Document.Project.State.NameAndFlavor.name
+            var projectState = definition.SourceSpans.Length > 0
+                ? definition.SourceSpans[0].Document.Project.State
                 : null;
 
             return new SerializableInheritanceTargetItem(
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 targetSymbol.GetGlyph(),
                 displayName,
                 targetSymbol.Language,
-                projectName);
+                projectState?.NameAndFlavor.name ?? projectState?.Name);
         }
 
         private static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(
