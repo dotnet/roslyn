@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -21,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries = new(new CancellationSeries());
 
-        public event Action? OnCompilationAvailable;
-
         public CompilationAvailableEventSource(
             IAsynchronousOperationListener asyncListener)
         {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void Dispose()
             => _cancellationSeries.Dispose();
 
-        public void EnsureCompilationAvailability(Project project)
+        public void EnsureCompilationAvailability(Project project, Func<CancellationToken, ValueTask> onCompilationAvailable)
         {
             if (project == null)
                 return;
@@ -81,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     await CompilationAvailableHelpers.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);
                 }
 
-                // now that we know we have an full compilation, retrigger the tagger so it can show accurate results with the 
-                // full information about this project.
-                this.OnCompilationAvailable?.Invoke();
+                // now that we know we have an full compilation, let the caller know so it can do whatever it needs in
+                // response.
+                await onCompilationAvailable(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
             task.CompletesAsyncOperation(token);
         }

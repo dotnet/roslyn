@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Host;
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         private readonly CompilationAvailableEventSource _eventSource;
 
+        private readonly Func<CancellationToken, ValueTask> _onCompilationAvailable;
+
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
             IAsynchronousOperationListener asyncListener,
@@ -47,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             _subjectBuffer = subjectBuffer;
             _eventSource = new CompilationAvailableEventSource(asyncListener);
             _underlyingSource = TaggerEventSources.Compose(eventSources);
+            _onCompilationAvailable = _ =>
+            {
+                this.Changed?.Invoke(this, new TaggerEventArgs());
+                return ValueTaskFactory.CompletedTask;
+            };
         }
 
         public event EventHandler<TaggerEventArgs>? Changed;
@@ -56,12 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // When we are connected to, connect to all our underlying sources and have them notify us when they've changed.
             _underlyingSource.Connect();
             _underlyingSource.Changed += OnUnderlyingSourceChanged;
-            _eventSource.OnCompilationAvailable += OnCompilationAvailable;
         }
 
         public void Disconnect()
         {
-            _eventSource.OnCompilationAvailable -= OnCompilationAvailable;
             _underlyingSource.Changed -= OnUnderlyingSourceChanged;
             _underlyingSource.Disconnect();
             _eventSource.Dispose();
@@ -82,10 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             if (document == null)
                 return;
 
-            _eventSource.EnsureCompilationAvailability(document.Project);
+            _eventSource.EnsureCompilationAvailability(document.Project, _onCompilationAvailable);
         }
-
-        private void OnCompilationAvailable()
-            => this.Changed?.Invoke(this, new TaggerEventArgs());
     }
 }

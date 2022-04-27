@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,18 +26,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SemanticTokensRangeHandler)), Shared]
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
+    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
+        private readonly object _gate = new();
+        private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = new();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensRangeHandler(IGlobalOptionService globalOptions)
+        public SemanticTokensRangeHandler(
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         {
             _globalOptions = globalOptions;
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
@@ -66,7 +76,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 includeSyntacticClassifications: context.Document.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 
+            lock (_gate)
+            {
+                if (!_projectIdToEventSource.TryGetValue(project.Id, out var eventSource))
+                {
+                    eventSource = new CompilationAvailableEventSource(_asyncListener);
+                    _projectIdToEventSource.Add(project.Id, eventSource);
+
+                    eventSource.OnCompilationAvailable += OnCompilationAvailable;
+                }
+
+                // Kick off work to have this project be sync'ed over to OOP so it's ready in the future for an upcoming 
+                eventSource.EnsureCompilationAvailability(project);
+            }
+
             return new LSP.SemanticTokens { Data = tokensData };
+        }
+
+        private void OnCompilationAvailable()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            ImmutableArray<CompilationAvailableEventSource> eventSources;
+            lock (_gate)
+            {
+                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
+                _projectIdToEventSource.Clear();
+            }
+
+            foreach (var eventSource in eventSources)
+            {
+                eventSource.OnCompilationAvailable -= OnCompilationAvailable;
+                eventSource.Dispose();
+            }
         }
     }
 }
