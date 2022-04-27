@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void Dispose()
             => _cancellationSeries.Dispose();
 
-        public void EnsureCompilationAvailability(Project project, Func<CancellationToken, ValueTask> onCompilationAvailable)
+        public void EnsureCompilationAvailability(Project project, Func<Project, CancellationToken, ValueTask> onCompilationAvailable)
         {
             if (project == null)
                 return;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 // now that we know we have an full compilation, let the caller know so it can do whatever it needs in
                 // response.
-                await onCompilationAvailable(cancellationToken).ConfigureAwait(false);
+                await onCompilationAvailable(project, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
             task.CompletesAsyncOperation(token);
         }

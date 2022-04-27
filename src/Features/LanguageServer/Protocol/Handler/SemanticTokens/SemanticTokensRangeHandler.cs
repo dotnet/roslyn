@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -36,6 +37,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private readonly object _gate = new();
         private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = new();
+        private readonly Dictionary<ProjectId, Checksum> _projectIdLastComputedSolutionChecksum = new();
+
+        // initialized when first request comes in.
+
+        /// <summary>
+        /// Initially null.  Set to true/false when first initialized.  The other related fields will be set if this is true.
+        /// </summary>
+        private bool? _supportsRefresh;
+        private LspWorkspaceManager? _lspWorkspaceManager;
+        private ILanguageServerNotificationManager? _notificationManager;
+        private AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,17 +59,72 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
+        public void Dispose()
+        {
+            ImmutableArray<CompilationAvailableEventSource> eventSources;
+            lock (_gate)
+            {
+                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
+                _projectIdToEventSource.Clear();
+
+                if (_lspWorkspaceManager != null)
+                    _lspWorkspaceManager.LspSolutionChanged -= OnLspSolutionChanged;
+            }
+
+            foreach (var eventSource in eventSources)
+                eventSource.Dispose();
+        }
+
+        [MemberNotNull(nameof(_supportsRefresh))]
+        private void InitializeIfFirstRequest(RequestContext context)
+        {
+            lock (_gate)
+            {
+                if (_supportsRefresh == null)
+                {
+                    _supportsRefresh = context.ClientCapabilities.Workspace?.SemanticTokens.RefreshSupport is true;
+
+                    if (_supportsRefresh.Value)
+                    {
+                        _lspWorkspaceManager = context.LspWorkspaceManager;
+                        _notificationManager = context.NotificationManager;
+
+                        // Only send a refresh notification to the client every 2s (if needed)
+                        // in order to avoid sending too many notifications at once.
+                        _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
+                            delay: TimeSpan.FromMilliseconds(2000),
+                            processBatchAsync: SendSemanticTokensNotificationAsync,
+                            asyncListener: _asyncListener,
+                            context.QueueCancellationToken);
+
+                        _lspWorkspaceManager.LspSolutionChanged += OnLspSolutionChanged;
+                    }
+                }
+            }
+        }
+
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;
         }
 
+        private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+            => _semanticTokenRefreshQueue?.AddWork();
+
+        // TO-DO: Replace hardcoded string with const once LSP side is merged.
+        public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
+            => _notificationManager!.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
-            LSP.SemanticTokensRangeParams request,
+            SemanticTokensRangeParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
+            // If this is the first time getting a request, initialize our state with information about the
+            // server/manager we're owned by.
+            InitializeIfFirstRequest(context);
+
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
@@ -76,42 +143,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 includeSyntacticClassifications: context.Document.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 
-            lock (_gate)
+            // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
+            // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
+            // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
+            // solution snapshot.
+            if (_supportsRefresh.Value)
             {
-                if (!_projectIdToEventSource.TryGetValue(project.Id, out var eventSource))
+                lock (_gate)
                 {
-                    eventSource = new CompilationAvailableEventSource(_asyncListener);
-                    _projectIdToEventSource.Add(project.Id, eventSource);
+                    if (!_projectIdToEventSource.TryGetValue(project.Id, out var eventSource))
+                    {
+                        eventSource = new CompilationAvailableEventSource(_asyncListener);
+                        _projectIdToEventSource.Add(project.Id, eventSource);
+                    }
 
-                    eventSource.OnCompilationAvailable += OnCompilationAvailable;
+                    // Kick off work to have this project be sync'ed over to OOP so it's ready in the future for an upcoming 
+                    eventSource.EnsureCompilationAvailability(project, OnCompilationAvailableAsync);
                 }
-
-                // Kick off work to have this project be sync'ed over to OOP so it's ready in the future for an upcoming 
-                eventSource.EnsureCompilationAvailability(project);
             }
 
             return new LSP.SemanticTokens { Data = tokensData };
         }
 
-        private void OnCompilationAvailable()
+        private async ValueTask OnCompilationAvailableAsync(Project project, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            ImmutableArray<CompilationAvailableEventSource> eventSources;
+            var solutionChecksum = await project.Solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             lock (_gate)
             {
-                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
-                _projectIdToEventSource.Clear();
+                if (_projectIdLastComputedSolutionChecksum.TryGetValue(project.Id, out var lastComputedChecksum) &&
+                    lastComputedChecksum == solutionChecksum)
+                {
+                    // We got a notification again that the compilation is ready for a project we already notified the
+                    // client about.  No need to do anything here.
+                    return;
+                }
+
+                // keep track of this checksum.  That way we don't get into a loop where we send a refresh notification,
+                // then we get called back into, causing us to compute the compilation, causing us to send the refresh
+                // notification, etc. etc.
+                _projectIdLastComputedSolutionChecksum[project.Id] = solutionChecksum;
             }
 
-            foreach (var eventSource in eventSources)
-            {
-                eventSource.OnCompilationAvailable -= OnCompilationAvailable;
-                eventSource.Dispose();
-            }
+            // Enqueue an item to notify the client that they should do a refresh.
+            _semanticTokenRefreshQueue?.AddWork();
         }
     }
 }
