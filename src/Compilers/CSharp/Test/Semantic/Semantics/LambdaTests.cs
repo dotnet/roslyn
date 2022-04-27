@@ -6373,42 +6373,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
         }
 
-        [Fact]
-        public void ParameterScope_NotInMethodAttributeNameOf()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    void M()
-    {
-
-        var _ =
-            [My(nameof(parameter))] // 1
-            void(int parameter) => { };
-    }
-
-    [My(nameof(parameter))] // 2
-    void M2(int parameter) { }
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-");
-            comp.VerifyDiagnostics(
-                // (8,24): error CS0103: The name 'parameter' does not exist in the current context
-                //             [My(nameof(parameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 24),
-                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
-                );
-
-            VerifyParameter(comp, 0);
-            VerifyParameter(comp, 1);
-        }
-
         /// <summary>
         /// Look for usages of "parameter" and verify the index-th one.
         /// </summary>
