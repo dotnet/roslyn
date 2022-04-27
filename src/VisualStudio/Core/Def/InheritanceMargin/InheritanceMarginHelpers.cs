@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For multiple members, check if all the targets have the same inheritance relationship.
             // If so, then don't add the header, because it is already indicated by the margin.
             // Otherwise, add the Header.
-            return members.SelectAsArray(m => (MenuItemViewModel)MemberMenuItemViewModel.CreateWithHeaderInTargets(m));
+            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<MenuItemViewModel>();
         }
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
