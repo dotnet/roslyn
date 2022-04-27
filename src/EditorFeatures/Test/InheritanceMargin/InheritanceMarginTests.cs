@@ -110,6 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             if (expectedTarget.LanguageName != null)
                 Assert.Equal(expectedTarget.LanguageName, actualTarget.LanguageName);
 
+            if (expectedTarget.ProjectName != null)
+                Assert.Equal(expectedTarget.ProjectName, actualTarget.ProjectName);
+
             if (expectedTarget.IsInMetadata)
             {
                 Assert.True(actualTarget.DefinitionItem.Properties.ContainsKey("MetadataSymbolKey"));
@@ -200,18 +203,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
             public readonly string? LanguageName;
+            public readonly string? ProjectName;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship,
-                string? languageName = null)
+                string? languageName = null,
+                string? projectName = null)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
                 LanguageName = languageName;
                 InMetadata = false;
+                ProjectName = projectName;
             }
 
             public TargetInfo(
@@ -243,19 +249,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
             public readonly bool IsInMetadata;
             public readonly string? LanguageName;
+            public readonly string? ProjectName;
 
             public TestInheritanceTargetItem(
                 string targetSymbolName,
                 InheritanceRelationship relationshipToMember,
                 ImmutableArray<DocumentSpan> documentSpans,
                 bool isInMetadata,
-                string? languageName)
+                string? languageName,
+                string? projectName)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
                 IsInMetadata = isInMetadata;
                 LanguageName = languageName;
+                ProjectName = projectName;
             }
 
             public static TestInheritanceTargetItem Create(
@@ -269,7 +278,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         ImmutableArray<DocumentSpan>.Empty,
                         isInMetadata: true,
-                        targetInfo.LanguageName);
+                        targetInfo.LanguageName,
+                        targetInfo.ProjectName);
                 }
                 else
                 {
@@ -298,7 +308,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         builder.ToImmutable(),
                         isInMetadata: false,
-                        targetInfo.LanguageName);
+                        targetInfo.LanguageName,
+                        targetInfo.ProjectName);
                 }
             }
         }
@@ -2017,12 +2028,14 @@ public partial class {|target3:Bar|}
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp),
+                        languageName: LanguageNames.CSharp,
+                        projectName: "Assembly1"),
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.VisualBasic)));
+                        languageName: LanguageNames.VisualBasic,
+                        projectName: "Assembly2")));
 
             var itemForBarInMarkup2 = new TestInheritanceMemberItem(
                 lineNumber: 6,
@@ -2035,6 +2048,68 @@ public partial class {|target3:Bar|}
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
+                new[] { itemForBarInMarkup1 },
+                new[] { itemForIBar, itemForBarInMarkup2 });
+        }
+
+        [Fact]
+        public Task TestSameNameSymbolInSameLanguageProjects()
+        {
+            var markup1 = @"
+        using MyNamespace;
+        namespace BarNs
+        {
+            public class {|target1:Bar|} : IBar
+            {
+            }
+        }";
+
+            var markup2 = @"
+        namespace MyNamespace {
+            public interface {|target2:IBar|}
+            {}
+
+            public class {|target3:Bar|}
+                : IBar
+            {}
+        }";
+
+            var itemForBarInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "interface IBar",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageName: LanguageNames.CSharp,
+                        projectName: "Assembly1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageName: LanguageNames.CSharp,
+                        projectName: "Assembly2")));
+
+            var itemForBarInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.CSharp),
+                (markup2, LanguageNames.CSharp),
                 new[] { itemForBarInMarkup1 },
                 new[] { itemForIBar, itemForBarInMarkup2 });
         }
