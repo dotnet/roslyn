@@ -38,13 +38,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            if (expression is MemberAccessExpressionSyntax memberAccessExpression &&
-                MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, options, out var thisExpression, out _, cancellationToken))
+            replacementNode = null;
+            issueSpan = default;
+
+            if (expression is MemberAccessExpressionSyntax memberAccessExpression)
             {
-                replacementNode = memberAccessExpression.GetNameWithTriviaMoved();
-                issueSpan = thisExpression.Span;
-                return true;
+                if (MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
+                        memberAccessExpression, semanticModel, options, out var thisExpression, out _, cancellationToken))
+                {
+                    replacementNode = memberAccessExpression.GetNameWithTriviaMoved();
+                    issueSpan = thisExpression.Span;
+                    return true;
+                }
+
+                // this.X simplification handled above.
+                if (memberAccessExpression.Expression.IsKind(SyntaxKind.ThisExpression))
+                    return false;
             }
 
             if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, options, cancellationToken))
@@ -116,12 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (symbol == null)
                 return false;
 
-            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(options, symbol))
-            {
-                return false;
-            }
-
             // if this node is on the left side, we could simplify to aliases
             if (!memberAccess.IsRightSideOfDot())
             {
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Try to eliminate cases without actually calling CanReplaceWithReducedName. For expressions of the form
             // 'this.Name' or 'base.Name', no additional check here is required.
-            if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
+            if (!memberAccess.Expression.IsKind(SyntaxKind.BaseExpression))
             {
                 GetReplacementCandidates(
                     semanticModel,
@@ -306,10 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            if (!IsThisOrTypeOrNamespace(memberAccess, semanticModel))
-            {
+            if (!IsTypeOrNamespace(memberAccess, semanticModel))
                 return false;
-            }
 
             var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, memberAccess.Name, semanticModel, cancellationToken);
             if (!speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() ||
@@ -460,26 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool IsThisOrTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private static bool IsTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
         {
-            if (memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
-            {
-                var previousToken = memberAccess.Expression.GetFirstToken().GetPreviousToken();
-
-                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
-
-                if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
-                    previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
-                    !parenExpr.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
-                    parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
-                    symbol != null && symbol.Kind == SymbolKind.Method)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
             var expressionInfo = semanticModel.GetSymbolInfo(memberAccess.Expression);
             if (SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol))
             {
