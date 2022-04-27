@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
@@ -13,6 +14,11 @@ internal static class CSharpSimplifierOptionsFactory
         var configOptions = options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
         var ideOptions = options.GetIdeOptions();
 
-        return CSharpSimplifierOptions.Create(configOptions, (CSharpSimplifierOptions?)ideOptions.SimplifierOptions);
+#if CODE_STYLE
+        var fallbackOptions = (CSharpSimplifierOptions?)null;
+#else
+        var fallbackOptions = (CSharpSimplifierOptions?)ideOptions.CleanupOptions?.SimplifierOptions;
+#endif
+        return CSharpSimplifierOptions.Create(configOptions, fallbackOptions);
     }
 }
