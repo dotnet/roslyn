@@ -45,6 +45,25 @@ Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
 currently scoped down to users of LangVer=preview.  
 Tracked by https://github.com/dotnet/roslyn/issues/60640
 
+## Unsigned right shift operator
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+The language added support for an "Unsigned Right Shift" operator (`>>>`).
+This disables the ability to consume methods implementing user-defined "Unsigned Right Shift" operators
+as regular methods.
+ 
+For example, there is an existing library developed in some language (other than VB or C#)
+that exposes an "Unsigned Right Shift" user-defined operator for type ```C1```.
+The following code used to compile successfully before:
+``` C#
+static C1 Test1(C1 x, int y) => C1.op_UnsignedRightShift(x, y); //error CS0571: 'C1.operator >>>(C1, int)': cannot explicitly call operator or accessor
+``` 
+
+A possible workaround is to switch to using `>>>` operator:
+``` C#
+static C1 Test1(C1 x, int y) => x >>> y;
+``` 
+
 ## UTF8 String Literal conversion
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***

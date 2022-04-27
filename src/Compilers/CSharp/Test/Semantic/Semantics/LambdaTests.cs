@@ -6310,6 +6310,105 @@ class A : Attribute { }
                 );
         }
 
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'ref' is a keyword
+                //         Action<int> a = ref => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8171: Cannot initialize a by-value variable with a reference
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "a = ref int => { }").WithLocation(6, 21),
+                // (6,29): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+
+        var _ =
+            [My(nameof(parameter))] // 1
+            void(int parameter) => { };
+    }
+
+    [My(nameof(parameter))] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0103: The name 'parameter' does not exist in the current context
+                //             [My(nameof(parameter))] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 24),
+                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(nameof(parameter))] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
         /// <summary>
         /// Look for usages of "parameter" and verify the index-th one.
         /// </summary>

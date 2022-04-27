@@ -1286,7 +1286,9 @@ End Namespace
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ExtractInterfaceCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext))
+                Dim handler = New ExtractInterfaceCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GlobalOptions)
 
                 Dim state = handler.GetCommandState(New ExtractInterfaceCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

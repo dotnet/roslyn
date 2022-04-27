@@ -37,9 +37,21 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
 
+    # Let packageFeeds default to the default set of feeds
+    $packageFees = $publishData.packageFeeds
+    if (!$packageFeeds) {
+      $packageFeeds = "default"
+    }
+
+    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
+    if ($packageFeeds.equals("arcade")) {
+      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
+      continue
+    }
+
     # Each branch stores the name of the package to feed map it should use.
     # Retrieve the correct map for this particular branch.
-    $packagesData = GetPackagesPublishData $publishData.packageFeeds
+    $packagesData = GetPackagesPublishData $packageFeeds
 
     foreach ($package in Get-ChildItem *.nupkg) {
       $nupkg = Split-Path -Leaf $package

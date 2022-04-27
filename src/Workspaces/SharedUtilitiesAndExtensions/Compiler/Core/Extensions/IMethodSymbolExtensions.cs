@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 WellKnownMemberNames.ModulusOperatorName => PredefinedOperator.Modulus,
                 WellKnownMemberNames.MultiplyOperatorName or WellKnownMemberNames.CheckedMultiplyOperatorName => PredefinedOperator.Multiplication,
                 WellKnownMemberNames.RightShiftOperatorName => PredefinedOperator.RightShift,
+                WellKnownMemberNames.UnsignedRightShiftOperatorName => PredefinedOperator.UnsignedRightShift,
                 WellKnownMemberNames.SubtractionOperatorName or WellKnownMemberNames.CheckedSubtractionOperatorName or WellKnownMemberNames.UnaryNegationOperatorName or WellKnownMemberNames.CheckedUnaryNegationOperatorName => PredefinedOperator.Subtraction,
                 _ => PredefinedOperator.None,
             };

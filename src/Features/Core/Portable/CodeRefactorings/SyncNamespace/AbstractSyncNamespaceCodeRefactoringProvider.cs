@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     state.TargetNamespace.Length == 0
                         ? FeaturesResources.Change_to_global_namespace
                         : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
-                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, ChangeNamespaceOptions.CreateProvider(context.Options), token));
+                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, CodeCleanupOptions.CreateProvider(context.Options), token));
 
                 context.RegisterRefactoring(solutionChangeAction, textSpan);
             }
