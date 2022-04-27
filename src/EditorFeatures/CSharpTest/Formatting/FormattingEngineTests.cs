@@ -420,7 +420,7 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var options = CSharpSyntaxFormattingOptions.Default;
             var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }

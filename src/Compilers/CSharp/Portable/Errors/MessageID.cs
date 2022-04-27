@@ -252,8 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUTF8StringLiterals = MessageBase + 12822,
 
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
+        IDS_FeatureExtendedNameofScope = MessageBase + 12824,
 
-        IDS_FeatureFileTypes = MessageBase + 12824, // PROTOTYPE(ft): finalize feature name
+        IDS_FeatureFileTypes = MessageBase + 12850, // PROTOTYPE(ft): pack ID before merge
     }
 
     // Message IDs may refer to strings that need to be localized.

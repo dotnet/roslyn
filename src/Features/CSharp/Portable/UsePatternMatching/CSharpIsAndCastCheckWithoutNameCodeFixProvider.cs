@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Length == 1);
             var location = diagnostics[0].Location;
