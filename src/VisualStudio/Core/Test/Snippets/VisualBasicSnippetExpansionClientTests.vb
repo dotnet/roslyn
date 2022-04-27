@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
@@ -412,14 +413,17 @@ End Class</Test>
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
-                Dim options = New AddImportPlacementOptions(
+                Dim addImportOptions = New AddImportPlacementOptions(
                     PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
                     PlaceImportsInsideNamespaces:=False,
                     AllowInHiddenRegions:=False)
 
+                Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
+
                 Dim updatedDocument = expansionClient.AddImports(
                     document,
-                    options,
+                    addImportOptions,
+                    formattingOptions,
                     If(position, 0),
                     snippetNode,
                     CancellationToken.None)

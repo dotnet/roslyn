@@ -9867,6 +9867,56 @@ class C
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestComparisionOperatorsInPatternMatchingCompletion(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document>
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        Prop is <%= comparisonOperator %> $$
+    }
+}</Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestComparisionOperatorsInPatternMatchingCompletion_01(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document>
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        Prop is > 2 and <%= comparisonOperator %> $$
+    }
+}</Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+            End Using
+        End Function
+
         <ExportCompletionProvider(NameOf(TestProvider), LanguageNames.CSharp)>
         <[Shared]>
         <PartNotDiscoverable>

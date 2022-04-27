@@ -2,41 +2,39 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
+    <DataContract>
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
 
-        Public Sub New(useTabs As Boolean,
-                       tabSize As Integer,
-                       indentationSize As Integer,
-                       newLine As String,
-                       separateImportDirectiveGroups As Boolean)
+        Public Sub New(Optional lineFormatting As LineFormattingOptions = Nothing,
+                       Optional separateImportDirectiveGroups As Boolean = False)
 
-            MyBase.New(useTabs,
-                       tabSize,
-                       indentationSize,
-                       newLine,
+            MyBase.New(lineFormatting,
                        separateImportDirectiveGroups)
         End Sub
 
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions(
-            useTabs:=FormattingOptions2.UseTabs.DefaultValue,
-            tabSize:=FormattingOptions2.TabSize.DefaultValue,
-            indentationSize:=FormattingOptions2.IndentationSize.DefaultValue,
-            newLine:=FormattingOptions2.NewLine.DefaultValue,
+            lineFormatting:=LineFormattingOptions.Default,
             separateImportDirectiveGroups:=GenerationOptions.SeparateImportDirectiveGroups.DefaultValue)
 
-        Public Shared Shadows Function Create(options As AnalyzerConfigOptions) As VisualBasicSyntaxFormattingOptions
+        Public Shared Shadows Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
+            fallbackOptions = If(fallbackOptions, [Default])
+
             Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=options.GetOption(FormattingOptions2.TabSize),
-                indentationSize:=options.GetOption(FormattingOptions2.IndentationSize),
-                newLine:=options.GetOption(FormattingOptions2.NewLine),
-                separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
+                lineFormatting:=LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
+                separateImportDirectiveGroups:=options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups))
+        End Function
+
+        Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
+            Return New VisualBasicSyntaxFormattingOptions(
+                lineFormatting:=lineFormatting,
+                separateImportDirectiveGroups:=SeparateImportDirectiveGroups)
         End Function
     End Class
 End Namespace

@@ -45,12 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
             }
 
-            public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-                return syntaxTree.IsPossibleTupleContext(token, position);
-            }
-
             private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
             {
                 private readonly SyntaxNode _contextNode;

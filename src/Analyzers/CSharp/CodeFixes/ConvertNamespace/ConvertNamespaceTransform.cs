@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     internal static class ConvertNamespaceTransform
     {
-        public static async Task<Document> ConvertAsync(Document document, BaseNamespaceDeclarationSyntax baseNamespace, CancellationToken cancellationToken)
+        public static async Task<Document> ConvertAsync(Document document, BaseNamespaceDeclarationSyntax baseNamespace, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             switch (baseNamespace)
             {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                     return await ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken).ConfigureAwait(false);
 
                 case NamespaceDeclarationSyntax namespaceDeclaration:
-                    var (doc, _) = await ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, cancellationToken).ConfigureAwait(false);
+                    var (doc, _) = await ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, options, cancellationToken).ConfigureAwait(false);
                     return doc;
 
                 default:
@@ -47,12 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             }
         }
 
-        public static async Task<(Document document, TextSpan semicolonSpan)> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
+        public static async Task<(Document document, TextSpan semicolonSpan)> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             // First, determine how much indentation we had inside the original block namespace. We'll attempt to remove
             // that much indentation from each applicable line after we conver the block namespace to a file scoped
             // namespace.
-            var indentation = await GetIndentationAsync(document, namespaceDeclaration, cancellationToken).ConfigureAwait(false);
+
+            var indentation = await GetIndentationAsync(document, namespaceDeclaration, options, cancellationToken).ConfigureAwait(false);
 
             // Next, actually replace the block namespace with the file scoped namespace.
             var annotation = new SyntaxAnnotation();
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return (document.WithSyntaxRoot(updatedRoot), fileScopedNamespace.SemicolonToken.Span);
         }
 
-        private static async Task<string?> GetIndentationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
+        private static async Task<string?> GetIndentationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var indentationService = document.GetRequiredLanguageService<IIndentationService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -87,19 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (openBraceLine == closeBraceLine)
                 return null;
 
-#if CODE_STYLE
-            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(namespaceDeclaration.SyntaxTree!);
-#else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-            var style = options.GetOption(FormattingOptions2.SmartIndent, document.Project.Language);
+            // Auto-formatting options are not relevant since they only control behavior on typing.
+            var indentationOptions = new IndentationOptions(options, AutoFormattingOptions.Default);
 
-            var indentation = indentationService.GetIndentation(document, openBraceLine + 1, (FormattingOptions.IndentStyle)style, cancellationToken);
+            var indentation = indentationService.GetIndentation(document, openBraceLine + 1, indentationOptions, cancellationToken);
 
-            var useTabs = options.GetOption(FormattingOptions2.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions2.TabSize);
-
-            return indentation.GetIndentationString(sourceText, useTabs, tabSize);
+            return indentation.GetIndentationString(sourceText, options.UseTabs, options.TabSize);
         }
 
         private static async Task<(Document document, TextSpan semicolonSpan)> DedentNamespaceAsync(

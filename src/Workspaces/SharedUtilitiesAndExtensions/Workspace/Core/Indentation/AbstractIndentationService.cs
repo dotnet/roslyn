@@ -17,42 +17,36 @@ namespace Microsoft.CodeAnalysis.Indentation
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
         public IndentationResult GetIndentation(
-            Document document, int lineNumber,
-            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+            Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
         {
-            if (indentStyle == FormattingOptions.IndentStyle.None)
+            var indentStyle = options.IndentStyle;
+
+            if (indentStyle == FormattingOptions2.IndentStyle.None)
             {
                 // If there is no indent style, then do nothing.
                 return new IndentationResult(basePosition: 0, offset: 0);
             }
 
-            var indenter = GetIndenter(document, lineNumber, (FormattingOptions2.IndentStyle)indentStyle, cancellationToken);
+            var indenter = GetIndenter(document, lineNumber, options, cancellationToken);
 
-            if (indentStyle == FormattingOptions.IndentStyle.Smart &&
+            if (indentStyle == FormattingOptions2.IndentStyle.Smart &&
                 indenter.TryGetSmartTokenIndentation(out var indentationResult))
             {
                 return indentationResult;
             }
 
             // If the indenter can't produce a valid result, just default to 0 as our indentation.
-            return indenter.GetDesiredIndentation((FormattingOptions2.IndentStyle)indentStyle) ?? default;
+            return indenter.GetDesiredIndentation(indentStyle) ?? default;
         }
 
-        private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions2.IndentStyle indentStyle, CancellationToken cancellationToken)
+        private Indenter GetIndenter(Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
         {
             var syntaxFormatting = this.SyntaxFormatting;
 
 #if CODE_STYLE
             var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             Contract.ThrowIfNull(tree);
-
-            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-            var indentationOptions = new IndentationOptions(
-                syntaxFormatting.GetFormattingOptions(options),
-                new AutoFormattingOptions(FormatOnReturn: true, FormatOnTyping: true, FormatOnSemicolon: true, FormatOnCloseBrace: true),
-                indentStyle);
 #else
-            var indentationOptions = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
 #endif
 
@@ -69,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             var formattingRules = ImmutableArray.Create(
                 baseIndentationRule,
-                this.GetSpecializedIndentationFormattingRule(indentStyle)).AddRange(
+                this.GetSpecializedIndentationFormattingRule(options.IndentStyle)).AddRange(
                 syntaxFormatting.GetDefaultFormattingRules());
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
-                (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, indentationOptions, baseIndentationRule);
-            return new Indenter(this, tree, formattingRules, indentationOptions, lineToBeIndented, smartTokenFormatter, cancellationToken);
+                (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options, baseIndentationRule);
+            return new Indenter(this, tree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
     }
 }

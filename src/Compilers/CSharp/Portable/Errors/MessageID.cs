@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureCheckedUserDefinedOperators = MessageBase + 12821,
         IDS_FeatureUTF8StringLiterals = MessageBase + 12822,
 
-        IDS_FeatureUnsignedRightShift = MessageBase + 12901, // PROTOTYPE(UnsignedRightShift): pack numbers
+        IDS_FeatureUnsignedRightShift = MessageBase + 12823,
 
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12902, // PROTOTYPE(RelaxingShiftOperator): pack numbers
     }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -28,8 +29,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllScope Scope { get; }
         public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
+        // Note: DiagnosticSpan can be null from the back-compat public constructor of FixAllContext.
+        public TextSpan? DiagnosticSpan { get; }
+
         internal FixAllState(
             FixAllProvider? fixAllProvider,
+            TextSpan? diagnosticSpan,
             Document? document,
             Project project,
             CodeFixProvider codeFixProvider,
@@ -41,7 +46,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Debug.Assert(document == null || document.Project == project);
 
+            // We need the trigger diagnostic span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
+            Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
             FixAllProvider = fixAllProvider;
+            DiagnosticSpan = diagnosticSpan;
             Document = document;
             Project = project;
             CodeFixProvider = codeFixProvider;
@@ -83,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return new FixAllState(
                 FixAllProvider,
+                DiagnosticSpan,
                 newDocument,
                 newProject,
                 CodeFixProvider,
@@ -103,10 +113,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerDocument = diagnosticsToFix.First().Key;
+            var diagnosticSpan = diagnosticsToFix.First().Value.FirstOrDefault()?.Location.SourceSpan;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
+                diagnosticSpan,
                 triggerDocument,
                 triggerDocument.Project,
                 codeFixProvider,
@@ -129,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
+                diagnosticSpan: null,
                 document: null,
                 triggerProject,
                 codeFixProvider,

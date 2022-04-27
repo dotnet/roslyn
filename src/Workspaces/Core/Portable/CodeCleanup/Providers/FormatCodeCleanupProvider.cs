@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         public string Name => PredefinedCodeCleanupProviderNames.Format;
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = formatter.GetFormattingResult(root, spans, options, _rules, cancellationToken);
+            var result = formatter.GetFormattingResult(root, spans, options.FormattingOptions, _rules, cancellationToken);
 
             // apply changes to an old text if it already exists
             return document.TryGetText(out var oldText) ?

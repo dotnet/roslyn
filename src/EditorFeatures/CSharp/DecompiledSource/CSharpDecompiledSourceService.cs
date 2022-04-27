@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
         }
 
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
@@ -56,13 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var docCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
-            return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return await FormatDocumentAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var node = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(

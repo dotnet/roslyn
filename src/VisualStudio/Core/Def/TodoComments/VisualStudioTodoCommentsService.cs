@@ -26,13 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
     [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioTodoCommentsService
-        : ForegroundThreadAffinitizedObject,
-          ITodoListProvider,
-          IVsTypeScriptTodoCommentService,
-          IEventListener<object>,
-          IDisposable
+    internal class VisualStudioTodoCommentsService :
+        ITodoListProvider,
+        IVsTypeScriptTodoCommentService,
+        IEventListener<object>,
+        IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
         private readonly TodoCommentsListener _listener;
@@ -42,13 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTodoCommentsService(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
 
@@ -59,12 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
                 {
                     if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
-                    {
-                        TodoListUpdated?.Invoke(
-                            this, new TodoItemsUpdatedArgs(
-                                documentId, _workspace, _workspace.CurrentSolution,
-                                documentId.ProjectId, documentId, newComments));
-                    }
+                        TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(documentId, _workspace.CurrentSolution, documentId, newComments));
                 },
                 threadingContext.DisposalToken);
         }
@@ -77,15 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
+                _ = StartAsync(workspace);
         }
 
-        private async Task StartAsync()
+        private async Task StartAsync(Workspace workspace)
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
+                // Don't bother doing anything until the workspace has actually loaded.  We don't want to add to any
+                // startup costs by doing work too early.
+                var workspaceStatus = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                await workspaceStatus.WaitUntilFullyLoadedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
