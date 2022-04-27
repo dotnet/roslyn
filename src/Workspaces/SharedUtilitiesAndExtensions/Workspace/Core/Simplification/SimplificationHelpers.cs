@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return to;
         }
 
-        internal static ISymbol GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
+        internal static ISymbol? GetOriginalSymbolInfo(SemanticModel semanticModel, SyntaxNode expression)
         {
             Contract.ThrowIfNull(expression);
             var annotation1 = expression.GetAnnotations(SymbolAnnotation.Kind).FirstOrDefault();
@@ -97,10 +96,25 @@ namespace Microsoft.CodeAnalysis.Simplification
             return symbolInfo.Symbol;
         }
 
-        internal static bool IsValidSymbolInfo(ISymbol symbol)
+        public static bool IsValidSymbolInfo([NotNullWhen(true)] ISymbol? symbol)
         {
             // name bound to only one symbol is valid
-            return symbol != null && !symbol.IsErrorType();
+            return symbol is not null and not IErrorTypeSymbol;
+        }
+
+        public static bool IsNamespaceOrTypeOrThisParameter(SyntaxNode expression, SemanticModel semanticModel)
+        {
+            var expressionInfo = semanticModel.GetSymbolInfo(expression);
+            if (IsValidSymbolInfo(expressionInfo.Symbol))
+            {
+                if (expressionInfo.Symbol is INamespaceOrTypeSymbol)
+                    return true;
+
+                if (expressionInfo.Symbol.IsThisParameter())
+                    return true;
+            }
+
+            return false;
         }
 
         internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(SimplifierOptions options, ISymbol symbol)

@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            if (!IsTypeOrNamespace(memberAccess, semanticModel))
+            if (!SimplificationHelpers.IsNamespaceOrTypeOrThisParameter(memberAccess.Expression, semanticModel))
                 return false;
 
             var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, memberAccess.Name, semanticModel, cancellationToken);
@@ -453,25 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             return true;
                         }
                     }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
-        {
-            var expressionInfo = semanticModel.GetSymbolInfo(memberAccess.Expression);
-            if (SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol))
-            {
-                if (expressionInfo.Symbol is INamespaceOrTypeSymbol)
-                {
-                    return true;
-                }
-
-                if (expressionInfo.Symbol.IsThisParameter())
-                {
-                    return true;
                 }
             }
 

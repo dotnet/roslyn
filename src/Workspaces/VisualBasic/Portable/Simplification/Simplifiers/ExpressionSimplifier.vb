@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                               cancellationToken As CancellationToken) As Boolean
 
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
-            If memberAccessExpression?.Expression.Kind() = SyntaxKind.MeExpression Then
+            If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then
                 If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
                     memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
                     Return False
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 semanticModel As SemanticModel,
                 symbol As ISymbol,
                 cancellationToken As CancellationToken) As Boolean
-            If Not IsNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
+            If Not SimplificationHelpers.IsNamespaceOrTypeOrThisParameter(memberAccess.Expression, semanticModel) Then
                 Return False
             End If
 
@@ -320,21 +320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             End If
 
             Return True
-        End Function
-
-        Private Shared Function IsNamedTypeOrNamespace(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            Dim expressionInfo = semanticModel.GetSymbolInfo(expression)
-            If SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol) Then
-                If TypeOf expressionInfo.Symbol Is INamespaceOrTypeSymbol Then
-                    Return True
-                End If
-
-                If expressionInfo.Symbol.IsThisParameter() Then
-                    Return True
-                End If
-            End If
-
-            Return False
         End Function
     End Class
 End Namespace
