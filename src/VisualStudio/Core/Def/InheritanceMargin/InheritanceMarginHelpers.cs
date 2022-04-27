@@ -92,11 +92,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
-            => targets.OrderBy(target => target.DisplayName)
+        public static ImmutableArray<MenuItemViewModel> CreateModelsForTargetItems(ImmutableArray<InheritanceTargetItem> targets)
+        {
+            using var _ = CodeAnalysis.PooledObjects.PooledDictionary<string, int>.GetInstance(out var nameToCount);
+            foreach (var item in targets)
+            {
+                var name = item.DisplayName;
+                nameToCount.TryGetValue(name, out var count);
+                nameToCount[name] = ++count;
+            }
+
+            return targets.OrderBy(target => target.DisplayName)
                 .GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping))
+                .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping, nameToCount))
                 .ToImmutableArray();
+        }
 
         /// <summary>
         /// Create the view models for the inheritance targets of multiple members
@@ -116,12 +126,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For multiple members, check if all the targets have the same inheritance relationship.
             // If so, then don't add the header, because it is already indicated by the margin.
             // Otherwise, add the Header.
-            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<MenuItemViewModel>();
+            return members.SelectAsArray(m => (MenuItemViewModel)MemberMenuItemViewModel.CreateWithHeaderInTargets(m));
         }
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
             InheritanceRelationship relationship,
-            IEnumerable<InheritanceTargetItem> targets)
+            IEnumerable<InheritanceTargetItem> targets,
+            Dictionary<string, int> nameToCount)
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
@@ -138,12 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 
-            var headerViewModel = new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship), displayContent);
-            builder.Add(headerViewModel);
+            builder.Add(new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship)));
             foreach (var targetItem in targets)
-            {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem));
-            }
+                builder.Add(TargetMenuItemViewModel.Create(targetItem, includeProjectName: nameToCount[targetItem.DisplayName] >= 2));
 
             return builder.ToImmutable();
         }

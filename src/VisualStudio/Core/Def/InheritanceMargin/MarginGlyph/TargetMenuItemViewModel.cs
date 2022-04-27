@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Drawing;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -23,21 +27,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            string automationName,
-            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker, automationName)
+            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
         {
             DefinitionItem = definitionItem;
         }
 
-        public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
-        {
-            var displayContent = target.DisplayName;
-            var imageMoniker = target.Glyph.GetImageMoniker();
-            return new TargetMenuItemViewModel(
-                displayContent,
-                imageMoniker,
-                displayContent,
+        public static TargetMenuItemViewModel Create(InheritanceTargetItem target, bool includeProjectName)
+            => new(
+                GetDisplayContent(target, includeProjectName),
+                target.Glyph.GetImageMoniker(),
                 target.DefinitionItem);
+
+        private static string GetDisplayContent(InheritanceTargetItem target, bool includeProjectName)
+        {
+            return includeProjectName && target.ProjectName != null
+                ? string.Format(FeaturesResources._0_1, target.DisplayName, target.ProjectName)
+                : target.DisplayName;
         }
     }
 }
