@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        {
+            Contract.ThrowIfNull(request.TextDocument);
+            return request.TextDocument;
+        }
+
         public void Dispose()
         {
             ImmutableArray<CompilationAvailableEventSource> eventSources;
@@ -122,16 +128,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
-        {
-            Contract.ThrowIfNull(request.TextDocument);
-            return request.TextDocument;
-        }
-
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
             => _semanticTokenRefreshQueue?.AddWork();
 
-        // TO-DO: Replace hardcoded string with const once LSP side is merged.
         public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
             => _notificationManager!.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
 
