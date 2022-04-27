@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
                 => new(document, span, diagnostics, registerCodeFix, _ => _sharedState.CodeActionOptions, cancellationToken);

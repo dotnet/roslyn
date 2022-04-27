@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 SearchOptions: globalOptions.GetSymbolSearchOptions(languageServices.Language),
                 ImplementTypeOptions: globalOptions.GetImplementTypeOptions(languageServices.Language),
                 ExtractMethodOptions: globalOptions.GetExtractMethodOptions(languageServices.Language),
-                SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
+                CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 IsBlocking: isBlocking);
 

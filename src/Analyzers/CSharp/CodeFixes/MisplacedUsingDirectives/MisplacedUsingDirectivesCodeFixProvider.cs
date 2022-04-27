@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
 #if CODE_STYLE
             var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(syntaxRoot.SyntaxTree, cancellationToken);
-            var simplifierOptions = CSharpSimplifierOptions.Create(options, fallbackOptions: null);
 #else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: context.Options(document.Project.LanguageServices).SimplifierOptions, cancellationToken).ConfigureAwait(false);
 #endif
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(CSharpSimplification.Instance, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+
             var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
             // Read the preferred placement option and verify if it can be applied to this code file.

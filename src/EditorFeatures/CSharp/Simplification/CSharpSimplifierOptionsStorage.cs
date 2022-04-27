@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 internal static class CSharpSimplifierOptionsStorage
 {
     [ExportLanguageService(typeof(ISimplifierOptionsStorage), LanguageNames.CSharp), Shared]
-    private sealed class Service : ISimplifierOptionsStorage
+    internal sealed class Service : ISimplifierOptionsStorage
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
