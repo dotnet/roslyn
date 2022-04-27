@@ -101,6 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var nameToTargets = s_pool.Allocate();
             try
             {
+                // Create a mapping from display name to all targets with that name.  This will allow us to determine if
+                // there may be multiple results with the same name, so we can disambiguate them with additional
+                // information later on when we create the items.
                 foreach (var target in targets)
                     nameToTargets.Add(target.DisplayName, target);
 
