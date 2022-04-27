@@ -35,18 +35,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
+        /// <summary>
+        /// Lock over the mutable state that follows.
+        /// </summary>
         private readonly object _gate = new();
+
+        /// <summary>
+        /// Mapping from project id to the workqueue for producing the corresponding compilation for it on the OOP server.
+        /// </summary>
         private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = new();
+
+        /// <summary>
+        /// Mapping from project id to the solution checksum we were at when the project for it had its compilation
+        /// produced on the oop server.
+        /// </summary>
         private readonly Dictionary<ProjectId, Checksum> _projectIdLastComputedSolutionChecksum = new();
 
         // initialized when first request comes in.
 
         /// <summary>
-        /// Initially null.  Set to true/false when first initialized.  The other related fields will be set if this is true.
+        /// Initially null.  Set to true/false when first initialized.  The other following fields will be set if this
+        /// is true.
         /// </summary>
         private bool? _supportsRefresh;
+
         private LspWorkspaceManager? _lspWorkspaceManager;
         private ILanguageServerNotificationManager? _notificationManager;
+
+        /// <summary>
+        /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
+        /// </summary>
         private AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
 
         [ImportingConstructor]
@@ -66,6 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 eventSources = _projectIdToEventSource.Values.ToImmutableArray();
                 _projectIdToEventSource.Clear();
+                _projectIdLastComputedSolutionChecksum.Clear();
 
                 if (_lspWorkspaceManager != null)
                     _lspWorkspaceManager.LspSolutionChanged -= OnLspSolutionChanged;
