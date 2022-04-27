@@ -30,14 +30,11 @@ internal partial class SolutionAssetStorage
     /// </summary>
     private readonly Dictionary<Checksum, Scope> _checksumToScope = new();
 
-    public Scope GetScope(Checksum solutionChecksum)
+    public Scope? TryGetScope(Checksum solutionChecksum)
     {
         lock (_gate)
         {
-            if (!_checksumToScope.ContainsKey(solutionChecksum))
-                throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
-
-            return _checksumToScope[solutionChecksum];
+            return _checksumToScope.ContainsKey(solutionChecksum) ? _checksumToScope[solutionChecksum] : null;
         }
     }
 

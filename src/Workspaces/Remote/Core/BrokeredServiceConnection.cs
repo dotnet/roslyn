@@ -307,9 +307,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
         /// complete the <see cref="PipeReader"/>.</param>
         /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
-        internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
+        internal static async ValueTask<Optional<TResult>> InvokeStreamingServiceAsync<TResult>(
             TService service,
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<TService, PipeWriter, CancellationToken, ValueTask<bool>> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
             CancellationToken cancellationToken)
         {
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
+                    return await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -370,7 +370,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
-            return readerTask.Result;
+            var success = await writerTask.ConfigureAwait(false);
+            if (!success)
+                return default(Optional<TResult>);
+
+            return new Optional<TResult>(await readerTask.ConfigureAwait(false));
         }
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
         /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
-        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
+        private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution?> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
@@ -182,6 +182,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
                 var newSolution = await lazySolution.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
+                // It should never be possible to get here with a null solution.  A null solution happens if all
+                // incoming OOP requests for a particular snapshot are canceled, and then OOP notices that this has
+                // happened during asset sync because the in-proc host no longer has pinned the corresponding solution
+                // snapshot.  However, for that to have happened, all outgoing requests to OOP need to have finished,
+                // which means we ourselves should have never gotten to this point as it was our cancellation/return
+                // that allowed the in-proc side to reach that to begin with.
+                if (newSolution == null)
+                    throw ExceptionUtilities.Unreachable;
+
                 // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
                 // can move the workspace forward to that solution snapshot.
                 if (fromPrimaryBranch)
@@ -203,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 await DecrementLazySolutionRefcountAsync().ConfigureAwait(false);
             }
 
-            async ValueTask<AsyncLazy<Solution>> GetLazySolutionAndIncrementRefCountAsync()
+            async ValueTask<AsyncLazy<Solution?>> GetLazySolutionAndIncrementRefCountAsync()
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -286,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
         /// solution be not stale as much as possible. (pull)
         /// </summary>
-        private async Task<Solution> ComputeSolutionAsync(
+        private async Task<Solution?> ComputeSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             Solution currentSolution,
@@ -309,6 +318,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 // get new solution info and options
                 var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
                 return CreateSolutionFromInfoAndOptions(solutionInfo, options);
+            }
+            catch (AssetsNotAvailableException)
+            {
+                // The work to synchronize assets and create a solution is potentially done on an entirely different
+                // thread of execution that may life on longer on the OOP side than the original N incoming calls taht
+                // caused it to be spawned.  All those incoming calls might end up cancelling, leading to the in-proc
+                // side dropping the corresponding solution.  This will appear to us as 
+                return null;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

@@ -31,24 +31,19 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask<bool> TryGetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
-            var scope = assetStorage.GetScope(solutionChecksum);
 
-            SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
-
-            if (checksums.Length == 1)
-            {
-                singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
-                singleAsset ??= SolutionAsset.Null;
-            }
-            else
-            {
-                assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            }
+            // Attempt to get the scope associated with this checksum.  Note: the scope may have been released if all
+            // active outgoing operations from the inproc client were cancelled.  Even in that case it is still possible
+            // for this code to run as the OOP side attempts to synchronize the solution over with an AsyncLazy that is
+            // *tied to* all the requests for this checksum on the OOP side, but which still may continue running for a
+            // short while after all of its constituent operations have canceled.  This is the nature of an async lazy
+            // that it's actual computation cancellation is cooperative, and that computation may proceed even if htere
+            // is nothing still waiting on the results of hte async lazy.
+            var scope = assetStorage.TryGetScope(solutionChecksum);
 
             // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
             // avoid deadlocks (the exception handler in 'task1' ensures progress is made in 'task2').
@@ -64,17 +59,50 @@ namespace Microsoft.CodeAnalysis.Remote
             // is bounded by the total size of the serialized assets.
             var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
-            var task1 = Task.Run(() =>
+            var task1 = Task.Run(async () =>
             {
                 try
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scope.ReplicationContext, solutionChecksum, checksums, cancellationToken);
+
+                    // This information is not actually needed on the receiving end.  However, we still send it so that the
+                    // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
+                    // breaks have occurred.
+                    solutionChecksum.WriteTo(writer);
+
+                    // If we couldn't find the scope then that means the oop execution is persisting longer than the
+                    // actual outgoing calls to it were, and it's the process of calling back to inproc to just hydrate
+                    // the solution.  Bail out gracefully.
+                    if (scope == null)
+                    {
+                        // indicate that no information is available.
+                        writer.WriteInt32(0);
+                        return false;
+                    }
+                    else
+                    {
+                        SolutionAsset? singleAsset = null;
+                        IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
+
+                        if (checksums.Length == 1)
+                        {
+                            singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
+                            singleAsset ??= SolutionAsset.Null;
+                        }
+                        else
+                        {
+                            assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scope.ReplicationContext, checksums, cancellationToken);
+                        return true;
+                    }
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // no-op
+                    return false;
                 }
             }, mustNotCancelToken);
 
@@ -84,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var task2 = CopyPipeDataAsync();
 
             await Task.WhenAll(task1, task2).ConfigureAwait(false);
+            return await task1.ConfigureAwait(false);
 
             async Task CopyPipeDataAsync()
             {

@@ -26,15 +26,9 @@ namespace Microsoft.CodeAnalysis.Remote
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
-            Checksum solutionChecksum,
             Checksum[] checksums,
             CancellationToken cancellationToken)
         {
-            // This information is not actually needed on the receiving end.  However, we still send it so that the
-            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
-            // breaks have occurred.
-            solutionChecksum.WriteTo(writer);
-
             // special case
             if (checksums.Length == 0)
             {

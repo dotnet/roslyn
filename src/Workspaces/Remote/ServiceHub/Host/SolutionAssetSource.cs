@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -31,10 +32,22 @@ namespace Microsoft.CodeAnalysis.Remote
             using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(provider.Proxy);
 
-            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
-                (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, solutionChecksum, checksums.ToArray(), cancellationToken),
+            var optional = await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
+                (proxy, pipeWriter, cancellationToken) => proxy.TryGetAssetsAsync(pipeWriter, solutionChecksum, checksums.ToArray(), cancellationToken),
                 (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums, serializerService, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
+            if (!optional.HasValue)
+                throw new AssetsNotAvailableException();
+
+            return optional.Value;
+        }
+    }
+
+    internal class AssetsNotAvailableException : Exception
+    {
+        public AssetsNotAvailableException()
+        {
         }
     }
 }
