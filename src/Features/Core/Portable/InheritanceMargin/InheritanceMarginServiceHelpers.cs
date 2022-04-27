@@ -367,12 +367,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
+            var projectName = definition.SourceSpans.Length > 0
+                ? definition.SourceSpans[0].Document.Project.State.NameAndFlavor.name
+                : null;
+
             return new SerializableInheritanceTargetItem(
                 inheritanceRelationship,
                 // Id is used by FAR service for caching, it is not used in inheritance margin
                 SerializableDefinitionItem.Dehydrate(id: 0, definition),
                 targetSymbol.GetGlyph(),
-                displayName);
+                displayName,
+                targetSymbol.Language,
+                projectName);
         }
 
         private static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(

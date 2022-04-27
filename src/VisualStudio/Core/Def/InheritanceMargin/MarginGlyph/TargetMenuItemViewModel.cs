@@ -32,17 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             DefinitionItem = definitionItem;
         }
 
-        public static TargetMenuItemViewModel Create(InheritanceTargetItem target, bool includeProjectName)
+        public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
             => new(
-                GetDisplayContent(target, includeProjectName),
+                displayContent,
                 target.Glyph.GetImageMoniker(),
                 target.DefinitionItem);
-
-        private static string GetDisplayContent(InheritanceTargetItem target, bool includeProjectName)
-        {
-            return includeProjectName && target.ProjectName != null
-                ? string.Format(FeaturesResources._0_1, target.DisplayName, target.ProjectName)
-                : target.DisplayName;
-        }
     }
 }
