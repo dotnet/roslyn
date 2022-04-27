@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -25,6 +26,18 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Option2<bool> s_generateOverridesOption = new(
             "GenerateOverridesOptions", "SelectAll", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
+
+        private static readonly PerLanguageOption2<bool> s_generateOperators = new(
+            "GenerateEqualsAndGetHashCodeFromMembersOptions",
+            "GenerateOperators", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation(
+                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators"));
+
+        private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
+            "GenerateEqualsAndGetHashCodeFromMembersOptions",
+            "ImplementIEquatable", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation(
+                "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable"));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,5 +71,17 @@ namespace Microsoft.CodeAnalysis.Options
 
         public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices)
             => _globalOptions.GetAutoFormattingOptions(languageServices.Language);
+
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
+            => _globalOptions.GetOption(s_implementIEquatable, language);
+
+        public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value)
+            => _globalOptions.SetGlobalOption(new OptionKey(s_generateOperators, language), value);
+
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language)
+            => _globalOptions.GetOption(s_implementIEquatable, language);
+
+        public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value)
+            => _globalOptions.SetGlobalOption(new OptionKey(s_implementIEquatable, language), value);
     }
 }

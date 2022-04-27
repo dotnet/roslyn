@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Options
         public bool GenerateOverrides { get; set; }
         public bool InlineHintsOptionsDisplayAllOverride { get; set; }
 
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language);
+        public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value);
+
+        public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language);
+        public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value);
+
         public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices);
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider { get; }
     }
