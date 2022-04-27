@@ -29,18 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                               cancellationToken As CancellationToken) As Boolean
 
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
-            Dim meExpression As MeExpressionSyntax = Nothing
-            Dim severity As ReportDiagnostic
             If memberAccessExpression IsNot Nothing AndAlso
                 memberAccessExpression.Expression.IsKind(SyntaxKind.MeExpression) Then
 
                 If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, options, meExpression, severity, cancellationToken) Then
+                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
                     Return False
                 End If
 
                 replacementNode = memberAccessExpression.GetNameWithTriviaMoved()
-                issueSpan = meExpression.Span
+                issueSpan = memberAccessExpression.Expression.Span
                 Return True
             End If
 

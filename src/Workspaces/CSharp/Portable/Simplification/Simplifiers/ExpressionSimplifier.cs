@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             replacementNode = null;
             issueSpan = default;
 
-            if (expression is MemberAccessExpressionSyntax { Expression.RawKind: (int)SyntaxKind.ThisExpression) } memberAccessExpression)
+            if (expression is MemberAccessExpressionSyntax { Expression.RawKind: (int)SyntaxKind.ThisExpression } memberAccessExpression)
             {
                 if (!MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                        memberAccessExpression, semanticModel, options, out var thisExpression, out _, cancellationToken))
+                        memberAccessExpression, semanticModel, options, out _, out _, cancellationToken))
                 {
                     return false;
                 }
 
                 replacementNode = memberAccessExpression.GetNameWithTriviaMoved();
-                issueSpan = thisExpression.Span;
+                issueSpan = memberAccessExpression.Expression.Span;
                 return true;
             }
 
