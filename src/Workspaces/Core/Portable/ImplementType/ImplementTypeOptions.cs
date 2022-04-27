@@ -7,7 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementType
 {
@@ -26,5 +29,5 @@ namespace Microsoft.CodeAnalysis.ImplementType
 
     internal readonly record struct ImplementTypeGenerationOptions(
         ImplementTypeOptions ImplementTypeOptions,
-        CodeAndImportGenerationOptionsProvider FallbackOptions);
+        CleanCodeGenerationOptionsProvider FallbackOptions);
 }
