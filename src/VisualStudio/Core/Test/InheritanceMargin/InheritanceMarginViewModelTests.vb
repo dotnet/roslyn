@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
@@ -26,9 +27,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
     <UseExportProvider>
     Public Class InheritanceMarginViewModelTests
 
-        Private Shared s_defaultMargin As Thickness = New Thickness(4, 1, 4, 1)
+        Private Shared ReadOnly s_defaultMargin As Thickness = New Thickness(4, 1, 4, 1)
 
-        Private Shared s_indentMargin As Thickness = New Thickness(22, 1, 4, 1)
+        Private Shared ReadOnly s_indentMargin As Thickness = New Thickness(22, 1, 4, 1)
+
+        Private Shared ReadOnly s_csharpImageId As ImageId = Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions.GetImageCatalogImageId(KnownImageIds.CSFileNode)
+        Private Shared ReadOnly s_csharpImageMoniker As ImageMoniker = New ImageMoniker With {.Guid = s_csharpImageId.Guid, .Id = s_csharpImageId.Id}
 
         Private Structure GlyphViewModelData
             Public ReadOnly Property ImageMoniker As ImageMoniker
@@ -273,20 +277,20 @@ public class Bar3 : Bar2 {}"
 
             Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
             Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
 
             Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
 
             Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
-                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
+                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).
                         Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
-                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
+                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
 
             Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
             Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
-                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing))
+                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
 
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(

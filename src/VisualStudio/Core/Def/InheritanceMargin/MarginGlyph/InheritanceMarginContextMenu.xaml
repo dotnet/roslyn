@@ -44,6 +44,7 @@
                     <ControlTemplate TargetType="{x:Type MenuItem}">
                         <Grid SnapsToDevicePixels="true" Background="Transparent" MinHeight="22">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LanguageIconColumnGroup"/>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
@@ -51,11 +52,16 @@
                             </Grid.ColumnDefinitions>
 
                             <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
-                            <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="22,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
+
+                            <imaging:CrispImage Grid.Column="0" x:Name="LanguageIcon" Margin="22,1,1,1" Width="16" Height="16" VerticalAlignment="Center"
+                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Moniker="{Binding LanguageMoniker}" />
+
+                            <ContentPresenter Grid.Column="1" x:Name="Icon" Margin="1,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
                                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
-                            <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
+
+                            <ContentPresenter Grid.Column="2" ContentSource="Header" Margin="4,1,4,1"
                                                 VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            <TextBlock Grid.Column="2" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Icon" Value="{x:Null}">

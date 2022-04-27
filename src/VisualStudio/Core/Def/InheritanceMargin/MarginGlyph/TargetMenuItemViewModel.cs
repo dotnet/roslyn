@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -23,19 +24,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public DefinitionItem.DetachedDefinitionItem DefinitionItem { get; }
 
+        public ImageMoniker LanguageMoniker { get; }
+
         // Internal for testing purpose
         internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
+            DefinitionItem.DetachedDefinitionItem definitionItem,
+            ImageMoniker languageMoniker) : base(displayContent, imageMoniker)
         {
             DefinitionItem = definitionItem;
+            LanguageMoniker = languageMoniker;
         }
 
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
-            => new(
+        {
+            var languageGlyph = target.LanguageName switch
+            {
+                LanguageNames.CSharp => Glyph.CSharpFile,
+                LanguageNames.VisualBasic => Glyph.BasicFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(target.LanguageName),
+            };
+
+            return new(
                 displayContent,
                 target.Glyph.GetImageMoniker(),
-                target.DefinitionItem);
+                target.DefinitionItem,
+                languageGlyph.GetImageMoniker());
+        }
     }
 }
