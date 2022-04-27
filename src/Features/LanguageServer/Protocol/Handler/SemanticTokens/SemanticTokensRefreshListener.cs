@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -45,9 +47,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e) => _workQueue.AddWork();
 
-        // TO-DO: Replace hardcoded string with const once LSP side is merged.
-        public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
-            => _languageServerNotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+        public async ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
+        {
+            // Currently, we send a refresh notification to the client whenever there are any workspace changes.
+            // However, we also need to send notifications whenever the compilations finish processing since
+            // compilations impact semantic tokens. We put this logic here rather than in the semantic tokens
+            // range handler so that the client still gets initial colorization on file open.
+            var trackedDocuments = _lspWorkspaceManager.GetTrackedLspText();
+            var projects = trackedDocuments.Select(
+                d => _lspWorkspaceManager.GetLspDocument(new TextDocumentIdentifier { Uri = d.Key })?.Project).Distinct();
+
+            foreach (var project in projects)
+            {
+                if (project is null)
+                    continue;
+
+                cancellationToken.ThrowIfCancellationRequested();
+                await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                await _languageServerNotificationManager.SendNotificationAsync(
+                    Methods.WorkspaceSemanticTokensRefreshName, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
         public void Dispose()
         {
