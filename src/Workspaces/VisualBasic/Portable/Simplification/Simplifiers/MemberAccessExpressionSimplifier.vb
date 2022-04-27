@@ -26,5 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Protected Overrides Function GetSpeculationAnalyzer(semanticModel As SemanticModel, memberAccessExpression As MemberAccessExpressionSyntax, cancellationToken As CancellationToken) As ISpeculationAnalyzer
             Return New SpeculationAnalyzer(memberAccessExpression, memberAccessExpression.Name, semanticModel, cancellationToken)
         End Function
+
+        Protected Overrides Function MayCauseParseDifference(memberAccessExpression As MemberAccessExpressionSyntax) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

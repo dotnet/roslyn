@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
         protected abstract ISpeculationAnalyzer GetSpeculationAnalyzer(
             SemanticModel semanticModel, TMemberAccessExpressionSyntax memberAccessExpression, CancellationToken cancellationToken);
 
+        protected abstract bool MayCauseParseDifference(TMemberAccessExpressionSyntax memberAccessExpression);
+
         public bool ShouldSimplifyThisMemberAccessExpression(
             TMemberAccessExpressionSyntax? memberAccessExpression,
             SemanticModel semanticModel,
@@ -60,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
                 return false;
 
             severity = optionValue.Notification.Severity;
-            return !semanticModel.SyntaxTree.OverlapsHiddenPosition(memberAccessExpression.Span, cancellationToken);
+            return !semanticModel.SyntaxTree.OverlapsHiddenPosition(memberAccessExpression.Span, cancellationToken) &&
+                   !MayCauseParseDifference(memberAccessExpression);
         }
     }
 }
