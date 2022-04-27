@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
-            await LoadCallstackExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
+            await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 .ConfigureAwait(true);
         }
 
-        private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
+        private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
