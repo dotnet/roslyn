@@ -444,6 +444,8 @@ ref struct B
 @".class public sealed R<T> extends [mscorlib]System.ValueType
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field private int32& F
+  .field private !0& modopt(int32) F
   .field public !0& modopt(object) F
 }";
             var refA = CompileIL(sourceA);
@@ -471,6 +473,15 @@ ref struct B
   IL_000e:  ldind.i4
   IL_000f:  ret
 }");
+
+            // Call MemberRefMetadataDecoder.FindFieldBySignature() indirectly from MetadataDecoder.GetSymbolForILToken().
+            var module = (PEModuleSymbol)((CSharpCompilation)verifier.Compilation).GetReferencedAssemblySymbol(refA).Modules[0];
+            var decoder = new MetadataDecoder(module);
+            var reader = module.Module.MetadataReader;
+            var fields = reader.FieldDefinitions.
+                Where(handle => reader.GetString(reader.GetFieldDefinition(handle).Name) == "F").
+                Select(handle => decoder.GetSymbolForILToken(handle)).ToArray();
+            AssertEx.Equal(new[] { "ref System.Int32 R<T>.F", "ref modopt(System.Int32) T R<T>.F", "ref modopt(System.Object) T R<T>.F" }, fields.ToTestDisplayStrings());
         }
 
         /// <summary>

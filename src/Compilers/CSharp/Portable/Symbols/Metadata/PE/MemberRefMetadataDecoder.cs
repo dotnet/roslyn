@@ -159,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var field = member as FieldSymbol;
                 TypeWithAnnotations fieldType;
 
-                // Ensure the field symbol matches the { IsByRef, RefCustomModifiers, Type, CustomModifiers }
-                // from metadata. The checks are not strictly necessary though since PENamedTypeSymbol
-                // does not support fields with duplicate names. Matching by name is sufficient.
+                // Ensure the field symbol matches the { IsByRef, RefCustomModifiers, Type, CustomModifiers } from metadata.
                 if ((object)field != null &&
                     (field.RefKind != RefKind.None) == fieldInfo.IsByRef &&
                     CustomModifiersMatch(field.RefCustomModifiers, fieldInfo.RefCustomModifiers) &&

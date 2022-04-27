@@ -70,10 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IModifiedTypeReference? modifiedType = typeReference as Cci.IModifiedTypeReference;
             if (modifiedType != null)
             {
-                foreach (var custModifier in modifiedType.CustomModifiers)
-                {
-                    VisitTypeReference(custModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(modifiedType.CustomModifiers, context);
                 VisitTypeReference(modifiedType.UnmodifiedType, context);
                 return;
             }
@@ -142,10 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Visit return value type
             VisitTypeReference(signature.GetType(context), context);
 
-            foreach (var typeModifier in signature.RefCustomModifiers)
-            {
-                VisitTypeReference(typeModifier.GetModifier(context), context);
-            }
+            VisitCustomModifiers(signature.RefCustomModifiers, context);
 
             foreach (var typeModifier in signature.ReturnValueCustomModifiers)
             {
@@ -159,21 +153,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 VisitTypeReference(param.GetType(context), context);
 
-                foreach (var typeModifier in param.RefCustomModifiers)
-                {
-                    VisitTypeReference(typeModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(param.RefCustomModifiers, context);
 
-                foreach (var typeModifier in param.CustomModifiers)
-                {
-                    VisitTypeReference(typeModifier.GetModifier(context), context);
-                }
+                VisitCustomModifiers(param.CustomModifiers, context);
             }
         }
 
         private static void VisitFieldReference(Cci.IFieldReference fieldReference, EmitContext context)
         {
             RoslynDebug.Assert(fieldReference != null);
+
+            //System.Diagnostics.Debug.Assert(fieldReference.RefCustomModifiers.IsEmpty);
 
             // Visit containing type
             VisitTypeReference(fieldReference.GetContainingType(context), context);
@@ -187,6 +177,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Visit field type
             VisitTypeReference(fieldReference.GetType(context), context);
+
+            VisitCustomModifiers(fieldReference.RefCustomModifiers, context);
+        }
+
+        private static void VisitCustomModifiers(ImmutableArray<Cci.ICustomModifier> customModifiers, in EmitContext context)
+        {
+            foreach (var typeModifier in customModifiers)
+            {
+                VisitTypeReference(typeModifier.GetModifier(context), context);
+            }
         }
     }
 }
