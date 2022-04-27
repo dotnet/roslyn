@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var names = ArrayBuilder<string>.GetInstance();
             var expected = ArrayBuilder<string>.GetInstance();
             var actual = ArrayBuilder<string>.GetInstance();
-            for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length; )
+            for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length;)
             {
                 var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
                 names.Add(qualifiedName);

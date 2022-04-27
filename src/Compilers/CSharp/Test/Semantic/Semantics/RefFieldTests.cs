@@ -3318,10 +3318,11 @@ class Program
     static void Main()
     {
         int i = 1;
-        ReadAndDiscard(ref i);
+        ReadAndDiscard1(ref i);
         ReadAndDiscardNoArg<int>();
+        ReadAndDiscard2(new S<int>(ref i));
     }
-    static void ReadAndDiscard<T>(ref T t)
+    static void ReadAndDiscard1<T>(ref T t)
     {
         _ = new S<T>(ref t).F;
     }
@@ -3329,11 +3330,15 @@ class Program
     {
         _ = new S<T>().F;
     }
+    static void ReadAndDiscard2<T>(in S<T> s)
+    {
+        _ = s.F;
+    }
 }";
             // PROTOTYPE: The dereference of `new S<T>(...).F` should not be elided
             // since the behavior may be observable as a NullReferenceException.
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
-            verifier.VerifyIL("Program.ReadAndDiscard<T>",
+            verifier.VerifyIL("Program.ReadAndDiscard1<T>",
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -3343,6 +3348,12 @@ class Program
   IL_0007:  ret
 }");
             verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("Program.ReadAndDiscard2<T>",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
