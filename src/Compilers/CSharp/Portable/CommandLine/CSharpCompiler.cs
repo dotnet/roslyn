@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Map the AnalyzerConfigOptionsProvider
             var mappedAnalyzerConfigProvider = analyzerConfigProvider switch
             {
-                // This is the scenario when the code is compiled from the compiled.
+                // This is the scenario when the code is compiled from the compiler.
                 CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(
                     oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree))),
                 
