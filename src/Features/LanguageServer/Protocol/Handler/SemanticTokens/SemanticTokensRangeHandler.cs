@@ -100,8 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 eventSource.Dispose();
         }
 
-        [MemberNotNull(nameof(_supportsRefresh))]
-        private void InitializeIfFirstRequest(RequestContext context)
+        private bool InitializeIfFirstRequest(RequestContext context)
         {
             lock (_gate)
             {
@@ -125,6 +124,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         _lspWorkspaceManager.LspSolutionChanged += OnLspSolutionChanged;
                     }
                 }
+
+                return _supportsRefresh.Value;
             }
         }
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             // If this is the first time getting a request, initialize our state with information about the
             // server/manager we're owned by.
-            InitializeIfFirstRequest(context);
+            var supportsRefresh = InitializeIfFirstRequest(context);
 
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
             // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
             // solution snapshot.
-            if (_supportsRefresh.Value)
+            if (supportsRefresh)
             {
                 lock (_gate)
                 {
