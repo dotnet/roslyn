@@ -5395,6 +5395,40 @@ interface I1
         }
 
         [Fact]
+        public void DefineVirtualStaticMethod_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual static void M01(){}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+                Assert.False(m01.IsMetadataNewSlot());
+                Assert.False(m01.IsAbstract);
+                Assert.True(m01.IsMetadataVirtual());
+                Assert.False(m01.IsMetadataFinal);
+                Assert.True(m01.IsVirtual);
+                Assert.False(m01.IsSealed);
+                Assert.True(m01.IsStatic);
+                Assert.False(m01.IsOverride);
+            }
+        }
+
+        [Fact]
         public void DefineAbstractStaticMethod_02()
         {
             var source1 =
@@ -5424,6 +5458,43 @@ interface I1
             compilation2.VerifyDiagnostics(
                 // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
+                );
+
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+        }
+
+        [Fact]
+        public void DefineVirtualStaticMethod_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual  static void M01(){}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static void M01(){}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
+                );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+
+            compilation2.VerifyDiagnostics(
+                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static void M01(){}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
                 );
 
@@ -5499,6 +5570,74 @@ partial interface I1
             }
         }
 
+        [Theory]
+        [InlineData("I1", "+", "(I1 x)")]
+        [InlineData("I1", "-", "(I1 x)")]
+        [InlineData("I1", "!", "(I1 x)")]
+        [InlineData("I1", "~", "(I1 x)")]
+        [InlineData("I1", "++", "(I1 x)")]
+        [InlineData("I1", "--", "(I1 x)")]
+        [InlineData("I1", "+", "(I1 x, I1 y)")]
+        [InlineData("I1", "-", "(I1 x, I1 y)")]
+        [InlineData("I1", "*", "(I1 x, I1 y)")]
+        [InlineData("I1", "/", "(I1 x, I1 y)")]
+        [InlineData("I1", "%", "(I1 x, I1 y)")]
+        [InlineData("I1", "&", "(I1 x, I1 y)")]
+        [InlineData("I1", "|", "(I1 x, I1 y)")]
+        [InlineData("I1", "^", "(I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, int y)")]
+        [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", ">>>", "(I1 x, int y)")]
+        [InlineData("I1", "checked -", "(I1 x)")]
+        [InlineData("I1", "checked ++", "(I1 x)")]
+        [InlineData("I1", "checked --", "(I1 x)")]
+        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
+        public void DefineVirtualStaticOperator_01(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+partial interface I1
+{
+    virtual static " + type + " operator " + op + " " + paramList + @" => throw null;
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    virtual static " + type + " operator " + op.Substring(8) + " " + paramList + @" => throw null;
+}
+";
+            }
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.False(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.True(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+                }
+            }
+        }
+
         [Fact]
         public void DefineAbstractStaticOperator_02()
         {
@@ -5540,6 +5679,48 @@ interface I1
                 }
 
                 Assert.Equal(8, count);
+            }
+        }
+
+        [Fact]
+        public void DefineVirtualStaticOperator_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual  static bool operator true (I1 x) => throw null;
+    virtual  static bool operator false (I1 x) => throw null;
+    virtual  static I1 operator > (I1 x, I1 y) => throw null;
+    virtual  static I1 operator < (I1 x, I1 y) => throw null;
+    virtual  static I1 operator >= (I1 x, I1 y) => throw null;
+    virtual  static I1 operator <= (I1 x, I1 y) => throw null;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.False(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.True(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(6, count);
             }
         }
 
@@ -5590,6 +5771,53 @@ interface I1
                 );
         }
 
+        [Theory]
+        [InlineData("I1", "+", "(I1 x)")]
+        [InlineData("I1", "-", "(I1 x)")]
+        [InlineData("I1", "!", "(I1 x)")]
+        [InlineData("I1", "~", "(I1 x)")]
+        [InlineData("I1", "++", "(I1 x)")]
+        [InlineData("I1", "--", "(I1 x)")]
+        [InlineData("I1", "+", "(I1 x, I1 y)")]
+        [InlineData("I1", "-", "(I1 x, I1 y)")]
+        [InlineData("I1", "*", "(I1 x, I1 y)")]
+        [InlineData("I1", "/", "(I1 x, I1 y)")]
+        [InlineData("I1", "%", "(I1 x, I1 y)")]
+        [InlineData("I1", "&", "(I1 x, I1 y)")]
+        [InlineData("I1", "|", "(I1 x, I1 y)")]
+        [InlineData("I1", "^", "(I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, int y)")]
+        [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", ">>>", "(I1 x, int y)")]
+        [InlineData("I1", "checked -", "(I1 x)")]
+        [InlineData("I1", "checked ++", "(I1 x)")]
+        [InlineData("I1", "checked --", "(I1 x)")]
+        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
+        public void DefineVirtualStaticOperator_03(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual  static " + type + " operator " + op + " " + paramList + @" => throw null;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            bool isChecked = op.StartsWith("checked ");
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static I1 operator + (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op.Substring(isChecked ? 8 : 0)).WithLocation(4, 31 + type.Length + (isChecked ? 8 : 0))
+                );
+        }
+
         [Fact]
         public void DefineAbstractStaticOperator_04()
         {
@@ -5636,6 +5864,47 @@ interface I1
                 // (11,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator != (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(11, 33)
+                );
+        }
+
+        [Fact]
+        public void DefineVirtualStaticOperator_04()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual  static bool operator true (I1 x) => throw null;
+    virtual  static bool operator false (I1 x) => throw null;
+    virtual  static I1 operator > (I1 x, I1 y) => throw null;
+    virtual  static I1 operator < (I1 x, I1 y) => throw null;
+    virtual  static I1 operator >= (I1 x, I1 y) => throw null;
+    virtual  static I1 operator <= (I1 x, I1 y) => throw null;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(4, 35),
+                // (5,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(5, 35),
+                // (6,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static I1 operator > (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">").WithLocation(6, 33),
+                // (7,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static I1 operator < (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<").WithLocation(7, 33),
+                // (8,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static I1 operator >= (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">=").WithLocation(8, 33),
+                // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static I1 operator <= (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33)
                 );
         }
 
@@ -5753,6 +6022,51 @@ interface I1
         }
 
         [Fact]
+        public void DefineVirtualStaticProperty_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual static int P01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var p01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.False(p01.IsAbstract);
+                Assert.True(p01.IsVirtual);
+                Assert.False(p01.IsSealed);
+                Assert.True(p01.IsStatic);
+                Assert.False(p01.IsOverride);
+
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.False(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.True(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
         public void DefineAbstractStaticProperty_02()
         {
             var source1 =
@@ -5772,6 +6086,30 @@ interface I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
                 // (4,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
+                );
+        }
+
+        [Fact]
+        public void DefineVirtualStaticProperty_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    virtual  static int P01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
+                // (4,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
                 );
         }
@@ -5822,6 +6160,52 @@ interface I1
         }
 
         [Fact]
+        public void DefineVirtualStaticEvent_01()
+        {
+            var source1 =
+@"
+#pragma warning disable CS0067 // The event 'I1.E01' is never used
+interface I1
+{
+    virtual static event System.Action E01;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var e01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.False(e01.IsAbstract);
+                Assert.True(e01.IsVirtual);
+                Assert.False(e01.IsSealed);
+                Assert.True(e01.IsStatic);
+                Assert.False(e01.IsOverride);
+
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.False(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.True(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
         public void DefineAbstractStaticEvent_02()
         {
             var source1 =
@@ -5843,13 +6227,37 @@ interface I1
         }
 
         [Fact]
-        public void ConstraintChecks_01()
+        public void DefineVirtualStaticEvent_02()
         {
+            var source1 =
+@"#pragma warning disable CS0067 // The event 'I1.E01' is never used
+interface I1
+{
+    virtual  static event System.Action E01;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     virtual  static event System.Action E01;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "E01").WithLocation(4, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConstraintChecks_01(bool isVirtual)
+        {
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
             var source1 =
 @"
 public interface I1
 {
-    abstract static void M01();
+    " + modifier + @" static void M01()" + body + @"
 }
 
 public interface I2 : I1
@@ -5941,34 +6349,34 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 //     void Test(C1<I2> x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C1<T1>", "I1", "T1", "I2").WithLocation(4, 22),
-                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C2.M<T2>()", "I1", "T2", "I2").WithLocation(15, 11),
-                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C3<T3>", "I2", "T3", "I2").WithLocation(21, 22),
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C3<T3>", "I2", "T3", "I3").WithLocation(21, 32),
-                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C4.M<T4>()", "I2", "T4", "I2").WithLocation(32, 11),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C4.M<T4>()", "I2", "T4", "I3").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract members.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C5<T5>", "I3", "T5", "I3").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract members.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C6.M<T6>()", "I3", "T6", "I3").WithLocation(50, 11),
-                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 //     void Test(C7<I1> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C7<T7>", "I1", "T7", "I1").WithLocation(56, 22),
-                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 //         x.M<I1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("C8.M<T8>()", "I1", "T8", "I1").WithLocation(67, 11)
             };
@@ -5983,14 +6391,17 @@ class C8
             compilation2.VerifyDiagnostics(expected);
         }
 
-        [Fact]
-        public void ConstraintChecks_02()
+        [Theory]
+        [CombinatorialData]
+        public void ConstraintChecks_02(bool isVirtual)
         {
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
             var source1 =
 @"
 public interface I1
 {
-    abstract static void M01();
+    " + modifier + @" static void M01()" + body + @"
 }
 
 public class C : I1
@@ -14594,68 +15005,6 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01()'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
-                // (38,12): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 12)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ImplementVirtualStaticMethod_02(bool structure)
-        {
-            var typeKeyword = structure ? "struct" : "class";
-
-            var source1 =
-@"
-public interface I1
-{
-    virtual void M01(){}
-}
-
-" + typeKeyword + @"
-    C1 : I1
-{}
-
-" + typeKeyword + @"
-    C2 : I1
-{
-    public static void M01() {}
-}
-
-" + typeKeyword + @"
-    C3 : I1
-{
-    void M01() {}
-}
-
-" + typeKeyword + @"
-    C4 : I1
-{
-    static void I1.M01() {}
-}
-
-" + typeKeyword + @"
-    C5 : I1
-{
-    public int M01() => throw null;
-}
-
-" + typeKeyword + @"
-    C6 : I1
-{
-    int I1.M01() => throw null;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (26,20): error CS0539: 'C4.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01()").WithLocation(26, 20),
                 // (38,12): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01() => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 12)

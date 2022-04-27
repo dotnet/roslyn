@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Non è possibile usare l'interfaccia '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. L'interfaccia di vincolo '{1}' o la relativa interfaccia di base contiene membri statici astratti.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Non è possibile usare l'interfaccia '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. L'interfaccia di vincolo '{1}' o la relativa interfaccia di base contiene membri statici astratti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">

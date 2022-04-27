@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">無法使用介面 '{3}' 作為泛型型別或方法 '{0}' 中的型別參數 '{2}'。限制式介面 '{1}' 或其基底介面具有靜態抽象成員。</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">無法使用介面 '{3}' 作為泛型型別或方法 '{0}' 中的型別參數 '{2}'。限制式介面 '{1}' 或其基底介面具有靜態抽象成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">

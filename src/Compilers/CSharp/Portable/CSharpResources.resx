@@ -6911,7 +6911,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support static abstract members in interfaces.</value>
   </data>
   <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
-    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</value>
+    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</value>
   </data>
   <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
