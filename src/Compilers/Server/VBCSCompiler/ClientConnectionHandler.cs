@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis.CommandLine;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -139,6 +140,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         // The compilation task should never throw. If it does we need to assume that the compiler is
                         // in a bad state and need to issue a RequestError
                         Logger.LogException(ex, $"Exception running compilation for {request.RequestId}");
+                        
+                        // <Metalama>
+                        MetalamaCompilerExceptionHandler.HandleException(ex);
+                        // </Metalama>
+                        
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");
                         completionData = CompletionData.RequestError;
                     }
