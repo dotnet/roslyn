@@ -945,6 +945,8 @@ hasRelatedInterfaces:
         }
 
         // See TypeBind::CheckSingleConstraint.
+        // Any new locals added to this method are likely going to cause EndToEndTests.Constraints to overflow. Break new locals out into
+        // another function.
         private static bool CheckConstraints(
             Symbol containingSymbol,
             in CheckConstraintsArgs args,
@@ -995,23 +997,34 @@ hasRelatedInterfaces:
             }
 
             // Check the constructor constraint.
-            if (typeParameter.HasConstructorConstraint && SatisfiesConstructorConstraint(typeArgument.Type) is not ConstructorConstraintError.None and var error)
+            if (typeParameter.HasConstructorConstraint && errorIfNotSatisfiesConstructorConstraint(containingSymbol, typeParameter, typeArgument, diagnosticsBuilder))
             {
-                if (error == ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType)
-                {
-                    // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
-                }
-                else
-                {
-                    Debug.Assert(error == ConstructorConstraintError.HasRequiredMembers);
-                    // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
-                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
-                }
                 return false;
             }
 
             return !hasError;
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static bool errorIfNotSatisfiesConstructorConstraint(Symbol containingSymbol, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
+            {
+                var error = SatisfiesConstructorConstraint(typeArgument.Type);
+
+                switch (error)
+                {
+                    case ConstructorConstraintError.None:
+                        return false;
+                    case ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType:
+                        // "'{2}' must be a non-abstract type with a public parameterless constructor in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    case ConstructorConstraintError.HasRequiredMembers:
+                        // '{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
+                        diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(error);
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
