@@ -13,6 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
+    /// <summary>
+    /// Helper type that can be used to ask for a <see cref="Compilation"/> to be produced in our OOP server for a
+    /// particular <see cref="Project"/>, asking for a callback to be executed when that has happened.  Each time this
+    /// is asked for for a particular project, any existing outstanding work to produce a <see cref="Compilation"/> for
+    /// a prior <see cref="Project"/> will be cancelled.
+    /// </summary>
     internal class CompilationAvailableEventSource : IDisposable
     {
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -31,6 +37,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void Dispose()
             => _cancellationSeries.Dispose();
 
+        /// <summary>
+        /// Request that the compilation for <see cref="Project"/> be made available in our OOP server, calling back on
+        /// <paramref name="onCompilationAvailable"/> once that happens.  Subsequence calls to this method will cancel
+        /// any outstanding requests in flight.
+        /// </summary>
         public void EnsureCompilationAvailability(Project project, Func<Project, CancellationToken, ValueTask> onCompilationAvailable)
         {
             if (project == null)
