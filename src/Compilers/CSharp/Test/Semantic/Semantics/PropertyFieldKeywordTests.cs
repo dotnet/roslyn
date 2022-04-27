@@ -262,7 +262,7 @@ In C..ctor: 0").VerifyIL("C..ctor", @"
 ").VerifyDiagnostics(
     // (13,51): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         System.Console.WriteLine("In C..ctor: " + P);
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 51)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(13, 51)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -328,7 +328,7 @@ In C..ctor after assignment: 5").VerifyIL("C..ctor", @"
 ").VerifyDiagnostics(
     // (13,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         System.Console.WriteLine("In C..ctor before assignment: " + P);
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(13, 69)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(13, 69)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -392,7 +392,7 @@ In C..ctor after assignment: 5
 ").VerifyDiagnostics(
     // (12,69): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         System.Console.WriteLine("In C..ctor before assignment: " + P);
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 69)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(12, 69)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -439,7 +439,7 @@ public struct C
 ").VerifyDiagnostics(
     // (16,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(16, 9)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(16, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -482,7 +482,7 @@ public struct C
 ").VerifyDiagnostics(
     // (12,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
     //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithArguments("this").WithLocation(12, 9)
+    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(12, 9)
     );
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
