@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))
                 .OrderBy(target => target.TargetSymbolName)
                 .ToImmutableArray();
-            var sortedActualTargets = actualItem.TargetItems.OrderBy(target => target.DisplayName)
+            var sortedActualTargets = actualItem.TargetItems.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageName).ThenBy(t => t.ProjectName ?? "")
                 .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DisplayName);
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
+
+            if (expectedTarget.LanguageName != null)
+                Assert.Equal(expectedTarget.LanguageName, actualTarget.LanguageName);
 
             if (expectedTarget.IsInMetadata)
             {
@@ -196,15 +199,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
+            public readonly string? LanguageName;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
                 string locationTag,
-                InheritanceRelationship relationship)
+                InheritanceRelationship relationship,
+                string? languageName = null)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
+                LanguageName = languageName;
                 InMetadata = false;
             }
 
@@ -236,17 +242,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
             public readonly bool IsInMetadata;
+            public readonly string? LanguageName;
 
             public TestInheritanceTargetItem(
                 string targetSymbolName,
                 InheritanceRelationship relationshipToMember,
-                 ImmutableArray<DocumentSpan> documentSpans,
-                  bool isInMetadata)
+                ImmutableArray<DocumentSpan> documentSpans,
+                bool isInMetadata,
+                string? languageName)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
                 IsInMetadata = isInMetadata;
+                LanguageName = languageName;
             }
 
             public static TestInheritanceTargetItem Create(
@@ -259,7 +268,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.TargetSymbolDisplayName,
                         targetInfo.Relationship,
                         ImmutableArray<DocumentSpan>.Empty,
-                        isInMetadata: true);
+                        isInMetadata: true,
+                        targetInfo.LanguageName);
                 }
                 else
                 {
@@ -287,7 +297,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.TargetSymbolDisplayName,
                         targetInfo.Relationship,
                         builder.ToImmutable(),
-                        isInMetadata: false);
+                        isInMetadata: false,
+                        targetInfo.LanguageName);
                 }
             }
         }
@@ -1966,6 +1977,66 @@ public partial class {|target3:Bar|}
                 (markup2, LanguageNames.CSharp),
                 new[] { itemForBar44, itemForFooInMarkup1 },
                 new[] { itemForIBar, itemForFooInMarkup2 });
+        }
+
+        [Fact]
+        public Task TestSameNameSymbolInDifferentLanguageProjects()
+        {
+            var markup1 = @"
+        using MyNamespace;
+        namespace BarNs
+        {
+            public class {|target1:Bar|} : IBar
+            {
+            }
+        }";
+
+            var markup2 = @"
+        Namespace MyNamespace
+            Public Interface {|target2:IBar|}
+            End Interface
+
+            Public Class {|target3:Bar|}
+                Implements IBar
+            End Class
+        End Namespace";
+
+            var itemForBarInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Interface IBar",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageName: LanguageNames.CSharp),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageName: LanguageNames.VisualBasic)));
+
+            var itemForBarInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "Class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.CSharp),
+                (markup2, LanguageNames.VisualBasic),
+                new[] { itemForBarInMarkup1 },
+                new[] { itemForIBar, itemForBarInMarkup2 });
         }
     }
 }

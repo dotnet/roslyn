@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 if (action.NestedCodeActions.Length > 0)
                 {
-                    _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedCodeActions.Length, out var unifiedNestedActions);
+                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedCodeActions.Length, out var unifiedNestedActions);
                     foreach (var nestedAction in action.NestedCodeActions)
                     {
                         var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(nestedAction, fix).ConfigureAwait(false);
