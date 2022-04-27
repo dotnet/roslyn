@@ -33,8 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Workspace workspace, TestParameters parameters);
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters = null)
         {
+            parameters ??= TestParameters.Default;
+
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeAction action,
             string expectedPreviewContents = null)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string[] chosenSymbols,
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);

@@ -66,3 +66,5 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitPointerTyp
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitProperty(Microsoft.CodeAnalysis.IPropertySymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVariable(Microsoft.CodeAnalysis.IRangeVariableSymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
+
+Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind

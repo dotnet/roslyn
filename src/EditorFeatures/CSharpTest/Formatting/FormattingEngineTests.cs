@@ -420,7 +420,7 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var options = CSharpSyntaxFormattingOptions.Default;
             var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
@@ -2522,6 +2522,45 @@ interface I1<T> where T : I1<T>
 }";
 
             AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUnsignedRightShift()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator>>> ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator >>>(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUnsignedRightShiftOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator >>> ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator >>>(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> globalOptions = null, ParseOptions parseOptions = null)

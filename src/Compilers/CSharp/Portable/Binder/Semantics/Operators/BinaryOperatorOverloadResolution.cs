@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Division:
                 case BinaryOperatorKind.Remainder:
                 case BinaryOperatorKind.RightShift:
+                case BinaryOperatorKind.UnsignedRightShift:
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.And:
                 case BinaryOperatorKind.Or:
@@ -595,6 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Division:
                 case BinaryOperatorKind.Remainder:
                 case BinaryOperatorKind.RightShift:
+                case BinaryOperatorKind.UnsignedRightShift:
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.LogicalAnd:
                 case BinaryOperatorKind.LogicalOr:
