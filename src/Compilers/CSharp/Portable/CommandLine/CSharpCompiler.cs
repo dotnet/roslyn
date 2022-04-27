@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (usageReporter != null && usageReporter.ShouldReportSession(inputCompilation.AssemblyName ?? "<unknown>"))
                         {
-                            usageSample = usageReporter.CreateSample("MetalamaCompilerUsage");
+                            usageSample = usageReporter.CreateSample("CompilerUsage");
                             serviceProviderBuilder = serviceProviderBuilder.AddSingleton<IUsageSample>(usageSample);
                         }
                     }
