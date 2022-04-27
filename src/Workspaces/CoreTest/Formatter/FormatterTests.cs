@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -33,13 +34,50 @@ public class FormatterTests
     internal class TestFormattingService : IFormattingService
     {
         [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestFormattingService()
         {
         }
 
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
             => Task.FromResult(document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}")));
+    }
+
+    [Export(typeof(IDocumentOptionsProviderFactory)), Shared, PartNotDiscoverable]
+    internal class TestDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    {
+        public readonly Dictionary<OptionKey, object> Options = new();
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestDocumentOptionsProviderFactory()
+        {
+        }
+
+        public IDocumentOptionsProvider? TryCreate(Workspace workspace)
+            => new Provider(new DocumentOptions(Options));
+
+        private class Provider : IDocumentOptionsProvider
+        {
+            private readonly DocumentOptions _options;
+
+            public Provider(DocumentOptions options)
+                => _options = options;
+
+            public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+                => Task.FromResult<IDocumentOptions?>(_options);
+        }
+
+        public class DocumentOptions : IDocumentOptions
+        {
+            private readonly Dictionary<OptionKey, object> _options;
+
+            public DocumentOptions(Dictionary<OptionKey, object> options)
+                => _options = options;
+
+            public bool TryGetDocumentOption(OptionKey option, out object? value)
+                => _options.TryGetValue(option, out value);
+        }
     }
 
     [Fact]
@@ -63,8 +101,15 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeightLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService), typeof(TestDocumentOptionsProviderFactory) }).GetHostServices();
+
         using var workspace = new AdhocWorkspace(hostServices);
+
+        // register custom document options provider (Razor scenario)
+        var documentOptionsFactory = (TestDocumentOptionsProviderFactory)((IMefHostExportProvider)hostServices).GetExportedValue<IDocumentOptionsProviderFactory>();
+        documentOptionsFactory.Options.Add(new OptionKey(FormattingOptions.IndentationSize, NoCompilationConstants.LanguageName), 10);
+        var provider = documentOptionsFactory.TryCreate(workspace)!;
+        workspace.Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(provider);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
         var document = workspace.AddDocument(project.Id, "File.dummy", SourceText.From("dummy"));
@@ -76,6 +121,9 @@ public class FormatterTests
             WithChangedOption(new OptionKey(FormattingOptions.NewLine, NoCompilationConstants.LanguageName), "\n");
 
         document = document.Project.Solution.WithOptions(solutionOptions).GetRequiredDocument(document.Id);
+
+        var documentOptions = await document.GetOptionsAsync();
+        Assert.Equal(10, documentOptions.GetOption(FormattingOptions.IndentationSize));
 
         var options = passExplicitOptions ? new OptionValueSet(ImmutableDictionary<OptionKey, object?>.Empty.
             Add(new OptionKey(FormattingOptions.UseTabs, NoCompilationConstants.LanguageName), true).
@@ -91,11 +139,13 @@ public class FormatterTests
 
         if (passExplicitOptions)
         {
+            // explicit options override solution and document options:
             AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = True, TabSize = 5, IndentationSize = 6, NewLine = \r }", formattedText.ToString());
         }
         else
         {
-            AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 1, IndentationSize = 7, NewLine = \n }", formattedText.ToString());
+            // document options override solution options:
+            AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 1, IndentationSize = 10, NewLine = \n }", formattedText.ToString());
         }
     }
 
