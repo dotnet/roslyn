@@ -24,12 +24,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
-    internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
+    internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         TTypeDeclarationSyntax,
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+        TBinaryExpressionSyntax,
+        TSimplifierOptions> : AbstractInitializeParameterCodeRefactoringProvider<
             TTypeDeclarationSyntax,
             TParameterSyntax,
             TStatementSyntax,
@@ -39,12 +40,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
+        where TSimplifierOptions : SimplifierOptions
     {
         protected abstract bool CanOffer(SyntaxNode body);
-        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
         protected abstract string EscapeResourceString(string input);
-        protected abstract TStatementSyntax CreateParameterCheckIfStatement(TExpressionSyntax condition, TStatementSyntax ifTrueStatement, SimplifierOptions options);
-        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, TParameterSyntax parameterSyntax, SimplifierOptions options, CancellationToken cancellationToken);
+        protected abstract TStatementSyntax CreateParameterCheckIfStatement(TExpressionSyntax condition, TStatementSyntax ifTrueStatement, TSimplifierOptions options);
+        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, TParameterSyntax parameterSyntax, TSimplifierOptions options, CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document,
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
                 return ImmutableArray<CodeAction>.Empty;
 
-            var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Great.  There was no null check.  Offer to add one.
             using var result = TemporaryArray<CodeAction>.Empty;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            SimplifierOptions? lazySimplifierOptions = null;
+            TSimplifierOptions? lazySimplifierOptions = null;
 
             foreach (var index in listOfParametersOrdinals)
             {
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (!CanOfferRefactoring(funcOrRecord, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
                     continue;
 
-                lazySimplifierOptions ??= await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more
                 // commonly used in this regard according to telemetry and UX testing.
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
             IBlockOperation? blockStatementOpt,
-            SimplifierOptions options,
+            TSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // First see if we can adopt the '!!' parameter null checking syntax.
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Then see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
             modifiedDocument = await TryAddNullCheckToAssignmentAsync(
-                document, parameter, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                document, parameter, blockStatementOpt, options, cancellationToken).ConfigureAwait(false);
 
             if (modifiedDocument != null)
             {
@@ -372,7 +374,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IMethodSymbol method,
             IBlockOperation? blockStatementOpt,
             string methodName,
-            SimplifierOptions options,
+            TSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             return await AddNullCheckStatementAsync(
@@ -414,14 +416,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, SimplifierOptions options)
+        private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, TSimplifierOptions options)
             => CreateParameterCheckIfStatement(
                 (TExpressionSyntax)generator.CreateNullCheckExpression(semanticModel, parameter.Name),
                 (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter),
                 options);
 
         private TStatementSyntax CreateStringCheckStatement(
-            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName, SimplifierOptions options)
+            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName, TSimplifierOptions options)
         {
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
@@ -516,6 +518,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             IParameterSymbol parameter,
             IBlockOperation? blockStatementOpt,
+            TSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // tries to convert "this.s = s" into "this.s = s ?? throw ...".  Only supported
@@ -534,7 +537,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return null;
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             if (!PrefersThrowExpression(options))
             {
                 return null;

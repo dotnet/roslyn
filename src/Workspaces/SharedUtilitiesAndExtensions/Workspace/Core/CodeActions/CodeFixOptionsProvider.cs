@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -43,6 +44,15 @@ internal readonly struct CodeFixOptionsProvider
 
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
+    // SyntaxFormattingOptions
+
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers,
+#if CODE_STYLE
+        SyntaxFormattingOptions.DefaultAccessibilityModifiersRequired);
+#else
+        FallbackSyntaxFormattingOptions.AccessibilityModifiersRequired);
+#endif
+
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
@@ -55,6 +65,11 @@ internal readonly struct CodeFixOptionsProvider
 #else
     private LineFormattingOptions FallbackLineFormattingOptions
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
+#endif
+
+#if !CODE_STYLE
+    private SyntaxFormattingOptions FallbackSyntaxFormattingOptions
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
 #endif
 }
 
