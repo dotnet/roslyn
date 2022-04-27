@@ -1001,7 +1001,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 0
@@ -1405,7 +1405,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 0
@@ -1822,7 +1822,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 1
 1
@@ -2033,7 +2033,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 1
 1
