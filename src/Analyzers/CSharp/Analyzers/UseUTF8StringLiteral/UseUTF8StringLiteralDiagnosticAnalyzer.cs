@@ -148,31 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
         internal static bool TryConvertToUTF8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)
         {
-            // Since we'll only ever need to use up to 4 bytes to check/convert to UTF8
-            // we can just use one array and reuse it. Using an array pool would do the same
-            // thing but with more locks.
-            var array = new byte[4];
             for (var i = 0; i < arrayCreationElements.Length;)
             {
-                // We only need max 4 elements for a single Rune
-                var count = Math.Min(arrayCreationElements.Length - i, 4);
-
-                // Need to copy to a regular array to get a ROS for Rune to process
-                for (var j = 0; j < count; j++)
-                {
-                    var element = arrayCreationElements[i + j];
-
-                    // First basic check is that the array element is actually a byte
-                    if (element.ConstantValue.Value is not byte)
-                        return false;
-
-                    array[j] = (byte)element.ConstantValue.Value;
-                }
-
-                var ros = new ReadOnlySpan<byte>(array, 0, count);
-
-                // If we can't decode a rune from the array then it can't be represented as a string
-                if (Rune.DecodeFromUtf8(ros, out var rune, out var bytesConsumed) != System.Buffers.OperationStatus.Done)
+                // Need to call a method to do the actual rune decoding as it uses stackalloc, and stackalloc
+                // in a loop is a bad idea
+                if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed))
                     return false;
 
                 i += bytesConsumed;
@@ -190,6 +170,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                     }
                 }
             }
+
+            return true;
+        }
+
+        private static bool TryGetNextRune(ImmutableArray<IOperation> arrayCreationElements, int startIndex, out Rune rune, out int bytesConsumed)
+        {
+            rune = default;
+            bytesConsumed = 0;
+
+            // We only need max 4 elements for a single Rune
+            var length = Math.Min(arrayCreationElements.Length - startIndex, 4);
+
+            var array = (Span<byte>)stackalloc byte[length];
+            for (var i = 0; i < length; i++)
+            {
+                var element = arrayCreationElements[startIndex + i];
+
+                // First basic check is that the array element is actually a byte
+                if (element.ConstantValue.Value is not byte)
+                    return false;
+
+                array[i] = (byte)element.ConstantValue.Value;
+            }
+
+            // If we can't decode a rune from the array then it can't be represented as a string
+            if (Rune.DecodeFromUtf8(array, out rune, out bytesConsumed) != System.Buffers.OperationStatus.Done)
+                return false;
 
             return true;
         }
