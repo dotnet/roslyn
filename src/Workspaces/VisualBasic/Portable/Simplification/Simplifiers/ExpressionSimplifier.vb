@@ -29,9 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                               cancellationToken As CancellationToken) As Boolean
 
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
-            If memberAccessExpression IsNot Nothing AndAlso
-                memberAccessExpression.Expression.IsKind(SyntaxKind.MeExpression) Then
-
+            If memberAccessExpression?.Expression.Kind() = SyntaxKind.MeExpression Then
                 If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
                     memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
                     Return False
