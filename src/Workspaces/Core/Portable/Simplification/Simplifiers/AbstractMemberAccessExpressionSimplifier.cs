@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
 
         protected abstract bool MayCauseParseDifference(TMemberAccessExpressionSyntax memberAccessExpression);
 
+        /// <summary>
+        /// Checks a member access expression <c>expr.Name</c> and, if it is of the form <c>this.Name</c> or
+        /// <c>Me.Name</c> determines if it is safe to replace with just <c>Name</c> alone.
+        /// </summary>
         public bool ShouldSimplifyThisMemberAccessExpression(
             TMemberAccessExpressionSyntax? memberAccessExpression,
             SemanticModel semanticModel,
