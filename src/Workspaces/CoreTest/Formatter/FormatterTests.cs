@@ -81,7 +81,7 @@ public class FormatterTests
     }
 
     [Fact]
-    public async Task FormatAsync_ForeightLanguageWithFormattingSupport()
+    public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
         var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
         using var workspace = new AdhocWorkspace(hostServices);
@@ -99,7 +99,7 @@ public class FormatterTests
 
     [Theory]
     [CombinatorialData]
-    public async Task FormatAsync_ForeightLanguageWithFormattingSupport_Options(bool passExplicitOptions)
+    public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
         var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService), typeof(TestDocumentOptionsProviderFactory) }).GetHostServices();
 
