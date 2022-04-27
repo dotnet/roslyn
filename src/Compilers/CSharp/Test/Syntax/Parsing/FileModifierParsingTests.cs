@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,7 +20,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
         }
 
-        private void UsingNode(string text, params DiagnosticDescription[] expectedErrors) => UsingNode(text, options: TestOptions.RegularPreview, expectedErrors);
+        private void UsingNode(string text, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            UsingNode(text, options: null, expectedParsingDiagnostics: expectedDiagnostics);
+        }
+
+        private new void UsingNode(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            UsingNode(text, options, expectedParsingDiagnostics: expectedDiagnostics);
+        }
+
+        private void UsingNode(string text, CSharpParseOptions? options = null, DiagnosticDescription[]? expectedParsingDiagnostics = null, DiagnosticDescription[]? expectedBindingDiagnostics = null)
+        {
+            options ??= TestOptions.RegularPreview;
+            expectedParsingDiagnostics ??= Array.Empty<DiagnosticDescription>();
+            expectedBindingDiagnostics ??= expectedParsingDiagnostics;
+
+            var tree = UsingTree(text, options);
+            Validate(text, (CSharpSyntaxNode)tree.GetRoot(), expectedParsingDiagnostics);
+
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(expectedBindingDiagnostics);
+        }
 
         [Theory]
         [InlineData(SyntaxKind.ClassKeyword)]
@@ -79,9 +101,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode($$"""
                 file partial enum C { }
                 """,
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6));
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // file partial enum C { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
+                },
+                // note: we also get duplicate ERR_PartialMisplaced diagnostics on `partial enum C { }`.
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // file partial enum C { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
+                    // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // file partial enum C { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.EnumDeclaration);
@@ -107,9 +142,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode($$"""
                 partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 """,
-                // (1,14): error CS1002: ; expected
-                // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 14));
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,14): error CS1002: ; expected
+                    // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 14)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                    // partial file interface C { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
+                    // (1,9): warning CS0168: The variable 'file' is declared but never used
+                    // partial file interface C { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 9),
+                    // (1,14): error CS1002: ; expected
+                    // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 14)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -251,12 +301,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode($$"""
                 partial file ref struct C { }
                 """,
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18));
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,14): error CS1003: Syntax error, ',' expected
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                    // (1,18): error CS1002: ; expected
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
+                    // (1,9): warning CS0168: The variable 'file' is declared but never used
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 9),
+                    // (1,14): error CS1003: Syntax error, ',' expected
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                    // (1,18): error CS1002: ; expected
+                    // partial file ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -391,10 +459,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileModifier_13()
         {
-            // note: LangVersion error is given during binding here
-            var tree = UsingNode("""
+            UsingNode("""
                 file class C { }
-                """, options: TestOptions.Regular10);
+                """,
+                options: TestOptions.Regular10,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // file class C { }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(1, 12)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -548,9 +622,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     file delegate*<int, void> M();
                 }
                 """,
-                // (3,10): error CS1519: Invalid token 'delegate' in class, record, struct, or interface member declaration
-                //     file delegate*<int, void> M();
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "delegate").WithArguments("delegate").WithLocation(3, 10));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     file delegate*<int, void> M();
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 10),
+                    // (3,31): error CS0106: The modifier 'file' is not valid for this item
+                    //     file delegate*<int, void> M();
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 31),
+                    // (3,31): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
+                    //     file delegate*<int, void> M();
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(3, 31)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -559,15 +642,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
                     N(SyntaxKind.MethodDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.FunctionPointerType);
                         {
                             N(SyntaxKind.DelegateKeyword);
@@ -611,16 +688,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileMember_01()
         {
-            // PROTOTYPE(ft): consider improving error recovery here
             UsingNode("""
                 class C
                 {
                     file void M() { }
                 }
                 """,
-                // (3,10): error CS1519: Invalid token 'void' in class, record, struct, or interface member declaration
-                //     file void M() { }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(3, 10));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,15): error CS0106: The modifier 'file' is not valid for this item
+                    //     file void M() { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 15)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -628,15 +707,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
                     N(SyntaxKind.MethodDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.VoidKeyword);
@@ -663,16 +736,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileMember_02()
         {
-            // PROTOTYPE(ft): consider improving error recovery here
             UsingNode("""
                 class C
                 {
                     file int x;
                 }
                 """,
-                // (3,10): error CS1519: Invalid token 'int' in class, record, struct, or interface member declaration
-                //     file int x;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "int").WithArguments("int").WithLocation(3, 10));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,14): error CS0106: The modifier 'file' is not valid for this item
+                    //     file int x;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("file").WithLocation(3, 14),
+                    // (3,14): warning CS0169: The field 'C.x' is never used
+                    //     file int x;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(3, 14)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -680,15 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
                     N(SyntaxKind.FieldDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
                             N(SyntaxKind.PredefinedType);
@@ -712,16 +784,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileMember_03()
         {
-            // PROTOTYPE(ft): consider improving error recovery here
             UsingNode($$"""
                 class C
                 {
                     file event Action x;
                 }
                 """,
-                // (3,10): error CS1519: Invalid token 'event' in class, record, struct, or interface member declaration
-                //     file event Action x;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "event").WithArguments("event").WithLocation(3, 10));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,16): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file event Action x;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(3, 16),
+                    // (3,23): error CS0106: The modifier 'file' is not valid for this item
+                    //     file event Action x;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("file").WithLocation(3, 23),
+                    // (3,23): warning CS0067: The event 'C.x' is never used
+                    //     file event Action x;
+                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "x").WithArguments("C.x").WithLocation(3, 23)
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -729,15 +809,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
                     N(SyntaxKind.EventFieldDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.EventKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
@@ -762,16 +836,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileMember_04()
         {
-            // PROTOTYPE(ft): consider improving error recovery here
-            UsingNode($$"""
+            var source = $$"""
                 class C
                 {
                     file int x { get; set; }
                 }
-                """,
-                // (3,10): error CS1519: Invalid token 'int' in class, record, struct, or interface member declaration
+                """;
+
+            UsingNode(source, expectedBindingDiagnostics: new []
+            {
+                // (3,14): error CS0106: The modifier 'file' is not valid for this item
                 //     file int x { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "int").WithArguments("int").WithLocation(3, 10));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "x").WithArguments("file").WithLocation(3, 14)
+            });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -779,15 +856,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
                     N(SyntaxKind.PropertyDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
@@ -817,6 +888,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FileMember_05()
+        {
+            var source = $$"""
+                class C
+                {
+                    async file void M() { }
+                }
+                """;
+
+            UsingNode(source, expectedBindingDiagnostics: new[]
+            {
+                // (3,21): error CS0106: The modifier 'file' is not valid for this item
+                //     async file void M() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 21),
+                // (3,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async file void M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(3, 21)
+            });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void MemberNamedFile_01()
         {
             UsingNode($$"""
@@ -824,7 +948,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     int file;
                 }
-                """);
+                """, expectedBindingDiagnostics: new[]
+                {
+                    // (3,9): warning CS0169: The field 'C.file' is never used
+                    //     int file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "file").WithArguments("C.file").WithLocation(3, 9)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -910,7 +1039,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     event Action file;
                 }
-                """);
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,11): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                    //     event Action file;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(3, 11),
+                    // (3,18): warning CS0067: The event 'C.file' is never used
+                    //     event Action file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "file").WithArguments("C.file").WithLocation(3, 18)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -989,7 +1127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode($$"""
                 file class file { }
-                """);
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,12): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                    // file class file { }
+                    Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 12)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1014,7 +1158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     file async;
                 }
-                """);
+                """,
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1023,20 +1173,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
+                    N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "file");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "async");
-                            }
+                            N(SyntaxKind.IdentifierToken, "async");
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1059,10 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "file");
-                    }
+                    N(SyntaxKind.FileKeyword);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1074,18 +1214,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode($$"""
                 file;
-                """);
+                """,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                    // (1,5): error CS8937: At least one top-level statement must be non-empty.
+                    // file;
+                    Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 5)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.FileKeyword);
+                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.EmptyStatement);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -1100,21 +1255,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode($$"""
                 file namespace NS;
                 """,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file namespace NS;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                    // file namespace NS;
+                    Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "file").WithLocation(1, 1)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "file");
-                    }
-                }
                 N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
+                    N(SyntaxKind.FileKeyword);
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
@@ -1133,21 +1285,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode($$"""
                 file namespace NS { }
                 """,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // file namespace NS { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                    // file namespace NS { }
+                    Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "file").WithLocation(1, 1)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "file");
-                    }
-                }
                 N(SyntaxKind.NamespaceDeclaration);
                 {
+                    N(SyntaxKind.FileKeyword);
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
@@ -1167,35 +1316,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const int fileModifiersCount = 100000;
             var manyFileModifiers = string.Join(" ", Enumerable.Repeat<string>("file", fileModifiersCount));
             UsingNode(manyFileModifiers,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "file").WithArguments(",", "").WithLocation(1, 11),
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 500000));
+                expectedParsingDiagnostics: new[]
+                {
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 499996)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    for (var i = 0; i < fileModifiersCount; i++)
                     {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "file");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "file");
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.FileKeyword);
                     }
+                    N(SyntaxKind.EndOfFileToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
 
             UsingNode(manyFileModifiers + " class { }",
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 500007));
+                expectedParsingDiagnostics: new[]
+                {
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 500007)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    Diagnostic(ErrorCode.ERR_DuplicateModifier, "file").WithArguments("file").WithLocation(1, 6),
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 500007)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1223,7 +1371,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     file record();
                 }
-                """, options: TestOptions.Regular8);
+                """,
+                options: TestOptions.Regular8,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,5): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file record();
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 5),
+                    // (3,10): error CS0501: 'C.record()' must declare a body because it is not marked abstract, extern, or partial
+                    //     file record();
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "record").WithArguments("C.record()").WithLocation(3, 10)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1261,7 +1419,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     file record();
                 }
-                """);
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0106: The modifier 'file' is not valid for this item
+                    //     file record();
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "record").WithArguments("file").WithLocation(3, 10),
+                    // (3,10): error CS1520: Method must have a return type
+                    //     file record();
+                    Diagnostic(ErrorCode.ERR_MemberNeedsType, "record").WithLocation(3, 10)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1296,7 +1463,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     file record() { }
                 }
-                """, options: TestOptions.Regular8);
+                """,
+                options: TestOptions.Regular8,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,5): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file record() { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 5),
+                    // (3,10): error CS0161: 'C.record()': not all code paths return a value
+                    //     file record() { }
+                    Diagnostic(ErrorCode.ERR_ReturnExpected, "record").WithArguments("C.record()").WithLocation(3, 10)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1338,7 +1515,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     file record() { }
                 }
-                """);
+                """, expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0106: The modifier 'file' is not valid for this item
+                    //     file record() { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "record").WithArguments("file").WithLocation(3, 10),
+                    // (3,10): error CS1520: Method must have a return type
+                    //     file record() { }
+                    Diagnostic(ErrorCode.ERR_MemberNeedsType, "record").WithLocation(3, 10)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1379,9 +1564,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """,
                 options: TestOptions.Regular8,
-                // (3,17): error CS1002: ; expected
-                //     file record X();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "X").WithLocation(3, 17));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file record X();
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(3, 10),
+                    // (3,17): error CS0106: The modifier 'file' is not valid for this item
+                    //     file record X();
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "X").WithArguments("file").WithLocation(3, 17),
+                    // (3,17): error CS0501: 'C.X()' must declare a body because it is not marked abstract, extern, or partial
+                    //     file record X();
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "X").WithArguments("C.X()").WithLocation(3, 17)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1390,23 +1584,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
+                    N(SyntaxKind.MethodDeclaration);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "file");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "record");
-                            }
+                            N(SyntaxKind.IdentifierToken, "record");
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.ConstructorDeclaration);
-                    {
                         N(SyntaxKind.IdentifierToken, "X");
                         N(SyntaxKind.ParameterList);
                         {
@@ -1468,9 +1652,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """,
                 options: TestOptions.Regular8,
-                // (3,17): error CS1002: ; expected
-                //     file record X() { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "X").WithLocation(3, 17));
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file record X() { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(3, 10),
+                    // (3,17): error CS0106: The modifier 'file' is not valid for this item
+                    //     file record X() { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "X").WithArguments("file").WithLocation(3, 17),
+                    // (3,17): error CS0161: 'C.X()': not all code paths return a value
+                    //     file record X() { }
+                    Diagnostic(ErrorCode.ERR_ReturnExpected, "X").WithArguments("C.X()").WithLocation(3, 17)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1479,23 +1672,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
+                    N(SyntaxKind.MethodDeclaration);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "file");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "record");
-                            }
+                            N(SyntaxKind.IdentifierToken, "record");
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.ConstructorDeclaration);
-                    {
                         N(SyntaxKind.IdentifierToken, "X");
                         N(SyntaxKind.ParameterList);
                         {
@@ -1561,16 +1744,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     file record X;
                 }
                 """,
-                options: TestOptions.Regular8,
-                // (3,17): error CS1002: ; expected
-                //     file record X;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "X").WithLocation(3, 17),
-                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     file record X;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18),
-                // (3,18): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     file record X;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 18));
+                options: TestOptions.Regular8, expectedBindingDiagnostics: new[]
+                {
+                    // (3,10): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file record X;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(3, 10),
+                    // (3,17): error CS0106: The modifier 'file' is not valid for this item
+                    //     file record X;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "X").WithArguments("file").WithLocation(3, 17),
+                    // (3,17): warning CS0169: The field 'C.X' is never used
+                    //     file record X;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(3, 17)
+                });
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1581,25 +1766,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
                     {
+                        N(SyntaxKind.FileKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "file");
+                                N(SyntaxKind.IdentifierToken, "record");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "record");
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
