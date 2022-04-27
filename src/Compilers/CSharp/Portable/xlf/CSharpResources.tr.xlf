@@ -922,6 +922,11 @@
         <target state="translated">'new()' kısıtlaması, 'unmanaged' kısıtlamasıyla kullanılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="new">'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
         <target state="translated">Tam olmayan düz metin arasına kod eklenmiş dize içindeki yeni satırlar, C# {0} içinde desteklenmiyor. Lütfen {1} dil sürümünü veya daha üstünü kullanın.</target>
