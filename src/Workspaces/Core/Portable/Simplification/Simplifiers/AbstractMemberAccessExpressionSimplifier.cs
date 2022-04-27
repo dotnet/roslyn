@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolInfo.Symbol.Kind, out var optionValue))
                 return false;
 
-            if (optionValue.Value)
+            // We always simplify a static accesses off of this/me.  Otherwise, we fall back to whatever the user's option is.
+            if (!symbolInfo.Symbol.IsStatic && optionValue.Value)
                 return false;
 
             var speculationAnalyzer = GetSpeculationAnalyzer(semanticModel, memberAccessExpression, cancellationToken);
