@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             replacementNode = null;
             issueSpan = default;
 
-            if (expression is MemberAccessExpressionSyntax memberAccessExpression &&
-                memberAccessExpression.Expression.IsKind(SyntaxKind.ThisExpression))
+            if (expression is MemberAccessExpressionSyntax { Expression.RawKind: (int)SyntaxKind.ThisExpression) } memberAccessExpression)
             {
                 if (!MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
                         memberAccessExpression, semanticModel, options, out var thisExpression, out _, cancellationToken))
