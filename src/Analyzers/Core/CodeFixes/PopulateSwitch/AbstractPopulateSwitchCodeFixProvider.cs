@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // If the user is performing a fix-all, then fix up all the issues we see. i.e.
             // add missing cases and missing 'default' cases for any switches we reported an

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (info == null)
                 return;
 
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(new MyCodeAction(
                 info.Value.title, c => ConvertAsync(document, namespaceDecl, formattingOptions, c), info.Value.equivalenceKey));

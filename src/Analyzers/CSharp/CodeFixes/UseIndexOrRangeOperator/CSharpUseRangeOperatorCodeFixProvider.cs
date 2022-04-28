@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
                                              .OrderByDescending(i => i.SpanStart)

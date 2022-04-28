@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
-            var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
+            var dllStream = IOUtilities.PerformIO(() => ReadFileIfExists(dllPath));
             if (dllStream is null)
                 return null;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             try
             {
                 // Try to load the pdb file from disk, or embedded
-                if (peReader.TryOpenAssociatedPortablePdb(dllPath, pdbPath => File.OpenRead(pdbPath), out var pdbReaderProvider, out var pdbFilePath))
+                if (peReader.TryOpenAssociatedPortablePdb(dllPath, ReadFileIfExists, out var pdbReaderProvider, out var pdbFilePath))
                 {
                     Contract.ThrowIfNull(pdbReaderProvider);
 
@@ -126,6 +126,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return result;
+
+            static FileStream? ReadFileIfExists(string fileName)
+            {
+                if (File.Exists(fileName))
+                    return File.OpenRead(fileName);
+
+                return null;
+            }
         }
     }
 }
