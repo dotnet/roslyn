@@ -490,19 +490,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var members = containingType.GetMembers();
 
-            // We first compile the accessors to avoid extra bindings for 'field' keyword.
+            // We first compile the accessors that contain 'field' keyword to avoid extra bindings for 'field' keyword when compiling other members.
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
 
                 //When a filter is supplied, limit the compilation of members passing the filter.
                 if (!PassesFilter(_filterOpt, member) ||
-                    member is not MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } accessor)
-                {
-                    continue;
-                }
-
-                if (member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
+                    member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } accessor)
                 {
                     continue;
                 }
@@ -512,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
             }
 
+            // After compiling accessors containing 'field' keyword, we mark the backing field of the corresponding property as calculated.
             foreach (var member in members)
             {
                 if (member is SourcePropertySymbolBase property)
@@ -529,28 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
-            {
-                var member = members[memberOrdinal];
-
-                //When a filter is supplied, limit the compilation of members passing the filter.
-                if (!PassesFilter(_filterOpt, member) ||
-                    member is not MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } accessor)
-                {
-                    continue;
-                }
-
-                if (member is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
-                {
-                    continue;
-                }
-
-                Debug.Assert(member.Kind == SymbolKind.Method);
-                Binder.ProcessedFieldInitializers processedInitializers = default;
-                CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
-            }
-
-            // Then we compile everything, excluding the accessors we already compiled in the loop above.
+            // Then we compile everything, excluding the accessors that contain field keyword we already compiled in the loop above.
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -578,6 +553,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert((object)method != scriptEntryPoint);
                                 Debug.Assert(!IsFieldLikeEventAccessor(method));
                                 Debug.Assert(!method.IsPartialDefinition());
+                            }
+
+                            if (member is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
+                            {
+                                // We already compiled these accessors in the loop above.
                                 continue;
                             }
 
