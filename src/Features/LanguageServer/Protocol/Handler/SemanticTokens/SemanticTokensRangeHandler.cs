@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
+        #region Semantic Tokens Refresh state
+
         /// <summary>
         /// Lock over the mutable state that follows.
         /// </summary>
@@ -65,6 +67,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
         /// </summary>
         private AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
+
+        #endregion
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
