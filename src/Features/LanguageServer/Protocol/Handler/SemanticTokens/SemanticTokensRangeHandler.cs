@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private bool? _supportsRefresh;
 
         private LspWorkspaceManager? _lspWorkspaceManager;
-        private ILanguageServerNotificationManager? _notificationManager;
 
         /// <summary>
         /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
@@ -112,19 +111,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
                     if (_supportsRefresh.Value)
                     {
-                        _lspWorkspaceManager = context.LspWorkspaceManager;
-                        _notificationManager = context.NotificationManager;
-
                         // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
                         // sending too many notifications at once.  This ensures we batch up workspace notifications,
                         // but also means we send soon enough after a compilation-computation to not make the user wait
                         // an enormous amount of time.
                         _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
                             delay: TimeSpan.FromMilliseconds(500),
-                            processBatchAsync: SendSemanticTokensNotificationAsync,
+                            processBatchAsync: c => context.NotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
                             asyncListener: _asyncListener,
                             context.QueueCancellationToken);
 
+                        _lspWorkspaceManager = context.LspWorkspaceManager;
                         _lspWorkspaceManager.LspSolutionChanged += OnLspSolutionChanged;
                     }
                 }
@@ -135,9 +132,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
             => _semanticTokenRefreshQueue?.AddWork();
-
-        public ValueTask SendSemanticTokensNotificationAsync(CancellationToken cancellationToken)
-            => _notificationManager!.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
 
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
             SemanticTokensRangeParams request,
