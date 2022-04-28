@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 eventSources = _projectIdToEventSource.Values.ToImmutableArray();
                 _projectIdToEventSource.Clear();
-                _projectIdToLastComputedChecksum.Clear();
 
                 if (_lspWorkspaceManager != null)
                     _lspWorkspaceManager.LspSolutionChanged -= OnLspSolutionChanged;
