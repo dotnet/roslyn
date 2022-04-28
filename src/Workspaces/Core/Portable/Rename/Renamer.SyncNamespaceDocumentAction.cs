@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Rename
         internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
             private readonly AnalysisResult _analysis;
-            private readonly ChangeNamespaceOptionsProvider _options;
+            private readonly CodeCleanupOptionsProvider _fallbackOptions;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis, ChangeNamespaceOptionsProvider options)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, CodeCleanupOptionsProvider fallbackOptions)
                 : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
-                _options = options;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string GetDescription(CultureInfo? culture)
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Rename
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, _options, cancellationToken).ConfigureAwait(false);
+                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // If the solution fails to update fail silently. The user will see no large
                 // negative impact from not doing this modification, and it's possible the document
@@ -52,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution ?? document.Project.Solution;
             }
 
-            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, ChangeNamespaceOptionsProvider options)
+            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CodeCleanupOptionsProvider fallbackOptions)
             {
                 var analysisResult = Analyze(document, newFolders);
 
                 if (analysisResult.HasValue)
                 {
-                    return new SyncNamespaceDocumentAction(analysisResult.Value, options);
+                    return new SyncNamespaceDocumentAction(analysisResult.Value, fallbackOptions);
                 }
 
                 return null;

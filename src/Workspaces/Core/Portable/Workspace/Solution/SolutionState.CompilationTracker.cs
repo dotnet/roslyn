@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
-                        : ImmutableArray.Create<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>();
+                        : ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>.Empty;
 
                     if (translate is not null)
                     {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
                             if (mergedTranslation != null)
                             {
                                 // We can replace the prior action with this new one
-                                intermediateProjects = intermediateProjects.SetItem(intermediateProjects.Length - 1,
+                                intermediateProjects = intermediateProjects.SetItem(intermediateProjects.Count - 1,
                                     (oldState: priorState, mergedTranslation));
                                 merged = true;
                             }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state.IntermediateProjects;
 
-                    while (intermediateProjects.Length > 0)
+                    while (!intermediateProjects.IsEmpty)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 

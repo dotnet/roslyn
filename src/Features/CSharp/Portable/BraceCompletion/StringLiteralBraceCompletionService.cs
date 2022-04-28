@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         private static bool RestOfLineContainsDiagnostics(SyntaxToken token)
         {
-            while (token != default && !token.TrailingTrivia.Contains(t => t.IsEndOfLine()))
+            while (!token.IsKind(SyntaxKind.None) && !token.TrailingTrivia.Contains(t => t.IsEndOfLine()))
             {
                 if (token.ContainsDiagnostics)
                     return true;

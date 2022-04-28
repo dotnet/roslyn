@@ -78,20 +78,43 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // we wait for global operation and higher queue operation if there is anything going on
                                 await HigherQueueOperationTask.ConfigureAwait(false);
 
-                                // if there are no more work left for higher queue, and we didn't enter a state where we
-                                // should wait for idle again, then our time to go ahead.
-                                var higherQueueHasWorkItem = HigherQueueHasWorkItem;
-                                if (!higherQueueHasWorkItem && !ShouldWaitForIdle())
-                                    return;
-
-                                // either the higher queue has an item, or we still haven't idled long enough to start
-                                // processing our work.  In case it's the former, update our own time so that we still
-                                // idle long enough once that work is over.
-                                if (higherQueueHasWorkItem)
+                                if (HigherQueueHasWorkItem)
+                                {
+                                    // There was still something more important in another queue.  Back off again (e.g.
+                                    // call UpdateLastAccessTime) then wait that amount of time and check again to see
+                                    // if that queue is clear.
                                     UpdateLastAccessTime();
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
+                                }
 
-                                // back off and wait for next time slot or for us to become unpaused.
-                                await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                if (GetIsPaused())
+                                {
+                                    // if we're paused, we still want to keep waiting until we become unpaused. After we
+                                    // become unpaused though, loop around those to see if there is still high pri work
+                                    // to do.
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
+                                }
+
+                                // There was no higher queue work item and we're not paused. However, we may not have
+                                // waited long enough to actually satisfy our own backoff-delay.  If so, wait until
+                                // we're actually idle.
+                                if (ShouldContinueToBackOff())
+                                {
+                                    // Do the wait.  If it returns 'true' then we did the full wait.  Loop around again
+                                    // to see if there is higher priority work, or if we got paused.
+
+                                    // However, if it returns 'false' then that means the delay completed quickly
+                                    // because some unit/integration test is asking us to expedite our work.  In that
+                                    // case, just return out immediately so we can process what is in our queue.
+                                    if (await WaitForIdleAsync(Listener).ConfigureAwait(false))
+                                        continue;
+
+                                    // intentional fall-through.
+                                }
+
+                                return;
                             }
                         }
                     }
