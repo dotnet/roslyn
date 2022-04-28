@@ -502,6 +502,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                if (member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
+                {
+                    continue;
+                }
+
                 Debug.Assert(member.Kind == SymbolKind.Method);
                 Binder.ProcessedFieldInitializers processedInitializers = default;
                 CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
@@ -522,6 +527,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         property.MarkBackingFieldAsCalculated();
                     }
                 }
+            }
+
+            for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
+            {
+                var member = members[memberOrdinal];
+
+                //When a filter is supplied, limit the compilation of members passing the filter.
+                if (!PassesFilter(_filterOpt, member) ||
+                    member is not MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } accessor)
+                {
+                    continue;
+                }
+
+                if (member is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
+                {
+                    continue;
+                }
+
+                Debug.Assert(member.Kind == SymbolKind.Method);
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(accessor, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
             }
 
             // Then we compile everything, excluding the accessors we already compiled in the loop above.

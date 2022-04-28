@@ -2140,7 +2140,7 @@ public struct S
                 //     public int P4 { get; readonly set => field = value; } // No ERR_AutoSetterCantBeReadOnly, but ERR_AssgReadonlyLocal
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("S.P4.get").WithLocation(7, 21)
             );
-            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -3620,7 +3620,31 @@ struct S2
                 //     public S1 P { get; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(5, 15)
                 );
-            Assert.Equal(expectedBinding, accessorBindingData.NumberOfPerformedAccessorBinding); // PROTOTYPE(semi-auto-props): Not passing, and also flaky!
+            Assert.Equal(expectedBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void InStruct_NoCycleBecauseStatic(bool firstIsSemi, bool secondIsSemi)
+        {
+            var firstAccessor = firstIsSemi ? "get => field;" : "get;";
+            var secondAccessor = secondIsSemi ? "get => field;" : "get;";
+            var comp = CreateCompilation($@"
+struct S1
+{{
+    public S1() {{ }}
+    public static S2 P {{ {firstAccessor} }}
+}}
+
+struct S2
+{{
+    public S2() {{ }}
+    public static S1 P {{ {secondAccessor} }}
+}}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
