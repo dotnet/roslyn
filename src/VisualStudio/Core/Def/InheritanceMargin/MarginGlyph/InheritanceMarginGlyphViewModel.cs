@@ -123,15 +123,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var member = tag.MembersOnLine[0];
                 var automationName = member.TopLevelDisplayText;
 
-                var menuItemViewModels = members.SelectMany(m => InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(m)).ToImmutableArray();
+                var menuItemViewModels = members.SelectMany(m => InheritanceMarginHelpers.CreateModelsForMarginItem(m)).ToImmutableArray();
                 return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName!, scaleFactor, menuItemViewModels);
             }
             else if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
 
-                var automationName = member.TopLevelDisplayText ?? string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
-                var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member);
+                var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
+                var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member);
                 return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
             }
             else

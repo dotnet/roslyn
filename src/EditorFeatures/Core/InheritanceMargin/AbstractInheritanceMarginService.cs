@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var scopes = semanticModel.GetImportScopes(position: 0, cancellationToken);
+            var scopes = semanticModel.GetImportScopes(root.FullSpan.End, cancellationToken);
 
             // If we have global imports they would only be in the last scope in the scopes array.  All other scopes
             // correspond to inner scopes for either the compilation unit or namespace.
@@ -104,6 +105,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
 
+            var projectState = document.Project.State;
+            var projectName = projectState.NameAndFlavor.name ?? projectState.Name;
+            var languageGlyph = document.Project.Language switch
+            {
+                LanguageNames.CSharp => Glyph.CSharpFile,
+                LanguageNames.VisualBasic => Glyph.BasicFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(document.Project.Language),
+            };
+
             foreach (var group in nonLocalImports.GroupBy(i => i.DeclaringSyntaxReference?.SyntaxTree))
             {
                 var groupSyntaxTree = group.Key;
@@ -115,7 +125,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     {
                         var item = DefinitionItem.CreateNonNavigableItem(ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty);
                         targetItems.Add(new InheritanceTargetItem(
-                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, import.NamespaceOrType.ToDisplayString()));
+                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
+                            import.NamespaceOrType.ToDisplayString(), projectName));
                     }
 
                     items.Add(new InheritanceMarginItem(
@@ -136,7 +147,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                             ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
                             new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
                         targetItems.Add(new InheritanceTargetItem(
-                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, import.NamespaceOrType.ToDisplayString()));
+                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
+                            import.NamespaceOrType.ToDisplayString(), projectName));
                     }
 
                     var filePath = groupSyntaxTree.FilePath;

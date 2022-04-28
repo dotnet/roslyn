@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -19,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal static class InheritanceMarginHelpers
     {
+        private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => new());
+
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
             = ImmutableArray.Create(
                 InheritanceRelationship.ImplementedInterface,
@@ -98,12 +99,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(InheritanceMarginItem item)
+        public static ImmutableArray<MenuItemViewModel> CreateModelsForMarginItem(InheritanceMarginItem item)
         {
-            return item.TargetItems
-                .GroupBy(target => target.RelationToMember)
-                .SelectMany(grouping => CreateMenuItemsWithHeader(item, grouping.Key, grouping))
-                .ToImmutableArray();
+            var nameToTargets = s_pool.Allocate();
+            try
+            {
+                // Create a mapping from display name to all targets with that name.  This will allow us to determine if
+                // there may be multiple results with the same name, so we can disambiguate them with additional
+                // information later on when we create the items.
+                var targets = item.TargetItems;
+                foreach (var target in targets)
+                    nameToTargets.Add(target.DisplayName, target);
+
+                return targets.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "")
+                              .GroupBy(t => t.RelationToMember)
+                              .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
+                              .ToImmutableArray();
+            }
+            finally
+            {
+                nameToTargets.Clear();
+                s_pool.Free(nameToTargets);
+            }
         }
 
         /// <summary>
@@ -124,13 +141,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For multiple members, check if all the targets have the same inheritance relationship.
             // If so, then don't add the header, because it is already indicated by the margin.
             // Otherwise, add the Header.
-            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<MenuItemViewModel>();
+            return members.SelectAsArray(m => new MemberMenuItemViewModel(
+                m.DisplayTexts.JoinText(),
+                m.Glyph.GetImageMoniker(),
+                CreateModelsForMarginItem(m))).CastArray<MenuItemViewModel>();
         }
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
             InheritanceMarginItem item,
             InheritanceRelationship relationship,
-            IEnumerable<InheritanceTargetItem> targets)
+            IEnumerable<InheritanceTargetItem> targets,
+            MultiDictionary<string, InheritanceTargetItem> nameToTargets)
         {
             using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
@@ -148,11 +169,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 
-            var headerViewModel = new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship), displayContent);
-            builder.Add(headerViewModel);
-            foreach (var targetItem in targets)
+            builder.Add(new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship)));
+            foreach (var target in targets)
             {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem));
+                var targetsWithSameName = nameToTargets[target.DisplayName];
+                if (targetsWithSameName.Count >= 2)
+                {
+                    // Two or more items with the same name.  Try to disambiguate them based on their languages if
+                    // they're all distinct, or their project name if they're not.
+                    var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageGlyph).Distinct().Count();
+                    if (distinctLanguageCount == targetsWithSameName.Count)
+                    {
+                        builder.Add(DisambiguousTargetMenuItemViewModel.CreateWithSourceLanguageGlyph(target));
+                        continue;
+                    }
+
+                    if (target.ProjectName != null)
+                    {
+                        builder.Add(TargetMenuItemViewModel.Create(
+                            target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName)));
+                        continue;
+                    }
+                }
+
+                builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName));
             }
 
             return builder.ToImmutable();

@@ -29,20 +29,35 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
+        /// The glyph for source language. Used to disambiguate results when multiple targets have the same name.
+        /// </summary>
+        public readonly Glyph LanguageGlyph;
+
+        /// <summary>
         /// The display name used in margin.
         /// </summary>
         public readonly string DisplayName;
+
+        /// <summary>
+        /// Name of the project the symbol is defined in (if known).  Used to disambiguate results when multiple targets
+        /// have the same name and same language.
+        /// </summary>
+        public readonly string? ProjectName;
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            Glyph languageGlyph,
+            string displayName,
+            string? projectName)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
+            LanguageGlyph = languageGlyph;
             DisplayName = displayName;
+            ProjectName = projectName;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -58,7 +73,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem.Detach(),
                 serializableItem.Glyph,
-                serializableItem.DisplayName);
+                serializableItem.LanguageGlyph,
+                serializableItem.DisplayName,
+                serializableItem.ProjectName);
         }
     }
 }
