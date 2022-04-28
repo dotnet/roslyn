@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             try
             {
                 // Using default settings here because none of the tests exercise any of the settings
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, MetadataAsSourceOptions.Default, CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.LanguageServices), CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {

@@ -295,9 +295,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
 
+            // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
             var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var importsPlacementOptions = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await destinationEditor.OriginalDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var importsPlacementOptions = await destinationEditor.OriginalDocument.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, codeGenOptions, cancellationToken);
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             return (optionSet != null) ?
                 SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, fallbackOptions: null, document.Project.Language) :
-                await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                await document.GetSimplifierOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)

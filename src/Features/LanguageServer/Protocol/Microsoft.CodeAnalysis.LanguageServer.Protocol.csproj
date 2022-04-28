@@ -50,6 +50,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
@@ -70,8 +71,8 @@
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
     <InternalsVisibleTo Include="Microsoft.CSharp.VSCode.Extension" Key="$(VisualStudioKey)" />
-    <RestrictedInternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" Partner="VSMac" />
-    <RestrictedInternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" Partner="VSMac" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
 
   <ItemGroup>

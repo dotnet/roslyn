@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -73,8 +74,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // The formatting and simplification options are only applied within the given document (and all linked documents).
             // We can therefore fetch all necessary options for the language now rather then lazily,
             // which would be needed if we had to apply them to documents of different languages.
-            var fallbackOptions = new EncapsulateFieldOptions(
-                SimplifierOptions: _globalOptions.GetSimplifierOptions(document.Project.LanguageServices));
+            var fallbackOptions = _globalOptions.GetCodeCleanupOptionsProvider();
 
             var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), fallbackOptions, useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
 

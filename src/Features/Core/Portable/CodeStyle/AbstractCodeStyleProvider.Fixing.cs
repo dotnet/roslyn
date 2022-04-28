@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
                 => _codeStyleProvider.RegisterCodeFixesAsync(context);
 
-            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
                 => _codeStyleProvider.FixAllAsync(document, diagnostics, editor, cancellationToken);
         }
     }
