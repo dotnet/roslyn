@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <paramref name="onCompilationAvailable"/> once that happens.  Subsequence calls to this method will cancel
         /// any outstanding requests in flight.
         /// </summary>
-        public void EnsureCompilationAvailability(Project project, Func<Project, CancellationToken, ValueTask> onCompilationAvailable)
+        public void EnsureCompilationAvailability(Project project, Action onCompilationAvailable)
         {
             if (project == null)
                 return;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 // now that we know we have an full compilation, let the caller know so it can do whatever it needs in
                 // response.
-                await onCompilationAvailable(project, cancellationToken).ConfigureAwait(false);
+                onCompilationAvailable();
             }, cancellationToken);
             task.CompletesAsyncOperation(token);
         }
