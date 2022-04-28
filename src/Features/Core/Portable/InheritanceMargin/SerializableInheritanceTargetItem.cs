@@ -28,13 +28,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         [DataMember(Order = 5)]
         public readonly string? ProjectName;
 
+        [DataMember(Order = 6)]
+        public readonly Glyph LanguageGlyph;
+
         public SerializableInheritanceTargetItem(
             InheritanceRelationship relationToMember,
             SerializableDefinitionItem definitionItem,
             Glyph glyph,
             string displayName,
             string languageName,
-            string? projectName)
+            string? projectName,
+            Glyph languageGlyph)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
@@ -42,6 +46,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             DisplayName = displayName;
             ProjectName = projectName;
             LanguageName = languageName;
+            LanguageGlyph = languageGlyph;
         }
     }
 }

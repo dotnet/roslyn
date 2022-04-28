@@ -371,6 +371,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 ? definition.SourceSpans[0].Document.Project.State
                 : null;
 
+            var languageGlyph = targetSymbol.Language switch
+            {
+                LanguageNames.CSharp => Glyph.CSharpFile,
+                LanguageNames.VisualBasic => Glyph.BasicFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(targetSymbol.Language),
+            };
+
             return new SerializableInheritanceTargetItem(
                 inheritanceRelationship,
                 // Id is used by FAR service for caching, it is not used in inheritance margin
@@ -378,7 +385,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 targetSymbol.GetGlyph(),
                 displayName,
                 targetSymbol.Language,
-                projectState?.NameAndFlavor.name ?? projectState?.Name);
+                projectState?.NameAndFlavor.name ?? projectState?.Name,
+                languageGlyph);
         }
 
         private static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(

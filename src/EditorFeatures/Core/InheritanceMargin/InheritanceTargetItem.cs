@@ -44,13 +44,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly string? ProjectName;
 
+        /// <summary>
+        /// The glyph for source language.
+        /// </summary>
+        public readonly Glyph LanguageGlyph;
+
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
             string displayName,
             string languageName,
-            string? projectName)
+            string? projectName,
+            Glyph languageGlyph)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
@@ -58,6 +64,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             DisplayName = displayName;
             LanguageName = languageName;
             ProjectName = projectName;
+            LanguageGlyph = languageGlyph;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -75,7 +82,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.Glyph,
                 serializableItem.DisplayName,
                 serializableItem.LanguageName,
-                serializableItem.ProjectName);
+                serializableItem.ProjectName,
+                serializableItem.LanguageGlyph);
         }
     }
 }

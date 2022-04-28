@@ -41,18 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
             InheritanceTargetItem target)
         {
-            var languageGlyph = target.LanguageName switch
-            {
-                LanguageNames.CSharp => Glyph.CSharpFile,
-                LanguageNames.VisualBasic => Glyph.BasicFile,
-                _ => throw ExceptionUtilities.UnexpectedValue(target.LanguageName),
-            };
-
             return new(
                 target.DisplayName,
                 target.Glyph.GetImageMoniker(),
                 target.DefinitionItem,
-                languageGlyph.GetImageMoniker());
+                target.LanguageGlyph.GetImageMoniker());
         }
     }
 }
