@@ -113,10 +113,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         _lspWorkspaceManager = context.LspWorkspaceManager;
                         _notificationManager = context.NotificationManager;
 
-                        // Only send a refresh notification to the client every 2s (if needed)
-                        // in order to avoid sending too many notifications at once.
+                        // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
+                        // sending too many notifications at once.  This ensures we batch up workspace notifications,
+                        // but also means we send soon enough after a compilation-computation to not make the user wait
+                        // an enormous amount of time.
                         _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
-                            delay: TimeSpan.FromMilliseconds(2000),
+                            delay: TimeSpan.FromMilliseconds(500),
                             processBatchAsync: SendSemanticTokensNotificationAsync,
                             asyncListener: _asyncListener,
                             context.QueueCancellationToken);
