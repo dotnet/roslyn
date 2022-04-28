@@ -74,7 +74,7 @@
             </Setter>
         </Style>
 
-        <!-- Style used to display a single target menu item -->
+        <!-- Style used to display a target menu item with a language icon -->
         <Style x:Key="DisambiguatingTargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding  DisplayContent}"/>
@@ -100,7 +100,7 @@
                                 <ColumnDefinition Width="23" SharedSizeGroup="MenuItemExpanderColumnGroup"/>
                             </Grid.ColumnDefinitions>
 
-                            <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="6"/>
+                            <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
 
                             <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="22,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
                                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />

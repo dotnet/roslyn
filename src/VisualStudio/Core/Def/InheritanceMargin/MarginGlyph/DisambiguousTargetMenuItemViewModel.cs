@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
-            InheritanceTargetItem target, string displayContent)
+            InheritanceTargetItem target)
         {
             var languageGlyph = target.LanguageName switch
             {
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             };
 
             return new(
-                displayContent,
+                target.DisplayName,
                 target.Glyph.GetImageMoniker(),
                 target.DefinitionItem,
                 languageGlyph.GetImageMoniker());

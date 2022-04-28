@@ -31,9 +31,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
 
         Private Shared ReadOnly s_indentMargin As Thickness = New Thickness(22, 1, 4, 1)
 
-        Private Shared ReadOnly s_csharpImageId As ImageId = Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions.GetImageCatalogImageId(KnownImageIds.CSFileNode)
-        Private Shared ReadOnly s_csharpImageMoniker As ImageMoniker = New ImageMoniker With {.Guid = s_csharpImageId.Guid, .Id = s_csharpImageId.Id}
-
         Private Structure GlyphViewModelData
             Public ReadOnly Property ImageMoniker As ImageMoniker
             Public ReadOnly Property ToolTipText As String

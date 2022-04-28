@@ -1942,6 +1942,6 @@ Additional information: {1}</value>
   </data>
   <data name="_0_1" xml:space="preserve">
     <value>{0} ({1})</value>
-    <comment>Used to show a symbol name, followed by either a language name (like 'C#') or the project name it came from</comment>
+    <comment>Used to show a symbol name, followed by the project name it came from</comment>
   </data>
 </root>
