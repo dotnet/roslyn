@@ -1389,6 +1389,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+        [Fact]
+        public void MemberNamedFile_08()
+        {
+            UsingNode($$"""
+                record file { }
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,8): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                    // record file { }
+                    Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 8)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
 
         [Fact]
         public void Errors_01_CSharp10()
@@ -1659,8 +1685,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void File_Repeated()
         {
-            const int fileModifiersCount = 100000;
-            var manyFileModifiers = string.Join(" ", Enumerable.Repeat<string>("file", fileModifiersCount));
+            const int FileModifiersCount = 100000;
+            var manyFileModifiers = string.Join(" ", Enumerable.Repeat<string>("file", FileModifiersCount));
             UsingNode(manyFileModifiers,
                 expectedParsingDiagnostics: new[]
                 {
@@ -1671,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    for (var i = 0; i < fileModifiersCount; i++)
+                    for (var i = 0; i < FileModifiersCount; i++)
                     {
                         N(SyntaxKind.FileKeyword);
                     }
@@ -1695,7 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 N(SyntaxKind.ClassDeclaration);
                 {
-                    for (int i = 0; i < fileModifiersCount; i++)
+                    for (int i = 0; i < FileModifiersCount; i++)
                     {
                         N(SyntaxKind.FileKeyword);
                     }

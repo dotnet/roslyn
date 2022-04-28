@@ -1295,7 +1295,7 @@ tryAgain:
 
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind != this.CurrentToken.Kind);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
 
             // Adapted from CParser::IsAsyncMethod.
 
