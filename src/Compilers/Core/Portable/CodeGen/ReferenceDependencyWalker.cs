@@ -163,8 +163,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             RoslynDebug.Assert(fieldReference != null);
 
-            //System.Diagnostics.Debug.Assert(fieldReference.RefCustomModifiers.IsEmpty);
-
             // Visit containing type
             VisitTypeReference(fieldReference.GetContainingType(context), context);
 
