@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverEditorConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -424,7 +424,7 @@ some_prop = some_val");
                 }));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverEditorConfigFilesCanBeDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -450,7 +450,7 @@ some_prop = some_val");
                 expectedResults: AppendExtraEditorConfigs(new[] { "" }, findEditorConfigs: false));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -480,7 +480,7 @@ some_prop = some_val");
                 }));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFilesCanBeDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -511,7 +511,7 @@ some_prop = some_val");
                 }, findGlobalConfigs: false));
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestDiscoverGlobalConfigFilesWhenEditorConfigDisabled()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
@@ -601,7 +601,7 @@ some_prop = some_val");
                  expectedResults: new[] { "" });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/61017")]
         public void TestGlobalConfigsCanBeManuallyAdded()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
