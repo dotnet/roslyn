@@ -38,9 +38,9 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     $feedData = GetFeedPublishData
 
     # Let packageFeeds default to the default set of feeds
-    $packageFeeds = $publishData.packageFeeds
-    if (!$packageFeeds) {
-      $packageFeeds = "default"
+    $packageFeeds = "default"
+    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
+      $packageFeeds = $publishData.packageFeeds
     }
 
     # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
