@@ -1107,11 +1107,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
+        internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
-            bool ignoreByRefLikeMarker)
+            bool ignoreByRefLikeMarker,
+            bool ignoreRequiredMemberMarker)
         {
             AttributeInfo info;
 
@@ -1127,8 +1129,9 @@ namespace Microsoft.CodeAnalysis
                 ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info, decoder);
                 switch (obsoleteData?.Message)
                 {
-                    // PROTOTYPE(req): Ignore required obsolete marker
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
+                        return null;
+                    case RequiredMembersMarker when ignoreRequiredMemberMarker:
                         return null;
                 }
                 return obsoleteData;
