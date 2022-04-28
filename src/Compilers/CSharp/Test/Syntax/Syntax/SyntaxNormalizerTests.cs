@@ -1245,5 +1245,40 @@ class Derived : Base
             var actual = trivia.NormalizeWhitespace("    ").ToFullString().NormalizeLineEndings();
             Assert.Equal(expected.NormalizeLineEndings(), actual);
         }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment1()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    a=""x""  b=""y"" >S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment2()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"">S_OK</b> suffix";
+            TestNormalizeDeclaration(Expected, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment3()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"" /> suffix";
+            const string Text = @"/// Prefix <b a=""x"" b=""y"" /> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment4()
+        {
+            const string Expected = @"/// Prefix <b a=""x"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    a=""x""	>S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
     }
 }

@@ -1265,5 +1265,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             return base.VisitInterpolatedStringExpression(node);
         }
+
+        public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
+        {
+            var attribute = (XmlTextAttributeSyntax?)base.VisitXmlTextAttribute(node);
+
+            if (attribute is null or { HasTrailingTrivia: true })
+            {
+                return attribute;
+            }
+
+            return GetNextRelevantToken(node.EndQuoteToken).Kind() != SyntaxKind.GreaterThanToken
+                       ? attribute.WithTrailingTrivia(GetSpace())
+                       : attribute;
+        }
     }
 }
