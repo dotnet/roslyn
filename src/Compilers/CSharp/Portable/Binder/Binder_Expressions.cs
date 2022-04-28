@@ -1573,6 +1573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(diagnostics, ErrorCode.ERR_FieldKeywordInsideNameOf, node);
                             }
+                            else if (backingField.ContainingType.IsInterface && !backingField.IsStatic)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InterfacesCantContainFields, node);
+                            }
                         }
                     }
                 }
