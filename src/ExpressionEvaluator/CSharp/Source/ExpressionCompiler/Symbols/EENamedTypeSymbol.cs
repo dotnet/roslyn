@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override bool HasDeclaredRequiredMembers => throw ExceptionUtilities.Unreachable;
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {
