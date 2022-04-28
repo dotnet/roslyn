@@ -5,29 +5,33 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal class ExtractInterfaceTypeAnalysisResult
+    internal sealed class ExtractInterfaceTypeAnalysisResult
     {
         public readonly bool CanExtractInterface;
         public readonly Document DocumentToExtractFrom;
         public readonly SyntaxNode TypeNode;
         public readonly INamedTypeSymbol TypeToExtractFrom;
         public readonly IEnumerable<ISymbol> ExtractableMembers;
+        public readonly CodeCleanupOptionsProvider FallbackOptions;
         public readonly string ErrorMessage;
 
         public ExtractInterfaceTypeAnalysisResult(
             Document documentToExtractFrom,
             SyntaxNode typeNode,
             INamedTypeSymbol typeToExtractFrom,
-            IEnumerable<ISymbol> extractableMembers)
+            IEnumerable<ISymbol> extractableMembers,
+            CodeCleanupOptionsProvider fallbackOptions)
         {
             CanExtractInterface = true;
             DocumentToExtractFrom = documentToExtractFrom;
             TypeNode = typeNode;
             TypeToExtractFrom = typeToExtractFrom;
             ExtractableMembers = extractableMembers;
+            FallbackOptions = fallbackOptions;
         }
 
         public ExtractInterfaceTypeAnalysisResult(string errorMessage)

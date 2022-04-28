@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
+                        Debug.Assert(!originalBodyNested);
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
                     if (needsImplicitReturn)
@@ -107,21 +108,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
             Debug.Assert(method.ContainingType.IsStructType());
 
-            var syntax = body.Syntax;
-            var F = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
+            var F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
 
-            var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length + 1);
+            var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length);
             foreach (var field in implicitlyInitializedFields)
             {
-                builder.Add(new BoundExpressionStatement(
-                    syntax,
-                    F.AssignmentExpression(
-                        F.Field(F.This(), field),
-                        F.Default(field.Type))));
+                builder.Add(
+                    F.ExpressionStatement(
+                        F.AssignmentExpression(
+                            F.Field(F.This(), field),
+                            F.Default(field.Type))));
             }
-            builder.Add(body);
+            var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
-            return BoundBlock.SynthesizedNoLocals(syntax, builder.ToImmutableAndFree());
+            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(index: 0, initializations));
         }
 
         private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, bool originalBodyNested)

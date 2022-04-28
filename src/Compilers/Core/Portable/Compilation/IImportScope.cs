@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis;
 /// includes any import directives or if there are global import directives pulled in from other files.
 /// </item>
 /// <item>
-/// In Visual Basic there will only be at most two <see cref="IImportScope"/>s returned for any position.  There
-/// will be a scope for the containing compilation unit if it includes any import directives.  There can also be a
-/// scope representing any imports specified at the project level.
+/// In Visual Basic there will commonly be one or two <see cref="IImportScope"/>s returned for any position.  This will
+/// commonly be a scope for the containing compilation unit if it includes any import directives.  As well as a scope
+/// representing any imports specified at the project level.
 /// </item>
 /// <item>
 /// Elements of any property have no defined order.  Even if they represent items from a single document, they are
@@ -131,10 +131,13 @@ internal sealed class SimpleImportScope : IImportScope
         Debug.Assert(!imports.IsDefault);
         Debug.Assert(!xmlNamespaces.IsDefault);
         Debug.Assert(aliases.Length + externAliases.Length + imports.Length + xmlNamespaces.Length > 0);
-        Aliases = aliases;
-        ExternAliases = externAliases;
-        Imports = imports;
-        XmlNamespaces = xmlNamespaces;
+
+        // We make no guarantees about order of these arrays.  So intentionally reorder them in debug to help find any
+        // cases where code may be depending on a particular order.
+        Aliases = aliases.ConditionallyDeOrder();
+        ExternAliases = externAliases.ConditionallyDeOrder();
+        Imports = imports.ConditionallyDeOrder();
+        XmlNamespaces = xmlNamespaces.ConditionallyDeOrder();
     }
 
     public ImmutableArray<IAliasSymbol> Aliases { get; }

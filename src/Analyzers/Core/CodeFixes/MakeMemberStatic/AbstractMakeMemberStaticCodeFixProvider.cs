@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
         }
 
         protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
