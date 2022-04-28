@@ -4858,7 +4858,7 @@ namespace Root
         [InlineData("UInt64")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUseAliasDirective(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
         {
             await TestInRegularAndScriptAsync(
                 $"using My{typeName} = [|global::System.{typeName}|];",
@@ -4926,7 +4926,7 @@ class Base
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestGlobalAliasSimplifiesInUseAliasDirectiveWithinNamespace(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
@@ -4946,7 +4946,7 @@ namespace N
         [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUseAliasDirectiveWithinNamespace_UnboundName(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
