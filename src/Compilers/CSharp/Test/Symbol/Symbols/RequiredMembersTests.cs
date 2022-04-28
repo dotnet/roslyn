@@ -75,7 +75,7 @@ End Namespace";
         };
     }
 
-    private static Action<ModuleSymbol> AssertTypeRequiredMembersInvariants(string expectedType)
+    private static Action<ModuleSymbol> GetTypeRequiredMembersInvariantsValidator(string expectedType)
     {
         return module =>
         {
@@ -1723,7 +1723,7 @@ public class Derived : Base
         var code = @"_ = new Derived();";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, code });
-        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        var validator = GetTypeRequiredMembersInvariantsValidator("Derived");
         CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
@@ -1812,7 +1812,7 @@ public class Derived : Base
 ";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
-        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        var validator = GetTypeRequiredMembersInvariantsValidator("Derived");
         CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
@@ -1843,7 +1843,7 @@ public class Derived : Base
 ";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
-        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        var validator = GetTypeRequiredMembersInvariantsValidator("Derived");
         CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);

@@ -1216,5 +1216,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return base.GetHashCode();
         }
+
+#nullable enable
+        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, MethodSymbol methodToAttribute)
+        {
+            if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.ContainingType.HasAnyRequiredMembers)
+            {
+                var obsoleteData = methodToAttribute.ObsoleteAttributeData;
+                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+
+                if (obsoleteData == null)
+                {
+                    CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
+                    AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                            new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.RequiredMembersMarker), // message
+                            new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)) // error
+                        ));
+                }
+            }
+        }
     }
 }
