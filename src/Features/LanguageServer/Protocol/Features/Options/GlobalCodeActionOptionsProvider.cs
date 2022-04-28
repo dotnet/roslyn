@@ -31,12 +31,16 @@ internal static class CodeActionOptionsStorage
         CodeCleanupOptionsProvider,
         CodeGenerationOptionsProvider,
         CleanCodeGenerationOptionsProvider,
-        CodeAndImportGenerationOptionsProvider
+        CodeAndImportGenerationOptionsProvider,
+        CodeActionOptionsProvider
     {
         private readonly IGlobalOptionService _globalOptions;
 
         public Provider(IGlobalOptionService globalOptions)
             => _globalOptions = globalOptions;
+
+        CodeActionOptions CodeActionOptionsProvider.GetOptions(HostLanguageServices languageService)
+            => _globalOptions.GetCodeActionOptions(languageService);
 
         ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetSyntaxFormattingOptions(languageServices));

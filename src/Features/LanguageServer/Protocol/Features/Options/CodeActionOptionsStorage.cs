@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal static class CodeActionOptionsStorage
     {
+        public static readonly PerLanguageOption2<int> WrappingColumn =
+            new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
+
         internal static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
             => GetCodeActionOptions(globalOptions, languageServices, isBlocking: false);
 
@@ -32,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
                 CodeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
-                IsBlocking: isBlocking);
+                IsBlocking: isBlocking,
+                WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language));
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
             => new CachingCodeActionsOptionsProvider(globalOptions, isBlocking: false);

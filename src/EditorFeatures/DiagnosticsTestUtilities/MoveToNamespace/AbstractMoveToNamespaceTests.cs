@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
                 if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
                 {
-                    await TestInRegularAndScriptAsync(markup, expectedMarkup);
+                    await TestInRegularAndScriptAsync(markup, expectedMarkup, options: testParameters.options);
                 }
             }
             else
