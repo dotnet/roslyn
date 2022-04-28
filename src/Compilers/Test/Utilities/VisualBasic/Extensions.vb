@@ -338,11 +338,6 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function RefKind(this As ParameterSymbol) As RefKind
-        Return DirectCast(this, IParameterSymbol).RefKind
-    End Function
-
-    <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
         Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
     End Function

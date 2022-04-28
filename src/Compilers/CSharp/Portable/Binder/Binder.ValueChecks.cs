@@ -796,8 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if ((RequiresAssignableVariable(valueKind) && fieldSymbol.RefKind == RefKind.None) ||
-                    RequiresRefAssignableVariable(valueKind))
+                if (fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind))
                 {
                     var canModifyReadonly = false;
 
@@ -1919,7 +1918,7 @@ moreArguments:
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
-            Debug.Assert(RequiresAssignableVariable(kind) && field.RefKind == RefKind.None || RequiresRefAssignableVariable(kind));
+            Debug.Assert(field.RefKind == RefKind.None ? RequiresAssignableVariable(kind) : RequiresRefAssignableVariable(kind));
             Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified

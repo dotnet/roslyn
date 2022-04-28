@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(LanguageVersionFacts.CSharpNext)]
         public void Fixed_01(LanguageVersion languageVersion)
         {
-            string source = "struct S { fixed ref int F[1]; }";
+            string source = "struct S { fixed ref int F1[1]; fixed ref readonly int F2[2]; }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.StructDeclaration);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.IdentifierToken, "F1");
                             N(SyntaxKind.BracketedArgumentList);
                             {
                                 N(SyntaxKind.OpenBracketToken);
@@ -198,6 +198,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
                                         N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F2");
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
@@ -216,11 +249,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(LanguageVersionFacts.CSharpNext)]
         public void Fixed_02(LanguageVersion languageVersion)
         {
-            string source = "struct S { ref fixed int F[1]; }";
+            string source = "struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }";
             UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
-                // (1,16): error CS1031: Type expected
-                // struct S { ref fixed int F[1]; }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 16));
+                // (1,17): error CS1031: Type expected
+                // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 17),
+                // (1,47): error CS1031: Type expected
+                // struct S {  ref fixed int F1[1]; ref readonly fixed int F2[2]; }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 47));
 
             N(SyntaxKind.StructDeclaration);
             {
@@ -249,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.IdentifierToken, "F1");
                             N(SyntaxKind.BracketedArgumentList);
                             {
                                 N(SyntaxKind.OpenBracketToken);
@@ -258,6 +294,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
                                         N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F2");
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);

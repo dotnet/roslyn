@@ -129,6 +129,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)), type As TypeSymbol) As FieldSymbol
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
+                ' PROTOTYPE: Need to record RefKind and RefCustomModifiers on PEFieldSymbol
+                ' to differentiate fields that differ by RefKind or RefCustomModifiers here.
+                ' See RefFieldTests.MemberRefMetadataDecoder_FindFieldBySignature().
                 If field IsNot Nothing AndAlso
                    TypeSymbol.Equals(field.Type, type, TypeCompareKind.AllIgnoreOptionsForVB) AndAlso
                    CustomModifiersMatch(field.CustomModifiers, customModifiers) Then
