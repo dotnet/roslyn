@@ -184,7 +184,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var refCountedLazySolution = await GetLazySolutionAsync().ConfigureAwait(false);
             await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
 
-            // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
+            // Actually get the solution, computing it ourselves, or getting the result that another caller was
+            // computing. In the event of cancellation, we do not wait here for the refCountedLazySolution to clean up,
+            // even if this was the last use of this solution.
             var newSolution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
             // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
@@ -215,9 +217,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                     // refcount of 1 (for 'us').
                     var lazySolution = new LazySolution(
-                        this,
-                        solutionChecksum,
-                        cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken));
+                        getSolutionAsync: cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
+                        cleanupAsync: async () =>
+                        {
+                            // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
+                            // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
+                            // only ever hold this gate for very short periods of time in order to set do basic operations on our
+                            // state.
+                            using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
+                            {
+                                _solutionChecksumToLazySolution.Remove(solutionChecksum);
+                            }
+                        });
                     refCountedLazySolution = new ReferenceCountedDisposable<LazySolution>(lazySolution);
                     _solutionChecksumToLazySolution.Add(solutionChecksum, refCountedLazySolution);
                     return refCountedLazySolution;
@@ -382,17 +393,28 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// This type behaves similar to <see cref="AsyncLazy{T}"/> (with <c>T</c> being <see cref="Solution"/>), except
+        /// for the following unique characteristics:
+        ///
+        /// <list type="bullet">
+        /// <item><description>This type will start the asynchronous computation in the constructor instead of waiting
+        /// for the first call to <see cref="AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
+        /// <item><description>This type can be disposed asynchronously to cancel the inner operation and wait for the
+        /// inner operation to complete cancellation processing (similar to
+        /// <see cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="AsyncLazy{T}"/> does not directly
+        /// expose the inner computation, it does not support lazy cancellation scenarios.</description></item>
+        /// </list>
+        /// </summary>
         private sealed class LazySolution : IAsyncDisposable, IDisposable
         {
-            private readonly RemoteWorkspace _remoteWorkspace;
-            private readonly Checksum _solutionChecksum;
             private readonly CancellationTokenSource _cancellationTokenSource = new();
+            private readonly Func<Task> _cleanupAsync;
             private readonly Task<Solution> _task;
 
-            public LazySolution(RemoteWorkspace remoteWorkspace, Checksum solutionChecksum, Func<CancellationToken, Task<Solution>> getSolutionAsync)
+            public LazySolution(Func<CancellationToken, Task<Solution>> getSolutionAsync, Func<Task> cleanupAsync)
             {
-                _remoteWorkspace = remoteWorkspace;
-                _solutionChecksum = solutionChecksum;
+                _cleanupAsync = cleanupAsync;
                 _task = getSolutionAsync(_cancellationTokenSource.Token);
             }
 
@@ -410,15 +432,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
 
-                // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
-                // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
-                // only ever hold this gate for very short periods of time in order to set do basic operations on our
-                // state.
-                using (await _remoteWorkspace._gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
-                {
-                    _remoteWorkspace._solutionChecksumToLazySolution.Remove(_solutionChecksum);
-                }
+                await _cleanupAsync().ConfigureAwait(false);
 
+                // Make sure to wait for the underlying asynchronous operation to complete before returning. Use a
+                // no-throw awaitable to avoid throwing an exception on cancellation or error (the inner operation is
+                // responsible for its own error reporting, if any).
                 await _task.NoThrowAwaitable(false);
             }
         }
