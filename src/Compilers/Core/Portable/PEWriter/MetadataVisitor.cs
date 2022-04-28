@@ -123,7 +123,6 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IFieldReference fieldReference)
         {
-            this.Visit(fieldReference.RefCustomModifiers);
             this.Visit((ITypeMemberReference)fieldReference);
         }
 

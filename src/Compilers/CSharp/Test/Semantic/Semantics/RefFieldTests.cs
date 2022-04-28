@@ -155,21 +155,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         M2(ref s.F1);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(22, 16));
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F1"), RefKind.Ref, "ref T S<T>.F1");
-            verifyField(comp.GetMember<FieldSymbol>("S.F2"), RefKind.RefReadOnly, "ref readonly T S<T>.F2");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F1"), RefKind.Ref, "ref T S<T>.F1");
-            verifyField(comp.GetMember<FieldSymbol>("S.F2"), RefKind.RefReadOnly, "ref readonly T S<T>.F2");
-
-            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
-            {
-                Assert.Equal(refKind, field.RefKind);
-                Assert.Equal(displayName, field.ToTestDisplayString());
-                Assert.Null(field.GetUseSiteDiagnostic());
-            }
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
         }
 
         [CombinatorialData]
@@ -188,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //     public ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
             var sourceB =
 @"using System;
@@ -224,7 +217,7 @@ class Program
                 //         Console.WriteLine(s.F);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(12, 27));
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
             var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
@@ -233,13 +226,7 @@ class Program
 3
 "));
             comp = (CSharpCompilation)verifier.Compilation;
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.Ref, "ref T S<T>.F");
-
-            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
-            {
-                Assert.Equal(refKind, field.RefKind);
-                Assert.Equal(displayName, field.ToTestDisplayString());
-            }
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
         }
 
         [CombinatorialData]
@@ -261,12 +248,12 @@ class Program
                 //     public ref readonly T F;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(3, 12));
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
             var sourceB =
 @"using System;
@@ -302,7 +289,7 @@ class Program
                 //         Console.WriteLine(s.F.G);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(17, 27));
 
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
             var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
@@ -311,13 +298,7 @@ class Program
 3
 "));
             comp = (CSharpCompilation)verifier.Compilation;
-            verifyField(comp.GetMember<FieldSymbol>("S.F"), RefKind.RefReadOnly, "ref readonly T S<T>.F");
-
-            static void verifyField(FieldSymbol field, RefKind refKind, string displayName)
-            {
-                Assert.Equal(refKind, field.RefKind);
-                Assert.Equal(displayName, field.ToTestDisplayString());
-            }
+            VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
         }
 
         [Fact]
@@ -438,6 +419,52 @@ ref struct B
         }
 
         [Fact]
+        public void FixedField_01()
+        {
+            var source =
+@"unsafe ref struct S
+{
+    public fixed ref int F[3];
+}";
+            // PROTOTYPE: `fixed ref` field declaration should be disallowed.
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FixedField_02()
+        {
+            var sourceA =
+@".class public sealed S extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .class sequential nested public sealed FixedBuffer extends [mscorlib]System.ValueType
+  {
+    .pack 0
+    .size 12
+    .field public int32 FixedElementField
+  }
+  .field public valuetype S/FixedBuffer& F
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.FixedBufferAttribute::.ctor(class [mscorlib]System.Type, int32) = { type([mscorlib]System.Int32) int32(3) }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class Program
+{
+    unsafe static void Main()
+    {
+        var s = new S();
+        Console.WriteLine(s.F[1]);
+    }
+}";
+            // PROTOTYPE: `fixed ref` field use should be disallowed.
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void MemberRefMetadataDecoder_FindFieldBySignature()
         {
             var sourceA =
@@ -485,8 +512,8 @@ ref struct B
         }
 
         /// <summary>
-        /// Determination of enum underlying type should ignore fields
-        /// with custom modifiers or ref custom modifiers.
+        /// Determination of enum underlying type should ignore ref fields
+        /// and fields with required custom modifiers.
         /// </summary>
         [Fact]
         public void EnumUnderlyingType()
@@ -495,8 +522,9 @@ ref struct B
 @".class public sealed E extends [mscorlib]System.Enum
 {
   .field public int64 modreq(object) value1
-  .field public int32& modreq(object) value2
-  .field public int16 value3
+  .field public int32& modopt(object) value2
+  .field public int32& value3
+  .field public int16 value4
   .field public static literal valuetype E A = int16(0x01)
 }";
             var refA = CompileIL(sourceA);

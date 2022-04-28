@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _packedFlags.SetRefKind(refKind);
                 _packedFlags.SetIsVolatile(customModifiersArray.Any(m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile));
 
+                // PROTOTYPE: `fixed ref` field use should be disallowed.
                 TypeSymbol fixedElementType;
                 int fixedSize;
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))

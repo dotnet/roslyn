@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             TypeSymbol type = fieldInfo.Type;
 
                             if (type.SpecialType.IsValidEnumUnderlyingType() &&
-                                !fieldInfo.RefCustomModifiers.AnyRequired() &&
+                                !fieldInfo.IsByRef &&
                                 !fieldInfo.CustomModifiers.AnyRequired())
                             {
                                 if ((object)underlyingType == null)

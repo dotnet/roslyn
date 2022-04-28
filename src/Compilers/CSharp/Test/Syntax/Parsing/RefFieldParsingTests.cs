@@ -161,6 +161,183 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Fixed_01(LanguageVersion languageVersion)
+        {
+            string source = "struct S { fixed ref int F[1]; }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Fixed_02(LanguageVersion languageVersion)
+        {
+            string source = "struct S { ref fixed int F[1]; }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,16): error CS1031: Type expected
+                // struct S { ref fixed int F[1]; }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(1, 16));
+
+            N(SyntaxKind.StructDeclaration);
+            {
+                N(SyntaxKind.StructKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void ReadOnlyRefParameter(LanguageVersion languageVersion)
+        {
+            string source = "class C { void M(readonly ref int i) { } }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1073: Unexpected token '}'
+                // class C { void M(readonly ref int i) { } }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "class C { void M(readonly ref int i) { }").WithArguments("}").WithLocation(1, 1),
+                // (1,18): error CS1026: ) expected
+                // class C { void M(readonly ref int i) { } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(1, 18),
+                // (1,18): error CS1002: ; expected
+                // class C { void M(readonly ref int i) { } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(1, 18),
+                // (1,36): error CS1003: Syntax error, ',' expected
+                // class C { void M(readonly ref int i) { } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 36),
+                // (1,40): error CS1002: ; expected
+                // class C { void M(readonly ref int i) { } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 40));
+
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
         // PROTOTYPE: Should ref expressions be supported in object initializers?
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
