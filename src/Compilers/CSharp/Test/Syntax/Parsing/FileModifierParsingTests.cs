@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            UsingNode(source, expectedBindingDiagnostics: new []
+            UsingNode(source, expectedBindingDiagnostics: new[]
             {
                 // (3,14): error CS0106: The modifier 'file' is not valid for this item
                 //     file int x { get; set; }
