@@ -48,6 +48,8 @@ End Namespace";
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedAttributeLayout, actualAttributes);
             }
 
+            var requiredTypes = new HashSet<NamedTypeSymbol>();
+
             foreach (var memberPath in memberPaths)
             {
                 var member = module.GlobalNamespace.GetMember(memberPath);
@@ -62,9 +64,45 @@ End Namespace";
                 {
                     AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
                 }
-                Assert.True(((NamedTypeSymbol)member.ContainingSymbol).HasDeclaredRequiredMembers);
+
+                requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
+            }
+
+            foreach (var type in requiredTypes)
+            {
+                AssertTypeRequiredMembersInvariants(module, type);
             }
         };
+    }
+
+    private static Action<ModuleSymbol> AssertTypeRequiredMembersInvariants(string expectedType)
+    {
+        return module =>
+        {
+            var type = module.GlobalNamespace.GetTypeMember(expectedType);
+            Assert.NotNull(type);
+            AssertTypeRequiredMembersInvariants(module, type);
+        };
+    }
+
+    private static void AssertTypeRequiredMembersInvariants(ModuleSymbol module, NamedTypeSymbol type)
+    {
+        Assert.True(type.HasAnyRequiredMembers);
+
+        foreach (var ctor in type.GetMembers().Where(m => m is MethodSymbol { MethodKind: MethodKind.Constructor }))
+        {
+            var ctorAttributes = ctor.GetAttributes();
+            if (ctorAttributes.Any(attr => attr.AttributeClass.ToTestDisplayString() == "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute"))
+            {
+                Assert.DoesNotContain(ctorAttributes, attr => attr.AttributeClass.ToTestDisplayString() == "System.ObsoleteAttribute");
+            }
+            else if (module is not SourceModuleSymbol)
+            {
+                Assert.Contains(ctorAttributes, attr =>
+                    attr.AttributeConstructor.ToTestDisplayString() == "System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)"
+                    && attr.ConstructorArguments.ToArray() is [{ ValueInternal: PEModule.RequiredMembersMarker }, { ValueInternal: true }]);
+            }
+        }
     }
 
     [Fact]
@@ -1685,18 +1723,18 @@ public class Derived : Base
         var code = @"_ = new Derived();";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, derived, code });
-
-        comp.VerifyDiagnostics();
+        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
         baseComp.VerifyEmitDiagnostics();
         var baseRef = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
 
         var derivedComp = CreateCompilation(derived, new[] { baseRef });
-        derivedComp.VerifyEmitDiagnostics();
+        CompileAndVerify(derivedComp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         comp = CreateCompilation(code, new[] { baseRef, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp).VerifyDiagnostics();
     }
 
     [Theory]
@@ -1774,13 +1812,45 @@ public class Derived : Base
 ";
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
-        CompileAndVerify(comp).VerifyDiagnostics();
+        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
 
         var baseComp = CreateCompilationWithRequiredMembers(@base);
         baseComp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
-        CompileAndVerify(comp).VerifyDiagnostics();
+        CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Inheritance_NoMembersOnDerivedType(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+}
+";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1, Field1 = 1 };
+
+public class Derived : Base
+{
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+        var validator = AssertTypeRequiredMembersInvariants("Derived");
+        CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4167,5 +4237,94 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void HasExistingObsoleteAttribute_RequiredMembersOnSelf()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                public required int Prop { get; set; }
+
+                [Obsolete("Reason 1", false)]
+                public C() { }
+
+
+                [Obsolete("Reason 2", true)]
+                public C(int unused) { }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var c = m.GlobalNamespace.GetTypeMember("C");
+            var ctors = c.GetMembers(".ctor").Cast<MethodSymbol>().ToArray();
+
+            Assert.Equal(2, ctors.Length);
+
+            assertAttributeData(ctors[0], "Reason 1", expectedError: false);
+            assertAttributeData(ctors[1], "Reason 2", expectedError: true);
+
+            static void assertAttributeData(MethodSymbol ctor, string expectedReason, bool expectedError)
+            {
+                var attrData = ctor.GetAttributes().Single();
+                AssertEx.Equal("System.ObsoleteAttribute", attrData.AttributeClass.ToTestDisplayString());
+                var attrArgs = attrData.ConstructorArguments.ToArray();
+                Assert.Equal(2, attrArgs.Length);
+                AssertEx.Equal(expectedReason, (string)attrArgs[0].ValueInternal!);
+                Assert.Equal(expectedError, (bool)attrArgs[1].ValueInternal!);
+            }
+        }
+    }
+
+    [Fact]
+    public void HasExistingObsoleteAttribute_RequiredMembersOnBase()
+    {
+        var code = """
+            using System;
+            class Base
+            {
+                public required int Prop { get; set; }
+            }
+
+            class Derived : Base
+            {
+                [Obsolete("Reason 1", false)]
+                public Derived() { }
+
+
+                [Obsolete("Reason 2", true)]
+                public Derived(int unused) { }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var c = m.GlobalNamespace.GetTypeMember("Derived");
+            var ctors = c.GetMembers(".ctor").Cast<MethodSymbol>().ToArray();
+
+            Assert.Equal(2, ctors.Length);
+
+            assertAttributeData(ctors[0], "Reason 1", expectedError: false);
+            assertAttributeData(ctors[1], "Reason 2", expectedError: true);
+
+            static void assertAttributeData(MethodSymbol ctor, string expectedReason, bool expectedError)
+            {
+                var attrData = ctor.GetAttributes().Single();
+                AssertEx.Equal("System.ObsoleteAttribute", attrData.AttributeClass.ToTestDisplayString());
+                var attrArgs = attrData.ConstructorArguments.ToArray();
+                Assert.Equal(2, attrArgs.Length);
+                AssertEx.Equal(expectedReason, (string)attrArgs[0].ValueInternal!);
+                Assert.Equal(expectedError, (bool)attrArgs[1].ValueInternal!);
+            }
+        }
     }
 }

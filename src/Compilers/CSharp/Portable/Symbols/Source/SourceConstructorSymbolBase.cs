@@ -6,7 +6,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -280,6 +282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddRequiredMembersMarkerAttributes(ref attributes, this);
         }
     }
 }

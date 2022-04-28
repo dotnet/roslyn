@@ -1002,7 +1002,7 @@ namespace System
             Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
-            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, new MetadataDecoder(peModule), ignoreByRefLikeMarker: false);
+            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, new MetadataDecoder(peModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
 
             if (hasObsolete)
             {
