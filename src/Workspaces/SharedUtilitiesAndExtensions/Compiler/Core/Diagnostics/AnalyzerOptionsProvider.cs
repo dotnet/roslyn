@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -49,6 +50,11 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> QualifyEventAccess => GetOption(CodeStyleOptions2.QualifyEventAccess, FallbackSimplifierOptions.QualifyEventAccess);
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess);
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInDeclaration);
+
+    // SyntaxFormattingOptions
+
+    public SyntaxFormattingOptions GetSyntaxFormattingOptions(ISyntaxFormatting formatting)
+        => formatting.GetFormattingOptions(_options, _fallbackOptions.CleanCodeGenerationOptions?.CleanupOptions.FormattingOptions);
 
     // CodeGenerationOptions
 

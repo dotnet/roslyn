@@ -44,4 +44,10 @@
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <ItemGroup>
+    <AdditionalFiles Remove="D:\R1\src\CodeStyle\\BannedSymbols.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Remove="D:\R1\eng\targets\..\config\BannedSymbols.txt" />
+  </ItemGroup>
 </Project>

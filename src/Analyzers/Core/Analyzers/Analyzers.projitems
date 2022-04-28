@@ -31,7 +31,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractFormattingAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormatterHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuildValues.cs" />
@@ -100,8 +99,5 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Options\" />
   </ItemGroup>
 </Project>

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             // If we weren't given a header lets get the one from editorconfig
             if (fileHeaderTemplate is null &&
-                !document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate))
+                !document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree).TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, out fileHeaderTemplate))
             {
                 // No header supplied, no editorconfig setting, nothing to do
                 return root;
