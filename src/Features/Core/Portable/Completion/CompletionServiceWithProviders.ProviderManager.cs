@@ -116,13 +116,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
-            private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            public ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
-                if (project is null)
-                {
-                    return ImmutableArray<CompletionProvider>.Empty;
-                }
-
                 if (project is null || project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
@@ -139,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // Local functions
                 ImmutableArray<CompletionProvider> GetProjectCompletionProvidersSlow(Project project)
                 {
-                    return _projectCompletionProvidersMap.GetValue(project.AnalyzerReferences, pId => new(ComputeProjectCompletionProviders(project))).Value;
+                    return _projectCompletionProvidersMap.GetValue(project.AnalyzerReferences, _ => new(ComputeProjectCompletionProviders(project))).Value;
                 }
 
                 ImmutableArray<CompletionProvider> ComputeProjectCompletionProviders(Project project)

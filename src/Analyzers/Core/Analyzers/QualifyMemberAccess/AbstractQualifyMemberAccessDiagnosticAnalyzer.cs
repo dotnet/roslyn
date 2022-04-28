@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
+            : base(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.AddQualification,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             };
 
             var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
-            var optionValue = simplifierOptions.QualifyMemberAccess(symbolKind);
+            if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
+                return;
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;
