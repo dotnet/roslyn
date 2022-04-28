@@ -5336,7 +5336,7 @@ namespace N
         [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUseAliasWithUnboundTypes(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
         {
             await TestMissingInRegularAndScriptAsync(
 $@"using System;
