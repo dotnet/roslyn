@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         private readonly CompilationAvailableEventSource _eventSource;
 
-        private readonly Func<Project, CancellationToken, ValueTask> _onCompilationAvailable;
+        private readonly Action _onCompilationAvailable;
 
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
@@ -50,11 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             _subjectBuffer = subjectBuffer;
             _eventSource = new CompilationAvailableEventSource(asyncListener);
             _underlyingSource = TaggerEventSources.Compose(eventSources);
-            _onCompilationAvailable = (_, _) =>
-            {
-                this.Changed?.Invoke(this, new TaggerEventArgs());
-                return ValueTaskFactory.CompletedTask;
-            };
+            _onCompilationAvailable = () => this.Changed?.Invoke(this, new TaggerEventArgs());
         }
 
         public event EventHandler<TaggerEventArgs>? Changed;
