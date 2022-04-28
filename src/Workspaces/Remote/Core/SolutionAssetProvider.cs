@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     // the solution.  Bail out gracefully.
                     if (scope == null)
                     {
-                        // indicate that no information is available.
+                        // Indicate that no assets are being sent.  This will allow the reader side to gracefully return
+                        // without thinking the stream of data it is receiving is corrupt in some way.
                         writer.WriteInt32(0);
                         return false;
                     }
