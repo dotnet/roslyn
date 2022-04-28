@@ -38,7 +38,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     $feedData = GetFeedPublishData
 
     # Let packageFeeds default to the default set of feeds
-    $packageFees = $publishData.packageFeeds
+    $packageFeeds = $publishData.packageFeeds
     if (!$packageFeeds) {
       $packageFeeds = "default"
     }
