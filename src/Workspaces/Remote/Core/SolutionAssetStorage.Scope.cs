@@ -23,8 +23,8 @@ internal partial class SolutionAssetStorage
         public readonly SolutionState Solution;
 
         /// <summary>
-        ///  Will be disposed from <see cref="SolutionAssetStorage.DecreaseScopeRefCount(Scope)"/> when the last
-        ///  ref-count to this scope goes away.
+        /// Will be disposed from <see cref="SolutionAssetStorage.DecreaseScopeRefCount(Scope)"/> when the last
+        /// ref-count to this scope goes away.
         /// </summary>
         public readonly SolutionReplicationContext ReplicationContext = new();
 

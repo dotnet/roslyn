@@ -149,8 +149,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
 
-            using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
-
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
             // Ensure that no invariants were broken and that both sides of the communication channel are talking about
@@ -158,8 +156,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var responseSolutionChecksum = Checksum.ReadFrom(reader);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
+            // See how many objects were written by the in-proc side.  Note: it is possible to get 0 objects back in the
+            // event that all in-proc requests to oop were canceled, and thus the information we're trying to sync over
+            // to oop was dropped from the inproc side.  If we do get a non-zero count then, it must match the count of
+            // checksums we asked for.
             var count = reader.ReadInt32();
-            Contract.ThrowIfFalse(count == checksums.Count);
+            Contract.ThrowIfTrue(count != 0 && count != checksums.Count);
+
+            using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(count, out var results);
 
             for (var i = 0; i < count; i++)
             {
