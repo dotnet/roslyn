@@ -131,10 +131,13 @@ internal sealed class SimpleImportScope : IImportScope
         Debug.Assert(!imports.IsDefault);
         Debug.Assert(!xmlNamespaces.IsDefault);
         Debug.Assert(aliases.Length + externAliases.Length + imports.Length + xmlNamespaces.Length > 0);
-        Aliases = aliases;
-        ExternAliases = externAliases;
-        Imports = imports;
-        XmlNamespaces = xmlNamespaces;
+
+        // We make no guarantees about order of these arrays.  So intentionally reorder them in debug to help find any
+        // cases where code may be depending on a particular order.
+        Aliases = aliases.ConditionallyDeOrder();
+        ExternAliases = externAliases.ConditionallyDeOrder();
+        Imports = imports.ConditionallyDeOrder();
+        XmlNamespaces = xmlNamespaces.ConditionallyDeOrder();
     }
 
     public ImmutableArray<IAliasSymbol> Aliases { get; }

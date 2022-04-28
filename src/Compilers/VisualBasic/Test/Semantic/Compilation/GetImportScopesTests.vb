@@ -407,13 +407,13 @@ Imports <xmlns:r2=""http://roslyn2"">
 
             Assert.Equal(2, scopes.Single().XmlNamespaces.Length)
 
-            Assert.Equal("http://roslyn", scopes.Single().XmlNamespaces.First().XmlNamespace)
+            Assert.True(scopes.Single().XmlNamespaces.Any(Function(x) x.XmlNamespace = "http://roslyn"))
             Assert.True(TypeOf scopes.Single().XmlNamespaces.First().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
-            Assert.Equal("<xmlns:r1=""http://roslyn"">", scopes.Single().XmlNamespaces.First().DeclaringSyntaxReference.GetSyntax().ToString())
+            Assert.True(scopes.Single().XmlNamespaces.Any(Function(x) x.DeclaringSyntaxReference.GetSyntax().ToString() = "<xmlns:r1=""http://roslyn"">"))
 
-            Assert.Equal("http://roslyn2", scopes.Single().XmlNamespaces.Last().XmlNamespace)
+            Assert.True(scopes.Single().XmlNamespaces.Any(Function(X) X.XmlNamespace = "http://roslyn2"))
             Assert.True(TypeOf scopes.Single().XmlNamespaces.Last().DeclaringSyntaxReference.GetSyntax() Is XmlNamespaceImportsClauseSyntax)
-            Assert.Equal("<xmlns:r2=""http://roslyn2"">", scopes.Single().XmlNamespaces.Last().DeclaringSyntaxReference.GetSyntax().ToString())
+            Assert.True(scopes.Single().XmlNamespaces.Any(Function(x) x.DeclaringSyntaxReference.GetSyntax().ToString() = "<xmlns:r2=""http://roslyn2"">"))
 
             Assert.Empty(scopes.Single().Aliases)
             Assert.Empty(scopes.Single().ExternAliases)
