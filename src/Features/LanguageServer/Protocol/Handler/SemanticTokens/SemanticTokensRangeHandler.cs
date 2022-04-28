@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             lock (_gate)
             {
-                // If this checksum is hte same as the last computed result, no need to continue, we would not produce a
+                // If this checksum is the same as the last computed result, no need to continue, we would not produce a
                 // different compilation.
                 if (ChecksumIsUnchanged_NoLock(project, projectChecksum))
                     return;
