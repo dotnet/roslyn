@@ -164,24 +164,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             foreach (var target in targets)
             {
                 var targetsWithSameName = nameToTargets[target.DisplayName];
+                // Two or more items with the same name. Try to disambiguate them based on their languages and their project name.
                 if (targetsWithSameName.Count >= 2)
                 {
-                    // Two or more items with the same name.  Try to disambiguate them based on their languages if
-                    // they're all distinct, or their project name if they're not.
-                    var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageName).Distinct().Count();
-                    if (distinctLanguageCount == targetsWithSameName.Count)
-                    {
-                        builder.Add(TargetMenuItemViewModel.Create(
-                            target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.LanguageName)));
-                        continue;
-                    }
+                    var displayName = target.ProjectName != null
+                        ? string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName)
+                        : target.DisplayName;
 
-                    if (target.ProjectName != null)
-                    {
-                        builder.Add(TargetMenuItemViewModel.Create(
-                            target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName)));
-                        continue;
-                    }
+                    builder.Add(DisambiguousTargetMenuItemViewModel.CreateWithSourceLanguageGlyph(
+                        target, displayName));
+                    continue;
                 }
 
                 builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName));

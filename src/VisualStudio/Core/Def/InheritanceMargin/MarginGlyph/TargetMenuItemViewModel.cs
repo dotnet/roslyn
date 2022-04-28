@@ -24,33 +24,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public DefinitionItem.DetachedDefinitionItem DefinitionItem { get; }
 
-        public ImageMoniker LanguageMoniker { get; }
-
         // Internal for testing purpose
         internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            DefinitionItem.DetachedDefinitionItem definitionItem,
-            ImageMoniker languageMoniker) : base(displayContent, imageMoniker)
+            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
         {
             DefinitionItem = definitionItem;
-            LanguageMoniker = languageMoniker;
         }
 
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
-        {
-            var languageGlyph = target.LanguageName switch
-            {
-                LanguageNames.CSharp => Glyph.CSharpFile,
-                LanguageNames.VisualBasic => Glyph.BasicFile,
-                _ => throw ExceptionUtilities.UnexpectedValue(target.LanguageName),
-            };
-
-            return new(
+            => new(
                 displayContent,
                 target.Glyph.GetImageMoniker(),
-                target.DefinitionItem,
-                languageGlyph.GetImageMoniker());
-        }
+                target.DefinitionItem);
     }
 }

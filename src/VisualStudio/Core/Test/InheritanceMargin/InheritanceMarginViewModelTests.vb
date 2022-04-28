@@ -277,20 +277,20 @@ public class Bar3 : Bar2 {}"
 
             Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
             Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
             Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
 
             Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
-                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).
+                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
                         Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
-                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
+                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
             Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
             Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
-                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing, s_csharpImageMoniker))
+                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing))
 
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly string DisplayName;
 
         /// <summary>
-        /// The language of the symbol.  Used to disambiguate results when multiple targets have the same name.
+        /// The language of the symbol. Used to disambiguate results when multiple targets have the same name.
         /// </summary>
         public readonly string LanguageName;
 
