@@ -264,6 +264,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FileModifier_07_CSharp10()
+        {
+            UsingNode($$"""
+                file partial ref struct C { }
+                """,
+                options: TestOptions.Regular10,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,14): error CS1003: Syntax error, ',' expected
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                    // (1,18): error CS1002: ; expected
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
+                    // (1,6): warning CS0168: The variable 'partial' is declared but never used
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 6),
+                    // (1,14): error CS1003: Syntax error, ',' expected
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                    // (1,18): error CS1002: ; expected
+                    // file partial ref struct C { }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void FileModifier_07()
         {
             UsingNode($$"""
@@ -1151,6 +1214,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void MemberNamedFile_06_CSharp10()
+        {
+            UsingNode($$"""
+                class C
+                {
+                    file async;
+                }
+                """,
+                options: TestOptions.Regular10,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,5): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file async;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 5),
+                    // (3,10): warning CS0169: The field 'C.async' is never used
+                    //     file async;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "async").WithArguments("C.async").WithLocation(3, 10)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void MemberNamedFile_06()
         {
             UsingNode($$"""
@@ -1189,6 +1300,122 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void MemberNamedFile_07_CSharp10()
+        {
+            UsingNode($$"""
+                class C
+                {
+                    file item;
+                }
+                """,
+                options: TestOptions.Regular10,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,5): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     file item;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 5),
+                    // (3,10): warning CS0169: The field 'C.item' is never used
+                    //     file item;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "item").WithArguments("C.item").WithLocation(3, 10)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        // PROTOTYPE(ft): confirm with LDM whether this breaking change is acceptable (compared to CSharp10 version above).
+        [Fact]
+        public void MemberNamedFile_07()
+        {
+            UsingNode($$"""
+                class C
+                {
+                    file item;
+                }
+                """,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                    //     file item;
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14),
+                    // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                    //     file item;
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.FileKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Errors_01_CSharp10()
+        {
+            UsingNode($$"""
+                file
+                """,
+                options: TestOptions.Regular10,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void Errors_01()
         {
             UsingNode($$"""
@@ -1203,6 +1430,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.IncompleteMember);
                 {
                     N(SyntaxKind.FileKeyword);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Errors_02_CSharp10()
+        {
+            UsingNode($$"""
+                file;
+                """,
+                options: TestOptions.Regular10,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0103: The name 'file' does not exist in the current context
+                    // file;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "file").WithArguments("file").WithLocation(1, 1),
+                    // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                    // file;
+                    Diagnostic(ErrorCode.ERR_IllegalStatement, "file").WithLocation(1, 1)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1250,6 +1512,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Errors_03_CSharp10()
+        {
+            UsingNode($$"""
+                file namespace NS;
+                """,
+                options: TestOptions.Regular10,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file namespace NS;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file namespace NS;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                    // (1,16): error CS8956: File-scoped namespace must precede all other members in a file.
+                    // file namespace NS;
+                    Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "NS").WithLocation(1, 16)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                }
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "NS");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void Errors_03()
         {
             UsingNode($$"""
@@ -1273,6 +1581,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.IdentifierToken, "NS");
                     }
                     N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Errors_04_CSharp10()
+        {
+            UsingNode($$"""
+                file namespace NS { }
+                """,
+                options: TestOptions.Regular10,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file namespace NS { }
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "NS");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1810,6 +2156,493 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RecordKeyword);
                         N(SyntaxKind.IdentifierToken, "X");
                         N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LocalVariable_01()
+        {
+            UsingNode("""
+                void M()
+                {
+                    file file;
+                }
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,6): warning CS8321: The local function 'M' is declared but never used
+                    // void M()
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                    // (3,5): error CS0118: 'file' is a variable but is used like a type
+                    //     file file;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "file").WithArguments("file", "variable", "type").WithLocation(3, 5),
+                    // (3,10): warning CS0168: The variable 'file' is declared but never used
+                    //     file file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(3, 10)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LocalVariable_02()
+        {
+            UsingNode("""
+                void M()
+                {
+                    int file;
+                }
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,6): warning CS8321: The local function 'M' is declared but never used
+                    // void M()
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6),
+                    // (3,9): warning CS0168: The variable 'file' is declared but never used
+                    //     int file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(3, 9)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "file");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        // PROTOTYPE(ft): confirm whether this breaking change is acceptable
+        [Fact]
+        public void TopLevelVariable_01_CSharp10()
+        {
+            UsingNode("""
+                file file;
+                """,
+                options: TestOptions.Regular10,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0118: 'file' is a variable but is used like a type
+                    // file file;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "file").WithArguments("file", "variable", "type").WithLocation(1, 1),
+                    // (1,6): warning CS0168: The variable 'file' is declared but never used
+                    // file file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 6)
+                });
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevelVariable_01()
+        {
+            UsingNode("""
+                file file;
+                """,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (1,6): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file file;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 6)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,6): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // file file;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 6),
+                    // (1,10): error CS8937: At least one top-level statement must be non-empty.
+                    // file file;
+                    Diagnostic(ErrorCode.ERR_SimpleProgramIsEmpty, ";").WithLocation(1, 10)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.FileKeyword);
+                    N(SyntaxKind.FileKeyword);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TopLevelVariable_02()
+        {
+            UsingNode("""
+                int file;
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,5): warning CS0168: The variable 'file' is declared but never used
+                    // int file;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 5)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "file");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LambdaReturn()
+        {
+            UsingNode("""
+                _ = file () => { };
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS8183: Cannot infer the type of implicitly-typed discard.
+                    // _ = file () => { };
+                    Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(1, 1),
+                    // (1,5): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    // _ = file () => { };
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 5)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LocalFunctionReturn()
+        {
+            UsingNode("""
+                file local() { };
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    // file local() { };
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
+                    // (1,6): error CS0161: 'local()': not all code paths return a value
+                    // file local() { };
+                    Diagnostic(ErrorCode.ERR_ReturnExpected, "local").WithArguments("local()").WithLocation(1, 6),
+                    // (1,6): warning CS8321: The local function 'local' is declared but never used
+                    // file local() { };
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(1, 6)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                        N(SyntaxKind.IdentifierToken, "local");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParameterModifier()
+        {
+            UsingNode("""
+                class C
+                {
+                    void M(file int x) { }
+                }
+                """,
+                expectedParsingDiagnostics: new[]
+                {
+                    // (3,17): error CS1001: Identifier expected
+                    //     void M(file int x) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(3, 17),
+                    // (3,17): error CS1003: Syntax error, ',' expected
+                    //     void M(file int x) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(3, 17)
+                },
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,12): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     void M(file int x) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 12),
+                    // (3,17): error CS1001: Identifier expected
+                    //     void M(file int x) { }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(3, 17),
+                    // (3,17): error CS1003: Syntax error, ',' expected
+                    //     void M(file int x) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(3, 17)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParameterType()
+        {
+            UsingNode("""
+                class C
+                {
+                    void M(file x) { }
+                }
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (3,12): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                    //     void M(file x) { }
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(3, 12)
+                });
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "file");
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
