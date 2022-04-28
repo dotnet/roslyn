@@ -131,7 +131,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
-            => _semanticTokenRefreshQueue?.AddWork();
+            => EnqueueSemanticTokenRefreshNotification();
+
+        private void EnqueueSemanticTokenRefreshNotification()
+        {
+            // We should only get here if refresh was enabled, which only happens in a codepath that ensured the queue
+            // was instantiated.
+            Contract.ThrowIfNull(_semanticTokenRefreshQueue);
+            _semanticTokenRefreshQueue.AddWork();
+        }
 
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
             SemanticTokensRangeParams request,
@@ -216,8 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 _projectIdToLastComputedChecksum[project.Id] = projectChecksum;
             }
 
-            // Enqueue an item to notify the client that they should do a refresh.
-            _semanticTokenRefreshQueue?.AddWork();
+            EnqueueSemanticTokenRefreshNotification();
         }
 
         private bool ChecksumIsUnchanged_NoLock(Project project, Checksum projectChecksum)
