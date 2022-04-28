@@ -88,8 +88,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
 
     // CodeGenerationOptions
 
-    internal CSharpCodeGenerationOptions GetCodeGenerationOptions(CSharpParseOptions parseOptions)
-        => CSharpCodeGenerationOptions.Create(parseOptions, _options, FallbackCodeGenerationOptions);
+    internal CSharpCodeGenerationOptions GetCodeGenerationOptions()
+        => CSharpCodeGenerationOptions.Create(_options, FallbackCodeGenerationOptions);
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);

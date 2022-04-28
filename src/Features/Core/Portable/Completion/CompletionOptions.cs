@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Completion
         bool UpdateImportCompletionCacheInBackground = false,
         bool FilterOutOfScopeLocals = true,
         bool ShowXmlDocCommentCompletion = true,
-        ExpandedCompletionMode ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems)
+        ExpandedCompletionMode ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems,
+        NamingStylePreferences? NamingStyleFallbackOptions = null)
     {
         // note: must pass at least one parameter to avoid calling default ctor:
         public static readonly CompletionOptions Default = new(TriggerOnTyping: true);

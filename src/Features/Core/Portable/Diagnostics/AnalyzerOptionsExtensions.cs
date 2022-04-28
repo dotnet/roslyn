@@ -30,43 +30,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerConfigOptionSet(configOptions, optionSet);
         }
 
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, ILanguageSpecificOption<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
-            if (optionAsync.IsCompleted)
-                return optionAsync.Result;
-
-            return optionAsync.AsTask().GetAwaiter().GetResult();
-        }
-
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IPerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken);
-            if (optionAsync.IsCompleted)
-                return optionAsync.Result;
-
-            return optionAsync.AsTask().GetAwaiter().GetResult();
-        }
-
-        public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
-            {
-                return value;
-            }
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0612 // Type or member is obsolete
-
-            if (optionSet != null)
-            {
-                value = optionSet.GetOption<T>(new OptionKey(option, language));
-            }
-
-            return value ?? (T)option.DefaultValue!;
-        }
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {

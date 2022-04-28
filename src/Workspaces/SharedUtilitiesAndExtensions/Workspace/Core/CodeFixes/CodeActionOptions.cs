@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions);
 
+        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions.NamingStyle);
+
         ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
         {
             var codeActionOptions = GetOptions(languageServices);
@@ -190,8 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 codeActionOptions.ExtractMethodOptions,
                 codeActionOptions.CodeGenerationOptions,
                 codeActionOptions.CleanupOptions.AddImportOptions,
-                codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting,
-                new NamingStylePreferencesProvider(languageServices => NamingStylePreferences.Default)); // TODO: https://github.com/dotnet/roslyn/issues/60849
+                codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting);
         }
 #endif
     }

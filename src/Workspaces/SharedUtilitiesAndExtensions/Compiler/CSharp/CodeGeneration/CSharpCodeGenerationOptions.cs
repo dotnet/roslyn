@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -43,6 +44,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
     [DataMember(Order = BaseMemberCount + 9)] public readonly CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations;
 
     public CSharpCodeGenerationOptions(
+        NamingStylePreferences? namingStyle = null,
         bool addNullChecksToConstructorsGeneratedFromMembers = DefaultAddNullChecksToConstructorsGeneratedFromMembers,
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedMethods = null,
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedAccessors = null,
@@ -54,7 +56,9 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
         CodeStyleOption2<ExpressionBodyPreference>? preferExpressionBodiedLambdas = null,
         CodeStyleOption2<bool>? preferStaticLocalFunction = null,
         CodeStyleOption2<NamespaceDeclarationPreference>? namespaceDeclarations = null)
-        : base(addNullChecksToConstructorsGeneratedFromMembers)
+        : base(
+            namingStyle,
+            addNullChecksToConstructorsGeneratedFromMembers)
     {
         PreferExpressionBodiedMethods = preferExpressionBodiedMethods ?? s_neverWithSilentEnforcement;
         PreferExpressionBodiedAccessors = preferExpressionBodiedAccessors ?? s_whenPossibleWithSilentEnforcement;
@@ -70,12 +74,13 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
 
     public static readonly CSharpCodeGenerationOptions Default = new();
 
-#if !CODE_STYLE
     public static CSharpCodeGenerationOptions Create(AnalyzerConfigOptions options, CSharpCodeGenerationOptions? fallbackOptions)
     {
         fallbackOptions ??= Default;
 
         return new(
+            namingStyle: options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle),
+            addNullChecksToConstructorsGeneratedFromMembers: fallbackOptions.AddNullChecksToConstructorsGeneratedFromMembers, // not stored in editorconfig
             preferExpressionBodiedMethods: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, fallbackOptions.PreferExpressionBodiedMethods),
             preferExpressionBodiedAccessors: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, fallbackOptions.PreferExpressionBodiedAccessors),
             preferExpressionBodiedProperties: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, fallbackOptions.PreferExpressionBodiedProperties),
@@ -88,6 +93,7 @@ internal sealed class CSharpCodeGenerationOptions : CodeGenerationOptions
             namespaceDeclarations: options.GetEditorConfigOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations));
     }
 
+#if !CODE_STYLE
     public override CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions)
         => new CSharpCodeGenerationContextInfo(context, this, ((CSharpParseOptions)parseOptions).LanguageVersion);
 #endif

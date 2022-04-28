@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state, addNullChecks, fallbackOptions);

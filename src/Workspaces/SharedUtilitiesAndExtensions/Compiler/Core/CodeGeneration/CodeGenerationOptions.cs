@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if !CODE_STYLE
 using System;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -14,6 +13,8 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -23,14 +24,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 internal abstract class CodeGenerationOptions
 {
     [DataMember(Order = 0)]
+    public readonly NamingStylePreferences NamingStyle;
+
+    [DataMember(Order = 1)]
     public readonly bool AddNullChecksToConstructorsGeneratedFromMembers;
 
     protected const int BaseMemberCount = 1;
 
     public CodeGenerationOptions(
+        NamingStylePreferences? namingStyle,
         bool addNullChecksToConstructorsGeneratedFromMembers)
     {
         AddNullChecksToConstructorsGeneratedFromMembers = addNullChecksToConstructorsGeneratedFromMembers;
+        NamingStyle = namingStyle ?? NamingStylePreferences.Default;
     }
 
     public const bool DefaultAddNullChecksToConstructorsGeneratedFromMembers = false;
@@ -81,16 +87,20 @@ internal readonly record struct CodeAndImportGenerationOptions(
         ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.GenerationOptions);
 
+        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_options.GenerationOptions.NamingStyle);
+
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_options.AddImportOptions);
     }
 #endif
 }
 
-internal interface CodeGenerationOptionsProvider
+internal interface CodeGenerationOptionsProvider :
 #if !CODE_STYLE
-    : OptionsProvider<CodeGenerationOptions>
+    OptionsProvider<CodeGenerationOptions>,
 #endif
+    NamingStylePreferencesProvider
 {
 }
 
@@ -115,6 +125,6 @@ internal static class CodeGenerationOptionsProviders
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeGenerationOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }
 #endif

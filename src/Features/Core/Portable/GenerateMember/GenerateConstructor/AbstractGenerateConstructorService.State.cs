@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 CodeAndImportGenerationOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
-                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
-                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
-                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule, fallbackOptions);
                 if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))

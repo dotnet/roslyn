@@ -119,8 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 extractOptions,
                 CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
                 AddImportPlacementOptions.Default,
-                LineFormattingOptions.Default,
-                Function() NamingStylePreferences.Default)
+                LineFormattingOptions.Default)
 
             Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)

@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 ExtractOptions: new ExtractMethodOptions(dontPutOutOrRefOnStruct),
                 CodeGenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
                 AddImportOptions: AddImportPlacementOptions.Default,
-                LineFormattingOptions: LineFormattingOptions.Default,
-                NamingPreferences: _ => NamingStylePreferences.Default);
+                LineFormattingOptions: LineFormattingOptions.Default);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);

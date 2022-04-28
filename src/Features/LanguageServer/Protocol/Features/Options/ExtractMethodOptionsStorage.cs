@@ -23,8 +23,7 @@ internal static class ExtractMethodOptionsStorage
         => new(globalOptions.GetExtractMethodOptions(languageServices.Language),
                globalOptions.GetCodeGenerationOptions(languageServices),
                globalOptions.GetAddImportPlacementOptions(languageServices),
-               globalOptions.GetLineFormattingOptions(languageServices.Language),
-               globalOptions.GetNamingStylePreferencesProvider());
+               globalOptions.GetLineFormattingOptions(languageServices.Language));
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.LanguageServices), cancellationToken);

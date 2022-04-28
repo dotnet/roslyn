@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions((CSharpParseOptions)context.Node.SyntaxTree.Options);
+            var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions();
 
             var nodeKind = context.Node.Kind();
 

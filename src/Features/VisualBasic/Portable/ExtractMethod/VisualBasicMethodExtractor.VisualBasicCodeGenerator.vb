@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                MyBase.New(insertionPoint, selectionResult, analyzerResult, options, Function(language) NamingStylePreferences.Default, localFunction:=False)
+                MyBase.New(insertionPoint, selectionResult, analyzerResult, options, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

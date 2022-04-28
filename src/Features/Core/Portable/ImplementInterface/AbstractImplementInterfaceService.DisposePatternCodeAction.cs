@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 CancellationToken cancellationToken)
             {
                 var rule = await document.GetApplicableNamingRuleAsync(
-                    SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
+                    SymbolKind.Field, Accessibility.Private, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var requireAccessiblity = await GetAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false);
 

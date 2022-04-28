@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _fallbackOptions, _cancellationToken).ConfigureAwait(false);
                 var nameToUse = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
                 parameterToNewFieldMap[parameterName.BestNameForParameter] = nameToUse;
                 return false;
