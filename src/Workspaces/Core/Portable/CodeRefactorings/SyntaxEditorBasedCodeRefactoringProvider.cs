@@ -45,11 +45,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         protected Task<Document> FixAllAsync(
-            Document document, ImmutableArray<TextSpan> fixAllSpans, CancellationToken cancellationToken)
+            Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans, CancellationToken cancellationToken)
         {
-            return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, fixAllSpans, editor, cancellationToken),
-                cancellationToken);
+            return FixAllWithEditorAsync(document, FixAllAsync, cancellationToken);
+
+            // Local functions
+            Task FixAllAsync(SyntaxEditor editor)
+            {
+                // Fix the entire document if there are no sub-spans to fix.
+                var spans = fixAllSpans.HasValue ? fixAllSpans.Value : ImmutableArray.Create(editor.OriginalRoot.FullSpan);
+                return this.FixAllAsync(document, spans, editor, cancellationToken);
+            }
         }
 
         internal static async Task<Document> FixAllWithEditorAsync(

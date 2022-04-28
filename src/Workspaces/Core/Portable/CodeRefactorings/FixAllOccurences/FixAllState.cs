@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurences fix.
-        /// Empty array of spans indicates the entire document needs to be fixed.
+        /// If no spans are specified, it indicates the entire document needs to be fixed.
         /// </summary>
-        internal async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+        internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
         {
             IEnumerable<Document>? documentsToFix = null;
             switch (this.Scope)
@@ -94,10 +94,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     Contract.ThrowIfNull(Document);
                     var spanMappingService = Document.GetLanguageService<IFixAllSpanMappingService>();
                     if (spanMappingService is null)
-                        return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                        return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
 
-                    return await spanMappingService.GetFixAllSpansAsync(
+                    var spansByDocument = await spanMappingService.GetFixAllSpansAsync(
                         Document, _selectionSpan, Scope, cancellationToken).ConfigureAwait(false);
+                    return spansByDocument.Select(kvp => KeyValuePairUtil.Create(kvp.Key, new Optional<ImmutableArray<TextSpan>>(kvp.Value)))
+                        .ToImmutableDictionaryOrEmpty();
 
                 case FixAllScope.Document:
                     Contract.ThrowIfNull(Document);
@@ -113,10 +115,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     break;
 
                 default:
-                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                    return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
             }
 
-            return documentsToFix.ToImmutableDictionary(d => d, _ => ImmutableArray<TextSpan>.Empty);
+            return documentsToFix.ToImmutableDictionary(d => d, _ => default(Optional<ImmutableArray<TextSpan>>));
         }
     }
 }

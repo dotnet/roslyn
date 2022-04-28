@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// <remarks>
     /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
     /// processed, with all the documents in the project being processed in parallel. 
-    /// <see cref="FixAllAsync(FixAllContext, Document, ImmutableArray{TextSpan})"/> is invoked for each document for implementors to process.
+    /// <see cref="FixAllAsync(FixAllContext, Document, Optional{ImmutableArray{TextSpan}})"/> is invoked for each document for implementors to process.
     ///
     /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
     /// </remarks>
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         /// <param name="fixAllContext">The context for the Fix All operation.</param>
         /// <param name="document">The document to fix.</param>
-        /// <param name="fixAllSpans">The spans to fix in the document.</param>
+        /// <param name="fixAllSpans">The spans to fix in the document. If not specified, entire document needs to be fixedd.</param>
         /// <returns>
         /// <para>The new <see cref="Document"/> representing the content fixed document.</para>
         /// <para>-or-</para>
         /// <para><see langword="null"/>, if no changes were made to the document.</para>
         /// </returns>
-        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<TextSpan> fixAllSpans);
+        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => _supportedFixAllScopes;
@@ -104,15 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var spansToFix = spans;
-                    if (spansToFix.IsEmpty && document.SupportsSyntaxTree)
-                    {
-                        // Empty span indicates entire document needs to be fixed.
-                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        spansToFix = ImmutableArray.Create(root.FullSpan);
-                    }
-
-                    var newDocument = await this.FixAllAsync(fixAllContext, document, spansToFix).ConfigureAwait(false);
+                    var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
                     if (newDocument == null || newDocument == document)
                         return default;
 
