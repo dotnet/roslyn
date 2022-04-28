@@ -5289,6 +5289,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetEnclosingSymbol(position, cancellationToken);
         }
 
+        private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)
+        {
+            position = CheckAndAdjustPosition(position);
+            var binder = GetEnclosingBinder(position);
+            var builder = ArrayBuilder<IImportScope>.GetInstance();
+
+            for (var chain = binder?.ImportChain; chain != null; chain = chain.ParentOpt)
+            {
+                var imports = chain.Imports;
+                if (imports.IsEmpty)
+                    continue;
+
+                Debug.Assert(imports.Usings.All(static u => u.UsingDirectiveReference != null));
+
+                // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
+                // node corresponding to this set of imports and chain it to that.
+                builder.Add(new SimpleImportScope(
+                    imports.UsingAliases.SelectAsArray(static kvp => kvp.Value.Alias.GetPublicSymbol()),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => new ImportedNamespaceOrType(n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    xmlNamespaces: ImmutableArray<ImportedXmlNamespace>.Empty));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {
             return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull(nameof(symbol)));
