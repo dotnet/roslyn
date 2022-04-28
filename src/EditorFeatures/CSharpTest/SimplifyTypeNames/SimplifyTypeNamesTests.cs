@@ -5296,7 +5296,7 @@ namespace A.B.C
         [InlineData("UInt64")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUseAliasDirectiveToPrimitiveType(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
         {
             await TestMissingAsync(
 $@"using System;
@@ -5316,7 +5316,7 @@ namespace N
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestSimplifyUseAliasDirectiveToQualifiedBuiltInType(string typeName)
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
         {
             await TestInRegularAndScript1Async(
 $@"using System;
@@ -5966,7 +5966,7 @@ class Goo
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestDoesNotSimplifyUseAliasDirectiveToBuiltInType(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
         {
             await TestInRegularAndScript1Async(
 $@"using System;
