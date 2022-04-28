@@ -34,7 +34,14 @@ internal partial class SolutionAssetStorage
     {
         lock (_gate)
         {
-            return _checksumToScope.ContainsKey(solutionChecksum) ? _checksumToScope[solutionChecksum] : null;
+            if (_checksumToScope.TryGetValue(solutionChecksum, out var scope))
+            {
+                Contract.ThrowIfTrue(scope.RefCount <= 0);
+                scope.RefCount++;
+                return scope;
+            }
+
+            return null;
         }
     }
 

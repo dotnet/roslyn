@@ -48,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
         /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
+        /// <remarks>
+        /// The solution being pointed to is nullable to indicate that we failed to get it.  This is only possible in
+        /// the case that all incoming requests for this potential checksum canceled out, and thus the attempt to
+        /// synchronize it was then unsuccessful.  That's ok though to store a null solution as it will not be observed
+        /// by any requests because they all canceled out in the first place.
+        /// </remarks>
         private readonly Dictionary<Checksum, (int refCount, AsyncLazy<Solution?> lazySolution)> _solutionChecksumToRefCountAndLazySolution = new();
 
         // internal for testing purposes.

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // short while after all of its constituent operations have canceled.  This is the nature of an async lazy
             // that it's actual computation cancellation is cooperative, and that computation may proceed even if htere
             // is nothing still waiting on the results of hte async lazy.
-            var scope = assetStorage.TryGetScope(solutionChecksum);
+            using var scope = assetStorage.TryGetScope(solutionChecksum);
 
             // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
             // avoid deadlocks (the exception handler in 'task1' ensures progress is made in 'task2').
