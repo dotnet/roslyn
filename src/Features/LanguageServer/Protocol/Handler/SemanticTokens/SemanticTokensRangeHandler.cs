@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 eventSource.Dispose();
         }
 
+        /// <summary>
+        /// Returns true/false if refresh is supported for semantic tokens.
+        /// </summary>
         private bool InitializeIfFirstRequest(RequestContext context)
         {
             lock (_gate)
