@@ -1599,9 +1599,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Method type parameters are not in scope outside a method
                 // body unless the position is either:
                 // a) in a type-only context inside an expression, or
-                // b) inside of an XML name attribute in an XML doc comment.
+                // b) inside of an XML name attribute in an XML doc comment,
+                // c) inside a nameof context.
                 var parentExpr = token.Parent as ExpressionSyntax;
-                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr))
+                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr) && !binder.IsInsideNameof)
                 {
                     options |= LookupOptions.MustNotBeMethodTypeParameter;
                 }

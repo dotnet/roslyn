@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
@@ -156,6 +157,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+#if TODO // https://github.com/microsoft/vs-streamjsonrpc/issues/789
+        internal static async ValueTask<TOptions> GetClientOptionsAsync<TOptions, TCallbackInterface>(
+            RemoteCallback<TCallbackInterface> callback,
+            RemoteServiceCallbackId callbackId,
+            HostLanguageServices languageServices,
+            CancellationToken cancellationToken)
+            where TCallbackInterface : class, IRemoteOptionsCallback<TOptions>
+        {
+            var cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
+            var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
+            return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)
+                => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
+        }
+#endif
 
         private static void SetNativeDllSearchDirectories()
         {
