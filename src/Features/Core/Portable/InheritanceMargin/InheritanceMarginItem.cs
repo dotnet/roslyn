@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly int LineNumber;
 
+        /// <summary>
+        /// Special display text to show when showing the 'hover' tip for a margin item.  Used to override the default
+        /// text we show that says "'X' is inherited".  Used currently for showing information about top-level-imports.
+        /// </summary>
         public readonly string? TopLevelDisplayText;
 
         /// <summary>
@@ -27,6 +31,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Member's glyph.
         /// </summary>
         public readonly Glyph Glyph;
+
+        /// <summary>
+        /// Whether or not TargetItems is already ordered.
+        /// </summary>
+        public readonly bool IsOrdered;
 
         /// <summary>
         /// An array of the implementing/implemented/overriding/overridden targets for this member.
@@ -45,6 +54,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             TopLevelDisplayText = topLevelDisplayText;
             DisplayTexts = displayTexts;
             Glyph = glyph;
+            IsOrdered = isOrdered;
             TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
         }
 
