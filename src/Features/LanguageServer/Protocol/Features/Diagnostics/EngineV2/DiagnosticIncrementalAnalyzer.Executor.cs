@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // We can't return here if we have open file only analyzers since saved data for open file only analyzer
                     // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, project.Solution.Options))
+                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
                     {
                         return existingData;
                     }
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilationWithAnalyzers, OptionSet options)
+        private static bool CompilationHasOpenFileOnlyAnalyzers(CompilationWithAnalyzers? compilationWithAnalyzers, SimplifierOptions? options)
         {
             if (compilationWithAnalyzers == null)
             {
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, project, version, existing, out var analyzersToRun))
+                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, ideOptions, out var analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
@@ -360,13 +361,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzers compilationWithAnalyzers, Project project, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
+            CompilationWithAnalyzers compilationWithAnalyzers, VersionStamp version,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, IdeAnalyzerOptions ideOptions,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             analyzers = default;
-
-            var options = project.Solution.Options;
 
             var existingAnalyzers = compilationWithAnalyzers.Analyzers;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -374,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (existing.TryGetValue(analyzer, out var analysisResult) &&
                     analysisResult.Version == version &&
-                    !analyzer.IsOpenFileOnly(options))
+                    !analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
                 {
                     // we already have up to date result.
                     continue;

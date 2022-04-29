@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -170,11 +171,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim simplifierOptions = newDocument.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim cleanupOptions = newDocument.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
-            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
-            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
 
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 

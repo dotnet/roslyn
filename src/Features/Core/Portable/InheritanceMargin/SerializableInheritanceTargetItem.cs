@@ -22,16 +22,31 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         [DataMember(Order = 3)]
         public readonly string DisplayName;
 
+        [DataMember(Order = 4)]
+        public readonly string LanguageName;
+
+        [DataMember(Order = 5)]
+        public readonly string? ProjectName;
+
+        [DataMember(Order = 6)]
+        public readonly Glyph LanguageGlyph;
+
         public SerializableInheritanceTargetItem(
             InheritanceRelationship relationToMember,
             SerializableDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            string displayName,
+            string languageName,
+            string? projectName,
+            Glyph languageGlyph)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
             DisplayName = displayName;
+            ProjectName = projectName;
+            LanguageName = languageName;
+            LanguageGlyph = languageGlyph;
         }
     }
 }

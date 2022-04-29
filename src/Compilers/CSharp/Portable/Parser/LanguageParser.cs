@@ -13076,7 +13076,9 @@ tryAgain:
                     // Unparenthesized lambda case
                     // x => ...
                     // x!! => ...
-                    var identifier = this.ParseIdentifierToken();
+                    var identifier = (this.CurrentToken.Kind != SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken) ?
+                        this.EatTokenAsKind(SyntaxKind.IdentifierToken) :
+                        this.ParseIdentifierToken();
 
                     ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
