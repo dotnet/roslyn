@@ -15,20 +15,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct DocumentIdSpan
     {
-        private readonly Workspace _workspace;
         private readonly DocumentId _documentId;
         public readonly TextSpan SourceSpan;
 
         public DocumentIdSpan(DocumentSpan documentSpan)
         {
-            _workspace = documentSpan.Document.Project.Solution.Workspace;
             _documentId = documentSpan.Document.Id;
             SourceSpan = documentSpan.SourceSpan;
         }
 
-        public async Task<DocumentSpan?> TryRehydrateAsync(CancellationToken cancellationToken)
+        public static implicit operator DocumentIdSpan(DocumentSpan documentSpan)
+            => new(documentSpan);
+
+        public async Task<DocumentSpan?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
             var document = await solution.GetDocumentAsync(_documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             return document == null ? null : new DocumentSpan(document, SourceSpan);
         }

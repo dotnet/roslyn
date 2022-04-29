@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 SourceSpans = sourceSpans.SelectAsArray(ss => new DocumentIdSpan(ss));
             }
 
-            public async Task<DefaultDefinitionItem?> TryRehydrateAsync(CancellationToken cancellationToken)
+            public async Task<DefaultDefinitionItem?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
             {
                 using var converted = TemporaryArray<DocumentSpan>.Empty;
                 foreach (var ss in SourceSpans)
                 {
-                    var documentSpan = await ss.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+                    var documentSpan = await ss.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     if (documentSpan == null)
                         return null;
 
