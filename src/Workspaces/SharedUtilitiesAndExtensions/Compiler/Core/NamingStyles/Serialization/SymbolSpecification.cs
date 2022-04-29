@@ -349,67 +349,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         [DataContract]
         public readonly record struct SymbolKindOrTypeKind : ISymbolMatcher, IObjectWritable
         {
-            private const int KindBits = 6;
-
-            private enum SymbolCategory
+            public enum SymbolCategory : byte
             {
+                Invalid = 0,
                 Other = 1,
                 Type = 2,
                 Method = 3,
             }
 
-            // highest 2 bits for category, 6 bits for kind
             [DataMember(Order = 0)]
-            private readonly byte _categoryAndKind;
+            private readonly SymbolCategory _category;
+
+            [DataMember(Order = 1)]
+            private readonly byte _kind;
 
             // public for serialization
-            public SymbolKindOrTypeKind(byte categoryAndKind)
-                => _categoryAndKind = categoryAndKind;
-
-            private SymbolKindOrTypeKind(SymbolCategory category, int kind)
-                : this((byte)(((int)category << KindBits) | kind))
+            public SymbolKindOrTypeKind(SymbolCategory category, byte kind)
             {
-                Debug.Assert((int)category < (1 << (8 - KindBits)));
-                Debug.Assert(kind < (1 << KindBits));
+                _category = category;
+                _kind = kind;
             }
 
             public SymbolKindOrTypeKind(SymbolKind symbolKind)
-                : this(SymbolCategory.Other, (byte)symbolKind)
+                : this(SymbolCategory.Other, checked((byte)symbolKind))
             {
             }
 
             public SymbolKindOrTypeKind(TypeKind typeKind)
-                : this(SymbolCategory.Type, (byte)typeKind)
+                : this(SymbolCategory.Type, checked((byte)typeKind))
             {
             }
 
             public SymbolKindOrTypeKind(MethodKind methodKind)
-                : this(SymbolCategory.Method, (byte)methodKind)
+                : this(SymbolCategory.Method, checked((byte)methodKind))
             {
             }
 
-            private SymbolCategory Category => (SymbolCategory)(_categoryAndKind >> KindBits);
-            private int Kind => _categoryAndKind & ((1 << KindBits) - 1);
-
-            public SymbolKind? SymbolKind => (Category == SymbolCategory.Other) ? (SymbolKind)Kind : null;
-            public TypeKind? TypeKind => (Category == SymbolCategory.Type) ? (TypeKind)Kind : null;
-            public MethodKind? MethodKind => (Category == SymbolCategory.Method) ? (MethodKind)Kind : null;
+            public SymbolKind? SymbolKind => (_category == SymbolCategory.Other) ? (SymbolKind)_kind : null;
+            public TypeKind? TypeKind => (_category == SymbolCategory.Type) ? (TypeKind)_kind : null;
+            public MethodKind? MethodKind => (_category == SymbolCategory.Method) ? (MethodKind)_kind : null;
 
             public bool MatchesSymbol(ISymbol symbol)
-                => Category switch
+                => _category switch
                 {
-                    SymbolCategory.Other => symbol.IsKind((SymbolKind)Kind),
-                    SymbolCategory.Type => symbol is ITypeSymbol type && type.TypeKind == (TypeKind)Kind,
-                    SymbolCategory.Method => symbol is IMethodSymbol method && method.MethodKind == (MethodKind)Kind,
+                    SymbolCategory.Other => symbol.IsKind((SymbolKind)_kind),
+                    SymbolCategory.Type => symbol is ITypeSymbol type && type.TypeKind == (TypeKind)_kind,
+                    SymbolCategory.Method => symbol is IMethodSymbol method && method.MethodKind == (MethodKind)_kind,
                     _ => false
                 };
 
             internal XElement CreateXElement()
-                => Category switch
+                => _category switch
                 {
-                    SymbolCategory.Other => new XElement(nameof(SymbolKind), (SymbolKind)Kind),
-                    SymbolCategory.Type => new XElement(nameof(TypeKind), GetTypeKindString((TypeKind)Kind)),
-                    SymbolCategory.Method => new XElement(nameof(MethodKind), GetMethodKindString((MethodKind)Kind)),
+                    SymbolCategory.Other => new XElement(nameof(SymbolKind), (SymbolKind)_kind),
+                    SymbolCategory.Type => new XElement(nameof(TypeKind), GetTypeKindString((TypeKind)_kind)),
+                    SymbolCategory.Method => new XElement(nameof(MethodKind), GetMethodKindString((MethodKind)_kind)),
                     _ => throw ExceptionUtilities.Unreachable
                 };
 
@@ -442,20 +436,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public void WriteTo(ObjectWriter writer)
             {
-                writer.WriteInt32((int)Category);
+                writer.WriteInt32((int)_category);
 
                 // handle default(T)
-                if (Category != default)
+                if (_category != SymbolCategory.Invalid)
                 {
-                    writer.WriteInt32(Kind);
+                    writer.WriteInt32(_kind);
                 }
             }
 
             public static SymbolKindOrTypeKind ReadFrom(ObjectReader reader)
             {
                 var category = (SymbolCategory)reader.ReadInt32();
-                var kind = (byte)((category != default) ? reader.ReadInt32() : 0);
-                return new(category, kind);
+                var kind = (byte)((category != SymbolCategory.Invalid) ? reader.ReadInt32() : 0);
+                return new SymbolKindOrTypeKind(category, kind);
             }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
