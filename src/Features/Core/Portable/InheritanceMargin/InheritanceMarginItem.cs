@@ -39,15 +39,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// Whether or not TargetItems is already ordered.
-        /// </summary>
-        [DataMember(Order = 4)]
-        public readonly bool IsOrdered;
-
-        /// <summary>
         /// An array of the implementing/implemented/overriding/overridden targets for this member.
         /// </summary>
-        [DataMember(Order = 5)]
+        [DataMember(Order = 4)]
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
         public InheritanceMarginItem(
@@ -55,15 +49,26 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             string? topLevelDisplayText,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
-            bool isOrdered,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
             TopLevelDisplayText = topLevelDisplayText;
             DisplayTexts = displayTexts;
             Glyph = glyph;
-            IsOrdered = isOrdered;
-            TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
+            TargetItems = targetItems;
         }
+
+        public static InheritanceMarginItem CreateOrdered(
+            int lineNumber,
+            string? topLevelDisplayText,
+            ImmutableArray<TaggedText> displayTexts,
+            Glyph glyph,
+            ImmutableArray<InheritanceTargetItem> targetItems)
+        {
+            return new(lineNumber, topLevelDisplayText, displayTexts, glyph, Order(targetItems));
+        }
+
+        public static ImmutableArray<InheritanceTargetItem> Order(ImmutableArray<InheritanceTargetItem> targetItems)
+            => targetItems.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
     }
 }

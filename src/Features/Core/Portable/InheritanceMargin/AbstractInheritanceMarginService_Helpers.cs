@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     items.Add(new InheritanceMarginItem(
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
-                        Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
+                        Glyph.Namespace, targetItems.ToImmutable()));
                 }
                 else
                 {
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
                 }
             }
         }
@@ -366,12 +366,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
-            return new InheritanceMarginItem(
+            return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
                 interfaceSymbol.GetGlyph(),
-                isOrdered: false,
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
@@ -392,12 +391,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.ImplementingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            return new InheritanceMarginItem(
+            return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                isOrdered: false,
                 implementedMemberItems);
         }
 
@@ -431,12 +429,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
-            return new InheritanceMarginItem(
+            return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                isOrdered: false,
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
@@ -479,12 +476,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.OverridingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            return new InheritanceMarginItem(
+            return InheritanceMarginItem.CreateOrdered(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                isOrdered: false,
                 implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
         }
 

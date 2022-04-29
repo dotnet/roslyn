@@ -94,12 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))
                 .OrderBy(target => target.TargetSymbolName)
                 .ToImmutableArray();
-            var sortedActualTargets = actualItem.TargetItems.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "")
-                .ToImmutableArray();
+
             for (var i = 0; i < expectedTargets.Length; i++)
-            {
-                await VerifyInheritanceTargetAsync(testWorkspace, expectedTargets[i], sortedActualTargets[i]);
-            }
+                await VerifyInheritanceTargetAsync(testWorkspace, expectedTargets[i], actualItem.TargetItems[i]);
         }
 
         private static async Task VerifyInheritanceTargetAsync(Workspace workspace, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
