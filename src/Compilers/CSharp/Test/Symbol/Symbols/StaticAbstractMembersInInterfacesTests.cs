@@ -7181,30 +7181,27 @@ interface I14
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_UnimplementedInterfaceMember)).Verify(
-                // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     static bool operator <<(T1 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(4, 26),
-                // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     static bool operator <<(T2? x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (26,39): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
                 //         static abstract bool operator <<(T5 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (32,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
                 //     static abstract bool operator <<(T71 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (37,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
                 //     static abstract bool operator <<(T8 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (44,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
                 //     static abstract bool operator <<(T10 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(44, 35),
-                // (51,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (51,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
                 //     static abstract bool operator <<(int x, int y);
-                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35),
-                // (61,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
-                //     static abstract bool operator <<(I14 x, bool y);
-                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(61, 35)
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35)
                 );
         }
 

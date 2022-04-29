@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ToggleLineCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
         {
         }
 

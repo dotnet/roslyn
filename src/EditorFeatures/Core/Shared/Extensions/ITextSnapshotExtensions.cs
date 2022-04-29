@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -24,13 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, CancellationToken cancellationToken)
-            => snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
-
-        /// <summary>
-        /// format given snapshot and apply text changes to buffer
-        /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -38,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            rules = document.GetFormattingRules(span, rules);
+            var rules = document.GetFormattingRules(span, additionalRules: null);
 
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 

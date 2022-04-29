@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Process subpatterns in reverse order so we rewrite from inside-to-outside with nested
             // patterns.

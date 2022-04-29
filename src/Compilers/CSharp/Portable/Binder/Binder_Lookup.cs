@@ -1488,15 +1488,6 @@ symIsHidden:;
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
         }
 
-        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved) where TSymbol : Symbol
-        {
-            foreach (var symbol in symbols)
-            {
-                var res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteInfo, basesBeingResolved);
-                result.MergeEqual(res);
-            }
-        }
-
         /// <summary>
         /// Used by Add*LookupSymbolsInfo* to determine whether the symbol is of interest.
         /// Distinguish from <see cref="CheckViability"/>, which performs an analogous task for LookupSymbols*.
@@ -1764,7 +1755,7 @@ symIsHidden:;
             }
         }
 
-        protected virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             // overridden in other binders
         }

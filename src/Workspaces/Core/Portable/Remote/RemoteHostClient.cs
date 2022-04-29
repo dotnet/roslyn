@@ -217,38 +217,5 @@ namespace Microsoft.CodeAnalysis.Remote
             using var connection = CreateConnection<TService>(callbackTarget);
             return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
         }
-
-        // streaming
-
-        /// <summary>
-        /// Invokes a remote API that streams data back to the caller via a pipe.
-        /// </summary>
-        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
-            Solution solution,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
-            where TService : class
-        {
-            using var connection = CreateConnection<TService>(callbackTarget: null);
-            return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Equivalent to <see cref="TryInvokeAsync{TService, TResult}(Project, Func{TService, Checksum, PipeWriter, CancellationToken, ValueTask}, Func{PipeReader, CancellationToken, ValueTask{TResult}}, CancellationToken)"/>
-        /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.
-        /// This is useful for operations that don't every do any work outside of that project-cone and do not want to pay
-        /// the high potential cost of a full sync.
-        /// </summary>
-        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
-            Project project,
-            Func<TService, Checksum, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
-            where TService : class
-        {
-            using var connection = CreateConnection<TService>(callbackTarget: null);
-            return await connection.TryInvokeAsync(project, invocation, reader, cancellationToken).ConfigureAwait(false);
-        }
     }
 }
