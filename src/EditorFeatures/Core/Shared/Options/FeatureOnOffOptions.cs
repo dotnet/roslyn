@@ -114,6 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
+        public static readonly PerLanguageOption2<bool> InheritanceMarginIncludeGlobalImports = new(
+            FeatureName, "InheritanceMarginIncludeGlobalImports", defaultValue: true,
+            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports"));
+
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyCompleteStatementOnSemicolon"));

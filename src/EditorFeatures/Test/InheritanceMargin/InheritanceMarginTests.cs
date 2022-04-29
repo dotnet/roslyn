@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             var actualItems = await service.GetInheritanceMemberItemsAsync(
                 document,
                 searchingSpan,
+                includeGlobalImports: true,
                 cancellationToken).ConfigureAwait(false);
 
             var sortedActualItems = actualItems.OrderBy(item => item.LineNumber).ToImmutableArray();

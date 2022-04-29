@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
             Document document,
             TextSpan spanToSearch,
+            bool includeGlobalImports,
             CancellationToken cancellationToken);
     }
 }

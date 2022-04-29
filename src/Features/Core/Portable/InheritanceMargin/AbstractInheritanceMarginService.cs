@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
             Document document,
             TextSpan spanToSearch,
+            bool includeGlobalImports,
             CancellationToken cancellationToken)
         {
             var (remappedProject, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
             // the originating project), then we're in teh same project and we should try to get global import
             // information to display.
-            var includeGlobalImports = remappedProject == document.Project;
+            if (remappedProject != document.Project)
+                includeGlobalImports = false;
 
             if (!includeGlobalImports && symbolKeyAndLineNumbers.IsEmpty)
                 return ImmutableArray<InheritanceMarginItem>.Empty;
