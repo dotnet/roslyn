@@ -8,17 +8,17 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     /// <summary>
     /// Interaction logic for InlineRenameAdornment.xaml
     /// </summary>
-    internal partial class InlineRenameAdornment : UserControl, IDisposable
+    internal partial class RenameFlyout : UserControl, IDisposable
     {
-        private readonly InlineRenameAdornmentViewModel _viewModel;
+        private readonly RenameFlyoutViewModel _viewModel;
         private readonly ITextView _textView;
 
-        public InlineRenameAdornment(InlineRenameAdornmentViewModel viewModel, ITextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;

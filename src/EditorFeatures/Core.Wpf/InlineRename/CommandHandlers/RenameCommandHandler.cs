@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
 #if !COCOA
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetAdornment(textView) is Dashboard dashboard
+            => GetAdornment(textView) is RenameDashboard dashboard
             ? dashboard.ShouldReceiveKeyboardNavigation
             : true; // Always receive keyboard navigation for the inline adornment
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override void SetFocusToAdornment(ITextView textView)
         {
-            if (GetAdornment(textView) is UIElement adornment)
+            if (GetAdornment(textView) is { } adornment)
             {
                 adornment.Focus();
             }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override void SetAdornmentFocusToNextElement(ITextView textView)
         {
-            if (GetAdornment(textView) is Dashboard dashboard)
+            if (GetAdornment(textView) is RenameDashboard dashboard)
             {
                 dashboard.FocusNextElement();
             }
@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
         {
-            if (GetAdornment(textView) is Dashboard dashboard)
+            if (GetAdornment(textView) is RenameDashboard dashboard)
             {
                 dashboard.FocusNextElement();
             }
         }
 
-        private static UIElement? GetAdornment(ITextView textView)
+        private static InlineRenameAdornment? GetAdornment(ITextView textView)
         {
             // If our adornment layer somehow didn't get composed, GetAdornmentLayer will throw.
             // Don't crash if that happens.
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var adornment = ((IWpfTextView)textView).GetAdornmentLayer("RoslynRenameDashboard");
                 return adornment.Elements.Any()
-                    ? adornment.Elements[0].Adornment
+                    ? adornment.Elements[0].Adornment as InlineRenameAdornment
                     : null;
             }
             catch (ArgumentOutOfRangeException)
