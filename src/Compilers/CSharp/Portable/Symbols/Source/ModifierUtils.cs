@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ModifierUtils
     {
         internal static DeclarationModifiers MakeAndCheckNontypeMemberModifiers(
-            bool isForType,
+            bool isForTypeDeclaration,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag());
-            result = CheckModifiers(isForType, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static DeclarationModifiers CheckModifiers(
-            bool isForType,
+            bool isForTypeDeclaration,
             bool isForInterfaceMember,
             DeclarationModifiers modifiers,
             DeclarationModifiers allowedModifiers,
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList? modifierTokens,
             out bool modifierErrors)
         {
-            Debug.Assert(!isForType || !isForInterfaceMember);
+            Debug.Assert(!isForTypeDeclaration || !isForInterfaceMember);
 
             modifierErrors = false;
             DeclarationModifiers reportStaticNotVirtualForModifiers = DeclarationModifiers.None;
 
-            if (isForType)
+            if (isForTypeDeclaration)
             {
                 Debug.Assert((allowedModifiers & (DeclarationModifiers.Override | DeclarationModifiers.Virtual)) == 0);
             }

@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForType: false, isForInterfaceMember: inInterface,
+                isForTypeDeclaration: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
             if (inInterface)
