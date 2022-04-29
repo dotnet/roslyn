@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -1416,6 +1417,13 @@ public partial class {|target3:Bar|}
                 markup,
                 LanguageNames.VisualBasic,
                 new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport))),
+                new TestInheritanceMemberItem(
                     lineNumber: 3,
                     memberName: "Class Bar",
                     targets: ImmutableArray.Create(
@@ -1947,6 +1955,14 @@ public partial class {|target3:Bar|}
                 void {|target3:Foo|}();
             }
         }";
+            var itemForProjectImports =
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport)));
 
             var itemForBar44 = new TestInheritanceMemberItem(
                 lineNumber: 4,
@@ -1983,7 +1999,7 @@ public partial class {|target3:Bar|}
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.VisualBasic),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForBar44, itemForFooInMarkup1 },
+                new[] { itemForProjectImports, itemForBar44, itemForFooInMarkup1 },
                 new[] { itemForIBar, itemForFooInMarkup2 });
         }
 
