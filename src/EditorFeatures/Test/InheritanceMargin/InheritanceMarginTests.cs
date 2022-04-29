@@ -55,6 +55,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
         }
 
+        private static Task VerifyInMultipleDocumentsAsync(
+            string markup1,
+            string markup2,
+            string languageName,
+            params TestInheritanceMemberItem[] memberItems)
+        {
+            var workspaceFile = $@"
+<Workspace>
+   <Project Language=""{languageName}"" CommonReferences=""true"">
+       <Document>
+            <![CDATA[{markup1}]]>
+       </Document>
+       <Document>
+            <![CDATA[{markup2}]]>
+       </Document>
+   </Project>
+</Workspace>";
+
+            var cancellationToken = CancellationToken.None;
+
+            using var testWorkspace = TestWorkspace.Create(
+                workspaceFile,
+                composition: EditorTestCompositions.EditorFeatures);
+
+            var testHostDocument = testWorkspace.Documents[0];
+            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+        }
+
         private static async Task VerifyTestMemberInDocumentAsync(
             TestWorkspace testWorkspace,
             TestHostDocument testHostDocument,
@@ -1253,6 +1281,79 @@ public partial class {|target3:Bar|}
                 itemOnLine2,
                 itemOnLine6,
                 itemOnLine10);
+        }
+
+        [Fact]
+        public Task TestEmptyFileSingleGlobalImportInOtherFile()
+        {
+            var markup1 = @"";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Fact]
+        public Task TestEmptyFileMultipleGlobalImportInOtherFile()
+        {
+            var markup1 = @"";
+            var markup2 = @"
+{|target1:global using System;|}
+{|target2:global using System.Collections;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System",
+                        relationship: InheritanceRelationship.InheritedImport, "target1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System.Collections",
+                        relationship: InheritanceRelationship.InheritedImport, "target2"))));
+        }
+
+        [Fact]
+        public Task TestFileWithUsing_SingleGlobalImportInOtherFile()
+        {
+            var markup1 = @"
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Fact]
+        public Task TestIgnoreGlobalImportFromSameFile()
+        {
+            var markup1 = @"
+global using System.Collections.Generic;
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
         }
 
         #endregion
