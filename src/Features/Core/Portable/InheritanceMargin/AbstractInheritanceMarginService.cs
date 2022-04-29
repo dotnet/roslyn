@@ -43,18 +43,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             TextSpan spanToSearch,
             CancellationToken cancellationToken)
         {
-            var (project, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
+            var (remappedProject, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
 
             // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
             // the originating project), then we're in teh same project and we should try to get global import
             // information to display.
-            var includeGlobalImports = project == document.Project;
+            var includeGlobalImports = remappedProject == document.Project;
 
             if (!includeGlobalImports && symbolKeyAndLineNumbers.IsEmpty)
                 return ImmutableArray<InheritanceMarginItem>.Empty;
 
             return await GetInheritanceMemberItemAsync(
-                project,
+                remappedProject,
                 documentForGlobalImports: includeGlobalImports ? document : null,
                 spanToSearch,
                 symbolKeyAndLineNumbers,
