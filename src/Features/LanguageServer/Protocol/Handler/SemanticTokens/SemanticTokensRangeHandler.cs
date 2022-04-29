@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 if (_supportsRefresh == null)
                 {
-                    _supportsRefresh = context.ClientCapabilities.Workspace?.SemanticTokens.RefreshSupport is true;
+                    _supportsRefresh = context.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true;
 
                     if (_supportsRefresh.Value)
                     {
