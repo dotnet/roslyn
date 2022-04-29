@@ -33,16 +33,38 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly string DisplayName;
 
+        /// <summary>
+        /// The language of the symbol. Used to disambiguate results when multiple targets have the same name.
+        /// </summary>
+        public readonly string LanguageName;
+
+        /// <summary>
+        /// Name of the project the symbol is defined in (if known).  Used to disambiguate results when multiple targets
+        /// have the same name and same language.
+        /// </summary>
+        public readonly string? ProjectName;
+
+        /// <summary>
+        /// The glyph for source language.
+        /// </summary>
+        public readonly Glyph LanguageGlyph;
+
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            string displayName,
+            string languageName,
+            string? projectName,
+            Glyph languageGlyph)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
             DisplayName = displayName;
+            LanguageName = languageName;
+            ProjectName = projectName;
+            LanguageGlyph = languageGlyph;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -58,7 +80,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem.Detach(),
                 serializableItem.Glyph,
-                serializableItem.DisplayName);
+                serializableItem.DisplayName,
+                serializableItem.LanguageName,
+                serializableItem.ProjectName,
+                serializableItem.LanguageGlyph);
         }
     }
 }

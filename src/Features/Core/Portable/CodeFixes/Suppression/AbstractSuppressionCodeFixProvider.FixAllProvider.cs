@@ -38,15 +38,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
+                    var fallbackOptions = fixAllContext.GetOptionsProvider();
+
                     // For global suppressions, we defer to the global suppression system to handle directly.
                     var title = fixAllContext.CodeActionEquivalenceKey;
                     return fixAllContext.Document != null
                         ? GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Document,
-                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false))
+                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false),
+                            fallbackOptions)
                         : GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Project,
-                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false));
+                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false),
+                            fallbackOptions);
                 }
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))

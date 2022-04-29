@@ -1859,31 +1859,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindNameofOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, out BoundExpression result)
         {
+            if (node.MayBeNameofOperator())
+            {
+                var binder = this.GetBinder(node);
+                if (binder is null)
+                {
+                    // This could happen during speculation due to a bug
+                    // Tracked by https://github.com/dotnet/roslyn/issues/60801
+                    result = null;
+                    return false;
+                }
+                if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
+                {
+                    result = binder.BindNameofOperatorInternal(node, diagnostics);
+                    return true;
+                }
+            }
+
             result = null;
-            if (node.Expression.Kind() != SyntaxKind.IdentifierName ||
-                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() != SyntaxKind.NameOfKeyword ||
-                node.ArgumentList.Arguments.Count != 1)
-            {
-                return false;
-            }
-
-            ArgumentSyntax argument = node.ArgumentList.Arguments[0];
-            if (argument.NameColon != null || argument.RefOrOutKeyword != default(SyntaxToken) || InvocableNameofInScope())
-            {
-                return false;
-            }
-
-            result = BindNameofOperatorInternal(node, diagnostics);
-            return true;
+            return false;
         }
 
         private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-            // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
-            var nameofBinder = new NameofBinder(argument, this);
-            var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
+            var boundArgument = BindExpression(argument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
@@ -1896,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    nameofBinder.EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    EnsureNameofExpressionSymbols(methodGroup, diagnostics);
                 }
             }
 
@@ -1988,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method that checks whether there is an invocable 'nameof' in scope.
         /// </summary>
-        private bool InvocableNameofInScope()
+        internal bool InvocableNameofInScope()
         {
             var lookupResult = LookupResult.GetInstance();
             const LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember;

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
             return new FixAllContext(
                 new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan: firstDiagnostic.Location.SourceSpan,
                     document,
                     document.Project,
