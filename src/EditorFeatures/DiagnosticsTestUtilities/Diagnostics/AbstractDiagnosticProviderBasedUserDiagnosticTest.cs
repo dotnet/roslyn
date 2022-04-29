@@ -158,11 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
-            {
-                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
-            }
+            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
             var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
@@ -194,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            IdeAnalyzerOptions ideAnalyzerOptions = null,
             OptionsCollection options = null,
             LocalizableString diagnosticMessage = null)
         {
@@ -207,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollection options,
-            IdeAnalyzerOptions? ideAnalyzerOptions,
+            IdeAnalyzerOptions ideAnalyzerOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)

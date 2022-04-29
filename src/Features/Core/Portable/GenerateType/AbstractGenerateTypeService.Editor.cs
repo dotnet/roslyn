@@ -313,7 +313,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                     if (formattingService is not null)
                     {
-                        var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(_semanticDocument.Document, fallbackOptions: null, _cancellationToken).ConfigureAwait(false);
+                        // TODO: fallback options: https://github.com/dotnet/roslyn/issues/60794
+                        var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(fallbackOptions: null, _cancellationToken).ConfigureAwait(false);
                         codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, cleanupOptions, _cancellationToken).ConfigureAwait(false);
                     }
                 }

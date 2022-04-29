@@ -677,16 +677,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
-            // SPEC: of which must have type T or T? and the second of which must
-            // SPEC: have type int or int?, and can return any type.
+            // SPEC: of which must have type T or T?, the second of which can
+            // SPEC: have any type. The operator can return any type.
 
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()) ||
-                this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
-                //         same type as the containing type, and the type of the second 
-                //         operand must be int
+                //         same type as the containing type
                 diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+            }
+            else if (this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            {
+                var location = this.Locations[0];
+                Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRelaxedShiftOperator, diagnostics, location);
             }
 
             if (this.ReturnsVoid)

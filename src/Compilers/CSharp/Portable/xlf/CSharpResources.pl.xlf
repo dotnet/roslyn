@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">Pierwszy operand operatora przeciążonego przesunięcia musi mieć ten sam typ co typ zawierający lub jego parametr typu ograniczony do niego, a typ drugiego operandu musi mieć wartość „int”</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">Pierwszy operand operatora przeciążonego przesunięcia musi mieć ten sam typ co typ zawierający lub jego parametr typu ograniczony do niego, a typ drugiego operandu musi mieć wartość „int”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -1546,6 +1546,11 @@
         <source>record structs</source>
         <target state="translated">struktury rekordów</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
@@ -5856,8 +5861,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">Pierwszy argument operacji przeciążonego operatora przesunięcia musi mieć taki sam typ co typ zawierający, a typ drugiego argumentu operacji musi być typem int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">Pierwszy argument operacji przeciążonego operatora przesunięcia musi mieć taki sam typ co typ zawierający, a typ drugiego argumentu operacji musi być typem int</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

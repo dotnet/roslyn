@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
             var formattingOptions = GetOptions(workspace, options, node.Language);
+
             return languageFormatter.GetFormattingResult(node, spans, formattingOptions, rules, cancellationToken);
         }
 

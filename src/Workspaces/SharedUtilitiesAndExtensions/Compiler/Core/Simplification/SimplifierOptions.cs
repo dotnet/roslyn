@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeActions;
 
 #if !CODE_STYLE
 using System.Threading;
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal abstract class SimplifierOptions
     {
+        public static readonly CodeStyleOption2<bool> DefaultQualifyAccess = CodeStyleOption2<bool>.Default;
+        public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = new(value: true, notification: NotificationOption2.Silent);
+
         [DataMember(Order = 0)]
         public readonly CodeStyleOption2<bool> QualifyFieldAccess;
 
@@ -38,44 +43,63 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected const int BaseMemberCount = 6;
 
         protected SimplifierOptions(
-            CodeStyleOption2<bool> qualifyFieldAccess,
-            CodeStyleOption2<bool> qualifyPropertyAccess,
-            CodeStyleOption2<bool> qualifyMethodAccess,
-            CodeStyleOption2<bool> qualifyEventAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInMemberAccess,
-            CodeStyleOption2<bool> preferPredefinedTypeKeywordInDeclaration)
+            CodeStyleOption2<bool>? qualifyFieldAccess,
+            CodeStyleOption2<bool>? qualifyPropertyAccess,
+            CodeStyleOption2<bool>? qualifyMethodAccess,
+            CodeStyleOption2<bool>? qualifyEventAccess,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration)
         {
-            QualifyFieldAccess = qualifyFieldAccess;
-            QualifyPropertyAccess = qualifyPropertyAccess;
-            QualifyMethodAccess = qualifyMethodAccess;
-            QualifyEventAccess = qualifyEventAccess;
-            PreferPredefinedTypeKeywordInMemberAccess = preferPredefinedTypeKeywordInMemberAccess;
-            PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration;
+            QualifyFieldAccess = qualifyFieldAccess ?? DefaultQualifyAccess;
+            QualifyPropertyAccess = qualifyPropertyAccess ?? DefaultQualifyAccess;
+            QualifyMethodAccess = qualifyMethodAccess ?? DefaultQualifyAccess;
+            QualifyEventAccess = qualifyEventAccess ?? DefaultQualifyAccess;
+            PreferPredefinedTypeKeywordInMemberAccess = preferPredefinedTypeKeywordInMemberAccess ?? DefaultPreferPredefinedTypeKeyword;
+            PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
         }
 
-        public CodeStyleOption2<bool> QualifyMemberAccess(SymbolKind symbolKind)
-            => symbolKind switch
+        public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+        {
+            option = symbolKind switch
             {
                 SymbolKind.Field => QualifyFieldAccess,
                 SymbolKind.Property => QualifyPropertyAccess,
                 SymbolKind.Method => QualifyMethodAccess,
                 SymbolKind.Event => QualifyEventAccess,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
+                _ => null,
             };
 
+            return option != null;
+        }
+
 #if !CODE_STYLE
+        public static SimplifierOptions GetDefault(HostLanguageServices languageServices)
+            => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
+
         public static SimplifierOptions Create(OptionSet options, HostWorkspaceServices services, SimplifierOptions? fallbackOptions, string language)
         {
             var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(language);
             var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
             return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions);
         }
-
-        public static async Task<SimplifierOptions> FromDocumentAsync(Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
-        }
 #endif
     }
+
+#if !CODE_STYLE
+    internal static class SimplifierOptionsProviders
+    {
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return SimplifierOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
+        }
+
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetSimplifierOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.SimplifierOptions ?? SimplifierOptions.GetDefault(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
+
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetSimplifierOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions, cancellationToken).ConfigureAwait(false);
+
+    }
+#endif
 }
