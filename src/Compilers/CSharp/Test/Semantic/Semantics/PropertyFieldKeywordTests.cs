@@ -3572,23 +3572,21 @@ struct S
         }
 
         [Theory, CombinatorialData]
-        public void InStruct_Cycle(bool firstIsSemi, bool secondIsSemi, bool bindS1First)
+        public void InStruct_Cycle(bool bindS1First)
         {
-            var firstAccessor = firstIsSemi ? "get => field;" : "get;";
-            var secondAccessor = secondIsSemi ? "get => field;" : "get;";
-            var source1 = $@"
+            var source1 = @"
 struct S1
-{{
-    public S1() {{ }}
-    public S2 P {{ {firstAccessor} }}
-}}
+{
+    public S1() { }
+    public S2 P { get => field; }
+}
 ";
-            var source2 = $@"
+            var source2 = @"
 struct S2
-{{
-    public S2() {{ }}
-    public S1 P {{ {secondAccessor} }}
-}}
+{
+    public S2() { }
+    public S1 P { get; }
+}
 ";
             var comp = CreateCompilation(new[] { source1, source2 });
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
@@ -3598,14 +3596,7 @@ struct S2
                 //     public S2 P { get => field; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments(bindS1First ? "S1.P" : "S2.P", bindS1First ? "S2" : "S1").WithLocation(5, 15));
 
-            var expectedBinding = (firstIsSemi, secondIsSemi, bindS1First) switch
-            {
-                (true, true, _) => 1,
-                (true, false, false) => 1,
-                (false, true, true) => 1,
-                _ => 0,
-            };
-            Assert.Equal(expectedBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(bindS1First ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
 
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, bindS1First ? comp.SyntaxTrees[1] : comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
                 // (5,15): error CS0523: Struct member 'S2.P' of type 'S1' causes a cycle in the struct layout
@@ -3620,7 +3611,51 @@ struct S2
                 //     public S1 P { get; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(5, 15)
                 );
-            Assert.Equal(expectedBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(bindS1First ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void InStruct_Cycle2()
+        {
+            var source1 = @"
+struct S1
+{
+    public S1() { }
+    public S2 P { get => field; }
+}
+";
+            var source2 = @"
+struct S2
+{
+    public S2() { }
+    public S1 P { get => field; }
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (5,15): error CS0523: Struct member 'S1.P' of type 'S2' causes a cycle in the struct layout
+                //     public S2 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S1.P", "S2").WithLocation(5, 15)
+                );
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true).Verify(
+                // (5,15): error CS0523: Struct member 'S2.P' of type 'S1' causes a cycle in the struct layout
+                //     public S1 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(5, 15)
+                );
+
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0523: Struct member 'S1.P' of type 'S2' causes a cycle in the struct layout
+                //     public S2 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S1.P", "S2").WithLocation(5, 15),
+                // (5,15): error CS0523: Struct member 'S2.P' of type 'S1' causes a cycle in the struct layout
+                //     public S1 P { get; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S2.P", "S1").WithLocation(5, 15)
+                );
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory, CombinatorialData]
