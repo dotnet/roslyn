@@ -13161,5 +13161,58 @@ class C
     IL_0002:  ret
 }");
         }
+
+        [Fact]
+        public void Delete_Method()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+        source: @"
+class C
+{
+    void F() { }
+}",
+        validator: g =>
+        {
+            g.VerifyTypeDefNames("<Module>", "C");
+            g.VerifyMethodDefNames("F", ".ctor");
+            g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+        })
+
+                .AddGeneration(
+        source: @"
+class C
+{
+}",
+        edits: new[] { Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), containingTypeProvider: c => c.GetMember("C")) },
+        validator: g =>
+        {
+            g.VerifyTypeDefNames();
+            g.VerifyMethodDefNames("F"); // Deleting F is an update to F
+            g.VerifyEncLog(new[]
+            {
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+            });
+            g.VerifyEncMap(new[]
+            {
+                Handle(6, TableIndex.TypeRef),
+                Handle(1, TableIndex.MethodDef),
+                Handle(2, TableIndex.AssemblyRef)
+            });
+
+            // TODO: This should be throwing MissingMethodException
+            g.VerifyIL("C.F", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  throw
+}
+");
+        })
+                .Verify();
+        }
     }
 }

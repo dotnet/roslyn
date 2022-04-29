@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Cci;
-using Roslyn.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -30,16 +30,44 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly ISet<ISymbol> _replacedSymbols;
 
+        /// <summary>
+        /// A set of symbols that have been deleted.
+        /// Populated based on semantic edits with <see cref="SemanticEditKind.Replace"/>.
+        /// </summary>
+        private readonly IReadOnlyDictionary<ISymbol, ISet<ISymbol>> _deletedSymbols;
+
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
             _definitionMap = definitionMap;
             _isAddedSymbol = isAddedSymbol;
-            CalculateChanges(edits, out _changes, out _replacedSymbols);
+            CalculateChanges(edits, out _changes, out _replacedSymbols, out _deletedSymbols);
         }
 
         public DefinitionMap DefinitionMap => _definitionMap;
+
+        public IEnumerable<IMethodSymbolInternal> GetDeletedMethods(IDefinition containingType)
+        {
+            var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
+            if (containingSymbol is null)
+            {
+                yield break;
+            }
+
+            if (!_deletedSymbols.TryGetValue(containingSymbol, out var deleted))
+            {
+                yield break;
+            }
+
+            foreach (var symbol in deleted)
+            {
+                if (GetISymbolInternalOrNull(symbol) is IMethodSymbolInternal method)
+                {
+                    yield return method;
+                }
+            }
+        }
 
         public bool IsReplaced(IDefinition definition)
         {
@@ -94,7 +122,13 @@ namespace Microsoft.CodeAnalysis.Emit
         public SymbolChange GetChange(IDefinition def)
         {
             var symbol = def.GetInternalSymbol();
-            if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedSymbol)
+
+            if (symbol is ISynthesizedDeletedMethod)
+            {
+                // Deleting a method is always an update
+                return SymbolChange.Updated;
+            }
+            else if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedSymbol)
             {
                 RoslynDebug.Assert(synthesizedSymbol.Method != null);
 
@@ -267,10 +301,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be 
         /// generated during lowering of the changed user-defined symbols.
         /// </summary>
-        private static void CalculateChanges(IEnumerable<SemanticEdit> edits, out IReadOnlyDictionary<ISymbol, SymbolChange> changes, out ISet<ISymbol> replaceSymbols)
+        private static void CalculateChanges(IEnumerable<SemanticEdit> edits, out IReadOnlyDictionary<ISymbol, SymbolChange> changes, out ISet<ISymbol> replaceSymbols, out IReadOnlyDictionary<ISymbol, ISet<ISymbol>> deletedSymbols)
         {
             var changesBuilder = new Dictionary<ISymbol, SymbolChange>();
             HashSet<ISymbol>? lazyReplaceSymbolsBuilder = null;
+            Dictionary<ISymbol, ISet<ISymbol>>? lazyDeletedSymbolsBuilder = null;
 
             foreach (var edit in edits)
             {
@@ -293,7 +328,23 @@ namespace Microsoft.CodeAnalysis.Emit
                         break;
 
                     case SemanticEditKind.Delete:
-                        // No work to do.
+                        // We allow method deletions only at the moment
+                        if (edit.OldSymbol is IMethodSymbol && edit.NewContainingSymbol is not null)
+                        {
+                            Debug.Assert(edit.OldSymbol != null);
+                            lazyDeletedSymbolsBuilder ??= new();
+                            if (!lazyDeletedSymbolsBuilder.TryGetValue(edit.NewContainingSymbol, out var set))
+                            {
+                                set = new HashSet<ISymbol>();
+                                lazyDeletedSymbolsBuilder.Add(edit.NewContainingSymbol, set);
+                            }
+                            set.Add(edit.OldSymbol);
+                            // If a type has a single change that is a deletion, then nothing will be emitted
+                            // for it, so we need to make sure we track the containing type of the delection
+                            // from the new compilation, as containing changes.
+                            changesBuilder.Add(edit.NewContainingSymbol, SymbolChange.ContainsChanges);
+                            AddContainingTypesAndNamespaces(changesBuilder, edit.NewContainingSymbol);
+                        }
                         continue;
 
                     default:
@@ -326,6 +377,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             changes = changesBuilder;
             replaceSymbols = lazyReplaceSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbol>();
+            deletedSymbols = lazyDeletedSymbolsBuilder ?? SpecializedCollections.EmptyReadOnlyDictionary<ISymbol, ISet<ISymbol>>();
         }
 
         private static void AddContainingTypesAndNamespaces(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)

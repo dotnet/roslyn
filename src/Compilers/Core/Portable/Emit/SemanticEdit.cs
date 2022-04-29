@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public ISymbol? NewSymbol { get; }
 
         /// <summary>
+        /// The symbol that matches the containing symbol of OldSymbol, but from
+        /// the later compilation. Used to turn deletes into updates.
+        /// </summary>
+        public ISymbol? NewContainingSymbol { get; }
+
+        /// <summary>
         /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
         /// or null if <see cref="PreserveLocalVariables"/> is false and the map is not needed or 
         /// the source of the current method is the same as the source of the previous method.
@@ -72,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.
         /// </exception>
-        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false)
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, ISymbol? newContainingType = null)
         {
             if (oldSymbol == null && kind is not (SemanticEditKind.Insert or SemanticEditKind.Replace))
             {
@@ -92,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Kind = kind;
             OldSymbol = oldSymbol;
             NewSymbol = newSymbol;
+            NewContainingSymbol = newContainingType;
             PreserveLocalVariables = preserveLocalVariables;
             SyntaxMap = syntaxMap;
         }

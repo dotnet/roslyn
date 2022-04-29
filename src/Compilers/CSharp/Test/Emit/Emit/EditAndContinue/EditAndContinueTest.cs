@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
 
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, baseline, validator));
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, baseline, validator));
 
             return this;
         }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var md = diff.GetMetadata();
             _disposables.Add(md);
 
-            _generations.Add(new GenerationInfo(compilation, md.Reader, diff.NextGeneration, validator));
+            _generations.Add(new GenerationInfo(compilation, md.Reader, diff, diff.NextGeneration, validator));
 
             return this;
         }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation.MetadataReader, readers);
+                var verifier = new GenerationVerifier(index, generation, readers);
                 generation.Verifier(verifier);
 
                 index++;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(SemanticEditDescription[] edits, Compilation oldCompilation, Compilation newCompilation)
         {
-            return ImmutableArray.CreateRange(edits.Select(e => new SemanticEdit(e.Kind, e.SymbolProvider(oldCompilation), e.SymbolProvider(newCompilation))));
+            return ImmutableArray.CreateRange(edits.Select(e => new SemanticEdit(e.Kind, e.SymbolProvider(oldCompilation), e.SymbolProvider(newCompilation), newContainingType: e.ContainingTypeProvider?.Invoke(newCompilation))));
         }
 
         public void Dispose()
