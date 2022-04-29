@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
                 (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
             return new InheritanceMarginItem(
-                serializableItem.LineNumber, topLevelDisplayText: null, serializableItem.DisplayTexts, serializableItem.Glyph, isOrdered: false, targetItems);
+                serializableItem.LineNumber, serializableItem.TopLevelDisplayText, serializableItem.DisplayTexts, serializableItem.Glyph, serializableItem.IsOrdered, targetItems);
         }
     }
 }
