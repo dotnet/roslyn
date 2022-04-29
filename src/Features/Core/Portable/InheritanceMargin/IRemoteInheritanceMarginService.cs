@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal interface IRemoteInheritanceMarginService
     {
-        ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+        ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             DocumentId? documentIdForGlobalImports,

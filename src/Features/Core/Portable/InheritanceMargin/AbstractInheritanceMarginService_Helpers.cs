@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        public async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
+        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemAsync(
             Project project,
             Document? documentForGlobalImports,
             TextSpan spanToSearch,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // when a set of symbols is passed to remote process, those without inheritance targets would not be returned.
                 // To match the returned inheritance targets to the line number, we need set an 'Id' when calling the remote process,
                 // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
-                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<SerializableInheritanceMarginItem>>(
+                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) =>
                         service.GetInheritanceMarginItemsAsync(
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<SerializableInheritanceMarginItem>.Empty;
+                    return ImmutableArray<InheritanceMarginItem>.Empty;
                 }
 
                 return result.Value;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemInProcessAsync(
+        private async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemInProcessAsync(
             Project project,
             Document? documentForGlobalImports,
             TextSpan spanToSearch,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var solution = project.Solution;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<SerializableInheritanceMarginItem>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
 
             if (documentForGlobalImports != null)
             {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         private async Task AddInheritedGlobalImportsAsync(
             Document document,
             TextSpan spanToSearch,
-            ArrayBuilder<SerializableInheritanceMarginItem> items,
+            ArrayBuilder<InheritanceMarginItem> items,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -178,17 +178,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var groupSyntaxTree = group.Key;
                 if (groupSyntaxTree is null)
                 {
-                    using var _ = ArrayBuilder<SerializableInheritanceTargetItem>.GetInstance(out var targetItems);
+                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
 
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.CreateNonNavigableItem(ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty);
-                        targetItems.Add(new SerializableInheritanceTargetItem(
-                            InheritanceRelationship.InheritedImport, SerializableDefinitionItem.Dehydrate(id: 0, item), Glyph.None, languageGlyph,
+                        targetItems.Add(new InheritanceTargetItem(
+                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
                     }
 
-                    items.Add(new SerializableInheritanceMarginItem(
+                    items.Add(new InheritanceMarginItem(
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
                         Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
@@ -198,15 +198,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     if (destinationDocument is null)
                         continue;
 
-                    using var _ = ArrayBuilder<SerializableInheritanceTargetItem>.GetInstance(out var targetItems);
+                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
 
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.Create(
                             ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
                             new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
-                        targetItems.Add(new SerializableInheritanceTargetItem(
-                            InheritanceRelationship.InheritedImport, SerializableDefinitionItem.Dehydrate(id: 0, item), Glyph.None, languageGlyph,
+                        targetItems.Add(new InheritanceTargetItem(
+                            InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
                     }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var fileName = filePath == null ? null : IOUtilities.PerformIO(() => Path.GetFileName(filePath)) ?? filePath;
                     var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
 
-                    items.Add(new SerializableInheritanceMarginItem(
+                    items.Add(new InheritanceMarginItem(
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
                 }
             }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
-            ArrayBuilder<SerializableInheritanceMarginItem> builder,
+            ArrayBuilder<InheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
             // Get all base types.
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
-            ArrayBuilder<SerializableInheritanceMarginItem> builder,
+            ArrayBuilder<InheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
             if (memberSymbol.ContainingSymbol.IsInterfaceType())
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForInterfaceAsync(
+        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForInterfaceAsync(
             Solution solution,
             INamedTypeSymbol interfaceSymbol,
             int lineNumber,
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
-            return new SerializableInheritanceMarginItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
-        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForInterfaceMemberAsync(
+        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForInterfaceMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.ImplementingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            return new SerializableInheritanceMarginItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 implementedMemberItems);
         }
 
-        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceItemForClassAndStructureAsync(
+        private static async ValueTask<InheritanceMarginItem> CreateInheritanceItemForClassAndStructureAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
-            return new SerializableInheritanceMarginItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
-        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForClassOrStructMemberAsync(
+        private static async ValueTask<InheritanceMarginItem> CreateInheritanceMemberItemForClassOrStructMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     InheritanceRelationship.OverridingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            return new SerializableInheritanceMarginItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
         }
 
-        private static async ValueTask<SerializableInheritanceTargetItem> CreateInheritanceItemAsync(
+        private static async ValueTask<InheritanceTargetItem> CreateInheritanceItemAsync(
             Solution solution,
             ISymbol targetSymbol,
             InheritanceRelationship inheritanceRelationship,
@@ -513,10 +513,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 _ => throw ExceptionUtilities.UnexpectedValue(targetSymbol.Language),
             };
 
-            return new SerializableInheritanceTargetItem(
+            return new InheritanceTargetItem(
                 inheritanceRelationship,
-                // Id is used by FAR service for caching, it is not used in inheritance margin
-                SerializableDefinitionItem.Dehydrate(id: 0, definition),
+                definition.Detach(),
                 targetSymbol.GetGlyph(),
                 languageGlyph,
                 displayName,

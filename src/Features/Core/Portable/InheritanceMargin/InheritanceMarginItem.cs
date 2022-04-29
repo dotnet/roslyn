@@ -4,42 +4,50 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
+    [DataContract]
     internal readonly struct InheritanceMarginItem
     {
         /// <summary>
         /// Line number used to show the margin for the member.
         /// </summary>
+        [DataMember(Order = 0)]
         public readonly int LineNumber;
 
         /// <summary>
         /// Special display text to show when showing the 'hover' tip for a margin item.  Used to override the default
         /// text we show that says "'X' is inherited".  Used currently for showing information about top-level-imports.
         /// </summary>
+        [DataMember(Order = 1)]
         public readonly string? TopLevelDisplayText;
 
         /// <summary>
         /// Display texts for this member.
         /// </summary>
+        [DataMember(Order = 2)]
         public readonly ImmutableArray<TaggedText> DisplayTexts;
 
         /// <summary>
         /// Member's glyph.
         /// </summary>
+        [DataMember(Order = 3)]
         public readonly Glyph Glyph;
 
         /// <summary>
         /// Whether or not TargetItems is already ordered.
         /// </summary>
+        [DataMember(Order = 4)]
         public readonly bool IsOrdered;
 
         /// <summary>
         /// An array of the implementing/implemented/overriding/overridden targets for this member.
         /// </summary>
+        [DataMember(Order = 5)]
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
         public InheritanceMarginItem(
@@ -56,17 +64,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Glyph = glyph;
             IsOrdered = isOrdered;
             TargetItems = isOrdered ? targetItems : targetItems.OrderBy(item => item.DisplayName).ToImmutableArray();
-        }
-
-        public static async ValueTask<InheritanceMarginItem> ConvertAsync(
-            Solution solution,
-            SerializableInheritanceMarginItem serializableItem,
-            CancellationToken cancellationToken)
-        {
-            var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
-                (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(
-                serializableItem.LineNumber, serializableItem.TopLevelDisplayText, serializableItem.DisplayTexts, serializableItem.Glyph, serializableItem.IsOrdered, targetItems);
         }
     }
 }

@@ -323,6 +323,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public DetachedDefinitionItem Detach()
-            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

@@ -25,22 +25,22 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             DocumentId? documentIdForGlobalImports,
             TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
-            => RunServiceAsync(solutionChecksum, async solution =>
+        {
+            return RunServiceAsync(solutionChecksum, solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
                 var service = (AbstractInheritanceMarginService)project.GetRequiredLanguageService<IInheritanceMarginService>();
                 var documentForGlobaImports = solution.GetDocument(documentIdForGlobalImports);
 
-                return await service
-                    .GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken)
-                    .ConfigureAwait(false);
+                return service.GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken);
             }, cancellationToken);
+        }
     }
 }

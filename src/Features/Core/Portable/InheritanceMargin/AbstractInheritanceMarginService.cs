@@ -53,16 +53,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (!includeGlobalImports && symbolKeyAndLineNumbers.IsEmpty)
                 return ImmutableArray<InheritanceMarginItem>.Empty;
 
-            var solution = project.Solution;
-            var serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
+            return await GetInheritanceMemberItemAsync(
                 project,
                 documentForGlobalImports: includeGlobalImports ? document : null,
                 spanToSearch,
                 symbolKeyAndLineNumbers,
                 cancellationToken).ConfigureAwait(false);
-
-            return await serializedInheritanceMarginItems.SelectAsArrayAsync(
-                item => InheritanceMarginItem.ConvertAsync(solution, item, cancellationToken)).ConfigureAwait(false);
         }
 
         private async ValueTask<(Project remapped, SymbolKeyAndLineNumberArray symbolKeyAndLineNumbers)> GetMemberSymbolKeysAsync(
