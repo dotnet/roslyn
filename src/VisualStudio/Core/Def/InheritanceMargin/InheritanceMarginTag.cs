@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             LineNumber = lineNumber;
             MembersOnLine = membersOnLine;
 
-            // The common case, one line has one member, avoid to use select & aggregate
+            // The common case is that one line has one member.
             using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var allItems);
             foreach (var marginItem in membersOnLine)
                 allItems.AddRange(marginItem.TargetItems);
