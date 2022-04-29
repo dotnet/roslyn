@@ -10050,7 +10050,7 @@ $@"class MyInt
     public static implicit operator MyInt({type} i) => throw null;
 }}";
                 string sourceB =
-    @"class Program
+@"class Program
 {
     static void F(MyInt x, MyInt y)
     {
@@ -14427,7 +14427,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "System.UIntPtr", destType: "nint", noConversion: true);
 
             // nint to type
-            //verify(sourceType: "nint", destType: "object", isExplicit: true); // user-defined conversions to or from a base type are not allowed
             verify(sourceType: "nint", destType: "string", noConversion: true);
             verify(sourceType: "nint", destType: "void*", noConversion: true);
             verify(sourceType: "nint", destType: "delegate*<void>", noConversion: true);
@@ -14475,7 +14474,6 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "System.UIntPtr", destType: "nuint");
 
             // nuint to type
-            //verify(sourceType: "nuint", destType: "object", isExplicit: true); // user-defined conversions to or from a base type are not allowed
             verify(sourceType: "nuint", destType: "string", noConversion: true);
             verify(sourceType: "nuint", destType: "void*", noConversion: true);
             verify(sourceType: "nuint", destType: "delegate*<void>", noConversion: true);
@@ -14497,6 +14495,101 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verify(sourceType: "nuint", destType: "nuint");
             verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
             verify(sourceType: "nuint", destType: "System.UIntPtr");
+
+
+            // type to System.IntPtr
+            verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
+            verify(sourceType: "string", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "void*", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "E", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "bool", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "sbyte", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "byte", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "short", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "ushort", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "int", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "uint", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "long", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "ulong", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "char", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "float", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "double", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "decimal", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "nint", destType: "System.IntPtr");
+            verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "System.IntPtr");
+            verify(sourceType: "System.UIntPtr", destType: "System.IntPtr", noConversion: true);
+
+            // System.IntPtr to type
+            verify(sourceType: "System.IntPtr", destType: "string", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "void*", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "E", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "bool", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "sbyte", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "byte", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "short", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "ushort", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "int", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "uint", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "long", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "ulong", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "char", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "float", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "double", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "decimal", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "nint");
+            verify(sourceType: "System.IntPtr", destType: "nuint", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "System.IntPtr");
+            verify(sourceType: "System.IntPtr", destType: "System.UIntPtr", noConversion: true);
+
+            // type to System.UIntPtr
+            verify(sourceType: "object", destType: "System.UIntPtr", isExplicit: true);
+            verify(sourceType: "string", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "void*", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "E", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "bool", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "sbyte", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "byte", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "short", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "ushort", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "int", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "uint", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "long", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "ulong", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "char", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "float", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "double", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "decimal", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "nint", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "nuint", destType: "System.UIntPtr");
+            verify(sourceType: "System.IntPtr", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "System.UIntPtr");
+
+            // System.UIntPtr to type
+            verify(sourceType: "System.UIntPtr", destType: "string", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "void*", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "E", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "bool", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "sbyte", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "byte", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "short", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "ushort", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "int", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "uint", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "long", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "ulong", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "char", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "float", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "double", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "decimal", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "nint", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "nuint");
+            verify(sourceType: "System.UIntPtr", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "System.UIntPtr");
 
             void verify(string sourceType, string destType, bool noConversion = false, bool isExplicit = false)
             {

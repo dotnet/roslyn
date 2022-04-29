@@ -1948,7 +1948,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-
             if (!IsNumericType(source) || !IsNumericType(destination))
             {
                 return false;
