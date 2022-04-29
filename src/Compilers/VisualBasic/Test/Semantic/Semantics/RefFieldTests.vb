@@ -46,7 +46,7 @@ BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not su
 
             ' PROTOTYPE: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             Dim field = compB.GetMember(Of FieldSymbol)("S.F")
-            VerifyFieldSymbol(field, "S(Of T).F As T", RefKind.None, {})
+            VerifyFieldSymbol(field, "S(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
             Assert.Null(field.GetUseSiteErrorInfo())
         End Sub
 
@@ -79,7 +79,7 @@ End Module"
             ' PROTOTYPE: RefKind should be RefKind.Ref and RefCustomModifiers should contain two items,
             ' or a use-site diagnostic should be generated, or both.
             Dim field = comp.GetMember(Of FieldSymbol)("A.F")
-            VerifyFieldSymbol(field, "A(Of T).F As T", RefKind.None, {})
+            VerifyFieldSymbol(field, "A(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
             Assert.Null(field.GetUseSiteErrorInfo())
         End Sub
 
