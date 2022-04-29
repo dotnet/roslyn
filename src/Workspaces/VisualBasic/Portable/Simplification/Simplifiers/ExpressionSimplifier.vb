@@ -27,6 +27,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                               ByRef replacementNode As ExpressionSyntax,
                                               ByRef issueSpan As TextSpan,
                                               cancellationToken As CancellationToken) As Boolean
+
+            Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
+            If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then
+                If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
+                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
+                    Return False
+                End If
+
+                replacementNode = memberAccessExpression.GetNameWithTriviaMoved()
+                issueSpan = memberAccessExpression.Expression.Span
+                Return True
+            End If
+
             If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, options, cancellationToken) Then
                 Return True
             End If
@@ -47,16 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
             If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-                Return TryReduce(memberAccess, semanticModel,
-                                              replacementNode,
-                                              issueSpan,
-                                              options,
-                                              cancellationToken)
+                Return TryReduce(
+                    memberAccess, semanticModel, replacementNode, issueSpan, options, cancellationToken)
             ElseIf TypeOf expression Is NameSyntax Then
                 Dim name = DirectCast(expression, NameSyntax)
                 Return NameSimplifier.Instance.TrySimplify(
-                    name, semanticModel, options,
-                    replacementNode, issueSpan, cancellationToken)
+                    name, semanticModel, options, replacementNode, issueSpan, cancellationToken)
             End If
 
             Return False
@@ -92,11 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             ' in a manner that might end up making things worse Or confusing the user.
             Dim symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess)
             If symbol Is Nothing Then
-                Return False
-            End If
-
-            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
-               Not SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(options, symbol) Then
                 Return False
             End If
 
@@ -294,14 +298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 semanticModel As SemanticModel,
                 symbol As ISymbol,
                 cancellationToken As CancellationToken) As Boolean
-            If Not IsMeOrNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
+            If Not SimplificationHelpers.IsNamespaceOrTypeOrThisParameter(memberAccess.Expression, semanticModel) Then
                 Return False
-            End If
-
-            ' A static reference off of 'me' can always be replaced with a direct reference to that static symbol
-            ' without changing semantics.
-            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso symbol.IsStatic Then
-                Return True
             End If
 
             ' See if we can simplify a member access expression of the form E.M or E.M() to M or M()
@@ -322,25 +320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             End If
 
             Return True
-        End Function
-
-        Private Shared Function IsMeOrNamedTypeOrNamespace(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            If expression.Kind = SyntaxKind.MeExpression Then
-                Return True
-            End If
-
-            Dim expressionInfo = semanticModel.GetSymbolInfo(expression)
-            If SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol) Then
-                If TypeOf expressionInfo.Symbol Is INamespaceOrTypeSymbol Then
-                    Return True
-                End If
-
-                If expressionInfo.Symbol.IsThisParameter() Then
-                    Return True
-                End If
-            End If
-
-            Return False
         End Function
     End Class
 End Namespace

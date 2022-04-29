@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -163,16 +164,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
-            {
-                EnqueueWork(initialTags: false);
-            }
+                => EnqueueWork(highPriority: false);
 
-            private void EnqueueWork(bool initialTags)
-            {
-                _eventChangeQueue.AddWork(initialTags);
-            }
+            private void EnqueueWork(bool highPriority)
+                => _eventChangeQueue.AddWork(highPriority);
 
-            private async ValueTask ProcessEventChangeAsync(ImmutableArray<bool> changes, CancellationToken cancellationToken)
+            private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -181,32 +178,30 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                // If any of the requests was for the initial tags, then compute at that speed (normally faster than
-                // normal tags).
-                var initialTags = changes.Any(b => b);
-                await RecomputeTagsAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                // If any of the requests was high priority, then compute at that speed.
+                var highPriority = changes.Contains(true);
+                await RecomputeTagsAsync(highPriority, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
             /// Called on the foreground thread.  Passed a boolean to say if we're computing the
             /// initial set of tags or not.  If we're computing the initial set of tags, we lower
             /// all our delays so that we can get results to the screen as quickly as possible.
-            /// 
-            /// This gives a good experience when a document is opened as the document appears
-            /// complete almost immediately.  Once open though, our normal delays come into play
-            /// so as to not cause a flashy experience.
+            /// <para/> This gives a good experience when a document is opened as the document appears complete almost
+            /// immediately.  Once open though, our normal delays come into play so as to not cause a flashy experience.
             /// </summary>
-            private async Task RecomputeTagsAsync(bool initialTags, CancellationToken cancellationToken)
+            /// <param name="highPriority">
+            /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
+            /// </param>
+            private async Task RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
                 // we're on the UI thread that we stay on it.
                 //
-                // Don't do this on the initial-tags request.  First, we want files to appear richly tagged as soon as
-                // possible.  Second, the outlining tagger explicitly calls into this, but synchronously blocks to get
-                // outlining spans (see TryGetTagIntervalTreeForBuffer).  We don't want to insert any artificial delays
-                // into that blocking call at all.
-                if (!initialTags)
+                // Don't do this for explicit high priority requests as the caller wants the UI updated as quickly as
+                // possible.
+                if (!highPriority)
                 {
                     await _visibilityTracker.DelayWhileNonVisibleAsync(
                         _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
@@ -258,12 +253,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     this.CachedTagTrees = newTagTrees;
                     this.State = context.State;
 
-                    OnTagsChangedForBuffer(bufferToChanges, initialTags);
+                    OnTagsChangedForBuffer(bufferToChanges, highPriority);
 
                     // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
                     // machine resources that the user won't even notice.
-                    if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
-                        Pause();
+                    PauseIfNotVisible();
                 }
             }
 
@@ -533,17 +527,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (_disposalTokenSource.Token.IsCancellationRequested)
                     return null;
 
-                // If this is the first time we're being asked for tags, and we're a tagger that
-                // requires the initial tags be available synchronously on this call, and the 
-                // computation of tags hasn't completed yet, then force the tags to be computed
-                // now on this thread.  The singular use case for this is Outlining which needs
-                // those tags synchronously computed for things like Metadata-as-Source collapsing.
+                // If this is the first time we're being asked for tags, and we're a tagger that requires the initial
+                // tags be available synchronously on this call, and the computation of tags hasn't completed yet, then
+                // force the tags to be computed now on this thread.  The singular use case for this is Outlining which
+                // needs those tags synchronously computed for things like Metadata-as-Source collapsing.
                 if (_firstTagsRequest &&
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
+                    // Compute this as a high priority work item to have the lease amount of blocking as possible.
                     _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsAsync(highPriority: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;
@@ -556,6 +550,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                // Some client is asking for tags.  Possible that we're becoming visible.  Preemptively start tagging
+                // again so we don't have to wait for the visibility notification to come in.
+                ResumeIfVisible();
+
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 

@@ -1432,6 +1432,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _namespaces = namespaces
         End Sub
 
+        Public Function GetImportChainData() As ImmutableArray(Of ImportedXmlNamespace)
+            Return _namespaces.SelectAsArray(Function(kvp) New ImportedXmlNamespace(kvp.Value.XmlNamespace, kvp.Value.SyntaxReference))
+        End Function
+
         Friend Overrides ReadOnly Property HasImportedXmlNamespaces As Boolean
             Get
                 Return True

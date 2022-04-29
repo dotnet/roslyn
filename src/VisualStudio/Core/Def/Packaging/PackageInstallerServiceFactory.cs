@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -455,7 +456,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private ValueTask ProcessWorkQueueAsync(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -470,7 +471,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private async ValueTask ProcessWorkQueueWorkerAsync(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -519,7 +520,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private void AddProjectsToProcess(
-            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
+            ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, Solution solution, HashSet<ProjectId> projectsToProcess)
         {
             ThisCanBeCalledOnAnyThread();
 

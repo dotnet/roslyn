@@ -66,13 +66,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         TaskScheduler.Default);
                 }
 
-                public override Task AsyncProcessorTask
+                protected override void OnPaused()
                 {
-                    get
-                    {
-                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
-                    }
                 }
+
+                public override Task AsyncProcessorTask
+                    => Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _gate.WaitAsync(cancellationToken);
@@ -367,6 +366,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
