@@ -3484,13 +3484,13 @@ class C {
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
                 // (1,9): error CS1003: Syntax error, ']' expected
                 // [ => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 9),
                 // (1,9): error CS1001: Identifier expected
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1003: Syntax error, '=>' expected
                 // [ => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>", "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(1, 9),
                 // (1,9): error CS1733: Expected expression
                 // [ => { }
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
@@ -3535,7 +3535,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1003: Syntax error, '=>' expected
                 // ( => { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>", "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(1, 9),
                 // (1,9): error CS1733: Expected expression
                 // ( => { }
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
