@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
     /// <summary>
     /// Fix all occurrences logging.
@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Fix all context logging.
         private const string CodeFixProvider = nameof(CodeFixProvider);
+        private const string CodeRefactoringProvider = nameof(CodeRefactoringProvider);
         private const string CodeActionEquivalenceKey = nameof(CodeActionEquivalenceKey);
         public const string FixAllScope = nameof(FixAllScope);
         private const string LanguageName = nameof(LanguageName);
@@ -38,21 +39,39 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private const string TotalDiagnosticsToFix = nameof(TotalDiagnosticsToFix);
         private const string TotalFixesToMerge = nameof(TotalFixesToMerge);
 
-        public static void LogState(FixAllState fixAllState, bool isInternalCodeFixProvider)
+        public static void LogState(IFixAllState fixAllState, bool isInternalProvider)
         {
-            Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesContext, KeyValueLogMessage.Create(m =>
+            FunctionId functionId;
+            string providerKey;
+            switch (fixAllState.FixAllKind)
+            {
+                case FixAllKind.CodeFix:
+                    functionId = FunctionId.CodeFixes_FixAllOccurrencesContext;
+                    providerKey = CodeFixProvider;
+                    break;
+
+                case FixAllKind.Refactoring:
+                    functionId = FunctionId.Refactoring_FixAllOccurrencesContext;
+                    providerKey = CodeRefactoringProvider;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(fixAllState.FixAllKind);
+            }
+
+            Logger.Log(functionId, KeyValueLogMessage.Create(m =>
             {
                 m[CorrelationId] = fixAllState.CorrelationId;
 
-                if (isInternalCodeFixProvider)
+                if (isInternalProvider)
                 {
-                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName!;
+                    m[providerKey] = fixAllState.Provider.GetType().FullName!;
                     m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey;
                     m[LanguageName] = fixAllState.Project.Language;
                 }
                 else
                 {
-                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName!.GetHashCode().ToString();
+                    m[providerKey] = fixAllState.Provider.GetType().FullName!.GetHashCode().ToString();
                     m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey?.GetHashCode().ToString();
                     m[LanguageName] = fixAllState.Project.Language.GetHashCode().ToString();
                 }
@@ -71,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }));
         }
 
-        public static void LogComputationResult(int correlationId, bool completed, bool timedOut = false)
+        public static void LogComputationResult(FixAllKind fixAllKind, int correlationId, bool completed, bool timedOut = false)
         {
             Contract.ThrowIfTrue(completed && timedOut);
 
@@ -89,14 +108,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 value = Cancelled;
             }
 
-            Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation, KeyValueLogMessage.Create(m =>
+            var functionId = fixAllKind switch
+            {
+                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesComputation,
+                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesComputation,
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
+            };
+
+            Logger.Log(functionId, KeyValueLogMessage.Create(m =>
             {
                 m[CorrelationId] = correlationId;
                 m[Result] = value;
             }));
         }
 
-        public static void LogPreviewChangesResult(int? correlationId, bool applied, bool allChangesApplied = true)
+        public static void LogPreviewChangesResult(FixAllKind fixAllKind, int? correlationId, bool applied, bool allChangesApplied = true)
         {
             string value;
             if (applied)
@@ -108,7 +134,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 value = Cancelled;
             }
 
-            Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, KeyValueLogMessage.Create(m =>
+            var functionId = fixAllKind switch
+            {
+                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
+                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
+            };
+
+            Logger.Log(functionId, KeyValueLogMessage.Create(m =>
             {
                 // we might not have this info for suppression
                 if (correlationId.HasValue)
