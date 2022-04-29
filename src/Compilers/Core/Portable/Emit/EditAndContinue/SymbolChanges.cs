@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private SymbolChange GetChange(ISymbol symbol)
         {
             // In CalculateChanges we always store definitions for partial methods, so we have to
-            // make sure we do the same thing here when we try to retreive a change, as the compiler
+            // make sure we do the same thing here when we try to retrieve a change, as the compiler
             // associates synthesized methods with the implementation of the method that caused it
             // to be generated.
             if (symbol is IMethodSymbol method)
