@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     [UseExportProvider]
     public class InheritanceMarginTests
     {
-        private const string SearchAreaTag = "SeachTag";
+        private const string SearchAreaTag = nameof(SearchAreaTag);
 
         #region Helpers
 
