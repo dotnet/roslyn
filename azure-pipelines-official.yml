@@ -79,7 +79,7 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2017
+    demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
   jobs:
   - job: OfficialBuild
