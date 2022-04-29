@@ -111,10 +111,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 foreach (var target in targets)
                     nameToTargets.Add(target.DisplayName, target);
 
-                return targets.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "")
-                              .GroupBy(t => t.RelationToMember)
-                              .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
-                              .ToImmutableArray();
+                var orderedTargets = item.IsOrdered
+                    ? item.TargetItems
+                    : targets.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
+
+                return orderedTargets
+                    .GroupBy(t => t.RelationToMember)
+                    .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
+                    .ToImmutableArray();
             }
             finally
             {
