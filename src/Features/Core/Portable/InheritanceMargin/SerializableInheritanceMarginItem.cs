@@ -14,19 +14,33 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly int LineNumber;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<TaggedText> DisplayTexts;
+        public readonly string? TopLevelDisplayText;
 
         [DataMember(Order = 2)]
-        public readonly Glyph Glyph;
+        public readonly ImmutableArray<TaggedText> DisplayTexts;
 
         [DataMember(Order = 3)]
+        public readonly Glyph Glyph;
+
+        [DataMember(Order = 4)]
+        public readonly bool IsOrdered;
+
+        [DataMember(Order = 5)]
         public readonly ImmutableArray<SerializableInheritanceTargetItem> TargetItems;
 
-        public SerializableInheritanceMarginItem(int lineNumber, ImmutableArray<TaggedText> displayTexts, Glyph glyph, ImmutableArray<SerializableInheritanceTargetItem> targetItems)
+        public SerializableInheritanceMarginItem(
+            int lineNumber,
+            string? topLevelDisplayText,
+            ImmutableArray<TaggedText> displayTexts,
+            Glyph glyph,
+            bool isOrdered,
+            ImmutableArray<SerializableInheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
+            TopLevelDisplayText = topLevelDisplayText;
             DisplayTexts = displayTexts;
             Glyph = glyph;
+            IsOrdered = isOrdered;
             TargetItems = targetItems;
         }
     }

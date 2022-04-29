@@ -2,44 +2,50 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal static class InheritanceMarginServiceHelper
+    internal abstract partial class AbstractInheritanceMarginService
     {
         private static readonly SymbolDisplayFormat s_displayFormat = new(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions:
+                SymbolDisplayMemberOptions.IncludeContainingType |
+                SymbolDisplayMemberOptions.IncludeExplicitInterface,
+            propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        public static async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
-            Solution solution,
-            ProjectId projectId,
+        public async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
+            Project project,
+            Document? documentForGlobalImports,
+            TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
         {
+            var solution = project.Solution;
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
@@ -49,8 +55,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<SerializableInheritanceMarginItem>>(
                     solution,
-                    (remoteInheritanceMarginService, solutionInfo, cancellationToken) =>
-                        remoteInheritanceMarginService.GetInheritanceMarginItemsAsync(solutionInfo, projectId, symbolKeyAndLineNumbers, cancellationToken),
+                    (service, solutionInfo, cancellationToken) =>
+                        service.GetInheritanceMarginItemsAsync(
+                            solutionInfo, project.Id, documentForGlobalImports?.Id, spanToSearch, symbolKeyAndLineNumbers, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -62,19 +69,28 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
             else
             {
-                return await GetInheritanceMemberItemInProcAsync(solution, projectId, symbolKeyAndLineNumbers, cancellationToken).ConfigureAwait(false);
+                return await GetInheritanceMemberItemInProcessAsync(
+                    project, documentForGlobalImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemInProcAsync(
-            Solution solution,
-            ProjectId projectId,
+        private async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemInProcessAsync(
+            Project project,
+            Document? documentForGlobalImports,
+            TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
         {
-            var project = solution.GetRequiredProject(projectId);
+            var solution = project.Solution;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<SerializableInheritanceMarginItem>.GetInstance(out var builder);
+
+            if (documentForGlobalImports != null)
+            {
+                await AddInheritedGlobalImportsAsync(
+                    documentForGlobalImports, spanToSearch, builder, cancellationToken).ConfigureAwait(false);
+            }
+
             foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
             {
                 var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
@@ -91,6 +107,117 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             return builder.ToImmutable();
+        }
+
+        private async Task AddInheritedGlobalImportsAsync(
+            Document document,
+            TextSpan spanToSearch,
+            ArrayBuilder<SerializableInheritanceMarginItem> items,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var imports = syntaxFacts.GetImportsOfCompilationUnit(root);
+
+            // Place the imports item on the start of the first import in the file.  Or, if there is no import, then on
+            // the first line.
+            var spanStart = imports.Count > 0 ? imports[0].SpanStart : 0;
+
+            // if that location doesn't intersect with the lines of interest, immediately bail out.
+            if (!spanToSearch.IntersectsWith(spanStart))
+                return;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var scopes = semanticModel.GetImportScopes(root.FullSpan.End, cancellationToken);
+
+            // If we have global imports they would only be in the last scope in the scopes array.  All other scopes
+            // correspond to inner scopes for either the compilation unit or namespace.
+            var lastScope = scopes.LastOrDefault();
+            if (lastScope == null)
+                return;
+
+            // Pull in any project level imports, or imports from other files (e.g. global usings).
+            var syntaxTree = semanticModel.SyntaxTree;
+            var nonLocalImports = lastScope.Imports
+                .WhereAsArray(i => i.DeclaringSyntaxReference?.SyntaxTree != syntaxTree)
+                .Sort((i1, i2) =>
+                {
+                    return (i1.DeclaringSyntaxReference, i2.DeclaringSyntaxReference) switch
+                    {
+                        // Both are project level imports.  Sort by name of symbol imported.
+                        (null, null) => i1.NamespaceOrType.ToDisplayString().CompareTo(i2.NamespaceOrType.ToDisplayString()),
+                        // project level imports come first.
+                        (null, not null) => -1,
+                        (not null, null) => 1,
+                        // both are from different files.  Sort by file path first, then location in file if same file path.
+                        ({ SyntaxTree: var syntaxTree1, Span: var span1 }, { SyntaxTree: var syntaxTree2, Span: var span2 })
+                            => syntaxTree1.FilePath != syntaxTree2.FilePath
+                                ? StringComparer.OrdinalIgnoreCase.Compare(syntaxTree1.FilePath, syntaxTree2.FilePath)
+                                : span1.CompareTo(span2),
+                    };
+                });
+
+            if (nonLocalImports.Length == 0)
+                return;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
+
+            var projectState = document.Project.State;
+            var projectName = projectState.NameAndFlavor.name ?? projectState.Name;
+            var languageGlyph = document.Project.Language switch
+            {
+                LanguageNames.CSharp => Glyph.CSharpFile,
+                LanguageNames.VisualBasic => Glyph.BasicFile,
+                _ => throw ExceptionUtilities.UnexpectedValue(document.Project.Language),
+            };
+
+            foreach (var group in nonLocalImports.GroupBy(i => i.DeclaringSyntaxReference?.SyntaxTree))
+            {
+                var groupSyntaxTree = group.Key;
+                if (groupSyntaxTree is null)
+                {
+                    using var _ = ArrayBuilder<SerializableInheritanceTargetItem>.GetInstance(out var targetItems);
+
+                    foreach (var import in group)
+                    {
+                        var item = DefinitionItem.CreateNonNavigableItem(ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty);
+                        targetItems.Add(new SerializableInheritanceTargetItem(
+                            InheritanceRelationship.InheritedImport, SerializableDefinitionItem.Dehydrate(id: 0, item), Glyph.None, languageGlyph,
+                            import.NamespaceOrType.ToDisplayString(), projectName));
+                    }
+
+                    items.Add(new SerializableInheritanceMarginItem(
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
+                        Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
+                }
+                else
+                {
+                    var destinationDocument = document.Project.Solution.GetDocument(groupSyntaxTree);
+                    if (destinationDocument is null)
+                        continue;
+
+                    using var _ = ArrayBuilder<SerializableInheritanceTargetItem>.GetInstance(out var targetItems);
+
+                    foreach (var import in group)
+                    {
+                        var item = DefinitionItem.Create(
+                            ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
+                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
+                        targetItems.Add(new SerializableInheritanceTargetItem(
+                            InheritanceRelationship.InheritedImport, SerializableDefinitionItem.Dehydrate(id: 0, item), Glyph.None, languageGlyph,
+                            import.NamespaceOrType.ToDisplayString(), projectName));
+                    }
+
+                    var filePath = groupSyntaxTree.FilePath;
+                    var fileName = filePath == null ? null : IOUtilities.PerformIO(() => Path.GetFileName(filePath)) ?? filePath;
+                    var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
+
+                    items.Add(new SerializableInheritanceMarginItem(
+                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, isOrdered: true, targetItems.ToImmutable()));
+                }
+            }
         }
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -241,8 +368,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
+                topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
                 interfaceSymbol.GetGlyph(),
+                isOrdered: false,
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
@@ -265,8 +394,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
+                topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
+                isOrdered: false,
                 implementedMemberItems);
         }
 
@@ -302,8 +433,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
+                topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
+                isOrdered: false,
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
@@ -348,8 +481,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
+                topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
+                isOrdered: false,
                 implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
         }
 
