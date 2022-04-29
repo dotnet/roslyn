@@ -130,17 +130,21 @@ namespace Microsoft.CodeAnalysis
             {
                 return;
             }
-            string message = messageProvider.LoadMessage(errorCode, language: null) ?? string.Empty;
-            var matches = Regex.Matches(message, @"\{\d+}");
+            string message = messageProvider.LoadMessage(errorCode, language: null);
+            var matches = Regex.Matches(message, @"\{\d+[}:]");
             int expectedLength = 0;
+            var bits = BitVector.Create(actualLength);
             foreach (object? m in matches)
             {
-                if (m is Match { } match)
+                if (m is Match match)
                 {
-                    expectedLength = Math.Max(int.Parse(match.Value[1..^1]) + 1, expectedLength);
+                    int value = int.Parse(match.Value[1..^1]);
+                    expectedLength = Math.Max(value + 1, expectedLength);
+                    bits[value] = true;
                 }
             }
             Debug.Assert(expectedLength == actualLength);
+            Debug.Assert(bits == BitVector.AllSet(actualLength));
 #endif
         }
 
