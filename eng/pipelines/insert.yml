@@ -12,10 +12,15 @@ parameters:
     type: string
     default: ''
 
-  - name: clientId
+  - name: buildUserName
     type: string
-  - name: clientSecret
+  - name: buildPassword
     type: string
+  - name: componentUserName
+    type: string
+  - name: componentPassword
+    type: string
+  
   - name: publishDataURI
     type: string
   - name: publishDataAccessToken
@@ -148,8 +153,10 @@ steps:
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
-        -clientId "${{ parameters.clientId }}" `
-        -clientSecret "${{ parameters.clientSecret }}" `
+        -userName "${{ parameters.buildUserName }}" `
+        -password "${{ parameters.buildPassword }}" `
+        -componentUserName "${{ parameters.componentUserName }}" `
+        -componentPassword "${{ parameters.componentPassword }}" `
         -componentAzdoUri "$(Template.ComponentAzdoUri)" `
         -componentProjectName "$(Template.ComponentProjectName)" `
         -componentName "Roslyn" `
@@ -171,7 +178,7 @@ steps:
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt" `
+        -writePullRequest "prid.txt"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'

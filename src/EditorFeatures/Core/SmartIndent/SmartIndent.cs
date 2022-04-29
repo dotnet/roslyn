@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService == null)
                     return null;
 
-                var indentationOptions = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 var result = newService.GetIndentation(document, line.LineNumber, indentationOptions, cancellationToken);
                 return result.GetIndentation(_textView, line);
             }

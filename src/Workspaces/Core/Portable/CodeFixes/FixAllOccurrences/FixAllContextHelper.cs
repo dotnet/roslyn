@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     {
                         var diagnosticSpan = fixAllContext.State.DiagnosticSpan;
                         if (diagnosticSpan.HasValue &&
-                            document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
+                            document.GetLanguageService<IFixAllSpanMappingService>() is { } spanMappingService)
                         {
                             var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(document,
                                 diagnosticSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
