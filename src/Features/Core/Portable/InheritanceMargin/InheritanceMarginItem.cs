@@ -69,6 +69,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
 
         public static ImmutableArray<InheritanceTargetItem> Order(ImmutableArray<InheritanceTargetItem> targetItems)
-            => targetItems.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageGlyph.ToString()).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
+            => targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
     }
 }

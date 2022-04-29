@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DisplayName);
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
 
-            if (expectedTarget.LanguageName != null)
-                Assert.Equal(expectedTarget.LanguageName, actualTarget.LanguageGlyph.ToString());
+            if (expectedTarget.LanguageGlyph != null)
+                Assert.Equal(expectedTarget.LanguageGlyph, actualTarget.LanguageGlyph);
 
             if (expectedTarget.ProjectName != null)
                 Assert.Equal(expectedTarget.ProjectName, actualTarget.ProjectName);
@@ -199,20 +199,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
-            public readonly string? LanguageName;
+            public readonly Glyph? LanguageGlyph;
             public readonly string? ProjectName;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship,
-                string? languageName = null,
+                Glyph? languageGlyph = null,
                 string? projectName = null)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
-                LanguageName = languageName;
+                LanguageGlyph = languageGlyph;
                 InMetadata = false;
                 ProjectName = projectName;
             }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
             public readonly bool IsInMetadata;
-            public readonly string? LanguageName;
+            public readonly Glyph? LanguageGlyph;
             public readonly string? ProjectName;
 
             public TestInheritanceTargetItem(
@@ -253,14 +253,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 InheritanceRelationship relationshipToMember,
                 ImmutableArray<DocumentSpan> documentSpans,
                 bool isInMetadata,
-                string? languageName,
+                Glyph? languageGlyph,
                 string? projectName)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
                 IsInMetadata = isInMetadata;
-                LanguageName = languageName;
+                LanguageGlyph = languageGlyph;
                 ProjectName = projectName;
             }
 
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         ImmutableArray<DocumentSpan>.Empty,
                         isInMetadata: true,
-                        targetInfo.LanguageName,
+                        targetInfo.LanguageGlyph,
                         targetInfo.ProjectName);
                 }
                 else
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.Relationship,
                         builder.ToImmutable(),
                         isInMetadata: false,
-                        targetInfo.LanguageName,
+                        targetInfo.LanguageGlyph,
                         targetInfo.ProjectName);
                 }
             }
@@ -2025,13 +2025,13 @@ public partial class {|target3:Bar|}
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly1"),
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.VisualBasic,
+                        languageGlyph: Glyph.BasicFile,
                         projectName: "Assembly2")));
 
             var itemForBarInMarkup2 = new TestInheritanceMemberItem(
@@ -2087,13 +2087,13 @@ public partial class {|target3:Bar|}
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly1"),
                     new TargetInfo(
                         targetSymbolDisplayName: "Bar",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.ImplementingType,
-                        languageName: LanguageNames.CSharp,
+                        languageGlyph: Glyph.CSharpFile,
                         projectName: "Assembly2")));
 
             var itemForBarInMarkup2 = new TestInheritanceMemberItem(
