@@ -2,13 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -20,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamerService
     {
+        // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
+        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
+        {
+            ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
+        }
+
         /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
         /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
@@ -27,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
             SymbolRenameOptions options,
@@ -35,16 +47,31 @@ namespace Microsoft.CodeAnalysis.Rename
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
             Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
             Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken);
+    }
+
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteRenamerService)), Shared]
+    internal sealed class RemoteRenamerServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteRenamerService.ICallback
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RemoteRenamerServiceCallbackDispatcher()
+        {
+        }
+
+        public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
     }
 
     [DataContract]
@@ -180,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 Options,
                 SerializableSearchResult.Dehydrate(solution, _result, cancellationToken));
 
-        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
                 return null;
@@ -198,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 symbol,
                 solution,
                 locations.Options,
+                fallbackOptions,
                 await locations.Result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
     }

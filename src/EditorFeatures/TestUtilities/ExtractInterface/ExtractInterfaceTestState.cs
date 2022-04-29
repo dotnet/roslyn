@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 typeDiscoveryRule,
+                CodeCleanupOptions.GetDefaultAsync,
                 CancellationToken.None);
         }
 
@@ -89,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
+                CodeCleanupOptions.GetDefaultAsync,
                 (errorMessage, severity) =>
                 {
                     this.ErrorMessage = errorMessage;
@@ -102,7 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
                 ExtractFromDocument,
                 new TextSpan(_testDocument.CursorPosition.Value, 1),
+                CodeCleanupOptions.GetDefaultAsync,
                 CancellationToken.None);
+
             var action = actions.Single();
 
             var options = (ExtractInterfaceOptionsResult)action.GetOptions(CancellationToken.None);
@@ -111,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 options.IncludedMembers,
                 options.InterfaceName,
                 options.FileName,
-                ExtractInterfaceOptionsResult.ExtractLocation.SameFile);
+                ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
+                options.FallbackOptions);
 
             var operations = await action.GetOperationsAsync(changedOptions, CancellationToken.None);
             foreach (var operation in operations)

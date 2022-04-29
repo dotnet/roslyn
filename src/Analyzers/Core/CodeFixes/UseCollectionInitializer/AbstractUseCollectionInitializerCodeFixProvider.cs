@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make

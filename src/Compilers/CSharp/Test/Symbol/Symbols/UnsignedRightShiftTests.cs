@@ -2138,18 +2138,12 @@ public class C4
                 // (9,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator >>(C1 x, int y)
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>").WithLocation(9, 33),
-                // (17,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (17,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static C2 operator >>>(C1 x, int y)
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(17, 31),
-                // (22,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (22,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static C2 operator >>(C1 x, int y)
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(22, 31),
-                // (30,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static C3 operator >>>(C3 x, C2 y)
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(30, 31),
-                // (35,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static C3 operator >>(C3 x, C2 y)
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(35, 31)
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(22, 31)
                 );
         }
 
