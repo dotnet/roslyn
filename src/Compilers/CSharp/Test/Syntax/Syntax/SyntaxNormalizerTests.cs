@@ -1280,5 +1280,32 @@ class Derived : Base
             const string Text = @"/// Prefix <b    a=""x""	>S_OK</b> suffix";
             TestNormalizeDeclaration(Text, Expected);
         }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment5()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"" /> suffix";
+            const string Text = @"/// Prefix <b a=""x"" b=""y""/> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment6()
+        {
+            const string Expected = @"/// Prefix <b a=""x"" b=""y"" /> suffix";
+            const string Text = @"/// Prefix <b a=""x""b=""y""/> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(60884, "https://github.com/dotnet/roslyn/issues/60884")]
+        public void TestNormalizeXmlArgumentsInDocComment7()
+        {
+            const string Expected = @"/// Prefix <b b=""y"" a=""x"">S_OK</b> suffix";
+            const string Text = @"/// Prefix <b    b=""y""a=""x""	>S_OK</b> suffix";
+            TestNormalizeDeclaration(Text, Expected);
+        }
     }
 }

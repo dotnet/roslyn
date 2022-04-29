@@ -1276,8 +1276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return GetNextRelevantToken(node.EndQuoteToken).Kind() != SyntaxKind.GreaterThanToken
-                       ? attribute.WithTrailingTrivia(GetSpace())
-                       : attribute;
+                ? attribute.WithTrailingTrivia(GetSpace())
+                : attribute;
         }
     }
 }
