@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
-            AddCircularStructDiagnostics(compilation.GlobalNamespace);
+            addCircularStructDiagnostics(compilation.GlobalNamespace);
             diagnostics.AddRange(compilation.CircularStructDiagnostics);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
@@ -216,21 +216,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics.DiagnosticBag);
                 }
             }
-        }
 
-        private static void AddCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
-        {
-            if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol)
+            void addCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
             {
-                _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+                if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol && PassesFilter(filterOpt, symbol))
+                {
+                    _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+                }
+
+                foreach (var member in symbol.GetMembersUnordered())
+                {
+                    if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                    {
+                        if (compilation.Options.ConcurrentBuild)
+                        {
+                            Task worker = addCircularStructDiagnosticsAsAsync(namespaceOrTypeSymbol);
+                            methodCompiler._compilerTasks.Push(worker);
+                        }
+                        else
+                        {
+                            addCircularStructDiagnostics(namespaceOrTypeSymbol);
+                        }
+                    }
+                }
             }
 
-            foreach (var member in symbol.GetMembersUnordered())
+            Task addCircularStructDiagnosticsAsAsync(NamespaceOrTypeSymbol symbol)
             {
-                if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
-                    AddCircularStructDiagnostics(namespaceOrTypeSymbol);
-                }
+                    try
+                    {
+                        addCircularStructDiagnostics(symbol);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }), methodCompiler._cancellationToken);
             }
         }
 
@@ -496,8 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = members[memberOrdinal];
 
                 //When a filter is supplied, limit the compilation of members passing the filter.
-                if (!PassesFilter(_filterOpt, member) ||
-                    member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } accessor)
+                if (member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } accessor ||
+                    !PassesFilter(_filterOpt, member))
                 {
                     continue;
                 }

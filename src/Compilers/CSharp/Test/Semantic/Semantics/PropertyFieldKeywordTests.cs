@@ -1611,7 +1611,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "0").VerifyDiagnostics().VerifyIL("C.P.get", @"
 ").VerifyIL("C..ctor", @"
 ");
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
