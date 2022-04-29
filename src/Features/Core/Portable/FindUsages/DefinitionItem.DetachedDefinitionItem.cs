@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -11,17 +12,25 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal partial class DefinitionItem
     {
-        internal readonly struct DetachedDefinitionItem
+        [DataContract]
+        public readonly struct DetachedDefinitionItem
         {
+            [DataMember(Order = 0)]
             public readonly ImmutableArray<string> Tags;
-            public readonly ImmutableDictionary<string, string> Properties;
-            public readonly ImmutableDictionary<string, string> DisplayableProperties;
-            public readonly ImmutableArray<TaggedText> NameDisplayParts;
+            [DataMember(Order = 1)]
             public readonly ImmutableArray<TaggedText> DisplayParts;
+            [DataMember(Order = 2)]
+            public readonly ImmutableArray<TaggedText> NameDisplayParts;
+            [DataMember(Order = 3)]
             public readonly ImmutableArray<TaggedText> OriginationParts;
-            public readonly bool DisplayIfNoReferences;
-
+            [DataMember(Order = 4)]
             public readonly ImmutableArray<DocumentIdSpan> SourceSpans;
+            [DataMember(Order = 4)]
+            public readonly ImmutableDictionary<string, string> Properties;
+            [DataMember(Order = 6)]
+            public readonly ImmutableDictionary<string, string> DisplayableProperties;
+            [DataMember(Order = 7)]
+            public readonly bool DisplayIfNoReferences;
 
             public DetachedDefinitionItem(
                 ImmutableArray<string> tags,
@@ -40,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Properties = properties;
                 DisplayableProperties = displayableProperties;
                 DisplayIfNoReferences = displayIfNoReferences;
-                SourceSpans = sourceSpans.SelectAsArray(ss => new DocumentIdSpan(ss));
+                SourceSpans = sourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss);
             }
 
             public async Task<DefaultDefinitionItem?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
