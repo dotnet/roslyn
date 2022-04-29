@@ -4843,7 +4843,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
                 );
         }
-        
+
         [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]
         public void TestInCollectionInitializer()
         {
