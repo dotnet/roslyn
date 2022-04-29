@@ -212,10 +212,15 @@ namespace Microsoft.CodeAnalysis.Remote
                         var lazySolutionInstance = refCountedLazySolution.TryAddReference();
                         if (lazySolutionInstance is not null)
                             return lazySolutionInstance;
+
+                        // Remove the value since it's clearly no longer usable. The cleanupAsync method would have
+                        // removed this value, but has not completed its execution yet.
+                        _solutionChecksumToLazySolution.Remove(solutionChecksum);
                     }
 
                     // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                     // refcount of 1 (for 'us').
+                    refCountedLazySolution = null;
                     var lazySolution = new LazySolution(
                         getSolutionAsync: cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
                         cleanupAsync: async () =>
@@ -224,7 +229,11 @@ namespace Microsoft.CodeAnalysis.Remote
                             // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
                             // only ever hold this gate for very short periods of time in order to set do basic operations on our
                             // state.
-                            using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
+                            using var _ = await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
+
+                            // Only remove a value from the map if it still exists and holds the same expected instance
+                            if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
+                                && remainingRefCountedLazySolution == refCountedLazySolution)
                             {
                                 _solutionChecksumToLazySolution.Remove(solutionChecksum);
                             }
