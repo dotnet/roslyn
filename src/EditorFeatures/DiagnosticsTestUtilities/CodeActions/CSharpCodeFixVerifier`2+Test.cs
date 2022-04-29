@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
                 CancellationToken cancellationToken)
                 => new(new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan: null,
                     document,
                     project,

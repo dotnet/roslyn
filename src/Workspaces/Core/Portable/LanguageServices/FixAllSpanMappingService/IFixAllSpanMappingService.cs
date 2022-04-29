@@ -5,10 +5,11 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
     /// <summary>
     /// Language service for mapping spans for specific <see cref="FixAllScope"/>s for fix all occurences code fix.
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal interface IFixAllSpanMappingService : ILanguageService
     {
         /// <summary>
-        /// For the given <paramref name="fixAllScope"/> and <paramref name="diagnosticSpan"/> in the given <paramref name="document"/>,
+        /// For the given <paramref name="fixAllScope"/> and <paramref name="triggerSpan"/> in the given <paramref name="document"/>,
         /// returns the documents and fix all spans within each document that need to be fixed.
         /// Note that this API is only invoked for span based FixAll scopes, i.e. <see cref="FixAllScope.ContainingMember"/>
         /// and <see cref="FixAllScope.ContainingType"/>.
         /// </summary>
         Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
+            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
     }
 }
