@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InheritanceMargin
         {
         }
 
-        protected override string GlobalImportsTitle => FeaturesResources.Global_using_directives;
+        protected override string GlobalImportsTitle => CSharpFeaturesResources.Global_using_directives;
 
         protected override ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch)
         {
