@@ -946,19 +946,22 @@ partial interface I3
                 );
         }
 
-        [Fact]
-        public void AbstractStaticConstructor_01()
+        [Theory]
+        [CombinatorialData]
+        public void AbstractStaticConstructor_01(bool isVirtual)
         {
+            var (modifier, _) = GetModifierAndBody(isVirtual);
+
             var source1 =
 @"
 interface I1
 {
-    abstract static I1();
+    " + modifier + @" static I1();
 }
 
 interface I2
 {
-    abstract static I2() {}
+    " + modifier + @" static I2() {}
 }
 
 interface I3
@@ -973,10 +976,10 @@ interface I3
             compilation1.VerifyDiagnostics(
                 // (4,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I1();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("abstract").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments(modifier.Trim()).WithLocation(4, 21),
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I2() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("abstract").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments(modifier.Trim()).WithLocation(9, 21),
                 // (14,12): error CS0501: 'I3.I3()' must declare a body because it is not marked abstract, extern, or partial
                 //     static I3();
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I3").WithArguments("I3.I3()").WithLocation(14, 12)
@@ -8742,14 +8745,16 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op, bool isVirtual)
         {
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
             var source1 =
 @"
 interface I1
 {
-    abstract static bool operator true (I1 x);
-    abstract static bool operator false (I1 x);
+    " + modifier + @" static bool operator true (I1 x)" + body + @"
+    " + modifier + @" static bool operator false (I1 x)" + body + @"
 
     static void M02((int, C<I1>) x)
     {
@@ -13619,9 +13624,34 @@ class Test
                 );
         }
 
-        [Fact]
-        public void ConsumeAbstractStaticIndexedProperty_03()
+        private (string modifier, string body) GetILModifierAndBody(bool isVirtual)
         {
+            if (isVirtual)
+            {
+                return ("",
+@"
+{
+  .maxstack  8
+  IL_0000:  ldnull
+  IL_0001:  throw
+}
+");
+            }
+            else
+            {
+                return ("abstract",
+@"{
+}
+");
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractStaticIndexedProperty_03(bool isVirtual)
+        {
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
@@ -13630,20 +13660,18 @@ class Test
     )
 
     // Methods
-    .method public hidebysig specialname newslot abstract virtual 
+    .method public hidebysig specialname newslot " + modifier + @" virtual 
         static int32 get_Item (
             int32 x
         ) cil managed 
-    {
-    } // end of method I1::get_Item
+    " + body + @"
 
-    .method public hidebysig specialname newslot abstract virtual 
+    .method public hidebysig specialname newslot " + modifier + @" virtual 
         static void set_Item (
             int32 x,
             int32 'value'
         ) cil managed 
-    {
-    } // end of method I1::set_Item
+    " + body + @"
 
     // Properties
     .property int32 Item(
@@ -13717,27 +13745,28 @@ class Test
                 );
         }
 
-        [Fact]
-        public void ConsumeAbstractStaticIndexedProperty_04()
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractStaticIndexedProperty_04(bool isVirtual)
         {
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
     // Methods
-    .method public hidebysig specialname newslot abstract virtual 
+    .method public hidebysig specialname newslot " + modifier + @" virtual 
         static int32 get_Item (
             int32 x
         ) cil managed 
-    {
-    } // end of method I1::get_Item
+    " + body + @"
 
-    .method public hidebysig specialname newslot abstract virtual 
+    .method public hidebysig specialname newslot " + modifier + @" virtual 
         static void set_Item (
             int32 x,
             int32 'value'
         ) cil managed 
-    {
-    } // end of method I1::set_Item
+    " + body + @"
 
     // Properties
     .property int32 Item(
@@ -15517,19 +15546,20 @@ public class C3 : C2, I1
             }
         }
 
-        [Fact]
-        public void ImplementAbstractStaticMethod_10()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticMethod_10(bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig static abstract virtual 
+    .method public hidebysig static " + modifier + @" virtual 
         void M01 () cil managed 
-    {
-    } // end of method I1::M01
+    " + body + @"
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
@@ -15694,18 +15724,19 @@ public class C1 : I1
             Assert.Equal("void C1.I1.M01()", c1.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
         }
 
-        [Fact]
-        public void ImplementAbstractStaticMethod_12()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticMethod_12(bool isVirtual)
         {
             // Default interface implementation for a static method
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig abstract virtual 
+    .method public hidebysig " + modifier + @" virtual 
         static void M01 () cil managed 
-    {
-    } // end of method I1::M01
+    " + body + @"
 } // end of class I1
 .class interface public auto ansi abstract I2
     implements I1
@@ -15824,18 +15855,19 @@ class C2 : C1, I1
 ");
         }
 
-        [Fact]
-        public void ImplementAbstractStaticMethod_14()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticMethod_14(bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig abstract virtual 
+    .method public hidebysig " + modifier + @" virtual 
         static void modopt(I1) M01 () cil managed 
-    {
-    } // end of method I1::M01
+    " + body + @"
 } // end of class I1
 ";
 
@@ -19125,7 +19157,7 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
+        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked, bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -19137,15 +19169,16 @@ public class C3 : C2, I1
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         class I1 " + opName + @" (
             class I1 x
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 
 .class public auto ansi beforefieldinit C1
@@ -19254,7 +19287,7 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -19266,16 +19299,17 @@ public class C5 : C2, I1
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         class I1 " + opName + @" (
             class I1 x,
             int32 y
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 
 .class public auto ansi beforefieldinit C1
@@ -19543,7 +19577,7 @@ public class C1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
+        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked, bool isVirtual)
         {
             // Default interface implementation for a static method
 
@@ -19554,15 +19588,16 @@ public class C1 : I1
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         class I1 " + opName + @" (
             class I1 x
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 .class interface public auto ansi abstract I2
     implements I1
@@ -19606,7 +19641,7 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
         {
             // Default interface implementation for a static method
 
@@ -19617,16 +19652,17 @@ public class C1 : I2
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         class I1 " + opName + @" (
             class I1 x,
             int32 y
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 .class interface public auto ansi abstract I2
     implements I1
@@ -19793,7 +19829,7 @@ public partial class C1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
+        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked, bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -19804,16 +19840,17 @@ public partial class C1
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         !T modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    {
-    }
+    " + body + @"
 } 
 ";
 
@@ -19918,22 +19955,22 @@ partial class C1 : I1<C1>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_14([CombinatorialValues("true", "false")] string op)
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_14([CombinatorialValues("true", "false")] string op, bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
             var opName = UnaryOperatorName(op);
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         bool modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    {
-    }
+    " + body + @"
 } 
 ";
 
@@ -20034,7 +20071,7 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -20045,17 +20082,18 @@ class C2 : I1<C2>
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         !T modopt(I1`1) " + opName + @" (
             !T x,
             int32 y
         ) cil managed 
-    {
-    }
+    " + body + @"
 } 
 ";
             string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
@@ -22215,26 +22253,26 @@ public class C3 : C2, I1
             }
         }
 
-        [Fact]
-        public void ImplementAbstractStaticProperty_10()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_10(bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 get_M01 () cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void set_M01 (
             int32 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .property int32 M01()
     {
@@ -23214,25 +23252,25 @@ public class C1 : I1
             }
         }
 
-        [Fact]
-        public void ImplementAbstractStaticProperty_12()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_12(bool isVirtual)
         {
             // Default interface implementation for a static method
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 get_M01 () cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void set_M01 (
             int32 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .property int32 M01()
     {
@@ -23446,25 +23484,25 @@ class C2 : C1, I1
 ");
         }
 
-        [Fact]
-        public void ImplementAbstractStaticProperty_14()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_14(bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 get_M01 () cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void modopt(I1) set_M01 (
             int32 modopt(I1) 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .property int32 M01()
     {
@@ -24877,28 +24915,28 @@ public class C3 : C2, I1
             }
         }
 
-        [Fact]
-        public void ImplementAbstractStaticEvent_10()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticEvent_10(bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void add_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void remove_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .event [mscorlib]System.Action M01
     {
@@ -25741,27 +25779,27 @@ public class C1 : I1
             }
         }
 
-        [Fact]
-        public void ImplementAbstractStaticEvent_12()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticEvent_12(bool isVirtual)
         {
             // Default interface implementation for a static method
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void add_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void remove_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .event [mscorlib]System.Action M01
     {
@@ -25977,27 +26015,27 @@ class C2 : C1, I1
 ");
         }
 
-        [Fact]
-        public void ImplementAbstractStaticEvent_14()
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticEvent_14(bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void add_M01 (
             class [mscorlib]System.Action`1<int32 modopt(I1)> 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         void remove_M01 (
             class [mscorlib]System.Action`1<int32 modopt(I1)> 'value'
         ) cil managed 
-    {
-    }
+    " + body + @"
 
     .event class [mscorlib]System.Action`1<int32 modopt(I1)> M01
     {
@@ -27576,7 +27614,7 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
+        public void ImplementAbstractStaticConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -27588,16 +27626,17 @@ public class C3 : C2, I1<C2>
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 " + opName + @" (
             !T x
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 
 .class public auto ansi beforefieldinit C1
@@ -27797,7 +27836,7 @@ public class C1 : I1<C1>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_12([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
+        public void ImplementAbstractStaticConversionOperator_12([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
         {
             // Default interface implementation for a static method
 
@@ -27808,16 +27847,17 @@ public class C1 : I1<C1>
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 " + opName + @" (
             !T x
         ) cil managed 
-    {
-    }
+    " + body + @"
 }
 
 .class interface public auto ansi abstract I2`1<(class I1`1<!T>) T>
@@ -27974,7 +28014,7 @@ public partial class C1<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_14([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
+        public void ImplementAbstractStaticConversionOperator_14([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -27985,16 +28025,17 @@ public partial class C1<T>
                 return;
             }
 
+            var (modifier, body) = GetILModifierAndBody(isVirtual);
+
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    {
-    }
+    " + body + @"
 } 
 ";
 
@@ -30467,10 +30508,43 @@ public interface I2<T> where T : I2<T>
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
-        public void UnmanagedCallersOnly_02()
+        public void UnmanagedCallersOnly_02(bool isVirtual)
         {
+            string modifier, body;
+
+            if (isVirtual)
+            {
+                modifier = "";
+                body =
+@"
+{
+  // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+  .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+      01 00 00 00
+  )
+
+  .maxstack  8
+  IL_0000:  ldnull
+  IL_0001:  throw
+}
+";
+            }
+            else
+            {
+                modifier = "abstract";
+                body =
+@"{
+  // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+  .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+      01 00 00 00
+  )
+}
+";
+            }
+
             var ilSource = @"
 .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
     extends [mscorlib]System.Attribute
@@ -30493,62 +30567,37 @@ public interface I2<T> where T : I2<T>
 
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig abstract virtual static 
+    .method public hidebysig " + modifier + @" virtual static 
         void M1 () cil managed 
-    {
-        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-            01 00 00 00
-        )
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 op_UnaryPlus (
             class I1 x
         ) cil managed 
-    {
-        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-            01 00 00 00
-        )
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 op_Addition (
             class I1 x,
             class I1 y
         ) cil managed 
-    {
-        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-            01 00 00 00
-        )
-    }
+    " + body + @"
 }
 
 .class interface public auto ansi abstract I2`1<(class I2`1<!T>) T>
 {
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         int32 op_Implicit (
             !T i
         ) cil managed 
-    {
-        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-            01 00 00 00
-        )
-    }
+    " + body + @"
 
-    .method public hidebysig specialname abstract virtual static 
+    .method public hidebysig specialname " + modifier + @" virtual static 
         !T op_Explicit (
             int32 i
         ) cil managed 
-    {
-        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-            01 00 00 00
-        )
-    }
+    " + body + @"
 }
 ";
 
@@ -30641,17 +30690,20 @@ class C : I1<C>
                 );
         }
 
-        [Fact]
-        public void UnmanagedCallersOnly_04()
+        [Theory]
+        [CombinatorialData]
+        public void UnmanagedCallersOnly_04(bool isVirtual)
         {
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
             var source2 = @"
 using System.Runtime.InteropServices;
 
 public interface I1<T> where T : I1<T>
 {
-    abstract static void M1();
-    abstract static int operator +(T x);
-    abstract static int operator +(T x, T y);
+    " + modifier + @" static void M1()" + body + @"
+    " + modifier + @" static int operator +(T x)" + body + @"
+    " + modifier + @" static int operator +(T x, T y)" + body + @"
     abstract static implicit operator int(T i);
     abstract static explicit operator T(int i);
 }
@@ -30695,42 +30747,53 @@ class C : I1<C>
         [InlineData("~", "op_OnesComplement")]
         public void UnaryOperators_Checked_Unsupported_01(string op, string name)
         {
-            var source1 =
+            unaryOperators_Checked_Unsupported_01(op, name, isVirtual: false);
+            unaryOperators_Checked_Unsupported_01(op, name, isVirtual: true);
+
+            void unaryOperators_Checked_Unsupported_01(string op, string name, bool isVirtual)
+            {
+                var (modifier, body) = GetModifierAndBody(isVirtual);
+
+                var source1 =
 @"
 interface C 
 {
-    public static abstract C operator checked " + op + @"(C x);
+    public static " + modifier + @" C operator checked " + op + @"(C x)" + body + @"
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
-                // (4,39): error CS9150: User-defined operator '+' cannot be declared checked
-                //     public static abstract C operator checked +(C x);
-                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
-                );
+                compilation1.VerifyDiagnostics(
+                    // (4,39): error CS9150: User-defined operator '+' cannot be declared checked
+                    //     public static abstract C operator checked +(C x);
+                    Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                    );
 
-            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
-            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+                var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+                var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
 
-            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
-            Assert.Equal(name, opSymbol.Name);
-            Assert.Equal("C C." + name + "(C x)", opSymbol.ToTestDisplayString());
-            Assert.Equal("C.operator " + op + "(C)", opSymbol.ToDisplayString());
+                Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+                Assert.Equal(name, opSymbol.Name);
+                Assert.Equal("C C." + name + "(C x)", opSymbol.ToTestDisplayString());
+                Assert.Equal("C.operator " + op + "(C)", opSymbol.ToDisplayString());
+            }
         }
 
-        [Fact]
-        public void UnaryOperators_Checked_Unsupported_02()
+        [Theory]
+        [CombinatorialData]
+        public void UnaryOperators_Checked_Unsupported_02(bool isVirtual)
         {
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
             var source1 =
 @"
 interface C 
 {
-    public static abstract bool operator checked true(C x);
-    public static abstract bool operator checked false(C x);
+    public static " + modifier + @" bool operator checked true(C x)" + body + @"
+    public static " + modifier + @" bool operator checked false(C x)" + body + @"
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -30808,6 +30871,41 @@ public class C2 : I1<C2>
         [InlineData("-")]
         [InlineData("++")]
         [InlineData("--")]
+        public void ImplementVirtualStaticUnaryOperator_16(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static T operator checked " + op + @"(T x) => throw null;
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (14,31): error CS0539: 'C2.operator --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator --(C2 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2)").WithLocation(14, 31)
+                );
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
         public void ImplementAbstractStaticUnaryOperator_17(string op)
         {
             var source1 =
@@ -30846,6 +30944,41 @@ public class C2 : I1<C2>
         }
 
         [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void ImplementVirtualStaticUnaryOperator_17(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static T operator " + op + @"(T x) => throw null;
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator checked " + op + @"(C1 x) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator checked" + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (14,38): error CS0539: 'C2.operator checked --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator checked--(C2 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2)").WithLocation(14, 38)
+                );
+        }
+
+        [Theory]
         [InlineData("%", "op_Modulus")]
         [InlineData("&", "op_BitwiseAnd")]
         [InlineData("|", "op_BitwiseOr")]
@@ -30861,31 +30994,43 @@ public class C2 : I1<C2>
         [InlineData("<=", "op_LessThanOrEqual")]
         public void BinaryOperators_Checked_Unsupported_01(string op, string name)
         {
-            var source1 =
+            binaryOperators_Checked_Unsupported_01(op, name, isVirtual: false);
+
+            if (op is not ("==" or "!="))
+            {
+                binaryOperators_Checked_Unsupported_01(op, name, isVirtual: true);
+            }
+
+            void binaryOperators_Checked_Unsupported_01(string op, string name, bool isVirtual)
+            {
+                var (modifier, body) = GetModifierAndBody(isVirtual);
+
+                var source1 =
 @"
 interface C 
 {
-    public static abstract C operator checked " + op + @"(C x, int y);
+    public static " + modifier + @" C operator checked " + op + @"(C x, int y)" + body + @"
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (4,39): error CS9150: User-defined operator '%' cannot be declared checked
-                //     public static abstract C operator checked %(C x, int y);
-                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
-                );
+                compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                    // (4,39): error CS9150: User-defined operator '%' cannot be declared checked
+                    //     public static abstract C operator checked %(C x, int y);
+                    Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                    );
 
-            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
-            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+                var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+                var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
 
-            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
-            Assert.Equal(name, opSymbol.Name);
-            Assert.Equal("C C." + name + "(C x, System.Int32 y)", opSymbol.ToTestDisplayString());
-            Assert.Equal("C.operator " + op + "(C, int)", opSymbol.ToDisplayString());
+                Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+                Assert.Equal(name, opSymbol.Name);
+                Assert.Equal("C C." + name + "(C x, System.Int32 y)", opSymbol.ToTestDisplayString());
+                Assert.Equal("C.operator " + op + "(C, int)", opSymbol.ToDisplayString());
+            }
         }
 
         [Theory]
@@ -30935,6 +31080,42 @@ public class C2 : I1<C2>
         [InlineData("-")]
         [InlineData("*")]
         [InlineData("/")]
+        public void ImplementVirtualStaticBinaryOperator_23(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static T operator checked " + op + @"(T x, int y) => throw null;
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x, int y) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (14,31): error CS0539: 'C2.operator -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator -(C2 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2, int)").WithLocation(14, 31)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
         public void ImplementAbstractStaticBinaryOperator_24(string op)
         {
             var source1 =
@@ -30966,6 +31147,42 @@ public class C2 : I1<C2>
                 // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator -(C2, int)'
                 // public class C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)").WithLocation(12, 19),
+                // (14,38): error CS0539: 'C2.operator checked -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator checked-(C2 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2, int)").WithLocation(14, 38)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void ImplementVirtualStaticBinaryOperator_24(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static T operator " + op + @"(T x, int y) => throw null;
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator checked " + op + @"(C1 x, int y) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator checked" + op + @"(C2 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (14,38): error CS0539: 'C2.operator checked -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C2 I1<C2>.operator checked-(C2 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2, int)").WithLocation(14, 38)
