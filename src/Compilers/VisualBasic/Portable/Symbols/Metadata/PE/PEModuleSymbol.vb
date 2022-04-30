@@ -466,19 +466,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=true)
+                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
                 End If
             Next
-        End Function
-
-        Private Overloads Function GetReferencedAssemblySymbol(assemblyRef As AssemblyReferenceHandle) As AssemblySymbol
-            Dim referencedAssemblyIndex As Integer
-            Try
-                referencedAssemblyIndex = Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)
-            Catch ex As BadImageFormatException
-                Return Nothing
-            End Try
-            Return GetReferencedAssemblySymbol(referencedAssemblyIndex)
         End Function
 
         Public Overrides Function GetMetadata() As ModuleMetadata

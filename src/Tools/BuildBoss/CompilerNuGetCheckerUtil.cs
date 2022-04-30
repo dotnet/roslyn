@@ -340,11 +340,6 @@ namespace BuildBoss
             string folderRelativePath,
             IEnumerable<string> dllFileNames) => VerifyCore(textWriter, nupkgFilePath, folderRelativePath, dllFileNames);
 
-        private static bool VerifyVsix(
-            TextWriter textWriter,
-            string vsixFilePath,
-            IEnumerable<string> dllFileNames) => VerifyCore(textWriter, vsixFilePath, folderRelativePath: "", dllFileNames);
-
         private static bool VerifyCore(
             TextWriter textWriter,
             string packageFilePath,
@@ -436,14 +431,6 @@ namespace BuildBoss
                 })
                .SingleOrDefault();
             return file ?? throw new Exception($"Unable to find unique '{partialName}' in '{directory}'");
-        }
-
-        private string FindVsix(string fileName)
-        {
-            fileName = fileName + ".vsix";
-            var directory = Path.Combine(ArtifactsDirectory, "VSSetup", Configuration);
-            var file = Directory.EnumerateFiles(directory, fileName).SingleOrDefault();
-            return file ?? throw new Exception($"Unable to find '{fileName}' in '{directory}'");
         }
 
         /// <summary>
