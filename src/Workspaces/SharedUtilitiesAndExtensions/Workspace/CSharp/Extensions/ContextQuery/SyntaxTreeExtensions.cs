@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Local functions
             static bool IsGlobalAttributeList(AttributeListSyntax attributeList)
             {
-                if (attributeList.Target is { Identifier: { RawKind: var kind } })
+                if (attributeList.Target is { Identifier.RawKind: var kind })
                 {
                     return kind is ((int)SyntaxKind.AssemblyKeyword)
                         or ((int)SyntaxKind.ModuleKeyword);
@@ -940,9 +940,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return token switch
             {
                 // ref modifiers
-                { Parent: { RawKind: (int)SyntaxKind.FunctionPointerParameter } } => true,
+                { Parent.RawKind: (int)SyntaxKind.FunctionPointerParameter } => true,
                 // Regular type specifiers
-                { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKind.FunctionPointerParameter } } } => true,
+                { Parent: TypeSyntax { Parent.RawKind: (int)SyntaxKind.FunctionPointerParameter } } => true,
                 _ => false
             };
         }
