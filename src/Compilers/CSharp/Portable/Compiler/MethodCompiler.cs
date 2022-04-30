@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             addCircularStructDiagnostics(compilation.GlobalNamespace);
+            methodCompiler.WaitForWorkers();
             diagnostics.AddRange(compilation.CircularStructDiagnostics);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
