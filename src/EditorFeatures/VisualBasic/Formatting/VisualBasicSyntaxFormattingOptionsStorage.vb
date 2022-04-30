@@ -31,10 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <Extension>
         Public Function GetVisualBasicSyntaxFormattingOptions(globalOptions As IGlobalOptionService) As VisualBasicSyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(
-                globalOptions.GetLineFormattingOptions(LanguageNames.VisualBasic),
-                globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic),
-                globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, LanguageNames.VisualBasic).Value)
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .LineFormatting = globalOptions.GetLineFormattingOptions(LanguageNames.VisualBasic),
+                .SeparateImportDirectiveGroups = globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic),
+                .AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, LanguageNames.VisualBasic).Value
+            }
         End Function
     End Module
 End Namespace

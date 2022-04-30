@@ -55,7 +55,10 @@ namespace IdeCoreBenchmarks
             solution = solution.WithDocumentSyntaxRoot(documentId, root);
 
             _document = solution.GetDocument(documentId);
-            _options = new CSharpSyntaxFormattingOptions(newLines: CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes);
+            _options = new CSharpSyntaxFormattingOptions()
+            {
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes
+            };
         }
 
         [Benchmark]

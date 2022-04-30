@@ -652,7 +652,7 @@ namespace A
             {
                 CleanupOptions = defaultOptions.CleanupOptions with
                 {
-                    FormattingOptions = new CSharpSyntaxFormattingOptions(separateImportDirectiveGroups: separateUsingGroups)
+                    FormattingOptions = new CSharpSyntaxFormattingOptions() { SeparateImportDirectiveGroups = separateUsingGroups }
                 }
             };
 

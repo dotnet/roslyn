@@ -13,31 +13,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
 
-        Public Sub New(Optional lineFormatting As LineFormattingOptions = Nothing,
-                       Optional separateImportDirectiveGroups As Boolean = DefaultSeparateImportDirectiveGroups,
-                       Optional accessibilityModifiersRequired As AccessibilityModifiersRequired = DefaultAccessibilityModifiersRequired)
-
-            MyBase.New(lineFormatting,
-                       separateImportDirectiveGroups,
-                       accessibilityModifiersRequired)
-        End Sub
-
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions()
 
         Public Shared Shadows Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSyntaxFormattingOptions) As VisualBasicSyntaxFormattingOptions
             fallbackOptions = If(fallbackOptions, [Default])
 
-            Return New VisualBasicSyntaxFormattingOptions(
-                LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
-                options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-                options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired))
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .LineFormatting = LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
+                .SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
+                .AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired)
+            }
         End Function
 
         Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(
-                lineFormatting,
-                SeparateImportDirectiveGroups,
-                AccessibilityModifiersRequired)
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .LineFormatting = lineFormatting,
+                .SeparateImportDirectiveGroups = SeparateImportDirectiveGroups,
+                .AccessibilityModifiersRequired = AccessibilityModifiersRequired
+            }
         End Function
     End Class
 End Namespace

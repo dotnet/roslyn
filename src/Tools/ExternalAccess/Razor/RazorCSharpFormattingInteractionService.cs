@@ -46,12 +46,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             var languageServices = document.Project.LanguageServices;
 
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var services = document.Project.Solution.Workspace.Services;
+            var globalOptions = services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
             var optionsProvider = (OptionsProvider<SyntaxFormattingOptions>)globalOptions.CleanCodeGenerationOptionsProvider;
             var fallbackOptions = await optionsProvider.GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false);
+            var optionService = services.GetRequiredService<IOptionService>();
+            var configOptions = documentOptions.AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
             var indentationOptions = new IndentationOptions(
-               SyntaxFormattingOptions.Create(documentOptions, fallbackOptions, languageServices),
+               formattingService.GetFormattingOptions(configOptions, fallbackOptions),
                globalOptions.GetAutoFormattingOptions(languageServices));
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);

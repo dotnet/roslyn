@@ -361,9 +361,11 @@ End Class
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
                 Dim options = VisualBasicCodeActionOptions.Default.With(
-                    New VisualBasicSyntaxFormattingOptions(
-                        LineFormattingOptions.Default,
-                        separateImportDirectiveGroups:=separateImportsGroups))
+                    New VisualBasicSyntaxFormattingOptions() With
+                    {
+                        .LineFormatting = LineFormattingOptions.Default,
+                        .SeparateImportDirectiveGroups = separateImportsGroups
+                    })
 
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,

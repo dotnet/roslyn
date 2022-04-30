@@ -14,27 +14,15 @@ namespace Microsoft.CodeAnalysis.Formatting;
 internal abstract class SyntaxFormattingOptions
 {
     [DataMember(Order = 0)]
-    public readonly LineFormattingOptions LineFormatting;
+    public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
 
     [DataMember(Order = 1)]
-    public readonly bool SeparateImportDirectiveGroups;
+    public bool SeparateImportDirectiveGroups { get; init; } = false;
 
     [DataMember(Order = 2)]
-    public readonly AccessibilityModifiersRequired AccessibilityModifiersRequired;
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = DefaultAccessibilityModifiersRequired;
 
     protected const int BaseMemberCount = 3;
-
-    protected SyntaxFormattingOptions(
-        LineFormattingOptions? lineFormatting,
-        bool separateImportDirectiveGroups,
-        AccessibilityModifiersRequired accessibilityModifiersRequired)
-    {
-        LineFormatting = lineFormatting ?? LineFormattingOptions.Default;
-
-        // note: not using nullable optional parameters since parameter types must match field types for serialization.
-        SeparateImportDirectiveGroups = separateImportDirectiveGroups;
-        AccessibilityModifiersRequired = accessibilityModifiersRequired;
-    }
 
     public const bool DefaultSeparateImportDirectiveGroups = false;
     public const AccessibilityModifiersRequired DefaultAccessibilityModifiersRequired = AccessibilityModifiersRequired.ForNonInterfaceMembers;
@@ -49,13 +37,6 @@ internal abstract class SyntaxFormattingOptions
 #if !CODE_STYLE
     public static SyntaxFormattingOptions GetDefault(HostLanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
-
-    public static SyntaxFormattingOptions Create(OptionSet options, SyntaxFormattingOptions? fallbackOptions, HostLanguageServices languageServices)
-    {
-        var formattingService = languageServices.GetRequiredService<ISyntaxFormattingService>();
-        var configOptions = options.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
-        return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
-    }
 #endif
 }
 
@@ -73,7 +54,10 @@ internal static partial class SyntaxFormattingOptionsProviders
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return SyntaxFormattingOptions.Create(documentOptions, fallbackOptions, document.Project.LanguageServices);
+        var languageServices = document.Project.LanguageServices;
+        var formattingService = languageServices.GetRequiredService<ISyntaxFormattingService>();
+        var configOptions = documentOptions.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
+        return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

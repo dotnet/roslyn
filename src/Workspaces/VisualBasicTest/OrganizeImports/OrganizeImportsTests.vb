@@ -48,9 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
                 document = document.WithSolutionOptions(options)
 
-                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
-                    LineFormattingOptions.Default,
-                    separateImportDirectiveGroups:=separateImportGroups)
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .LineFormatting = LineFormattingOptions.Default,
+                    .SeparateImportDirectiveGroups = separateImportGroups
+                }
 
                 Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
                 Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)

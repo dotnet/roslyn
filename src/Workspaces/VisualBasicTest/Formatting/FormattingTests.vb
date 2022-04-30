@@ -4733,10 +4733,10 @@ End Class
                 ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
                 tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-                Dim options = SyntaxFormattingOptions.Create(
-                    workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    fallbackOptions:=Nothing,
-                    workspace.Services.GetLanguageServices(tree.Language))
+                Dim options = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .LineFormatting = New LineFormattingOptions(NewLine:=vbLf)
+                }
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()
