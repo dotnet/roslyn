@@ -11,12 +11,21 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
@@ -47,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 });
 
             context.RegisterCodeFix(
-                CodeAction.Create(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
+                CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -55,12 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-            var converted = await ConvertAsync(document, namespaceDecl, cancellationToken).ConfigureAwait(false);
+
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CSharpSyntaxFormatting.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var converted = await ConvertAsync(document, namespaceDecl, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(
                 editor.OriginalRoot,

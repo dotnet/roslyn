@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     renameSpans: ImmutableArray<TextSpan>.Empty,
                     warningSpans: ImmutableArray<TextSpan>.Empty,
                     navigationSpans: ImmutableArray<TextSpan>.Empty,
-                    parameters: default);
+                    parameters: null);
             }
             else
             {

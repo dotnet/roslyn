@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var options = CompletionOptions.Default with
             {
-                HideAdvancedMembers = context.Options.HideAdvancedMembers,
+                HideAdvancedMembers = context.Options(document.Project.LanguageServices).HideAdvancedMembers,
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
                 TargetTypedCompletionFilter = false,

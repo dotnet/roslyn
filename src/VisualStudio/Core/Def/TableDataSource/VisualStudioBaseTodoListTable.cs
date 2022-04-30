@@ -115,18 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoItemsUpdatedArgs args)
             {
-                if (args.DocumentId == null || args.Solution == null)
-                    return true;
-
+                Contract.ThrowIfNull(args.Solution);
+                Contract.ThrowIfNull(args.DocumentId);
                 var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key == documents;
             }
 
             private object CreateAggregationKey(TodoItemsUpdatedArgs data)
             {
-                if (data.Solution == null)
-                    return GetItemKey(data);
-
+                Contract.ThrowIfNull(data.Solution);
                 return GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
             }
 

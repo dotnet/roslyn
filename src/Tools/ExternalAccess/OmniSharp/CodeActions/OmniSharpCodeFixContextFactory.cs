@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             OmniSharpCodeActionOptions options,
             CancellationToken cancellationToken)
-            => new(document, span, diagnostics, registerCodeFix, options.GetCodeActionOptions(), cancellationToken);
+            => new(document, span, diagnostics, registerCodeFix, _ => options.GetCodeActionOptions(), cancellationToken);
 
         public static CodeRefactoringContext CreateCodeRefactoringContext(
             Document document,
@@ -31,10 +31,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Action<CodeAction, TextSpan?> registerRefactoring,
             OmniSharpCodeActionOptions options,
             CancellationToken cancellationToken)
-            => new(document, span, registerRefactoring, options.GetCodeActionOptions(), cancellationToken);
+            => new(document, span, registerRefactoring, _ => options.GetCodeActionOptions(), cancellationToken);
 
         public static FixAllContext CreateFixAllContext(
             Document? document,
+            TextSpan? diagnosticSpan,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             CancellationToken cancellationToken)
             => new(new FixAllState(
                     fixAllProvider: null,
+                    diagnosticSpan,
                     document,
                     project,
                     codeFixProvider,
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,
-                    language => optionsProvider(language).GetCodeActionOptions()),
+                    languageServices => optionsProvider(languageServices.Language).GetCodeActionOptions()),
                   new ProgressTracker(), cancellationToken);
     }
 }

@@ -9,8 +9,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -324,25 +326,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
             var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-            var addedDocument = forkedSolution.GetDocument(documentId)!;
+            var addedDocument = forkedSolution.GetRequiredDocument(documentId);
+
+            var globalOptions = _componentModel.GetService<IGlobalOptionService>();
+            var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(true);
 
             // Call out to various new document formatters to tweak what they want
             var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
             {
-                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cleanupOptions, cancellationToken).ConfigureAwait(true);
             }
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, formattingOptions, cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, cleanupOptions.FormattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = formattingOptions.NewLine;
+            var targetLineEnding = cleanupOptions.FormattingOptions.NewLine;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

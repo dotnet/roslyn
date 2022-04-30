@@ -2500,7 +2500,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, bool includeInitializersInBody)
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
             {
                 BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
@@ -2509,7 +2509,7 @@ foundParent:;
                     return boundNode;
                 }
 
-                boundNode = base.BindMethodBody(node, diagnostics, includeInitializersInBody);
+                boundNode = base.BindMethodBody(node, diagnostics);
 
                 return boundNode;
             }

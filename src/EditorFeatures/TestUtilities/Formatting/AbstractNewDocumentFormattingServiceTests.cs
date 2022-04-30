@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, CancellationToken.None);
+                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
+                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
                 var actual = await formattedDocument.GetTextAsync();
                 AssertEx.EqualOrDiff(expected, actual.ToString());

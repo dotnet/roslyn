@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /* PROTOTYPE(semi-auto-props):
      * Add tests for field attribute target, specially for setter-only
-     * nameof(field) should be disallowed.
      * nullability tests, ie, make sure we get null dereference warnings when needed.
      */
 
@@ -80,6 +79,201 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             }
 
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+        }
+
+        [Fact]
+        public void TestInInterface()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public int P1 { get => field; }
+
+    public int P2 { get => field; set => field = value; }
+
+    public int P3 { get { _ = field; return field; } set => field = value; }
+
+    public int P4 { get => field; } = 0;
+
+    public int P5 { get => field; set => field = value; } = 0;
+
+    public int P6 { get { _ = field; return field; } set => field = value; } = 0;
+}
+", targetFramework: TargetFramework.NetCoreApp); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,28): error CS0525: Interfaces cannot contain instance fields
+                //     public int P1 { get => field; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(4, 28),
+                // (6,28): error CS0525: Interfaces cannot contain instance fields
+                //     public int P2 { get => field; set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(6, 28),
+                // (6,42): error CS0525: Interfaces cannot contain instance fields
+                //     public int P2 { get => field; set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(6, 42),
+                // (8,31): error CS0525: Interfaces cannot contain instance fields
+                //     public int P3 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(8, 31),
+                // (8,45): error CS0525: Interfaces cannot contain instance fields
+                //     public int P3 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(8, 45),
+                // (8,61): error CS0525: Interfaces cannot contain instance fields
+                //     public int P3 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(8, 61),
+                // (10,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P4 { get => field; } = 0;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithArguments("I.P4").WithLocation(10, 16),
+                // (10,28): error CS0525: Interfaces cannot contain instance fields
+                //     public int P4 { get => field; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(10, 28),
+                // (12,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P5 { get => field; set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I.P5").WithLocation(12, 16),
+                // (12,28): error CS0525: Interfaces cannot contain instance fields
+                //     public int P5 { get => field; set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 28),
+                // (12,42): error CS0525: Interfaces cannot contain instance fields
+                //     public int P5 { get => field; set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 42),
+                // (14,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithArguments("I.P6").WithLocation(14, 16),
+                // (14,31): error CS0525: Interfaces cannot contain instance fields
+                //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(14, 31),
+                // (14,45): error CS0525: Interfaces cannot contain instance fields
+                //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(14, 45),
+                // (14,61): error CS0525: Interfaces cannot contain instance fields
+                //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(14, 61)
+                );
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            var fieldsToEmit = @interface.GetFieldsToEmit().ToArray();
+            Assert.Equal(6, fieldsToEmit.Length);
+            Assert.Equal("System.Int32 I.<P1>k__BackingField", fieldsToEmit[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 I.<P2>k__BackingField", fieldsToEmit[1].ToTestDisplayString());
+            Assert.Equal("System.Int32 I.<P3>k__BackingField", fieldsToEmit[2].ToTestDisplayString());
+            Assert.Equal("System.Int32 I.<P4>k__BackingField", fieldsToEmit[3].ToTestDisplayString());
+            Assert.Equal("System.Int32 I.<P5>k__BackingField", fieldsToEmit[4].ToTestDisplayString());
+            Assert.Equal("System.Int32 I.<P6>k__BackingField", fieldsToEmit[5].ToTestDisplayString());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestStaticInInterface()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public static int P { get => field; }
+}
+", targetFramework: TargetFramework.NetCoreApp); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "I", @"
+.class interface public auto ansi abstract I
+{
+    // Fields
+    .field private static initonly int32 '<P>k__BackingField'
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    	01 00 00 00
+    )
+    // Methods
+    .method public hidebysig specialname static 
+    	int32 get_P () cil managed 
+    {
+    	// Method begins at RVA 0x2050
+    	// Code size 6 (0x6)
+    	.maxstack 8
+    	IL_0000: ldsfld int32 I::'<P>k__BackingField'
+    	IL_0005: ret
+    } // end of method I::get_P
+    // Properties
+    .property int32 P()
+    {
+    	.get int32 I::get_P()
+    }
+} // end of class I
+");
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestStaticInInterface_DefaultImplementationsOfInterfacesIsMissing()
+        {
+            var comp = CreateCompilation(@"
+public interface I
+{
+    public static int P { get => field; }
+}
+");
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static int P { get => field; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 27)
+                );
+            var @interface = comp.GetTypeByMetadataName("I");
+            Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestAbstract()
+        {
+            var comp = CreateCompilation(@"
+public abstract class C
+{
+    public abstract int P { get => field; }
+}
+"); // setting TargetFramework for DefaultImplementationsOfInterfaces to exist.
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
+                //     public abstract int P { get => field; }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("C.P.get").WithLocation(4, 29)
+                );
+            var @class = comp.GetTypeByMetadataName("C");
+            Assert.Empty(@class.GetMembers().OfType<FieldSymbol>());
+            Assert.Empty(@class.GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestExtern()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public extern int P { get => field; }
+}
+");
+
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0179: 'C.P.get' cannot be extern and declare a body
+                //     public extern int P { get => field; }
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("C.P.get").WithLocation(4, 27)
+                );
+            var @class = comp.GetTypeByMetadataName("C");
+            Assert.Empty(@class.GetMembers().OfType<FieldSymbol>());
+            Assert.Empty(@class.GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]

@@ -907,5 +907,261 @@ dotnet_diagnostic.CS0168.severity = ");
                     string.Join(Environment.NewLine, actualContents));
             }
         }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_ContainingMember()
+        {
+            var markup = @"
+class Program1
+{
+    static void Main()
+    {
+        $$if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText = @"
+class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Add braces",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingMember,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeFact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllOccurrences_ContainingType()
+        {
+            var markup1 = @"
+partial class Program1
+{
+    static void Main()
+    {
+        $$if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+
+    void M1()
+    {
+        if (true) if (true) return;
+    }
+}
+
+class OtherType1
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+partial class Program1
+{
+    void M2()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText1 = @"
+partial class Program1
+{
+    static void Main()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+
+    void M1()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+    }
+}
+
+class OtherType1
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}
+
+partial class Program1
+{
+    void M2()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+    }
+}";
+
+            var markup2 = @"
+partial class Program1
+{
+    void OtherFileMethod()
+    {
+        if (true) if (true) return;
+
+        if (false) if (false) return;
+    }
+}
+
+class OtherType2
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+            var expectedText2 = @"
+partial class Program1
+{
+    void OtherFileMethod()
+    {
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
+
+        if (false)
+        {
+            if (false)
+            {
+                return;
+            }
+        }
+    }
+}
+
+class OtherType2
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+
+            MarkupTestFile.GetSpans(markup1, out _, out ImmutableArray<TextSpan> _);
+            await SetUpEditorAsync(markup1, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles
+                },
+                HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+
+            await TestServices.EditorVerifier.CodeActionAsync(
+                "Add braces",
+                applyFix: true,
+                fixAllScope: FixAllScope.ContainingType,
+                cancellationToken: HangMitigatingCancellationToken);
+
+            AssertEx.EqualOrDiff(expectedText1, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+
+            AssertEx.EqualOrDiff(expectedText2, await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken));
+        }
     }
 }

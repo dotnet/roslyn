@@ -122,17 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
-        Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
-
-            If token.Kind = SyntaxKind.CloseBraceToken Then
-                Dim tuples = token.Parent.GetBraces()
-                openBrace = tuples.openBrace
-                Return openBrace.Kind = SyntaxKind.OpenBraceToken
-            End If
-
-            Return False
-        End Function
-
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral
             If syntaxTree Is Nothing Then
                 Return False
@@ -1524,31 +1513,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetValueOfEqualsValueClause
             Return DirectCast(node, EqualsValueSyntax).Value
-        End Function
-
-        Public Function IsScopeBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsScopeBlock
-            ' VB has no equivalent of curly braces.
-            Return False
-        End Function
-
-        Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExecutableBlock
-            Return node.IsExecutableBlock()
-        End Function
-
-        Public Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
-            Return node.GetExecutableBlockStatements()
-        End Function
-
-        Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFacts.FindInnermostCommonExecutableBlock
-            Return nodes.FindInnermostCommonExecutableBlock()
-        End Function
-
-        Public Function IsStatementContainer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsStatementContainer
-            Return IsExecutableBlock(node)
-        End Function
-
-        Public Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetStatementContainerStatements
-            Return GetExecutableBlockStatements(node)
         End Function
 
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression

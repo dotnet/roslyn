@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -911,7 +912,7 @@ namespace N1
 
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
         {
-            using var workspace = CreateWorkspaceFromOptions(originalCode, default);
+            using var workspace = CreateWorkspaceFromOptions(originalCode);
             var documentToModifyId = workspace.Documents[0].Id;
             var textSpan = workspace.Documents[0].SelectedSpans[0];
             var documentToModify = workspace.CurrentSolution.GetDocument(documentToModifyId);
@@ -919,7 +920,7 @@ namespace N1
             var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
             Assert.NotNull(moveTypeService);
 
-            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, SyntaxFormattingOptions.GetDefaultAsync, CancellationToken.None).ConfigureAwait(false);
 
             if (expectOperation)
             {
@@ -931,7 +932,7 @@ namespace N1
             }
 
             var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
-            var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(modifiedDocument, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ConfigureAwait(false);
 
             var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
             Assert.Equal(expectedCode, formattedText.ToString());

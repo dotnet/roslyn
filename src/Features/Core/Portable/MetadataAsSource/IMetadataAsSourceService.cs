@@ -6,7 +6,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -22,6 +25,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <param name="symbol">The symbol to generate source for</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken = default);
+        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken = default);
     }
 }
