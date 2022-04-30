@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 if (newLine == null)
                 {
-                    var formattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                    newLine = formattingOptions.NewLine;
+                    var optionsProvider = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    newLine = optionsProvider.GetLineFormattingOptions().NewLine;
                 }
 
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.

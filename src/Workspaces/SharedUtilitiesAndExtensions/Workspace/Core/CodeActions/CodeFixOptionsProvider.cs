@@ -14,6 +14,10 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+// to avoid excessive #ifdefs
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable IDE0052 // Remove unread private members
+
 namespace Microsoft.CodeAnalysis.CodeActions;
 
 internal readonly struct CodeFixOptionsProvider
@@ -44,7 +48,17 @@ internal readonly struct CodeFixOptionsProvider
 
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
+    public LineFormattingOptions GetLineFormattingOptions()
+        => LineFormattingOptions.Create(_options, FallbackLineFormattingOptions);
+
     // SyntaxFormattingOptions
+
+    public SyntaxFormattingOptions GetFormattingOptions(ISyntaxFormatting formatting)
+#if CODE_STYLE
+        => formatting.DefaultOptions;
+#else
+        => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
+#endif
 
     public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers,
 #if CODE_STYLE
@@ -53,17 +67,13 @@ internal readonly struct CodeFixOptionsProvider
         FallbackSyntaxFormattingOptions.AccessibilityModifiersRequired);
 #endif
 
-    private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
-
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
+    private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
-    private static LineFormattingOptions FallbackLineFormattingOptions
         => LineFormattingOptions.Default;
 #else
-    private LineFormattingOptions FallbackLineFormattingOptions
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 

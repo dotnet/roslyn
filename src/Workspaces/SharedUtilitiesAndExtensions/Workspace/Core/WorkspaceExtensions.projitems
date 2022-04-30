@@ -23,7 +23,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />

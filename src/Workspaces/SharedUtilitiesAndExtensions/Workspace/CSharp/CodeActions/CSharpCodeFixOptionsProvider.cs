@@ -18,6 +18,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
+// to avoid excessive #ifdefs
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable IDE0052 // Remove unread private members
+
 namespace Microsoft.CodeAnalysis.CodeActions;
 
 internal readonly struct CSharpCodeFixOptionsProvider
@@ -79,43 +83,38 @@ internal readonly struct CSharpCodeFixOptionsProvider
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
+    private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
 #if CODE_STYLE
-    private static CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => CSharpIdeCodeStyleOptions.Default;
 #else
-    private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices).CodeStyleOptions;
 #endif
 
+    private CSharpSimplifierOptions FallbackSimplifierOptions
 #if CODE_STYLE
-    private static CSharpSimplifierOptions FallbackSimplifierOptions
         => CSharpSimplifierOptions.Default;
 #else
-    private CSharpSimplifierOptions FallbackSimplifierOptions
         => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.SimplifierOptions;
 #endif
 
+    private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
 #if CODE_STYLE
-    private static CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
         => CSharpSyntaxFormattingOptions.Default;
 #else
-    private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
         => (CSharpSyntaxFormattingOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
 #endif
 
+    private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
-    private static LineFormattingOptions FallbackLineFormattingOptions
         => LineFormattingOptions.Default;
 #else
-    private LineFormattingOptions FallbackLineFormattingOptions
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
+    private AddImportPlacementOptions FallbackAddImportPlacementOptions
 #if CODE_STYLE
-    private static AddImportPlacementOptions FallbackAddImportPlacementOptions
         => AddImportPlacementOptions.Default;
 #else
-    private AddImportPlacementOptions FallbackAddImportPlacementOptions
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.AddImportOptions;
 #endif
 }
