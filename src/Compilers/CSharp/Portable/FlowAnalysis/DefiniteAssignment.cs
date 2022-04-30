@@ -1038,14 +1038,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propAccess = (BoundPropertyAccess)expr;
-
                         // PROTOTYPE(semi-auto-props): The call to IsPropertyAssignedThroughBackingField isn't sensible.
                         // We get here for both property read and write.
                         // This applies to ALL IsPropertyAssignedThroughBackingField calls in this file.
                         if (Binder.IsPropertyAssignedThroughBackingField(propAccess, this.CurrentSymbol)) // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
                         {
-                            var propSymbol = propAccess.PropertySymbol;
-                            member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
+                            var propSymbol = propAccess.PropertySymbol as SourcePropertySymbolBase;
+                            member = propSymbol?.BackingField ?? propSymbol?.FieldKeywordBackingField;
                             if (member is null)
                             {
                                 return false;

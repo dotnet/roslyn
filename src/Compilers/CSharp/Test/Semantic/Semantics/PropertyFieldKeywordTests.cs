@@ -662,22 +662,15 @@ public struct C
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             CompileAndVerify(comp, expectedOutput: "5").VerifyIL("C..ctor", @"
-{
-  // Code size       15 (0xf)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""int C.<P>k__BackingField""
-  IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.5
-  IL_0009:  stfld      ""int C.<P>k__BackingField""
-  IL_000e:  ret
-}
-").VerifyDiagnostics(
-    // (12,9): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
-    //         P = 5;
-    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P").WithLocation(12, 9)
-    );
+    {
+      // Code size        8 (0x8)
+      .maxstack  2
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.5
+      IL_0002:  stfld      ""int C.<P>k__BackingField""
+      IL_0007:  ret
+    }
+").VerifyDiagnostics();
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
