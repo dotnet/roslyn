@@ -309,6 +309,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Combine_inheritance_margin_with_indicator_margin
             => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
 
+        public static string Include_global_imports
+            => ServicesVSResources.Include_global_imports;
+
         public static string Option_JSON_strings =>
             ServicesVSResources.JSON_strings;
 

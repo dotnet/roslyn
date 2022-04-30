@@ -182,6 +182,11 @@
         <target state="translated">Habilitar tipos de referencia que aceptan valores NULL en el proyecto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variable temporal en línea</target>
