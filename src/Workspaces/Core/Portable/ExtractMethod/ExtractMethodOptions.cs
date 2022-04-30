@@ -52,16 +52,13 @@ internal static class ExtractMethodGenerationOptionsProviders
         var extractOptions = fallbackOptions.Value.ExtractOptions;
         var codeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false);
         var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions.Value.AddImportOptions, cancellationToken).ConfigureAwait(false);
-
-        var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var namingPreferences = documentOptions.GetOption(NamingStyleOptions.NamingPreferences, document.Project.Language);
-        var namingPreferencesProvider = new NamingStylePreferencesProvider(language => namingPreferences);
+        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions.Value.LineFormattingOptions, cancellationToken).ConfigureAwait(false);
 
         return new ExtractMethodGenerationOptions(
             extractOptions,
             codeGenerationOptions,
             addImportOptions,
-            namingPreferencesProvider);
+            lineFormattingOptions);
     }
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
