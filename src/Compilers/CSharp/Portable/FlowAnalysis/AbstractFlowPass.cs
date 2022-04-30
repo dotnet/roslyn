@@ -571,8 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (Binder.IsPropertyAssignedThroughBackingField(access, _symbol))
                     {
-                        var property = (SourcePropertySymbolBase)access.PropertySymbol;
-                        var backingField = property.BackingField ?? property.FieldKeywordBackingField;
+                        var property = access.PropertySymbol as SourcePropertySymbolBase;
+                        var backingField = property?.BackingField ?? property?.FieldKeywordBackingField;
                         if (backingField != null)
                         {
                             VisitFieldAccessInternal(access.ReceiverOpt, backingField);
