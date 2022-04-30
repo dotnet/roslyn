@@ -3,30 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
-    /// Similar to FixAllSuggestedAction, but in a location that can be used by
+    /// Similar to FixAllCodeRefactoringSuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedFixAllSuggestedAction : UnifiedSuggestedAction, IFixAllSuggestedAction
+    internal class UnifiedFixAllCodeRefactoringSuggestedAction : UnifiedSuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
-        public Diagnostic Diagnostic { get; }
+        public IFixAllState FixAllState { get; }
 
-        public FixAllState? FixAllState { get; }
-
-        public UnifiedFixAllSuggestedAction(
+        public UnifiedFixAllCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            FixAllState? fixAllState,
-            Diagnostic diagnostic)
+            IFixAllState fixAllState)
             : base(workspace, codeAction, codeActionPriority)
         {
-            Diagnostic = diagnostic;
             FixAllState = fixAllState;
         }
     }

@@ -5,20 +5,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
     /// <summary>
-    /// Contains computed information for a given <see cref="CodeFixes.FixAllProvider"/>, such as supported diagnostic Ids and supported <see cref="FixAllScope"/>.
+    /// Contains computed information for a given <see cref="FixAllProvider"/>, such as supported diagnostic Ids and supported <see cref="FixAllScope"/>.
     /// </summary>
     internal abstract class FixAllProviderInfo
     {
-        public readonly FixAllProvider FixAllProvider;
+        public readonly IFixAllProvider FixAllProvider;
         public readonly ImmutableArray<FixAllScope> SupportedScopes;
 
         private FixAllProviderInfo(
-            FixAllProvider fixAllProvider,
+            IFixAllProvider fixAllProvider,
             ImmutableArray<FixAllScope> supportedScopes)
         {
             FixAllProvider = fixAllProvider;
@@ -33,6 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (provider is CodeFixProvider codeFixProvider)
             {
                 return CreateWithCodeFixer(codeFixProvider);
+            }
+            else if (provider is CodeRefactoringProvider codeRefactoringProvider)
+            {
+                return CreateWithCodeRefactoring(codeRefactoringProvider);
             }
 
             return CreateWithSuppressionFixer((IConfigurationFixProvider)provider);
@@ -65,6 +71,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         /// <summary>
+        /// Gets an optional <see cref="FixAllProviderInfo"/> for the given code refactoring provider.
+        /// </summary>
+        private static FixAllProviderInfo? CreateWithCodeRefactoring(CodeRefactoringProvider provider)
+        {
+            var fixAllProvider = provider.GetFixAllProvider();
+            if (fixAllProvider == null)
+            {
+                return null;
+            }
+
+            var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+            if (scopes.IsEmpty)
+            {
+                return null;
+            }
+
+            return new CodeRefactoringFixAllProviderInfo(fixAllProvider, scopes);
+        }
+
+        /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given suppression fix provider.
         /// </summary>
         private static FixAllProviderInfo? CreateWithSuppressionFixer(IConfigurationFixProvider provider)
@@ -91,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private readonly IEnumerable<string> _supportedDiagnosticIds;
 
             public CodeFixerFixAllProviderInfo(
-                FixAllProvider fixAllProvider,
+                IFixAllProvider fixAllProvider,
                 IEnumerable<string> supportedDiagnosticIds,
                 ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
@@ -108,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private readonly Func<Diagnostic, bool> _canBeSuppressedOrUnsuppressed;
 
             public SuppressionFixerFixAllProviderInfo(
-                FixAllProvider fixAllProvider,
+                IFixAllProvider fixAllProvider,
                 IConfigurationFixProvider suppressionFixer,
                 ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
@@ -118,6 +144,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override bool CanBeFixed(Diagnostic diagnostic)
                 => _canBeSuppressedOrUnsuppressed(diagnostic);
+        }
+
+        private class CodeRefactoringFixAllProviderInfo : FixAllProviderInfo
+        {
+            public CodeRefactoringFixAllProviderInfo(
+                IFixAllProvider fixAllProvider,
+                ImmutableArray<FixAllScope> supportedScopes)
+                : base(fixAllProvider, supportedScopes)
+            {
+            }
+
+            public override bool CanBeFixed(Diagnostic diagnostic)
+                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

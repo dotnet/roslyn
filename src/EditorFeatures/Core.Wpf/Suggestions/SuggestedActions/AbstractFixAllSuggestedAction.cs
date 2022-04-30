@@ -2,53 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     /// <summary>
-    /// Suggested action for fix all occurrences code fix.  Note: this is only used
-    /// as a 'flavor' inside CodeFixSuggestionAction.
+    /// Suggested action for fix all occurrences for a code fix or a code refactoring.
     /// </summary>
-    internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>, IFixAllSuggestedAction
+    internal abstract class AbstractFixAllSuggestedAction : SuggestedAction
     {
-        public Diagnostic Diagnostic { get; }
-
-        /// <summary>
-        /// The original code-action that we are a fix-all for.  i.e. _originalCodeAction
-        /// would be something like "use 'var' instead of 'int'", this suggestion action
-        /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
-        /// will perform the fix in the appropriate document/project/solution scope.
-        /// </summary>
         public CodeAction OriginalCodeAction { get; }
 
-        public FixAllState FixAllState { get; }
+        public IFixAllState FixAllState { get; }
 
-        internal FixAllSuggestedAction(
+        protected AbstractFixAllSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            FixAllState fixAllState,
-            Diagnostic originalFixedDiagnostic,
-            CodeAction originalCodeAction)
+            IFixAllState fixAllState,
+            CodeAction originalCodeAction,
+            AbstractFixAllCodeAction fixAllCodeAction)
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   fixAllState.FixAllProvider, new FixAllCodeAction(fixAllState))
+                   fixAllState.FixAllProvider, fixAllCodeAction)
         {
-            Diagnostic = originalFixedDiagnostic;
             OriginalCodeAction = originalCodeAction;
             FixAllState = fixAllState;
         }
@@ -62,15 +48,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return true;
         }
 
-        public string GetDiagnosticID()
-            => Diagnostic.GetTelemetryDiagnosticID();
-
         protected override async Task InnerInvokeAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
+            var fixAllKind = FixAllState.FixAllKind;
+            var functionId = fixAllKind switch
+            {
+                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesSession,
+                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesSession,
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
+            };
+
+            using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
                 await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
