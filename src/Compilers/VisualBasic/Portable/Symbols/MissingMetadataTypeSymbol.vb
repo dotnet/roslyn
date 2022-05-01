@@ -304,7 +304,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     _containingType.Equals(other._containingType)
             End Function
 
+#Disable Warning IDE0051 ' Remove unused private members - There is no DebuggerDisplay attribute on the class. Is it missing?
             Private Function GetDebuggerDisplay() As String
+#Enable Warning IDE0051 ' Remove unused private members
                 Dim fullName As String
 
                 fullName = _containingType.ToString() & "." & Me.Name

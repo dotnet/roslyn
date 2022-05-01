@@ -169,22 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _reported.Add(symbol);
         }
 
-        private static Symbol GetAccessSymbol(Symbol symbol)
-        {
-            while (true)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.Parameter:
-                    case SymbolKind.TypeParameter:
-                        symbol = symbol.ContainingSymbol;
-                        break;
-                    default:
-                        return symbol;
-                }
-            }
-        }
-
         private static string ReportAttribute(CSharpAttributeData attribute)
         {
             var builder = new StringBuilder();

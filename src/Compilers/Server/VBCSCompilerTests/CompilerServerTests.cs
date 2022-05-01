@@ -73,21 +73,6 @@ End Module")
 
         #region Helpers
 
-        private static IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
-        {
-            vars = vars ?? new KeyValuePair<string, string>[] { };
-            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
-            {
-                var list = vars.ToList();
-                list.Add(new KeyValuePair<string, string>(
-                    "RoslynCommandLineLogFile",
-                    typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log"));
-                return list;
-            }
-
-            return vars;
-        }
-
         private static void CheckForBadShared(List<string> arguments)
         {
             bool hasShared;

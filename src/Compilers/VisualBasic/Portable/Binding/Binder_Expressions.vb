@@ -743,24 +743,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundNameOfOperator(node, argument, ConstantValue.Create(value), GetSpecialType(SpecialType.System_String, node, diagnostics))
         End Function
 
-        Private Shared Sub VerifyNameOfLookupResult(container As NamespaceOrTypeSymbol, member As SimpleNameSyntax, lookupResult As LookupResult, diagnostics As BindingDiagnosticBag)
-            If lookupResult.HasDiagnostic Then
-
-                ' Ambiguous result is Ok
-                If Not lookupResult.IsAmbiguous Then
-                    ReportDiagnostic(diagnostics, member, lookupResult.Diagnostic)
-                End If
-
-            ElseIf lookupResult.HasSymbol Then
-                Debug.Assert(lookupResult.IsGood)
-
-            ElseIf container IsNot Nothing Then
-                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, member.Identifier.ValueText, container))
-            Else
-                ReportDiagnostic(diagnostics, member, ErrorFactory.ErrorInfo(ERRID.ERR_NameNotDeclared1, member.Identifier.ValueText))
-            End If
-        End Sub
-
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)

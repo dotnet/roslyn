@@ -13682,12 +13682,6 @@ tryAgain:
             return _syntaxFactory.QueryContinuation(@into, name, body);
         }
 
-        [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
-        private new bool IsIncremental
-        {
-            get { throw new Exception("Use IsIncrementalAndFactoryContextMatches"); }
-        }
-
         private bool IsIncrementalAndFactoryContextMatches
         {
             get

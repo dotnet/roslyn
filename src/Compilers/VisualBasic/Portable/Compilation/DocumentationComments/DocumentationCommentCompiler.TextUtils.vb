@@ -72,34 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' Determine if the given string starts with the given prefix if whitespace
-            ''' is first trimmed from the beginning.
-            ''' </summary>
-            ''' <param name="str">The string to search</param>
-            ''' <param name="prefix">The prefix</param>
-            ''' <returns>true if "str.TrimStart().StartsWith(prefix)"</returns>
-            Private Shared Function TrimmedStringStartsWith(str As String, prefix As String) As Boolean
-                ' PERF: Avoid calling string.Trim() because that allocates a new substring
-                Dim start As Integer = GetIndexOfFirstNonWhitespaceChar(str)
-                Dim len As Integer = str.Length - start
-                If len < prefix.Length Then
-                    Return False
-                End If
-
-                Dim i As Integer = 0
-                Dim j As Integer = start
-                While i < prefix.Length
-                    If prefix(i) <> str(j) Then
-                        Return False
-                    End If
-                    i += 1
-                    j += 1
-                End While
-
-                Return True
-            End Function
-
-            ''' <summary>
             ''' Given a string which may contain newline sequences, get the index of the first newline
             ''' sequence beginning at the given starting index.
             ''' </summary>

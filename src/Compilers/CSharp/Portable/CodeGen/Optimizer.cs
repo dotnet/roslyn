@@ -563,11 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             SetStackDepth(_evalStack.Count - 1);
         }
 
-        private void ClearEvalStack()
-        {
-            _evalStack.Clear();
-        }
-
         public BoundNode VisitStatement(BoundNode node)
         {
             Debug.Assert(node == null || EvalStackIsEmpty());

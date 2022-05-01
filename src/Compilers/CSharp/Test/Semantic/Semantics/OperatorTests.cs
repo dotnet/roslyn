@@ -4608,35 +4608,6 @@ o1 OPERATOR d2, //-ObjectKIND
 o1 OPERATOR s2, //-ObjectKIND
 o1 OPERATOR o2  //-ObjectKIND" + Postfix;
 
-        private const string PostfixIncrementTemplate = Prefix + @"
-e   OPERATOR, //-EnumKIND
-chr OPERATOR, //-CharKIND
-i08 OPERATOR, //-SByteKIND
-i16 OPERATOR, //-ShortKIND
-i32 OPERATOR, //-IntKIND
-i64 OPERATOR, //-LongKIND
-u08 OPERATOR, //-ByteKIND
-u16 OPERATOR, //-UShortKIND
-u32 OPERATOR, //-UIntKIND
-u64 OPERATOR, //-ULongKIND
-r32 OPERATOR, //-FloatKIND
-r64 OPERATOR, //-DoubleKIND
-dec OPERATOR, //-DecimalKIND
-ne  OPERATOR, //-LiftedEnumKIND
-nchr OPERATOR, //-LiftedCharKIND
-ni08 OPERATOR, //-LiftedSByteKIND
-ni16 OPERATOR, //-LiftedShortKIND
-ni32 OPERATOR, //-LiftedIntKIND
-ni64 OPERATOR, //-LiftedLongKIND
-nu08 OPERATOR, //-LiftedByteKIND
-nu16 OPERATOR, //-LiftedUShortKIND
-nu32 OPERATOR, //-LiftedUIntKIND
-nu64 OPERATOR, //-LiftedULongKIND
-nr32 OPERATOR, //-LiftedFloatKIND
-nr64 OPERATOR, //-LiftedDoubleKIND
-ndec OPERATOR  //-LiftedDecimalKIND
-" + Postfix;
-
         private const string PrefixIncrementTemplate = Prefix + @"
 OPERATOR e   , //-EnumKIND
 OPERATOR chr , //-CharKIND

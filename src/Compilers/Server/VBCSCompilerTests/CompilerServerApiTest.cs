@@ -32,21 +32,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Logger = new XunitCompilerServerLogger(testOutputHelper);
         }
 
-        private const string HelloWorldSourceText = @"
-using System;
-class Hello
-{
-    static void Main()
-    {
-        Console.WriteLine(""Hello, world.""); 
-    }
-}";
-
-        private static Task TaskFromException(Exception e)
-        {
-            return TaskFromException<bool>(e);
-        }
-
         private static Task<T> TaskFromException<T>(Exception e)
         {
             var source = new TaskCompletionSource<T>();
@@ -73,27 +58,6 @@ class Hello
                 RequestLanguage.CSharpCompile,
                 BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
-        }
-
-        /// <summary>
-        /// Run a C# compilation against the given source text using the provided named pipe name.
-        /// </summary>
-        private async Task<BuildResponse> RunCSharpCompile(string pipeName, string sourceText, TimeSpan? keepAlive = null)
-        {
-            using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
-            {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive);
-                namedPipe.Connect(Timeout.Infinite);
-                await buildRequest.WriteAsync(namedPipe, default(CancellationToken));
-                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken));
-            }
-        }
-
-        private static Task<T> FromException<T>(Exception ex)
-        {
-            var source = new TaskCompletionSource<T>();
-            source.SetException(ex);
-            return source.Task;
         }
 
         [Fact]
