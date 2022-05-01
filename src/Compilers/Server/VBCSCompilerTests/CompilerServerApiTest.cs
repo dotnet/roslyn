@@ -32,34 +32,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Logger = new XunitCompilerServerLogger(testOutputHelper);
         }
 
-        private static Task<T> TaskFromException<T>(Exception e)
-        {
-            var source = new TaskCompletionSource<T>();
-            source.SetException(e);
-            return source.Task;
-        }
-
-        private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
-        {
-            var directory = Temp.CreateDirectory();
-            var file = directory.CreateFile("temp.cs");
-            await file.WriteAllTextAsync(sourceText);
-
-            var builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
-            if (keepAlive.HasValue)
-            {
-                builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, argumentIndex: 0, value: keepAlive.Value.TotalSeconds.ToString()));
-            }
-
-            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, argumentIndex: 0, value: directory.Path));
-            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 0, value: file.Path));
-
-            return new BuildRequest(
-                RequestLanguage.CSharpCompile,
-                BuildProtocolConstants.GetCommitHash(),
-                builder.ToImmutable());
-        }
-
         [Fact]
         public void MutexStopsServerStarting()
         {

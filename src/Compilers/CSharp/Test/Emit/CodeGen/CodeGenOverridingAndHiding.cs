@@ -1980,7 +1980,7 @@ class Derived2 : Base2
 
         [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-        private void TestInternalMethods()
+        public void TestInternalMethods()
         {
             // Tests:
             // internal virtual / abstract methods should be marked with strict modifier
