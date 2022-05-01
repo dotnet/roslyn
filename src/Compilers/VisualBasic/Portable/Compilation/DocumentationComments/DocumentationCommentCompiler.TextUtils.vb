@@ -41,15 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' Given a string, find the index of the first non-whitespace char.
-            ''' </summary>
-            ''' <param name="str">The string to search</param>
-            ''' <returns>The index of the first non-whitespace char in the string</returns>
-            Private Shared Function GetIndexOfFirstNonWhitespaceChar(str As String) As Integer
-                Return GetIndexOfFirstNonWhitespaceChar(str, 0, str.Length)
-            End Function
-
-            ''' <summary>
             ''' Find the first non-whitespace character in a given substring.
             ''' </summary>
             ''' <param name="str">The string to search</param>

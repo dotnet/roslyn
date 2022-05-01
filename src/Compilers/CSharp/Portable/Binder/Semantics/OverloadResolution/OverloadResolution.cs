@@ -2691,15 +2691,6 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
-        private BetterResult BetterConversionTarget(
-            TypeSymbol type1,
-            TypeSymbol type2,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
-        }
-
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
             TypeSymbol type2,
