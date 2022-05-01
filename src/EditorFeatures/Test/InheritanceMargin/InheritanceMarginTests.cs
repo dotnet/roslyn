@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     [UseExportProvider]
     public class InheritanceMarginTests
     {
-        private const string SearchAreaTag = "SeachTag";
+        private const string SearchAreaTag = nameof(SearchAreaTag);
 
         #region Helpers
 
@@ -54,6 +55,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
         }
 
+        private static Task VerifyInMultipleDocumentsAsync(
+            string markup1,
+            string markup2,
+            string languageName,
+            params TestInheritanceMemberItem[] memberItems)
+        {
+            var workspaceFile = $@"
+<Workspace>
+   <Project Language=""{languageName}"" CommonReferences=""true"">
+       <Document>
+            <![CDATA[{markup1}]]>
+       </Document>
+       <Document>
+            <![CDATA[{markup2}]]>
+       </Document>
+   </Project>
+</Workspace>";
+
+            var cancellationToken = CancellationToken.None;
+
+            using var testWorkspace = TestWorkspace.Create(
+                workspaceFile,
+                composition: EditorTestCompositions.EditorFeatures);
+
+            var testHostDocument = testWorkspace.Documents[0];
+            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+        }
+
         private static async Task VerifyTestMemberInDocumentAsync(
             TestWorkspace testWorkspace,
             TestHostDocument testHostDocument,
@@ -73,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             var actualItems = await service.GetInheritanceMemberItemsAsync(
                 document,
                 searchingSpan,
+                includeGlobalImports: true,
                 cancellationToken).ConfigureAwait(false);
 
             var sortedActualItems = actualItems.OrderBy(item => item.LineNumber).ToImmutableArray();
@@ -94,18 +124,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))
                 .OrderBy(target => target.TargetSymbolName)
                 .ToImmutableArray();
-            var sortedActualTargets = actualItem.TargetItems.OrderBy(target => target.DisplayName)
-                .ToImmutableArray();
+
             for (var i = 0; i < expectedTargets.Length; i++)
-            {
-                await VerifyInheritanceTargetAsync(expectedTargets[i], sortedActualTargets[i]);
-            }
+                await VerifyInheritanceTargetAsync(testWorkspace, expectedTargets[i], actualItem.TargetItems[i]);
         }
 
-        private static async Task VerifyInheritanceTargetAsync(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
+        private static async Task VerifyInheritanceTargetAsync(Workspace workspace, TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DisplayName);
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
+
+            if (expectedTarget.LanguageGlyph != null)
+                Assert.Equal(expectedTarget.LanguageGlyph, actualTarget.LanguageGlyph);
+
+            if (expectedTarget.ProjectName != null)
+                Assert.Equal(expectedTarget.ProjectName, actualTarget.ProjectName);
 
             if (expectedTarget.IsInMetadata)
             {
@@ -119,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
-                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(CancellationToken.None);
+                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(workspace.CurrentSolution, CancellationToken.None);
                     Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                     Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
                 }
@@ -196,16 +229,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly ImmutableArray<string> LocationTags;
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
+            public readonly Glyph? LanguageGlyph;
+            public readonly string? ProjectName;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
                 string locationTag,
-                InheritanceRelationship relationship)
+                InheritanceRelationship relationship,
+                Glyph? languageGlyph = null,
+                string? projectName = null)
             {
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTags = ImmutableArray.Create(locationTag);
                 Relationship = relationship;
+                LanguageGlyph = languageGlyph;
                 InMetadata = false;
+                ProjectName = projectName;
             }
 
             public TargetInfo(
@@ -236,17 +275,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
             public readonly bool IsInMetadata;
+            public readonly Glyph? LanguageGlyph;
+            public readonly string? ProjectName;
 
             public TestInheritanceTargetItem(
                 string targetSymbolName,
                 InheritanceRelationship relationshipToMember,
-                 ImmutableArray<DocumentSpan> documentSpans,
-                  bool isInMetadata)
+                ImmutableArray<DocumentSpan> documentSpans,
+                bool isInMetadata,
+                Glyph? languageGlyph,
+                string? projectName)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
                 IsInMetadata = isInMetadata;
+                LanguageGlyph = languageGlyph;
+                ProjectName = projectName;
             }
 
             public static TestInheritanceTargetItem Create(
@@ -259,7 +304,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.TargetSymbolDisplayName,
                         targetInfo.Relationship,
                         ImmutableArray<DocumentSpan>.Empty,
-                        isInMetadata: true);
+                        isInMetadata: true,
+                        targetInfo.LanguageGlyph,
+                        targetInfo.ProjectName);
                 }
                 else
                 {
@@ -287,7 +334,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                         targetInfo.TargetSymbolDisplayName,
                         targetInfo.Relationship,
                         builder.ToImmutable(),
-                        isInMetadata: false);
+                        isInMetadata: false,
+                        targetInfo.LanguageGlyph,
+                        targetInfo.ProjectName);
                 }
             }
         }
@@ -1235,6 +1284,79 @@ public partial class {|target3:Bar|}
                 itemOnLine10);
         }
 
+        [Fact]
+        public Task TestEmptyFileSingleGlobalImportInOtherFile()
+        {
+            var markup1 = @"";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Fact]
+        public Task TestEmptyFileMultipleGlobalImportInOtherFile()
+        {
+            var markup1 = @"";
+            var markup2 = @"
+{|target1:global using System;|}
+{|target2:global using System.Collections;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 0,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System",
+                        relationship: InheritanceRelationship.InheritedImport, "target1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "System.Collections",
+                        relationship: InheritanceRelationship.InheritedImport, "target2"))));
+        }
+
+        [Fact]
+        public Task TestFileWithUsing_SingleGlobalImportInOtherFile()
+        {
+            var markup1 = @"
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
+        [Fact]
+        public Task TestIgnoreGlobalImportFromSameFile()
+        {
+            var markup1 = @"
+global using System.Collections.Generic;
+using System.Collections;";
+            var markup2 = @"{|target1:global using System;|}";
+
+            return VerifyInMultipleDocumentsAsync(
+                markup1, markup2, LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                lineNumber: 1,
+                memberName: string.Format(FeaturesResources.Directives_from_0, "Test2.cs"),
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "System",
+                    relationship: InheritanceRelationship.InheritedImport, "target1"))));
+        }
+
         #endregion
 
         #region TestsForVisualBasic
@@ -1396,6 +1518,13 @@ public partial class {|target3:Bar|}
             return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.VisualBasic,
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport))),
                 new TestInheritanceMemberItem(
                     lineNumber: 3,
                     memberName: "Class Bar",
@@ -1928,6 +2057,14 @@ public partial class {|target3:Bar|}
                 void {|target3:Foo|}();
             }
         }";
+            var itemForProjectImports =
+                new TestInheritanceMemberItem(
+                    lineNumber: 2,
+                    memberName: VBFeaturesResources.Project_level_Imports,
+                    targets: ImmutableArray.Create(
+                        new TargetInfo("System", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Collections.Generic", InheritanceRelationship.InheritedImport),
+                        new TargetInfo("System.Linq", InheritanceRelationship.InheritedImport)));
 
             var itemForBar44 = new TestInheritanceMemberItem(
                 lineNumber: 4,
@@ -1964,8 +2101,132 @@ public partial class {|target3:Bar|}
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.VisualBasic),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForBar44, itemForFooInMarkup1 },
+                new[] { itemForProjectImports, itemForBar44, itemForFooInMarkup1 },
                 new[] { itemForIBar, itemForFooInMarkup2 });
+        }
+
+        [Fact]
+        public Task TestSameNameSymbolInDifferentLanguageProjects()
+        {
+            var markup1 = @"
+        using MyNamespace;
+        namespace BarNs
+        {
+            public class {|target1:Bar|} : IBar
+            {
+            }
+        }";
+
+            var markup2 = @"
+        Namespace MyNamespace
+            Public Interface {|target2:IBar|}
+            End Interface
+
+            Public Class {|target3:Bar|}
+                Implements IBar
+            End Class
+        End Namespace";
+
+            var itemForBarInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Interface IBar",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageGlyph: Glyph.CSharpFile,
+                        projectName: "Assembly1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageGlyph: Glyph.BasicFile,
+                        projectName: "Assembly2")));
+
+            var itemForBarInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "Class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.CSharp),
+                (markup2, LanguageNames.VisualBasic),
+                new[] { itemForBarInMarkup1 },
+                new[] { itemForIBar, itemForBarInMarkup2 });
+        }
+
+        [Fact]
+        public Task TestSameNameSymbolInSameLanguageProjects()
+        {
+            var markup1 = @"
+        using MyNamespace;
+        namespace BarNs
+        {
+            public class {|target1:Bar|} : IBar
+            {
+            }
+        }";
+
+            var markup2 = @"
+        namespace MyNamespace {
+            public interface {|target2:IBar|}
+            {}
+
+            public class {|target3:Bar|}
+                : IBar
+            {}
+        }";
+
+            var itemForBarInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "interface IBar",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageGlyph: Glyph.CSharpFile,
+                        projectName: "Assembly1"),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Bar",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.ImplementingType,
+                        languageGlyph: Glyph.CSharpFile,
+                        projectName: "Assembly2")));
+
+            var itemForBarInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementedInterface)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.CSharp),
+                (markup2, LanguageNames.CSharp),
+                new[] { itemForBarInMarkup1 },
+                new[] { itemForIBar, itemForBarInMarkup2 });
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -59,6 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public readonly IGlobalOptionService GlobalOptions;
 
+        public readonly LspWorkspaceManager LspWorkspaceManager;
+        public readonly ILanguageServerNotificationManager NotificationManager;
+        public readonly CancellationToken QueueCancellationToken;
+
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
@@ -73,7 +78,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
+            CancellationToken queueCancellationToken)
         {
             Document = document;
             Solution = solution;
@@ -84,6 +92,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
+            LspWorkspaceManager = lspWorkspaceManager;
+            NotificationManager = notificationManager;
+            QueueCancellationToken = queueCancellationToken;
         }
 
         public static RequestContext? Create(
@@ -93,9 +104,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            CancellationToken queueCancellationToken)
         {
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
@@ -107,7 +120,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger, clientCapabilities, serverKind, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(
+                    solution: null, logger, clientCapabilities, serverKind, document: null,
+                    documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions,
+                    lspWorkspaceManager, notificationManager, queueCancellationToken);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -140,7 +156,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
-                globalOptions);
+                globalOptions,
+                lspWorkspaceManager,
+                notificationManager,
+                queueCancellationToken);
             return context;
         }
 
