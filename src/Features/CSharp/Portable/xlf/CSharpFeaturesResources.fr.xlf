@@ -182,6 +182,11 @@
         <target state="translated">Activer les types de référence nullables dans le projet</target>
         <note />
       </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variable temporaire inline</target>

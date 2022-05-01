@@ -615,6 +615,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para eliminar la variable capturada "{0}" se requiere reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="new">Directives from '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">No cambie este código. Coloque el código de limpieza en el método "{0}".</target>

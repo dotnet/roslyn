@@ -182,6 +182,11 @@
         <target state="translated">프로젝트에서 null 허용 참조 형식 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">인라인 임시 변수</target>

@@ -615,6 +615,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">刪除擷取到的變數 '{0}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="new">Directives from '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">請勿變更此程式碼。請將清除程式碼放入 '{0}' 方法</target>

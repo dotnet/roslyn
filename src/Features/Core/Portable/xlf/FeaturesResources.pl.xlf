@@ -615,6 +615,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Usuwanie przechwyconej zmiennej "{0}" wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="new">Directives from '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">Nie zmieniaj tego kodu. Umieść kod czyszczący w metodzie „{0}”.</target>

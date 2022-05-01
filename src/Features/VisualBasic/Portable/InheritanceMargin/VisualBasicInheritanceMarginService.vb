@@ -7,9 +7,10 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
+Namespace Microsoft.CodeAnalysis.VisualBasic.InheritanceMarginService
 
     <ExportLanguageService(GetType(IInheritanceMarginService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicInheritanceMarginService
@@ -19,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property GlobalImportsTitle As String = VBFeaturesResources.Project_level_Imports
 
         Protected Overrides Function GetMembers(nodesToSearch As IEnumerable(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
             Dim typeBlockNodes = nodesToSearch.OfType(Of TypeBlockSyntax)
