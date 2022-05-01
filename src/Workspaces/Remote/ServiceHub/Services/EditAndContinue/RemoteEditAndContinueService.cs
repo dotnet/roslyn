@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
                 var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, string? sourceFilePath, CancellationToken cancellationToken)
+        public ValueTask<bool> HasChangesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, string? sourceFilePath, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await GetService().HasChangesAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), sourceFilePath, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Remote API.
         /// </summary>
         public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken)
+            Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var service = GetService();
 
@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await GetService().GetBaseActiveStatementSpansAsync(sessionId, solution, documentIds, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -191,9 +191,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return await GetService().GetAdjustedActiveStatementSpansAsync(sessionId, document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(PinnedSolutionInfo solutionInfo, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await GetService().IsActiveStatementInExceptionRegionAsync(sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask OnSourceFileUpdatedAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask OnSourceFileUpdatedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, solution =>
+            return RunServiceAsync(solutionChecksum, solution =>
             {
                 // TODO: Non-C#/VB documents are not currently serialized to remote workspace.
                 // https://github.com/dotnet/roslyn/issues/47341

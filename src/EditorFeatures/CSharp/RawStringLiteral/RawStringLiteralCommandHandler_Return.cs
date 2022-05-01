@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
                 return false;
             }
 
-            var indentationOptions = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
             var newLine = indentationOptions.FormattingOptions.NewLine;

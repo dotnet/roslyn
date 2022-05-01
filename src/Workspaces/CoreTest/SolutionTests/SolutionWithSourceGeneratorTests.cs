@@ -755,5 +755,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectWithoutAdditionalFiles = project.RemoveAdditionalDocument(project.AdditionalDocumentIds.Single());
             Assert.Empty((await projectWithoutAdditionalFiles.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
+
+        [Fact]
+        public async Task DynamicFilesNotPassedToSourceGenerators()
+        {
+            using var workspace = CreateWorkspace();
+
+            bool? noTreesPassed = null;
+
+            var analyzerReference = new TestGeneratorReference(
+                new CallbackGenerator(
+                    onInit: _ => { },
+                    onExecute: context => noTreesPassed = context.Compilation.SyntaxTrees.Any()));
+
+            var project = AddEmptyProject(workspace.CurrentSolution);
+            var documentInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id),
+                name: "Test.cs",
+                folders: new string[] { },
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: null,
+                filePath: null,
+                isGenerated: true,
+                designTimeOnly: true,
+                documentServiceProvider: null);
+            project = project.Solution.AddDocument(documentInfo).Projects.Single()
+                .AddAnalyzerReference(analyzerReference);
+
+            _ = await project.GetCompilationAsync();
+
+            // We should have ran the generator, and it should not have had any trees
+            Assert.True(noTreesPassed.HasValue);
+            Assert.False(noTreesPassed!.Value);
+        }
     }
 }

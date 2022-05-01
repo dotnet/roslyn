@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
 
         private async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = originalFixAllContext.CancellationToken;
             var progressTracker = originalFixAllContext.GetProgressTracker();
-            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(originalFixAllContext);
+            progressTracker.Description = originalFixAllContext.GetDefaultFixAllTitle();
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
             // applying fixes.

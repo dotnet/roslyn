@@ -342,11 +342,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.OriginalDefinition;
         }
 
-        public static bool IsFunctionValue([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ILocalSymbol && ((ILocalSymbol)symbol).IsFunctionValue;
+        public static bool IsFunctionValue([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is ILocalSymbol { IsFunctionValue: true };
 
-        public static bool IsThisParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
+        public static bool IsThisParameter([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IParameterSymbol { IsThis: true };
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
