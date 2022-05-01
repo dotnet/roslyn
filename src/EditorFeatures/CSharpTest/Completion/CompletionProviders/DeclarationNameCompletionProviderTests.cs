@@ -2853,6 +2853,20 @@ class ClassA
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNotForUnboundAsync()
+        {
+            var markup = @"
+class C
+{
+    async $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "async");
+            await VerifyItemIsAbsentAsync(markup, "Async");
+            await VerifyItemIsAbsentAsync(markup, "GetAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
