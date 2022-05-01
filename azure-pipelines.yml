@@ -10,6 +10,7 @@ trigger:
     - '*.md'
     - .vscode/
     - .github/
+    - azure-pipelines/release.yml
 
 parameters:
 - name: includeMacOS
