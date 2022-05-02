@@ -82,21 +82,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (canBeSingleLine)
             {
                 context.RegisterRefactoring(
-                    new PriorityBasedCodeAction(
+                    CodeAction.CreateWithPriority(
+                        priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, formattingOptions, c),
-                        nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine,
-                        priority),
+                        nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine),
                     token.Span);
             }
             else
             {
                 context.RegisterRefactoring(
-                    new PriorityBasedCodeAction(
+                    CodeAction.CreateWithPriority(
+                        priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, formattingOptions, c),
-                        nameof(CSharpFeaturesResources.Convert_to_raw_string),
-                        priority),
+                        nameof(CSharpFeaturesResources.Convert_to_raw_string)),
                     token.Span);
 
                 // Users sometimes write verbatim string literals with a extra starting newline (or indentation) purely
@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     CleanupWhitespace(characters).Length > 0)
                 {
                     context.RegisterRefactoring(
-                        new PriorityBasedCodeAction(
+                        CodeAction.CreateWithPriority(
+                            priority,
                             CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
                             c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, formattingOptions, c),
-                            nameof(CSharpFeaturesResources.without_leading_whitespace_may_change_semantics),
-                            priority),
+                            nameof(CSharpFeaturesResources.without_leading_whitespace_may_change_semantics)),
                         token.Span);
                 }
             }
@@ -375,21 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 builder.ToString(),
                 characters.CreateString(),
                 token.TrailingTrivia);
-        }
-
-        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority { get; }
-
-            public PriorityBasedCodeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string equivalenceKey,
-                CodeActionPriority priority)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-                Priority = priority;
-            }
         }
     }
 }
