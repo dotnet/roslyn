@@ -57,20 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasBody, location, diagnostics);
 
             //explicit impls must be marked metadata virtual unless static
-            var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
+            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
+            var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, isExplicitInterfaceImplementation, diagnostics);
 
             if (hasBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -249,10 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else
-                {
-                    allowedModifiers |= DeclarationModifiers.Static;
-                }
+
+                allowedModifiers |= DeclarationModifiers.Static;
             }
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;

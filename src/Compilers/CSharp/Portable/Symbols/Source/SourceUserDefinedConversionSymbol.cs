@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsStatic && IsAbstract)
             {
-                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, IsExplicitInterfaceImplementation, diagnostics: diagnostics);
             }
         }
 

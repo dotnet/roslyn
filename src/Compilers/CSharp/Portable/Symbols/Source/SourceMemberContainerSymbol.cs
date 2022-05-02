@@ -3473,16 +3473,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
                             break;
                         case MethodKind.Conversion:
-                            if (!meth.IsAbstract)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
-                            }
                             break;
                         case MethodKind.UserDefinedOperator:
-                            if (!meth.IsAbstract && (meth.Name == WellKnownMemberNames.EqualityOperatorName || meth.Name == WellKnownMemberNames.InequalityOperatorName))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
-                            }
                             break;
                         case MethodKind.Destructor:
                             diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, member.Locations[0]);

@@ -15095,21 +15095,9 @@ interface I8 : I1
                 // (22,13): error CS0539: 'I5.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01()").WithLocation(22, 13),
-                // (27,20): error CS0106: The modifier 'static' is not valid for this item
-                //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 20),
-                // (27,20): error CS0539: 'I6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01()").WithLocation(27, 20),
                 // (32,26): warning CS0108: 'I7.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26),
-                // (37,29): error CS0106: The modifier 'static' is not valid for this item
-                //     abstract static void I1.M01();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 29),
-                // (37,29): error CS0539: 'I8.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static void I1.M01();
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01()").WithLocation(37, 29)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -15118,7 +15106,10 @@ interface I8 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
         }
@@ -15181,24 +15172,12 @@ interface I8 : I1
                 // (22,13): error CS0539: 'I5.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01()").WithLocation(22, 13),
-                // (27,20): error CS0106: The modifier 'static' is not valid for this item
-                //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 20),
-                // (27,20): error CS0539: 'I6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01()").WithLocation(27, 20),
                 // (32,26): warning CS0108: 'I7.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
                 //     virtual  static void M01();
                 Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26),
-                // (37,29): error CS0106: The modifier 'static' is not valid for this item
-                //     virtual  static void I1.M01();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 29),
                 // (37,29): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static void I1.M01(){}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 29),
-                // (37,29): error CS0539: 'I8.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static void I1.M01();
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01()").WithLocation(37, 29)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 29)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -15207,9 +15186,14 @@ interface I8 : I1
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
+
+            var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
+            Assert.Same(i8.GetMembers().OfType<MethodSymbol>().Single(), i8.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -17284,9 +17268,6 @@ interface I14 : I1
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17298,28 +17279,7 @@ interface I14 : I1
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
                 //     static T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (57,30): error CS0539: 'I12<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static T I11<T>.operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T)").WithLocation(57, 30 + checkedKeyword.Length),
-                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0501: 'I13<T>.operator +(T)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0539: 'I13<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
-                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0501: 'I14.operator +(I1)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0539: 'I14.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length)
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -17328,7 +17288,10 @@ interface I14 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
@@ -17341,7 +17304,7 @@ interface I14 : I1
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
@@ -17452,9 +17415,6 @@ interface I14 : I1
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     virtual  static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17467,21 +17427,12 @@ interface I14 : I1
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
                 //     static T operator +(T x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (57,30): error CS0539: 'I12<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static T I11<T>.operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T)").WithLocation(57, 30 + checkedKeyword.Length),
                 // (62,39): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static T I11<T>.operator +(T x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0539: 'I13<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (67,36): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0539: 'I14.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -17490,17 +17441,28 @@ interface I14 : I1
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
-            foreach (var name in new[] { "I8", "I9", "I10", "I12", "I13" })
+            foreach (var name in new[] { "I8", "I9", "I10" })
             {
                 var iX = compilation1.GlobalNamespace.GetTypeMember(name);
                 var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
                 Assert.Same(iXM, iX.FindImplementationForInterfaceMember(iXM));
             }
 
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+            foreach (var name in new[] { "I12", "I13" })
+            {
+                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
+                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                Assert.Same(iX.GetMembers().OfType<MethodSymbol>().Single(), iX.FindImplementationForInterfaceMember(iXM));
+            }
+
+            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
+            Assert.Same(i14.GetMembers().OfType<MethodSymbol>().Single(), i14.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -17598,15 +17560,9 @@ interface I14 : I1
                 // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static I1 operator |(I1 x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
-                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
-                //     I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1, int)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator |(I1 x, int y);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17615,28 +17571,7 @@ interface I14 : I1
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (57,30): error CS0539: 'I12<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static T I11<T>.operator |(T x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(57, 30 + checkedKeyword.Length),
-                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0501: 'I13<T>.operator |(T, int)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0539: 'I13<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
-                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0501: 'I14.operator |(I1, int)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length)
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length)
                 };
 
             if (op is "==" or "!=")
@@ -17649,12 +17584,21 @@ interface I14 : I1
                         // (17,24): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static I1 operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(17, 24 + checkedKeyword.Length),
+                        // (22,20): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     I1 I1.operator ==(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(22, 20),
+                        // (27,27): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     static I1 I1.operator ==(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(27, 27),
                         // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16 + checkedKeyword.Length),
                         // (47,23): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23 + checkedKeyword.Length),
+                        // (57,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     static T I11<T>.operator ==(T x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(57, 30),
                         }
                     ).ToArray();
             }
@@ -17665,6 +17609,9 @@ interface I14 : I1
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
+                        // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
+                        //     I1 I1.operator |(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                         // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
                         //     T operator |(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
@@ -17680,7 +17627,10 @@ interface I14 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
@@ -17693,7 +17643,7 @@ interface I14 : I1
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
@@ -17802,9 +17752,6 @@ interface I14 : I1
                 // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1, int)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     virtual  static I1 operator |(I1 x, int y);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17814,21 +17761,12 @@ interface I14 : I1
                 // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static T operator |(T x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (57,30): error CS0539: 'I12<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static T I11<T>.operator |(T x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(57, 30 + checkedKeyword.Length),
                 // (62,39): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static T I11<T>.operator |(T x, int y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(62, 39 + checkedKeyword.Length),
-                // (62,39): error CS0539: 'I13<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (67,36): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static I1 I1.operator |(I1 x, int y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length),
-                // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length),
                 // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                 //     I1 operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
@@ -17845,17 +17783,28 @@ interface I14 : I1
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
+
             Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
-            foreach (var name in new[] { "I8", "I9", "I10", "I12", "I13" })
+            foreach (var name in new[] { "I8", "I9", "I10" })
             {
                 var iX = compilation1.GlobalNamespace.GetTypeMember(name);
                 var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
                 Assert.Same(iXM, iX.FindImplementationForInterfaceMember(iXM));
             }
 
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+            foreach (var name in new[] { "I12", "I13" })
+            {
+                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
+                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                Assert.Same(iX.GetMembers().OfType<MethodSymbol>().Single(), iX.FindImplementationForInterfaceMember(iXM));
+            }
+
+            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
+            Assert.Same(i14.GetMembers().OfType<MethodSymbol>().Single(), i14.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -21608,21 +21557,9 @@ interface I8 : I1
                 // (22,12): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01 { get => 0; set{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 12),
-                // (27,19): error CS0106: The modifier 'static' is not valid for this item
-                //     static int I1.M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 19),
-                // (27,19): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static int I1.M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 19),
                 // (32,25): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     abstract static int M01 { get; set; }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25),
-                // (37,28): error CS0106: The modifier 'static' is not valid for this item
-                //     abstract static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 28),
-                // (37,28): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 28)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25)
                 );
 
             foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
@@ -21631,10 +21568,16 @@ interface I8 : I1
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
             }
+
+            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            var i6m = i6.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
+            Assert.Same(i6m.GetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).GetMethod);
+            Assert.Same(i6m.SetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).SetMethod);
         }
 
         [Fact]
@@ -21695,30 +21638,12 @@ interface I8 : I1
                 // (22,12): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01 { get => 0; set{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 12),
-                // (27,19): error CS0106: The modifier 'static' is not valid for this item
-                //     static int I1.M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 19),
-                // (27,19): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static int I1.M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 19),
                 // (32,25): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     virtual  static int M01 { get; set; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25),
-                // (37,28): error CS0106: The modifier 'static' is not valid for this item
-                //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 28),
                 // (37,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 28),
-                // (37,28): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 28),
-                // (37,34): error CS0501: 'I8.M01.get' must declare a body because it is not marked abstract, extern, or partial
-                //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I8.M01.get").WithLocation(37, 34),
-                // (37,39): error CS0501: 'I8.M01.set' must declare a body because it is not marked abstract, extern, or partial
-                //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I8.M01.set").WithLocation(37, 39)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 28)
                 );
 
             foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
@@ -21732,9 +21657,18 @@ interface I8 : I1
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
+            }
+
+            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+            foreach (var name in new[] { "I6", "I8" })
+            {
+                var i6 = compilation1.GlobalNamespace.GetTypeMember(name);
+                var i6m = i6.GetMembers().OfType<PropertySymbol>().Single();
+                Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
+                Assert.Same(i6m.GetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).GetMethod);
+                Assert.Same(i6m.SetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).SetMethod);
             }
         }
 
@@ -24369,21 +24303,9 @@ interface I8 : I1
                 // (22,28): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.M01 { add{} remove{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 28),
-                // (27,35): error CS0106: The modifier 'static' is not valid for this item
-                //     static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 35),
-                // (27,35): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 35),
                 // (32,41): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     abstract static event System.Action M01;
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41),
-                // (37,44): error CS0106: The modifier 'static' is not valid for this item
-                //     abstract static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 44),
-                // (37,44): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static event System.Action I1.M01;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 44)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41)
                 );
 
             foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
@@ -24392,10 +24314,17 @@ interface I8 : I1
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
             }
+
+            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            var i6m = i6.GetMembers().OfType<EventSymbol>().Single();
+            Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
+            Assert.Same(i6m.AddMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).AddMethod);
+            Assert.Same(i6m.RemoveMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).RemoveMethod);
         }
 
         [Fact]
@@ -24456,24 +24385,12 @@ interface I8 : I1
                 // (22,28): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.M01 { add{} remove{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 28),
-                // (27,35): error CS0106: The modifier 'static' is not valid for this item
-                //     static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 35),
-                // (27,35): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 35),
                 // (32,41): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     virtual  static event System.Action M01;
                 Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41),
-                // (37,44): error CS0106: The modifier 'static' is not valid for this item
-                //     virtual  static event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 44),
                 // (37,44): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual  static event System.Action I1.M01;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 44),
-                // (37,44): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     virtual  static event System.Action I1.M01;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 44),
                 // (37,44): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     virtual  static event System.Action I1.M01;
                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "M01").WithLocation(37, 44)
@@ -24485,9 +24402,18 @@ interface I8 : I1
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
                 Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
+            }
+
+            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+            foreach (var name in new[] { "I6", "I8" })
+            {
+                var i6 = compilation1.GlobalNamespace.GetTypeMember(name);
+                var i6m = i6.GetMembers().OfType<EventSymbol>().Single();
+                Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
+                Assert.Same(i6m.AddMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).AddMethod);
+                Assert.Same(i6m.RemoveMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).RemoveMethod);
             }
         }
 
@@ -27028,15 +26954,15 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (17,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(17, 30 + checkedKeyword.Length),
-                // (22,29): error CS8930: Explicit implementation of a user-defined operator 'I5<T>.implicit operator int(T)' must be declared static
+                // (22,29): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     implicit I1<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("I5<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(22, 29 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(22, 29 + checkedKeyword.Length),
                 // (22,29): error CS0539: 'I5<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     implicit I1<T>.operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I5<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(22, 29 + checkedKeyword.Length),
-                // (27,36): error CS0539: 'I6<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (27,36): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit I1<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I6<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(27, 36 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(27, 36 + checkedKeyword.Length),
                 // (32,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "int").WithLocation(32, 39 + checkedKeyword.Length),
@@ -27052,37 +26978,28 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (47,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(47, 30 + checkedKeyword.Length),
-                // (57,37): error CS0539: 'I12<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (57,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit I11<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I12<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(57, 37 + checkedKeyword.Length),
-                // (62,46): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static implicit I11<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("abstract").WithLocation(62, 46 + checkedKeyword.Length),
-                // (62,46): error CS0501: 'I13<T>.implicit operator int(T)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static implicit I11<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I13<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(62, 46 + checkedKeyword.Length),
-                // (62,46): error CS0539: 'I13<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static implicit I11<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I13<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(62, 46 + checkedKeyword.Length),
-                // (67,45): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract static implicit I1<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("abstract").WithLocation(67, 45 + checkedKeyword.Length),
-                // (67,45): error CS0501: 'I14<T>.implicit operator int(T)' must declare a body because it is not marked abstract, extern, or partial
-                //     abstract static implicit I1<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I14<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(67, 45 + checkedKeyword.Length),
-                // (67,45): error CS0539: 'I14<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     abstract static implicit I1<T>.operator int(T x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I14<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(67, 45 + checkedKeyword.Length)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(57, 37 + checkedKeyword.Length)
                 );
 
-            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+            var i2 = compilation1.GlobalNamespace.GetTypeMember("I2");
+            Assert.Null(i2.FindImplementationForInterfaceMember(i2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+            var i3 = compilation1.GlobalNamespace.GetTypeMember("I3");
+            Assert.Null(i3.FindImplementationForInterfaceMember(i3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i4 = compilation1.GlobalNamespace.GetTypeMember("I4");
+            Assert.Null(i4.FindImplementationForInterfaceMember(i4.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i5 = compilation1.GlobalNamespace.GetTypeMember("I5");
+            Assert.Null(i5.FindImplementationForInterfaceMember(i5.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
+            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(i6.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i7 = compilation1.GlobalNamespace.GetTypeMember("I7");
+            Assert.Null(i7.FindImplementationForInterfaceMember(i7.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
             Assert.Null(i8.FindImplementationForInterfaceMember(i8.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
@@ -27094,12 +27011,13 @@ interface I14<T> : I1<T> where T : I1<T>
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
-            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
+            Assert.Null(i14.FindImplementationForInterfaceMember(i14.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
         }
 
         [Theory]
