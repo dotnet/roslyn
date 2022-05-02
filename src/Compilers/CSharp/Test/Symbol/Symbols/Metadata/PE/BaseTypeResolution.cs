@@ -157,6 +157,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(varI102, varC204.Interfaces()[1]);
         }
 
+        private void TestBaseTypeResolutionHelper3(AssemblySymbol[] assemblies)
+        {
+            var module1 = assemblies[0].Modules[0];
+            var module2 = assemblies[1].Modules[0];
+
+            var varCorTypes = module2.GlobalNamespace.GetMembers("CorTypes").OfType<NamespaceSymbol>().Single();
+
+            var varCorTypes_Derived = varCorTypes.GetTypeMembers("Derived").Single();
+            AssertBaseType(varCorTypes_Derived.BaseType(),
+                           "CorTypes.NS.Base<System.Boolean,System.SByte,System.Byte,System.Int16,System.UInt16,System.Int32,System.UInt32,System.Int64,System.UInt64,System.Single,System.Double,System.Char,System.String,System.IntPtr,System.UIntPtr,System.Object>");
+
+            foreach (var arg in varCorTypes_Derived.BaseType().TypeArguments())
+            {
+                Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
+            }
+        }
+
         private void TestBaseTypeResolutionHelper4(AssemblySymbol[] assemblies)
         {
             var module1 = assemblies[0].Modules[0];
