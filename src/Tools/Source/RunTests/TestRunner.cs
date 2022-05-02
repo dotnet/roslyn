@@ -110,6 +110,7 @@ namespace RunTests
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
+        <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
         <EnableXUnitReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableXUnitReporter>
     </PropertyGroup>
 
