@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.Snippets
                         lspSnippetString.Append(textChangeText[i]);
                         i++;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
                 else
                 {
