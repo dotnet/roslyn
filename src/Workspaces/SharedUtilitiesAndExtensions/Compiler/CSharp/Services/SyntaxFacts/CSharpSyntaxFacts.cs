@@ -1186,9 +1186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNumericLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.NumericLiteralToken;
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
-            => GetArgumentsOfArgumentList(((InvocationExpressionSyntax)invocationExpression).ArgumentList);
-
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
             => ((BaseObjectCreationExpressionSyntax)objectCreationExpression).ArgumentList is { } argumentList
                 ? GetArgumentsOfArgumentList(argumentList)

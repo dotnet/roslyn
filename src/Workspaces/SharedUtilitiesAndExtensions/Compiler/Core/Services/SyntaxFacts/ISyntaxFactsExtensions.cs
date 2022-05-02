@@ -491,6 +491,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return argumentList;
         }
 
+        public static SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            var argumentList = syntaxFacts.GetArgumentListOfInvocationExpression(node);
+            return argumentList is null ? default : syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        }
+
         public static SyntaxNode? GetArgumentListOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
