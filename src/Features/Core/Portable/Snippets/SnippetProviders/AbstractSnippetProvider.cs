@@ -149,18 +149,20 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             if (document.SupportsSyntaxTree)
             {
-                var options = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var addImportPlacementOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, _findSnippetAnnotation, options.AddImportOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, _findSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, options.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, simplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, options.FormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, syntaxFormattingOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return document;
