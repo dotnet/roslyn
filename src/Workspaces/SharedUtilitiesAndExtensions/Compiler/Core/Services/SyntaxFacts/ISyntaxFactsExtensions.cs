@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
+        public static bool IsMemberInitializerNamedAssignmentIdentifier(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(node, out _);
+
         public static bool IsOnSingleLine(this ISyntaxFacts syntaxFacts, SyntaxNode node, bool fullSpan)
         {
             // The stack logic assumes the initial node is not null

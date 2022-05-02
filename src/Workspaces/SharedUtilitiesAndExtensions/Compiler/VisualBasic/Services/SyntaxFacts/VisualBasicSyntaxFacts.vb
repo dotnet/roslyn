@@ -636,11 +636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
-            Dim unused As SyntaxNode = Nothing
-            Return IsMemberInitializerNamedAssignmentIdentifier(node, unused)
-        End Function
-
         Public Function IsMemberInitializerNamedAssignmentIdentifier(
                 node As SyntaxNode,
                 ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier

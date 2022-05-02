@@ -619,9 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPropertyPatternClause(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertyPatternClause;
 
-        public bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
-            => IsMemberInitializerNamedAssignmentIdentifier(node, out _);
-
         public bool IsMemberInitializerNamedAssignmentIdentifier(
             [NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance)
         {
