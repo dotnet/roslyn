@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Classification
             classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
 
             // intentionally adding to the semanticClassifications array here.
-            if (project != null)
-                embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
+            embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
