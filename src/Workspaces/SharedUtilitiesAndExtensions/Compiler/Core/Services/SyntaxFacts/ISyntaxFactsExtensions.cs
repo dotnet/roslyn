@@ -569,6 +569,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return operatorToken;
         }
 
+        public static SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfGenericName(node, out _, out var typeArguments);
+            return typeArguments;
+        }
+
         public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
