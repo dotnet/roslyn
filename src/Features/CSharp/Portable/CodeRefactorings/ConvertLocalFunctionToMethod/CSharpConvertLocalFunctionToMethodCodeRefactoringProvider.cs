@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -59,8 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Convert_to_method,
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c),
+                    nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
 
@@ -311,14 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             return NameGenerator.EnsureUniqueness(
                 baseName: declaredSymbol.Name,
                 reservedNames: declaredSymbol.ContainingType.GetMembers().Select(m => m.Name));
-        }
-
-        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument, nameof(CSharpFeaturesResources.Convert_to_method))
-            {
-            }
         }
     }
 }

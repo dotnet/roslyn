@@ -74,25 +74,29 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CodeCleanupOptionsProvider fallbackOptions)
         {
-            return ImmutableArray.Create<CodeAction>(
-                new MyCodeAction(
+            return ImmutableArray.Create(
+                CodeAction.Create(
                     FeaturesResources.Encapsulate_fields_and_use_property,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c)),
-                new MyCodeAction(
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                    nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
+                CodeAction.Create(
                     FeaturesResources.Encapsulate_fields_but_still_use_field,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c)));
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                    nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)));
         }
 
         private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, CodeCleanupOptionsProvider fallbackOptions)
         {
             var fields = ImmutableArray.Create(field);
-            return ImmutableArray.Create<CodeAction>(
-                new MyCodeAction(
+            return ImmutableArray.Create(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c)),
-                new MyCodeAction(
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
+                CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c)));
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name));
         }
 
         public async Task<Solution> EncapsulateFieldsAsync(
@@ -459,13 +463,5 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private static readonly CultureInfo EnUSCultureInfo = new("en-US");
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
-        }
     }
 }

@@ -59,18 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(context.Options), c)));
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Convert_to_top_level_statements, createChangedDocument, nameof(ConvertToTopLevelStatementsCodeRefactoringProvider))
-            {
-            }
+            context.RegisterRefactoring(CodeAction.CreateWithPriority(
+                CodeActionPriority.Low,
+                CSharpAnalyzersResources.Convert_to_top_level_statements,
+                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(context.Options), c),
+                nameof(CSharpAnalyzersResources.Convert_to_top_level_statements)));
         }
     }
 }

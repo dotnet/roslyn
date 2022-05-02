@@ -48,7 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                     Continue For
                 End If
 
-                context.RegisterCodeFix(New MyCodeAction(GetDocumentUpdater(context, diagnostic)), diagnostic)
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        VBFeaturesResources.Remove_shared_keyword_from_module_member,
+                        GetDocumentUpdater(context, diagnostic),
+                        NameOf(VBFeaturesResources.Remove_shared_keyword_from_module_member)),
+                    diagnostic)
             Next
 
             Return Task.CompletedTask
@@ -68,13 +73,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
             Dim generator = SyntaxGenerator.GetGenerator(document)
             Return generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(False))
         End Function
-
-        Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
-
-            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(VBFeaturesResources.Remove_shared_keyword_from_module_member, createChangedDocument, VBFeaturesResources.Remove_shared_keyword_from_module_member)
-            End Sub
-        End Class
     End Class
 End Namespace

@@ -33,8 +33,11 @@ namespace Microsoft.CodeAnalysis.InvertConditional
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
-                c => InvertConditionalAsync(document, conditional, c)),
+            context.RegisterRefactoring(
+                CodeAction.Create(
+                    FeaturesResources.Invert_conditional,
+                    c => InvertConditionalAsync(document, conditional, c),
+                    nameof(FeaturesResources.Invert_conditional)),
                 conditional.Span);
         }
 
@@ -86,14 +89,6 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             editor.ReplaceNode(whenFalse, whenTrue.WithTriviaFrom(whenFalse));
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Invert_conditional, createChangedDocument, nameof(FeaturesResources.Invert_conditional))
-            {
-            }
         }
     }
 }

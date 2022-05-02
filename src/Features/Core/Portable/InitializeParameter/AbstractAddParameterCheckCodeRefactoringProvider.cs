@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray<CodeAction>.Empty;
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
-            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+            return ImmutableArray.Create<CodeAction>(CodeAction.Create(
                 FeaturesResources.Add_null_checks_for_all_parameters,
                 c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
                 nameof(FeaturesResources.Add_null_checks_for_all_parameters)));
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Great.  There was no null check.  Offer to add one.
             using var result = TemporaryArray<CodeAction>.Empty;
-            result.Add(new MyCodeAction(
+            result.Add(CodeAction.Create(
                 FeaturesResources.Add_null_check,
                 c => AddNullCheckAsync(document, parameterSyntax, parameter, funcOrRecord, methodSymbol, blockStatementOpt, c),
                 nameof(FeaturesResources.Add_null_check)));
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // to place the checks.
             if (parameter.Type.SpecialType == SpecialType.System_String && !IsRecordDeclaration(funcOrRecord))
             {
-                result.Add(new MyCodeAction(
+                result.Add(CodeAction.Create(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
                     c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c),
                     nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
-                result.Add(new MyCodeAction(
+                result.Add(CodeAction.Create(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
                     c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c),
                     nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));

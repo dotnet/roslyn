@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private CodeAction CreateAction(Document document, TextSpan span, Scope scope, CodeCleanupOptionsProvider fallbackOptions, bool isRecord)
-            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, c), scope.ToString());
+            => CodeAction.Create(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, c), scope.ToString());
 
         private static string GetTitle(Scope scope)
             => scope switch
@@ -938,17 +938,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 className, parameters, assignmentStatements, isPrimaryConstructor: isRecord);
 
             return constructor;
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
         }
     }
 }

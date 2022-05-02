@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             }
 
             context.RegisterRefactoring(
-                new ConvertAutoPropertyToFullPropertyCodeAction(
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)),
+                CodeAction.Create(
+                    FeaturesResources.Convert_to_full_property,
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c),
+                    nameof(FeaturesResources.Convert_to_full_property)),
                 property.Span);
         }
 
@@ -128,14 +130,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ConvertAutoPropertyToFullPropertyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_full_property, createChangedDocument, nameof(FeaturesResources.Convert_to_full_property))
-            {
-            }
         }
     }
 }
