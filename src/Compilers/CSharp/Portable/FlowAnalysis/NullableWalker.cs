@@ -3631,6 +3631,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [Obsolete("Use VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, bool delayCompletionForType) instead.", true)]
+        private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         private Action<int, TypeSymbol>? VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, bool delayCompletionForType)
         {
             ImmutableArray<VisitArgumentResult> argumentResults = default;
