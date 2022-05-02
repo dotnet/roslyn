@@ -7,6 +7,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
@@ -47,9 +48,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return;
             }
 
-            var addImportsCodeAction = new AddMissingImportsCodeAction(
+            var addImportsCodeAction = CodeAction.Create(
                 CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, options.CleanupOptions.FormattingOptions, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, options.CleanupOptions.FormattingOptions, cancellationToken),
+                CodeActionTitle);
 
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
@@ -58,14 +60,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, formattingOptions, cancellationToken).ConfigureAwait(false);
             return modifiedDocument.Project.Solution;
-        }
-
-        private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
-        {
-            public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }
