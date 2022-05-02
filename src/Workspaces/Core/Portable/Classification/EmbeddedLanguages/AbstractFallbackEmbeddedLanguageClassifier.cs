@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly EmbeddedLanguageInfo _info;
         private readonly ImmutableArray<int> _supportedKinds;
 
+        public ImmutableArray<string> Identifiers => ImmutableArray<string>.Empty;
+
         protected AbstractFallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;

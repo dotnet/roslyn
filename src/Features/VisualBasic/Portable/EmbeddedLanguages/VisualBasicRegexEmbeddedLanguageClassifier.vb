@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     ' want that to happen for APIs that are certain to be another language Like Regex.
     <ExtensionOrder(Before:=PredefinedEmbeddedLanguageClassifierNames.Json)>
     <ExportEmbeddedLanguageClassifierInternal(
-        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
+        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, True), [Shared]>
     Friend Class VisualBasicRegexEmbeddedLanguageClassifier
         Inherits AbstractRegexEmbeddedLanguageClassifier
 
