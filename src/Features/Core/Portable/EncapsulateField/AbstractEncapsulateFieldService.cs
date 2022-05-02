@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
-        public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, EncapsulateFieldOptions fallbackOptions, bool useDefaultBehavior, CancellationToken cancellationToken)
+        public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, bool useDefaultBehavior, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 c => EncapsulateFieldsAsync(document, fields, fallbackOptions, useDefaultBehavior, c));
         }
 
-        public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, EncapsulateFieldOptions fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
@@ -71,32 +72,36 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, EncapsulateFieldOptions fallbackOptions)
+        private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CodeCleanupOptionsProvider fallbackOptions)
         {
-            return ImmutableArray.Create<CodeAction>(
-                new MyCodeAction(
+            return ImmutableArray.Create(
+                CodeAction.Create(
                     FeaturesResources.Encapsulate_fields_and_use_property,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c)),
-                new MyCodeAction(
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                    nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
+                CodeAction.Create(
                     FeaturesResources.Encapsulate_fields_but_still_use_field,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c)));
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                    nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)));
         }
 
-        private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, EncapsulateFieldOptions fallbackOptions)
+        private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, CodeCleanupOptionsProvider fallbackOptions)
         {
             var fields = ImmutableArray.Create(field);
-            return ImmutableArray.Create<CodeAction>(
-                new MyCodeAction(
+            return ImmutableArray.Create(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c)),
-                new MyCodeAction(
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
+                CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c)));
+                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name));
         }
 
         public async Task<Solution> EncapsulateFieldsAsync(
             Document document, ImmutableArray<IFieldSymbol> fields,
-            EncapsulateFieldOptions fallbackOptions,
+            CodeCleanupOptionsProvider fallbackOptions,
             bool updateReferences, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -111,7 +116,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                     var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, fallbackOptions, updateReferences, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, callbackId, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions.Invoke),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -128,7 +134,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 document, fields, fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, EncapsulateFieldOptions fallbackOptions, bool updateReferences, CancellationToken cancellationToken)
+        private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, CodeCleanupOptionsProvider fallbackOptions, bool updateReferences, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(fields.Length == 0);
 
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Document document,
             IFieldSymbol field,
             bool updateReferences,
-            EncapsulateFieldOptions fallbackOptions,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var originalField = field;
@@ -199,13 +205,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return null;
 
             var solutionNeedingProperty = await UpdateReferencesAsync(
-                updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
+                updateReferences, solution, document, field, finalFieldName, generatedPropertyName, fallbackOptions, cancellationToken).ConfigureAwait(false);
             document = solutionNeedingProperty.GetDocument(document.Id);
 
             var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
             var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
-                var linkedDocumentFormattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedDocumentFormattingOptions = await linkedDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 var updatedLinkedRoot = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
                 var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot), Formatter.Annotation, linkedDocumentFormattingOptions, cancellationToken).ConfigureAwait(false);
                 solution = updatedLinkedDocument.Project.Solution;
@@ -236,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 new SyntaxAnnotation(),
                 document);
 
-            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
@@ -245,7 +251,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private async Task<Solution> UpdateReferencesAsync(
-            bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, CancellationToken cancellationToken)
+            bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!updateReferences)
             {
@@ -262,6 +268,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     solution = await RenameAsync(
                         solution, field, finalFieldName,
                         location => IntersectsWithAny(location, constructorLocations),
+                        fallbackOptions,
                         cancellationToken).ConfigureAwait(false);
 
                     document = solution.GetDocument(document.Id);
@@ -275,6 +282,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return await RenameAsync(
                     solution, field, generatedPropertyName,
                     location => !IntersectsWithAny(location, constructorLocations),
+                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
             }
             else
@@ -290,6 +298,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             IFieldSymbol field,
             string finalName,
             Func<Location, bool> filter,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var options = new SymbolRenameOptions(
@@ -299,7 +308,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 RenameFile: false);
 
             var initialLocations = await Renamer.FindRenameLocationsAsync(
-                solution, field, options, cancellationToken).ConfigureAwait(false);
+                solution, field, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
                 finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
@@ -454,13 +463,5 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private static readonly CultureInfo EnUSCultureInfo = new("en-US");
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
-        }
     }
 }

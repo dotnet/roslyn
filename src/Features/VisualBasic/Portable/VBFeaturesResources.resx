@@ -1224,4 +1224,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Apply_object_creation_preferences" xml:space="preserve">
     <value>Apply object creation preferences</value>
   </data>
+  <data name="Project_level_Imports" xml:space="preserve">
+    <value>Project level 'Imports'</value>
+  </data>
 </root>

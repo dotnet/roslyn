@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var _1 = PooledHashSet<Location>.GetInstance(out var declaratorLocations);
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateCustomFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateUnderscorePrefixedFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateCustomStaticFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,

@@ -82,7 +82,10 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(_ => AddBannerAsync(document, root, siblingDocument, siblingBanner)),
+                        CodeAction.Create(
+                            CodeFixesResources.Add_file_header,
+                            _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
+                            nameof(CodeFixesResources.Add_file_header)),
                         new Text.TextSpan(position, length: 0));
                     return;
                 }
@@ -147,14 +150,6 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
             var token = syntaxFacts.ParseToken(text.ToString());
             return bannerService.GetFileBanner(token);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(CodeFixesResources.Add_file_header))
-            {
-            }
         }
     }
 }

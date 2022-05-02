@@ -61,15 +61,19 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.SupportsRecord(anonymousObject.SyntaxTree.Options))
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    FeaturesResources.Convert_to_record,
-                    c => ConvertAsync(document, textSpan, isRecord: true, c)),
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        FeaturesResources.Convert_to_record,
+                        c => ConvertAsync(document, textSpan, isRecord: true, c),
+                        nameof(FeaturesResources.Convert_to_record)),
                     anonymousObject.Span);
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(
+                CodeAction.Create(
                     FeaturesResources.Convert_to_class,
-                c => ConvertAsync(document, textSpan, isRecord: false, c)),
+                    c => ConvertAsync(document, textSpan, isRecord: false, c),
+                    nameof(FeaturesResources.Convert_to_class)),
                 anonymousObject.Span);
         }
 
@@ -126,8 +130,9 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 sortMembers: false,
                 autoInsertionLocation: false);
 
+            // fallback options: https://github.com/dotnet/roslyn/issues/60794
             var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
 
@@ -398,14 +403,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 className, parameters, assignmentStatements);
 
             return constructor;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

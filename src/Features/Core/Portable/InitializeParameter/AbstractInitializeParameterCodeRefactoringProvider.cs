@@ -272,13 +272,5 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             fieldOrProperty = null;
             return false;
         }
-
-        protected class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
     }
 }

@@ -502,6 +502,11 @@
         <target state="translated">其他運算子中</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="new">Include global imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
         <target state="translated">索引</target>
@@ -1661,6 +1666,11 @@
         <source>Not a valid value</source>
         <target state="translated">值無效</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="new">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
       </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>

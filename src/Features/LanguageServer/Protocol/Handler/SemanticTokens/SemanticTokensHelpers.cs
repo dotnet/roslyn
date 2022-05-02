@@ -145,11 +145,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range if they wish.
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
-            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
-            // results but will speed up how quickly we can respond to the client's request.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
-            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
-
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 

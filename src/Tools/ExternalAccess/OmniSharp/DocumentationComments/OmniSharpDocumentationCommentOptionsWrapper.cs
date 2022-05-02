@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             bool autoXmlDocCommentGeneration,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             return new(new DocumentationCommentOptions(
                 AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration,
