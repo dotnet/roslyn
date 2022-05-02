@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -14,10 +15,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -35,11 +39,16 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public AbstractAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        public AbstractAddImportsPasteCommandHandler(
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _globalOptions = globalOptions;
+            _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
         }
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
@@ -103,7 +112,6 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             // Applying the post-paste snapshot to the tracking span gives us the span of pasted text.
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
-            var textSpan = snapshotSpan.Span.ToTextSpan();
 
             var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
             if (!Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
@@ -117,9 +125,21 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return;
             }
 
+            // We're showing our own UI, ensure the editor doesn't show anything itself.
+            executionContext.OperationContext.TakeOwnership();
+
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteAsync));
+
+            ExecuteAsync(document, snapshotSpan, args.TextView)
+                .ReportNonFatalErrorAsync()
+                .CompletesAsyncOperation(token);
+        }
+
+        private async Task ExecuteAsync(Document document, SnapshotSpan snapshotSpan, ITextView textView)
+        {
             var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            var backgroundWorkContext = indicatorFactory.Create(
-                args.TextView,
+            using var backgroundWorkContext = indicatorFactory.Create(
+                textView,
                 snapshotSpan,
                 DialogText,
                 cancelOnEdit: true,
@@ -127,36 +147,27 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var cancellationToken = backgroundWorkContext.UserCancellationToken;
 
-            Task.Run(async () =>
+            // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
+            // intended to tell us how long we're blocking the user from typing with this action. 
+            using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
+
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+
+            var options = new AddMissingImportsOptions(
+                CleanupOptions: cleanupOptions,
+                HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
+
+            var textSpan = snapshotSpan.Span.ToTextSpan();
+            var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+
+            if (updatedDocument is null)
             {
-                try
-                {
-                    // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
-                    // intended to tell us how long we're blocking the user from typing with this action. 
-                    using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+                return;
+            }
 
-                    var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-
-                    var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
-
-                    var options = new AddMissingImportsOptions(
-                        CleanupOptions: cleanupOptions,
-                        HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
-
-                    var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-
-                    if (updatedDocument is null)
-                    {
-                        return;
-                    }
-
-                    workspace.TryApplyChanges(updatedDocument.Project.Solution);
-                }
-                finally
-                {
-                    backgroundWorkContext.Dispose();
-                }
-            }, cancellationToken);
+            document.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
         }
     }
 }
