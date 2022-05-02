@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 }|]";
 
             var expectedLSPSnippet =
-@"$0if (${1:true})
+@"$0 if (${1:true})
 {
 }";
             MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
@@ -89,9 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
         {
             using var workspace = CreateWorkspaceFromCode(markup);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, cursorPosition!.Value, placeholders, textChange).ConfigureAwait(false);
 
-            AssertEx.EqualOrDiff(expectedLSPSnippet, lspSnippetString);
+            if (document is not null)
+            {
+                var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, cursorPosition!.Value, placeholders, textChange).ConfigureAwait(false);
+                AssertEx.EqualOrDiff(expectedLSPSnippet, lspSnippetString);
+            }
         }
     }
 }
