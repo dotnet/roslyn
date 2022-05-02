@@ -60,22 +60,24 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
+            var taskTitle = GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    GetMakeAsyncTaskFunctionResource(),
+                    taskTitle,
                     c => FixNodeAsync(context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c),
-                    nameof(GetMakeAsyncTaskFunctionResource)),
+                    taskTitle),
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
             var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
+                var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        GetMakeAsyncVoidFunctionResource(),
+                        asyncVoidTitle,
                         c => FixNodeAsync(context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
-                        nameof(GetMakeAsyncVoidFunctionResource)),
+                        asyncVoidTitle),
                     context.Diagnostics);
             }
         }

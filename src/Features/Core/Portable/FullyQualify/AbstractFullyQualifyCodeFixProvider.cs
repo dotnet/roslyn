@@ -122,10 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     memberName = name;
                 }
 
+                var title = $"{containerName}.{memberName}";
                 var codeAction = CodeAction.Create(
-                    $"{containerName}.{memberName}",
+                    title,
                     c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
-                    nameof(AbstractFullyQualifyCodeFixProvider));
+                    title);
 
                 yield return codeAction;
             }

@@ -71,11 +71,12 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 }
             }
 
+            var title = GetTitle(syntaxKinds, expression.RawKind);
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    GetTitle(syntaxKinds, expression.RawKind),
+                    title,
                     c => InvertLogicalAsync(document, expression, c),
-                    nameof(GetTitle)),
+                    title),
                 expression.Span);
         }
 

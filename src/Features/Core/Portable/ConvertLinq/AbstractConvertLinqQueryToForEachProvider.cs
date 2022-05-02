@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                     CodeAction.Create(
                         Title,
                         c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root))),
-                        nameof(Title)),
+                        Title),
                     queryExpression.Span);
             }
         }

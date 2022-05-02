@@ -146,13 +146,14 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
+            var title = GetTitle();
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    GetTitle(),
+                    title,
                     c => ConvertForToForEachAsync(
                         document, forStatement, iterationVariable, collectionExpression,
                         containingType, collectionType.Type, iterationType, c),
-                    nameof(GetTitle)),
+                    title),
                 forStatement.Span);
 
             return;

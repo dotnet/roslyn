@@ -48,18 +48,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 var expression = expressions[i];
                 if (IsValidAwaitableExpression(model, syntaxFacts, expression, cancellationToken))
                 {
+                    var title = GetTitle();
                     context.RegisterRefactoring(
                         CodeAction.Create(
-                            GetTitle(),
+                            title,
                             c => AddAwaitAsync(document, expression, withConfigureAwait: false, c),
-                            equivalenceKey: nameof(GetTitle)),
+                            title),
                         expression.Span);
 
+                    var titleWithConfigureAwait = GetTitleWithConfigureAwait();
                     context.RegisterRefactoring(
                         CodeAction.Create(
-                            GetTitleWithConfigureAwait(),
+                            titleWithConfigureAwait,
                             c => AddAwaitAsync(document, expression, withConfigureAwait: true, c),
-                            equivalenceKey: nameof(GetTitleWithConfigureAwait)),
+                            titleWithConfigureAwait),
                         expression.Span);
                 }
             }

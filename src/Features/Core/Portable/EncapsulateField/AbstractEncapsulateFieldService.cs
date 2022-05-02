@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
                     c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
-                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property)),
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
                 CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
                     c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
-                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field)));
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name));
         }
 
         public async Task<Solution> EncapsulateFieldsAsync(

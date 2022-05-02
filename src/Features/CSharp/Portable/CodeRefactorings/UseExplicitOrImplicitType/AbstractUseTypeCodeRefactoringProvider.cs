@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 CodeAction.Create(
                     Title,
                     c => UpdateDocumentAsync(document, declaredType, c),
-                    nameof(Title)),
+                    Title),
                 declaredType.Span);
         }
 

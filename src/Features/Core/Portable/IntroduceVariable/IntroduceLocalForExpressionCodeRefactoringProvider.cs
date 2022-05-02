@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 CodeAction.Create(
                     string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
                     c => IntroduceLocalAsync(document, expressionStatement, c),
-                    nameof(FeaturesResources.Introduce_local_for_0) + nodeString),
+                    nameof(FeaturesResources.Introduce_local_for_0) + "_" + nodeString),
                 expressionStatement.Span);
         }
 

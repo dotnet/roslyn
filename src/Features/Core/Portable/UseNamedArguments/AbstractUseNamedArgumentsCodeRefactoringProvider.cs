@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                         CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
                             c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false),
-                            nameof(FeaturesResources.Add_argument_name_0)),
+                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
                         argument.Span);
 
                     context.RegisterRefactoring(
                         CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
                             c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
-                            nameof(FeaturesResources.Add_argument_name_0_including_trailing_arguments)),
+                            nameof(FeaturesResources.Add_argument_name_0_including_trailing_arguments) + "_" + argumentName),
                         argument.Span);
                 }
                 else
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                         CodeAction.Create(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
                             c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
-                            nameof(FeaturesResources.Add_argument_name_0)),
+                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
                         argument.Span);
                 }
             }

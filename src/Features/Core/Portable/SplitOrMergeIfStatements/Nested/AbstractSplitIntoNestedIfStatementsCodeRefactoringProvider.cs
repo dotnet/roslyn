@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => CodeAction.Create(
                 string.Format(FeaturesResources.Split_into_nested_0_statements, ifKeywordText),
                 createChangedDocument,
-                nameof(FeaturesResources.Split_into_nested_0_statements) + ifKeywordText);
+                nameof(FeaturesResources.Split_into_nested_0_statements) + "_" + ifKeywordText);
 
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,

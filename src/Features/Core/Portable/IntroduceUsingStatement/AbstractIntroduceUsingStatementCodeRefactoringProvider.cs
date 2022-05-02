@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     CodeAction.Create(
                         CodeActionTitle,
                         cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken),
-                        nameof(CodeActionTitle)),
+                        CodeActionTitle),
                     declarationSyntax.Span);
             }
         }

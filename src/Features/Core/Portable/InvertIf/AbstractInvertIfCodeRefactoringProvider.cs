@@ -52,11 +52,12 @@ namespace Microsoft.CodeAnalysis.InvertIf
                 return;
             }
 
+            var title = GetTitle();
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    GetTitle(),
+                    title,
                     c => InvertIfAsync(document, ifNode, c),
-                    nameof(GetTitle)),
+                    title),
                 ifNode.Span);
         }
 

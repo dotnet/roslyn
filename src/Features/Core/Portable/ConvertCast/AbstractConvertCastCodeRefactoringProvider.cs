@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.ConvertCast
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (type is { TypeKind: not TypeKind.Error, IsReferenceType: true })
             {
+                var title = GetTitle();
                 context.RegisterRefactoring(
                     CodeAction.Create(
-                        GetTitle(),
+                        title,
                         c => ConvertAsync(document, from, cancellationToken),
-                        nameof(GetTitle)),
+                        title),
                     from.Span);
             }
         }

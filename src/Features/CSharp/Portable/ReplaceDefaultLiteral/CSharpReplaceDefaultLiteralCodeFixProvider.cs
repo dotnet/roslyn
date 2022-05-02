@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                         CodeAction.Create(
                             string.Format(CSharpFeaturesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            nameof(CSharpFeaturesResources.Use_0) + displayText),
+                            nameof(CSharpFeaturesResources.Use_0)),
                         context.Diagnostics);
                 }
             }

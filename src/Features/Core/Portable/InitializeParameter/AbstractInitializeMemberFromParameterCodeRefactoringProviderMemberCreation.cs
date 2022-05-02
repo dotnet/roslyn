@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var fieldAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
                 c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, field, c),
-                nameof(FeaturesResources.Create_and_assign_field_0));
+                nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
             var propertyAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
                 c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, property, c),
-                nameof(FeaturesResources.Create_and_assign_property_0));
+                nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
             return (fieldAction, propertyAction);
         }

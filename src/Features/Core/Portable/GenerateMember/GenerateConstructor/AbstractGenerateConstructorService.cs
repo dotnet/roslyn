@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
                             c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c),
-                            nameof(FeaturesResources.Generate_constructor_in_0_with_fields)));
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_fields) + "_" + state.TypeToGenerateIn.Name));
                     }
 
                     // Same with a version that generates properties instead.
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
                             c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c),
-                            nameof(FeaturesResources.Generate_constructor_in_0_with_properties)));
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_properties) + "_" + state.TypeToGenerateIn.Name));
                     }
 
                     // Always offer to just generate the constructor and nothing else.
                     result.Add(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
                         c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c),
-                        nameof(FeaturesResources.Generate_constructor_in_0)));
+                        nameof(FeaturesResources.Generate_constructor_in_0) + "_" + state.TypeToGenerateIn.Name));
 
                     return result.ToImmutable();
                 }

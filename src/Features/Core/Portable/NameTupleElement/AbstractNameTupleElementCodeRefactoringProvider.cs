@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 CodeAction.Create(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
                     c => AddNamedElementAsync(document, span, cancellationToken),
-                    nameof(FeaturesResources.Add_tuple_element_name_0) + elementName),
+                    nameof(FeaturesResources.Add_tuple_element_name_0) + "_" + elementName),
                 argument.Span);
         }
 

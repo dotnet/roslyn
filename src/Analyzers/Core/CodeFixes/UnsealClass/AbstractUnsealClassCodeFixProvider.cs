@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.UnsealClass
                     type, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 if (definition != null && definition.DeclaringSyntaxReferences.Length > 0)
                 {
+                    var title = string.Format(TitleFormat, type.Name);
                     context.RegisterCodeFix(
                         CodeAction.Create(
-                            string.Format(TitleFormat, type.Name),
+                            title,
                             c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c),
-                            nameof(AbstractUnsealClassCodeFixProvider)),
+                            title),
                         context.Diagnostics);
                 }
             }

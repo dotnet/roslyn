@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 CodeAction.Create(
                     string.Format(FeaturesResources.Use_0, replacement),
                     c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c),
-                    nameof(FeaturesResources.Use_0) + replacement),
+                    nameof(FeaturesResources.Use_0) + "_" + replacement),
                 expandedSpan);
         }
 

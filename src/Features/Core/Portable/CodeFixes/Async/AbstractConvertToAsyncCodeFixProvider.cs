@@ -69,10 +69,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             var syntaxTree = result.Item1;
             var newRoot = result.Item2;
             var otherDocument = document.Project.Solution.GetDocument(syntaxTree);
+            var title = await GetDescriptionAsync(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false);
             return CodeAction.Create(
-                await GetDescriptionAsync(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
+                title,
                 token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot)),
-                nameof(AbstractConvertToAsyncCodeFixProvider));
+                title);
         }
     }
 }
