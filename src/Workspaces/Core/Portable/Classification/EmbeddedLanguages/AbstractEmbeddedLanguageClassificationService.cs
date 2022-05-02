@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public void AddEmbeddedLanguageClassifications(
-            Project project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<IEmbeddedLanguageClassifier>.GetInstance(out var classifierBuffer);
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _service;
-            private readonly Project _project;
+            private readonly Project? _project;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
             private readonly ClassificationOptions _options;
