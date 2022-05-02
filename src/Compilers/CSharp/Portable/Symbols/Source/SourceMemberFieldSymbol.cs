@@ -279,7 +279,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private sealed class TypeAndRefKind
+        {
+            internal readonly RefKind RefKind;
+            internal readonly TypeWithAnnotations Type;
+
+            internal TypeAndRefKind(RefKind refKind, TypeWithAnnotations type)
+            {
+                RefKind = refKind;
+                Type = type;
+            }
+        }
+
+        private TypeAndRefKind _lazyTypeAndRefKind;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -367,13 +379,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override RefKind RefKind => GetTypeAndRefKind(ConsList<FieldSymbol>.Empty).RefKind;
+
         internal override bool HasPointerType
         {
             get
             {
-                if (_lazyType != null)
+                if (_lazyTypeAndRefKind?.Type.DefaultType is { } defaultType)
                 {
-                    bool isPointerType = _lazyType.Value.DefaultType.Kind switch
+                    bool isPointerType = defaultType.Kind switch
                     {
                         SymbolKind.PointerType => true,
                         SymbolKind.FunctionPointerType => true,
@@ -401,11 +415,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
+            return GetTypeAndRefKind(fieldsBeingBound).Type;
+        }
+
+        private TypeAndRefKind GetTypeAndRefKind(ConsList<FieldSymbol> fieldsBeingBound)
+        {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (_lazyType != null)
+            if (_lazyTypeAndRefKind != null)
             {
-                return _lazyType.Value;
+                return _lazyTypeAndRefKind;
             }
 
             var declarator = VariableDeclaratorNode;
@@ -415,6 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = BindingDiagnosticBag.GetInstance();
+            RefKind refKind = RefKind.None;
             TypeWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
@@ -446,7 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
+                    var typeOnly = typeSyntax.SkipRef(out refKind);
+                    Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
+                    if (refKind != RefKind.None)
+                    {
+                        MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.Location);
+                    }
+                    type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                 }
                 else
                 {
@@ -530,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
+            if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 
@@ -548,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType.Value;
+            return _lazyTypeAndRefKind;
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)

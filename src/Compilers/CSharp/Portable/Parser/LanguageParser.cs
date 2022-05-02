@@ -2874,7 +2874,7 @@ parse_member_name:;
 parse_member_name:;
                     ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
 
-                    // If we've seen the ref keyword, we know we must have an indexer, method, or property.
+                    // If we've seen the ref keyword, we know we must have an indexer, method, field, or property.
                     if (type.Kind != SyntaxKind.RefType)
                     {
                         // Check here for operators
@@ -2883,11 +2883,11 @@ parse_member_name:;
                         {
                             return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                         }
+                    }
 
-                        if (IsFieldDeclaration(isEvent: false))
-                        {
-                            return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
-                        }
+                    if (IsFieldDeclaration(isEvent: false))
+                    {
+                        return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
                     }
 
                     // At this point we can either have indexers, methods, or 

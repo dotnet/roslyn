@@ -174,7 +174,7 @@ struct S
                 // (6,9): error CS8374: Cannot ref-assign 'this' to 's' because 'this' has a narrower escape scope than 's'.
                 //         s = ref this;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref this").WithArguments("s", "this").WithLocation(6, 9),
-                // (7,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (7,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(7, 9));
         }
@@ -737,7 +737,7 @@ class C
                 // (12,22): error CS1939: Cannot pass the range variable 'c' as an out or ref parameter
                 //             rx = ref c;
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "c").WithArguments("c").WithLocation(12, 22),
-                // (13,13): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (13,13): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //             c = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c").WithArguments("c").WithLocation(13, 13));
         }
@@ -837,22 +837,22 @@ struct S
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (10,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(10, 9),
-                // (13,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (13,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s2;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(13, 9),
-                // (16,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (16,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s3;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(16, 9),
-                // (18,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (18,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref (new S[1])[0];
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(18, 9),
-                // (21,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (21,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s4;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(21, 9),
-                // (24,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (24,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref s5;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(24, 9));
         }
@@ -869,7 +869,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9));
         }
@@ -887,7 +887,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (7,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         _f = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "_f").WithLocation(7, 9));
         }
@@ -905,7 +905,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,10): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (7,10): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         (2 + 3) = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "2 + 3").WithLocation(7, 10));
         }
@@ -924,7 +924,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         x = ref y;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithArguments("x").WithLocation(8, 9));
         }
@@ -964,7 +964,7 @@ class C
     ref int M2() => ref (new int[1])[0];
 }");
             comp.VerifyDiagnostics(
-                // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         M2() = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "M2()").WithLocation(8, 9));
         }
@@ -987,7 +987,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         P = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9));
         }
@@ -4058,7 +4058,7 @@ public class C
         a = ref b;
     }
 }").VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         a = ref b;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a").WithLocation(6, 9));
         }
@@ -4092,7 +4092,7 @@ public class C
         array[0] = ref value;
     }
 }").VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         array[0] = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
 
@@ -4120,7 +4120,7 @@ public unsafe class C
         *ptr = ref value;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         *ptr = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "*ptr").WithLocation(6, 9));
 
@@ -4148,7 +4148,7 @@ public unsafe class C
         ptr[0] = ref value;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         ptr[0] = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "ptr[0]").WithLocation(6, 9));
 
@@ -4176,7 +4176,7 @@ public unsafe class C
         __refvalue(__makeref(x), int) = ref x;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         __refvalue(__makeref(x), int) = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "__refvalue(__makeref(x), int)").WithLocation(6, 9));
 
@@ -4204,7 +4204,7 @@ public unsafe class C
         d[0] = ref value;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         d[0] = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d[0]").WithLocation(6, 9));
 
@@ -4232,7 +4232,7 @@ public unsafe class C
         d.member = ref value;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         d.member = ref value;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d.member").WithLocation(6, 9));
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Expression can be the LHS of a ref-assign operation.
             /// Example:
-            ///  ref local, ref parameter, out parameter
+            ///  ref local, ref parameter, out parameter, ref field
             /// </summary>
             RefAssignable = 8 << ValueKindInsignificantBits,
 
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = fieldAccess.FieldSymbol;
             var fieldIsStatic = fieldSymbol.IsStatic;
 
-            if (RequiresAssignableVariable(valueKind))
+            if (fieldSymbol.IsReadOnly)
             {
                 // A field is writeable unless 
                 // (1) it is readonly and we are not in a constructor or field initializer
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if (fieldSymbol.IsReadOnly)
+                if (fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind))
                 {
                     var canModifyReadonly = false;
 
@@ -828,6 +828,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
+            }
+
+            if (RequiresAssignableVariable(valueKind))
+            {
+                switch (fieldSymbol.RefKind)
+                {
+                    case RefKind.None:
+                        break;
+                    case RefKind.Ref:
+                        return true;
+                    case RefKind.RefReadOnly:
+                        ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
+                }
 
                 if (fieldSymbol.IsFixedSizeBuffer)
                 {
@@ -838,8 +854,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
-                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
-                return false;
+                Debug.Assert(!fieldIsStatic);
+                Debug.Assert(valueKind == BindValueKind.RefAssignable);
+
+                switch (fieldSymbol.RefKind)
+                {
+                    case RefKind.None:
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    case RefKind.Ref:
+                    case RefKind.RefReadOnly:
+                        return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, BindValueKind.Assignable, diagnostics);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
+                }
             }
 
             // r/w fields that are static or belong to reference types are writeable and returnable
@@ -1890,7 +1918,7 @@ moreArguments:
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
-            Debug.Assert(RequiresAssignableVariable(kind));
+            Debug.Assert(field.RefKind == RefKind.None ? RequiresAssignableVariable(kind) : RequiresRefAssignableVariable(kind));
             Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
@@ -3814,6 +3842,11 @@ moreArguments:
             if (field.IsConst)
             {
                 return false;
+            }
+
+            if (field.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            {
+                return true;
             }
 
             // in readonly situations where ref to a copy is not allowed, consider fields as addressable
