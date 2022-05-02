@@ -1988,5 +1988,131 @@ async () => {
         }
 
         #endregion AwaitExpressionStatementInSyncContext
+
+
+        #region AwaitNullConditional
+
+
+        [Fact]
+        public void NullConditionalCoalesce()
+        {
+            UsingTree(@"
+class C
+{
+    async void f()
+    {
+        int c = await? g() ?? await h();
+    }
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ConditionalExpression);
+
+                                            N(SyntaxKind.AwaitExpression);
+                                            {
+                                                N(SyntaxKind.AwaitKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                N(SyntaxKind.InvocationExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken);
+                                                    }
+                                                    N(SyntaxKind.ArgumentList);
+                                                    {
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.CloseParenToken);
+                                                    }
+                                                }
+                                            }
+
+                                            N(SyntaxKind.CoalesceExpression);
+                                            {
+                                                N(SyntaxKind.AwaitExpression);
+                                                {
+                                                    N(SyntaxKind.AwaitKeyword);
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.QuestionQuestionToken);
+                                                N(SyntaxKind.AwaitExpression);
+                                                {
+                                                    N(SyntaxKind.AwaitKeyword);
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+        #endregion
     }
 }
