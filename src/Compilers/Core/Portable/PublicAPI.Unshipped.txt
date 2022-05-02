@@ -14,6 +14,15 @@ Microsoft.CodeAnalysis.ImportedXmlNamespace
 Microsoft.CodeAnalysis.ImportedXmlNamespace.DeclaringSyntaxReference.get -> Microsoft.CodeAnalysis.SyntaxReference?
 Microsoft.CodeAnalysis.ImportedXmlNamespace.ImportedXmlNamespace() -> void
 Microsoft.CodeAnalysis.ImportedXmlNamespace.XmlNamespace.get -> string!
+Microsoft.CodeAnalysis.GeneratorDriver.GetTimingInfo() -> Microsoft.CodeAnalysis.GeneratorDriverTimingInfo
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorDriverTimingInfo() -> void
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorTimes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratorTimingInfo>
+Microsoft.CodeAnalysis.GeneratorTimingInfo
+Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
+Microsoft.CodeAnalysis.GeneratorTimingInfo.GeneratorTimingInfo() -> void
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
