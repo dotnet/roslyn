@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Host
             => document?.Services.GetService<IDocumentOperationService>()?.SupportDiagnostics ?? false;
 
         public static bool IsRazorDocument(this TextDocument document)
-            => document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharp;
+            => IsRazorDocument(document.State);
+
+        public static bool IsRazorDocument(this TextDocumentState documentState)
+            => documentState.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharp;
     }
 }

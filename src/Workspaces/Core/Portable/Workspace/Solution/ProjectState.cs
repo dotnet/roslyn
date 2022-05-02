@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis
         internal sealed class ProjectAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
+            private RazorDesignTimeAnalyzerConfigOptions? _lazyRazorDesignTimeOptions;
 
             public ProjectAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
@@ -301,7 +303,17 @@ namespace Microsoft.CodeAnalysis
                 => GetCache().GlobalConfigOptions.AnalyzerConfigOptions;
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-                => GetOptionsForSourcePath(tree.FilePath);
+            {
+                var documentId = DocumentState.GetDocumentIdForTree(tree);
+                if (documentId != null &&
+                    _projectState.DocumentStates.TryGetState(documentId, out var documentState) &&
+                    documentState.IsRazorDocument())
+                {
+                    _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.WorkspaceServices);
+                }
+
+                return GetOptionsForSourcePath(tree.FilePath);
+            }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
@@ -311,6 +323,44 @@ namespace Microsoft.CodeAnalysis
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
                 => GetCache().GetOptionsForSourcePath(path).AnalyzerConfigOptions;
+        }
+
+        /// <summary>
+        /// Provides editorconfig options for Razor design-time documents.
+        /// Razor does not support editorconfig options but has custom settings for a few formatting options whose values
+        /// are only available in-proc and the same for all Razor design-time documents.
+        /// This type emulates these options as analyzer config options.
+        /// </summary>
+        private sealed class RazorDesignTimeAnalyzerConfigOptions : AnalyzerConfigOptions
+        {
+            private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
+
+            public RazorDesignTimeAnalyzerConfigOptions(HostWorkspaceServices services)
+            {
+                // not available OOP:
+                _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+            }
+
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                if (_globalOptions != null)
+                {
+                    if (key == "indent_style")
+                    {
+                        value = _globalOptions.RazorUseTabs ? "tab" : "space";
+                        return true;
+                    }
+
+                    if (key == "tab_width" || key == "indent_size")
+                    {
+                        value = _globalOptions.RazorTabSize.ToString();
+                        return true;
+                    }
+                }
+
+                value = null;
+                return false;
+            }
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
