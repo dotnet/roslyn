@@ -214,9 +214,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 : text;
         }
 
-        private SpellCheckCodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
+        private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
         {
-            return new SpellCheckCodeAction(
+            return CodeAction.CreateWithPriority(
+                CodeActionPriority.Low,
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);
@@ -228,16 +229,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));
 
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class SpellCheckCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }
