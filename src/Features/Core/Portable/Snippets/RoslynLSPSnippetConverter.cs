@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 {
                     if (startPosition > position)
                     {
-                        endPosition += startPosition - caretPosition;
+                        endPosition += startPosition - position;
                         startPosition = position;
                     }
 
