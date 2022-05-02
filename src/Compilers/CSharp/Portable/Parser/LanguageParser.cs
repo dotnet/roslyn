@@ -13683,7 +13683,9 @@ tryAgain:
         }
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
+#pragma warning disable IDE0051 // Remove unused private members
         private new bool IsIncremental
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { throw new Exception("Use IsIncrementalAndFactoryContextMatches"); }
         }
