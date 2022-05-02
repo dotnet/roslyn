@@ -5806,7 +5806,8 @@ class A                                                               \
         [Fact]
         public void CscCompile_WithSourceCodeRedirectedViaStandardInput_ProducesLibrary()
         {
-            var name = Guid.NewGuid().ToString() + ".dll";
+            var nameGuid = Guid.NewGuid().ToString();
+            var name = nameGuid + ".dll";
             string tempDir = Temp.CreateDirectory().Path;
             ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 ProcessUtilities.Run("cmd", $@"/C echo  ^
@@ -5830,8 +5831,15 @@ class A                                                               \
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
 
             var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
-            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                assemblyName.ToString());
+
+            Assert.Equal(nameGuid, assemblyName.Name);
+            Assert.Equal("0.0.0.0", assemblyName.Version.ToString());
+            Assert.Equal(string.Empty, assemblyName.CultureName);
+#if NETCOREAPP
+            Assert.Null(assemblyName.GetPublicKeyToken());
+#else
+            Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
+#endif
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
