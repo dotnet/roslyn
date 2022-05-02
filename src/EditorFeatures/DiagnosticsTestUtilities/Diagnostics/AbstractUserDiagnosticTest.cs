@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
             TextSpan span,
-            CodeActionOptions options,
             string annotation,
             int index)
         {
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    _ => options,
+                    testDriver.FallbackOptions,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var fixAllState = GetFixAllState(
                 fixAllProvider, diagnostics, fixer, testDriver, document,
-                scope.Value, equivalenceKey, _ => options);
+                scope.Value, equivalenceKey, testDriver.FallbackOptions);
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
             var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
@@ -221,13 +220,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
-            IdeAnalyzerOptions ideAnalyzerOptions = null,
+            OptionsCollection globalOptions = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
                 initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData),
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
                 count);
         }
 

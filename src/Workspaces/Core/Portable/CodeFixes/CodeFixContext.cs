@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         [Obsolete]
         bool ITypeScriptCodeFixContext.IsBlocking
-            => Options(Document.Project.LanguageServices).IsBlocking;
+            => Options.GetOptions(Document.Project.LanguageServices).IsBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    span,
                    VerifyDiagnosticsArgument(diagnostics, span),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   CodeActionOptions.DefaultProvider,
                    cancellationToken)
         {
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
                    ImmutableArray.Create(diagnostic),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   CodeActionOptions.DefaultProvider,
                    cancellationToken)
         {
         }

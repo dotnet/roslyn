@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly RefKind _refKind;
             private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateVariableCodeAction(
                 SemanticDocument document,
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool generateProperty,
                 bool isReadonly,
                 bool isConstant,
-                RefKind refKind)
+                RefKind refKind,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _semanticDocument = document;
                 _state = state;
@@ -44,18 +46,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _isConstant = isConstant;
                 _refKind = refKind;
                 _equivalenceKey = Title;
+                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var solution = _semanticDocument.Project.Solution;
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var context = new CodeGenerationContext(
-                    afterThisLocation: _state.AfterThisLocation,
-                    beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation());
+                var context = new CodeGenerationSolutionContext(
+                    _semanticDocument.Project.Solution,
+                    new CodeGenerationContext(
+                        afterThisLocation: _state.AfterThisLocation,
+                        beforeThisLocation: _state.BeforeThisLocation,
+                        contextLocation: _state.IdentifierToken.GetLocation()),
+                    _fallbackOptions);
 
                 if (_generateProperty)
                 {
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         setMethod: setAccessor);
 
                     return await CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, context, cancellationToken).ConfigureAwait(false);
+                        context, _state.TypeToGenerateIn, propertySymbol, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -92,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         name: _state.IdentifierToken.ValueText);
 
                     return await CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, context, cancellationToken).ConfigureAwait(false);
+                        context, _state.TypeToGenerateIn, fieldSymbol, cancellationToken).ConfigureAwait(false);
                 }
             }
 

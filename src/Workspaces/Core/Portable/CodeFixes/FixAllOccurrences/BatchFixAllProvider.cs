@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = new CodeActionOptionsProvider(language => fixAllContext.State.CodeActionOptionsProvider(language) with { IsBlocking = false });
+                var options = new NonBlockingCodeActionOptionsProvider(fixAllContext.State.CodeActionOptionsProvider);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>
@@ -188,6 +189,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.AddRange(await task.ConfigureAwait(false));
 
             return result.ToImmutable();
+        }
+
+        private sealed class NonBlockingCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
+        {
+            private readonly CodeActionOptionsProvider _provider;
+
+            public NonBlockingCodeActionOptionsProvider(CodeActionOptionsProvider provider)
+                => _provider = provider;
+
+            public override CodeActionOptions GetOptions(HostLanguageServices languageService)
+                => _provider.GetOptions(languageService) with { IsBlocking = false };
         }
 
         /// <summary>

@@ -654,7 +654,7 @@ namespace A
                 });
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), _ => fallbackOptions, CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), fallbackOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 
