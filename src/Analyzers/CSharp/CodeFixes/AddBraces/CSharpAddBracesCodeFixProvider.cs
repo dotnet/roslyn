@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
             {
-                var statement = root.FindNode(diagnostic.Location.SourceSpan);
+                var statement = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
                 // Use the callback version of ReplaceNode so that we see the effects
                 // of other replace calls.  i.e. we may have statements nested in statements,

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
                 ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
                 BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
 
         protected override bool PositionIsApplicable(

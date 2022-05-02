@@ -109,11 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _asyncListener,
                 roslynCallback,
                 searchValue,
-                searchCurrentDocument,
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync(_cancellationTokenSource.Token);
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             Contract.ThrowIfNull(root);
 
             token = default;
-            if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            if (!optionSet.GetOption(FormattingBehaviorOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
             {
                 return false;
             }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,28 +16,54 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
+    internal sealed class SQLitePersistentStorageService : AbstractPersistentStorageService, IWorkspaceService
     {
-        [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
-        internal sealed class Factory : ISQLiteStorageServiceFactory
+        [ExportWorkspaceServiceFactory(typeof(SQLitePersistentStorageService)), Shared]
+        internal sealed class ServiceFactory : IWorkspaceServiceFactory
         {
             private readonly SQLiteConnectionPoolService _connectionPoolService;
             private readonly IAsynchronousOperationListener _asyncListener;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(SQLiteConnectionPoolService connectionPoolService, IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
+            public ServiceFactory(
+                SQLiteConnectionPoolService connectionPoolService,
+                IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
             {
                 _connectionPoolService = connectionPoolService;
                 _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
             }
 
-            public IChecksummedPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-                => new SQLitePersistentStorageService(_connectionPoolService, configuration, _asyncListener);
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new SQLitePersistentStorageService(_connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
         }
 
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
+
+        private static bool TryInitializeLibraries() => s_initialized.Value;
+
+        private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
+
+        private static bool TryInitializeLibrariesLazy()
+        {
+            try
+            {
+                // Necessary to initialize SQLitePCL.
+                SQLitePCL.Batteries_V2.Init();
+            }
+            catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
+            {
+                StorageDatabaseLogger.LogException(e);
+
+                // In debug also insta fail here.  That way if there is an issue with sqlite (for example with authoring,
+                // or with some particular configuration) that get CI coverage that reveals this.
+                Debug.Fail("Sqlite failed to load: " + e);
+                return false;
+            }
+
+            return true;
+        }
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly IAsynchronousOperationListener _asyncListener;

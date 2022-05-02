@@ -524,7 +524,7 @@ namespace System.Collections
         public char CharAt(int i) { return default(char); }
     }
 
-    internal class program
+    internal class @program
     {
         string M(string s)
         {
@@ -588,7 +588,7 @@ namespace System.Collections
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -714,7 +714,7 @@ namespace System
     }
 }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -851,7 +851,7 @@ namespace System
         }
     }
 
-    internal class program
+    internal class @program
     {
         void Main()
         {
@@ -986,7 +986,7 @@ namespace System
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {
@@ -1101,7 +1101,7 @@ namespace System.Runtime.CompilerServices
     }
 }
   
-unsafe internal class program
+unsafe internal class @program
 {
     public static void Main()
     {

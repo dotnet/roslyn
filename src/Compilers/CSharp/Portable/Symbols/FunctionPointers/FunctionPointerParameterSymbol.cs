@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsDiscard => false;
         public override bool IsParams => false;
         public override bool IsImplicitlyDeclared => true;
+        public override bool IsNullChecked => false;
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
         internal override bool IsMetadataOptional => false;
         internal override bool IsMetadataIn => RefKind == RefKind.In;

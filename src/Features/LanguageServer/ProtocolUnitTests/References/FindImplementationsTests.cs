@@ -31,10 +31,10 @@ class A : IA
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(testLspServer, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
         [Fact]
@@ -60,10 +60,10 @@ class A : IA
 }"
             };
 
-            using var testLspServer = CreateTestLspServer(markups, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markups);
 
-            var results = await RunFindImplementationAsync(testLspServer, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ class A : IA
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
+            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
 
             AddMappedDocument(testLspServer.TestWorkspace, markup);
 
@@ -104,9 +104,9 @@ class A : IA
         {|caret:|}
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(testLspServer, locations["caret"].Single());
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
@@ -119,10 +119,10 @@ class A : IA
 class {|implementation:B|} : A { }
 
 class {|implementation:C|} : A { }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(testLspServer, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
         private static async Task<LSP.Location[]> RunFindImplementationAsync(TestLspServer testLspServer, LSP.Location caret)

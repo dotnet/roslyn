@@ -744,7 +744,10 @@ namespace Microsoft.CodeAnalysis
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
-                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey);
+                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey)?
+                                                  .WithUpdatedParseOptions(parseOptions)
+                                                  .WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionsProvider)
+                                                  .ReplaceAdditionalTexts(additionalTexts);
             }
 
             driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
@@ -1445,14 +1448,19 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
         {
-            var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
+            var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
+            var filePaths = new HashSet<string>(PathUtilities.Comparer);
 
             foreach (var file in Arguments.AdditionalFiles)
             {
-                builder.Add(new AdditionalTextFile(file, this));
+                Debug.Assert(PathUtilities.IsAbsolute(file.Path));
+                if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(file.Path)))
+                {
+                    builder.Add(new AdditionalTextFile(file, this));
+                }
             }
 
-            return builder.ToImmutableArray();
+            return builder.ToImmutableAndFree();
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)

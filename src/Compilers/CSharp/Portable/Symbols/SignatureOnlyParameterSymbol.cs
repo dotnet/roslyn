@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
+        public override bool IsNullChecked => false;
+
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;

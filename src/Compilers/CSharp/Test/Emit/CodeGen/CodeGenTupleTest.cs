@@ -8091,6 +8091,227 @@ class C
         }
 
         [Fact]
+        public void TupleConversion03()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c))x;
+_ = ((int i, bool c))(1, new C());
+    
+(int i, bool c) z;
+
+z = x;
+z = (1, new C());
+z.i++;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,26): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 26),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion04()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,27): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 27),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion05()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (6,27): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 27),
+                // (10,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(10, 5),
+                // (11,9): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion06()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (9,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion07()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (9,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion08()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+   
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion09()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
         public void TupleConvertedType01()
         {
             var source = @"

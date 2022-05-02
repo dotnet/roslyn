@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommandHandlers
         {
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var options = BraceMatchingOptions.From(document.Project);
 
             var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-
-            var task = _braceMatchingService.FindMatchingSpanAsync(document, caretPosition, executionContext.OperationContext.UserCancellationToken);
+            var task = _braceMatchingService.FindMatchingSpanAsync(document, caretPosition, options, executionContext.OperationContext.UserCancellationToken);
             var span = task.WaitAndGetResult(executionContext.OperationContext.UserCancellationToken);
 
             if (!span.HasValue)

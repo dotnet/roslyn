@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -970,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // no need to emit the default ctor, we are not emitting those
-                if (methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true))
+                if (methodSymbol.IsDefaultValueTypeConstructor())
                 {
                     return;
                 }
@@ -1210,12 +1211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
                     SetGlobalErrorIfTrue(hasErrors);
-
+                    CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeNonEmptyInitializersInBody))
                     {
                         Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
-                                     !methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true));
+                                     !methodSymbol.IsDefaultValueTypeConstructor());
 
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
@@ -1289,12 +1290,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
                             }
-                        }
 
+                            var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
+
+                            // Iterators handled in IteratorRewriter.cs
+                            if (!methodSymbol.IsIterator)
+                            {
+                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+
+                                if (!boundStatementsWithNullCheck.IsDefault)
+                                {
+                                    boundStatements = boundStatementsWithNullCheck;
+                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                                    SetGlobalErrorIfTrue(hasErrors);
+                                    if (hasErrors)
+                                    {
+                                        _diagnostics.AddRange(diagsForCurrentMethod);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
                         {
-                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
                             var emittedBody = GenerateMethodBody(
@@ -1734,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constructorSyntax.Identifier.ValueText);
                 }
 
-                Debug.Assert(!sourceMethod.IsDefaultValueTypeConstructor(requireZeroInit: false));
+                Debug.Assert(!sourceMethod.IsDefaultValueTypeConstructor());
                 if (sourceMethod.IsExtern)
                 {
                     return null;

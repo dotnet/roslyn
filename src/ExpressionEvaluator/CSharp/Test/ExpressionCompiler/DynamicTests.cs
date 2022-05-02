@@ -1021,7 +1021,7 @@ class C
         }
 
         [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
         public void AwaitDynamic()
         {
             var source = @"

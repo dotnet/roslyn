@@ -122,17 +122,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             var type = semanticModel.GetTypeInfo(expr).Type;
             if (type != null)
             {
+                // default literals are not permitted in patterns
                 if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
-                {
-                    // default literals are not permitted in patterns
                     return DefaultExpression(type.GenerateTypeSyntax());
-                }
 
-                var governingType = semanticModel.GetTypeInfo(p.Target.Syntax).Type;
+                // 'null' is already the right form in a pattern, it does not need to be casted to anything else.
+                if (expr.IsKind(SyntaxKind.NullLiteralExpression))
+                    return expr;
+
+                // if we have a nullable value type, only cast to the underlying type.
+                //
+                // `x is (long?)0` is not legal, only `x is (long)0` is.
+                var governingType = semanticModel.GetTypeInfo(p.Target.Syntax).Type.RemoveNullableIfPresent();
                 if (governingType != null && !governingType.Equals(type))
-                {
                     return CastExpression(governingType.GenerateTypeSyntax(), expr.Parenthesize()).WithAdditionalAnnotations(Simplifier.Annotation);
-                }
             }
 
             return expr.Parenthesize();

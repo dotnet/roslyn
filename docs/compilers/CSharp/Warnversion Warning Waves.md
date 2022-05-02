@@ -33,3 +33,4 @@ The table below describes all of the warnings controlled by warning levels `5` o
 | CS8892 | 5 | [Multiple entry points](https://github.com/dotnet/roslyn/issues/46831) |
 | CS8897 | 5 | [Static class used as the parameter type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
 | CS8898 | 5 | [Static class used as the return type of a method in an interface type](https://github.com/dotnet/roslyn/issues/38256) |
+| CS8981 | 7 | [Type names only containing lower-cased ascii characters may become reserved for the language](https://github.com/dotnet/roslyn/issues/56653) |

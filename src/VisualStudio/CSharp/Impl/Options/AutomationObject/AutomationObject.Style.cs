@@ -357,6 +357,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, value); }
         }
 
+        public string Style_PreferTupleSwap
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
+        }
+
         public string Style_PreferredUsingDirectivePlacement
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement); }

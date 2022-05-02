@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -253,23 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return SyntaxFactory.Trivia(newPragmaWarning);
         }
 
-        protected override SyntaxToken GetAdjustedTokenForPragmaRestore(
-            SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-        {
-            var nextToken = token.GetNextToken();
-            if (nextToken.Kind() == SyntaxKind.SemicolonToken &&
-                nextToken.Parent is StatementSyntax statement &&
-                statement.GetLastToken() == nextToken &&
-                token.Parent.FirstAncestorOrSelf<StatementSyntax>() == statement)
-            {
-                // both the current and next tokens belong to the same statement, and the next token
-                // is the final semicolon in a statement.  Do not put the pragma before that
-                // semicolon.  Place it after the semicolon so the statement stays whole.
+        protected override SyntaxNode GetContainingStatement(SyntaxToken token)
+            // If we can't get a containing statement, such as for expression bodied members, then
+            // return the arrow clause instead
+            => (SyntaxNode)token.GetAncestor<StatementSyntax>() ?? token.GetAncestor<ArrowExpressionClauseSyntax>();
 
-                return nextToken;
-            }
-
-            return token;
-        }
+        protected override bool TokenHasTrailingLineContinuationChar(SyntaxToken token)
+            => false;
     }
 }

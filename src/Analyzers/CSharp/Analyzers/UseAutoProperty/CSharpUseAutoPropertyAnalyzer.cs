@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration
-                : (SyntaxNode)variableDeclarator;
+                : variableDeclarator;
         }
     }
 }

@@ -32,15 +32,15 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = new LSP.DocumentHighlight[]
             {
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].Single()),
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Read, locations["read"].Single()),
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].Single())
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, testLspServer.GetLocations("text").Single()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Read, testLspServer.GetLocations("read").Single()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, testLspServer.GetLocations("write").Single())
             };
 
-            var results = await RunGetDocumentHighlightAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertJsonEquals(expected, results);
         }
 
@@ -55,9 +55,9 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGetDocumentHighlightAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 

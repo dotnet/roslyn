@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             KeybindingResetOptions.ReSharperStatus,
             KeybindingResetOptions.NeedsReset);
 
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
         private readonly VisualStudioInfoBarService _infoBarService;
 
@@ -90,12 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeybindingResetDetector(
             IThreadingContext threadingContext,
-            IGlobalOptionService optionService,
+            IGlobalOptionService globalOptions,
             VisualStudioInfoBarService infoBarService,
             SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
-            _optionService = optionService;
+            _globalOptions = globalOptions;
             _infoBarService = infoBarService;
             _serviceProvider = serviceProvider;
         }
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public Task InitializeAsync()
         {
             // Immediately bail if the user has asked to never see this bar again.
-            if (_optionService.GetOption(KeybindingResetOptions.NeverShowAgain))
+            if (_globalOptions.GetOption(KeybindingResetOptions.NeverShowAgain))
             {
                 return Task.CompletedTask;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             AssertIsForeground();
 
-            if (!_optionService.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
+            if (!_globalOptions.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
             {
                 return;
             }
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
         {
-            var options = _optionService.GetOptions(s_statusOptions);
+            var options = _globalOptions.GetOptions(s_statusOptions);
             var lastStatus = (ReSharperStatus)options[0];
             var needsReset = (bool)options[1];
 
@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                     break;
             }
 
-            _optionService.SetGlobalOptions(s_statusOptions, ImmutableArray.Create<object>(currentStatus, needsReset));
+            _globalOptions.SetGlobalOptions(s_statusOptions, ImmutableArray.Create<object>(currentStatus, needsReset));
 
             if (needsReset)
             {
@@ -353,7 +353,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void OpenExtensionsHyperlink()
@@ -363,13 +363,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void NeverShowAgain()
         {
-            _optionService.SetGlobalOption(KeybindingResetOptions.NeverShowAgain, true);
-            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeverShowAgain, true);
+            _globalOptions.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.

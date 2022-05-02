@@ -1088,7 +1088,7 @@ class C { }";
             public async Task AddAttributeToMethods()
             {
                 var input = "class C { public void [|M()|] { } }";
-                var expected = "class C {[System.Serializable] public void M() { } }";
+                var expected = "class C { [System.Serializable] public void M() { } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1104,7 +1104,7 @@ class C { }";
             public async Task AddAttributeToFields()
             {
                 var input = "class C { [|public int F|]; }";
-                var expected = "class C {[System.Serializable] public int F; }";
+                var expected = "class C { [System.Serializable] public int F; }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1120,7 +1120,7 @@ class C { }";
             public async Task AddAttributeToProperties()
             {
                 var input = "class C { public int [|P|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int P { get; set; } }";
+                var expected = "class C { [System.Serializable] public int P { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1169,7 +1169,7 @@ enum C { One, Two }";
             public async Task AddAttributeToEnumMembers()
             {
                 var input = "enum C { [|One|], Two }";
-                var expected = "enum C {[System.Serializable] One, Two }";
+                var expected = "enum C { [System.Serializable] One, Two }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1185,7 +1185,7 @@ enum C { One, Two }";
             public async Task AddAttributeToIndexer()
             {
                 var input = "class C { public int [|this[int y]|] { get; set; }}";
-                var expected = "class C {[System.Serializable] public int this[int y] { get; set; } }";
+                var expected = "class C { [System.Serializable] public int this[int y] { get; set; } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
@@ -1201,7 +1201,7 @@ enum C { One, Two }";
             public async Task AddAttributeToOperator()
             {
                 var input = "class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}";
-                var expected = "class C {[System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
+                var expected = "class C { [System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }";
                 await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 

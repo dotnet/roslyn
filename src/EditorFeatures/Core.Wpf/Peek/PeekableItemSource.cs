@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             _uiThreadOperationExecutor.Execute(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancellation: true, showProgress: false, action: context =>
             {
                 var cancellationToken = context.UserCancellationToken;
+                var services = document.Project.Solution.Workspace.Services;
 
                 IEnumerable<IPeekableItem> results;
 
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var symbol = SymbolFinder.GetSemanticInfoAtPositionAsync(
                         semanticModel,
                         triggerPoint.Value.Position,
-                        document.Project.Solution.Workspace,
+                        services,
                         cancellationToken).WaitAndGetResult(cancellationToken)
                                           .GetAnySymbol(includeType: true);
 
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     symbol = symbol.GetOriginalUnreducedDefinition();
 
                     // Get the symbol back from the originating workspace
-                    var symbolMappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+                    var symbolMappingService = services.GetRequiredService<ISymbolMappingService>();
 
                     var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
                                                             .WaitAndGetResult(cancellationToken);

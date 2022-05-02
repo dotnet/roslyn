@@ -32,23 +32,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
         private static readonly ConditionalWeakTable<Document, Tuple<int, AsyncLazy<TSyntaxContext>>> s_cachedDocuments = new();
 
-        private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
-
         protected AbstractSymbolCompletionProvider()
         {
         }
 
-        protected abstract Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(CompletionContext? completionContext, TSyntaxContext syntaxContext, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(CompletionContext? completionContext, TSyntaxContext syntaxContext, int position, CompletionOptions options, CancellationToken cancellationToken);
         protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context);
 
         protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
             => CompletionItemRules.Default;
-
-        protected bool IsTargetTypeCompletionFilterExperimentEnabled(OptionSet options)
-        {
-            _isTargetTypeCompletionFilterExperimentEnabled ??= options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
-            return _isTargetTypeCompletionFilterExperimentEnabled == true;
-        }
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
@@ -127,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
                 var symbolList = symbolGroup.ToImmutableArray();
 
-                if (IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Options))
+                if (completionContext.CompletionOptions.TargetTypedCompletionFilter)
                 {
                     var tick = Environment.TickCount;
 
@@ -241,8 +233,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : symbol.Name;
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -250,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var document = completionContext.Document;
                 var position = completionContext.Position;
-                var options = completionContext.Options;
+                var options = completionContext.CompletionOptions;
                 var cancellationToken = completionContext.CancellationToken;
 
                 // If we were triggered by typing a character, then do a semantic check to make sure
@@ -267,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 completionContext.IsExclusive = IsExclusive();
 
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
-                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(options)))
+                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && options.TargetTypedCompletionFilter))
                 {
                     var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
                     var regularItems = await GetItemsAsync(completionContext, syntaxContext, document, position, options, telemetryCounter, cancellationToken).ConfigureAwait(false);
@@ -275,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.AddItems(regularItems);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -286,12 +278,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             TSyntaxContext syntaxContext,
             Document document,
             int position,
-            OptionSet options,
+            CompletionOptions options,
             TelemetryCounter telemetryCounter,
             CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
-            options = CompletionUtilities.GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
             {
@@ -336,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>> GetPerContextSymbolsAsync(
-            CompletionContext completionContext, Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
+            CompletionContext completionContext, Document document, int position, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
@@ -371,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// If current context is in active region, returns available symbols. Otherwise, returns null.
         /// </summary>
         protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> TryGetSymbolsForContextAsync(
-            CompletionContext? completionContext, TSyntaxContext syntaxContext, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, TSyntaxContext syntaxContext, CompletionOptions options, CancellationToken cancellationToken)
         {
             var syntaxFacts = syntaxContext.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)

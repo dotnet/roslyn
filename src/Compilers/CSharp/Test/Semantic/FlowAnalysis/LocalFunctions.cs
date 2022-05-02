@@ -1501,7 +1501,7 @@ struct S
         public void LocalIEnumerableFunctionWithOutParameter1()
         {
             var comp = CreateCompilation(@"
-class c
+class @c
 {
     static void Main(string[] args)
     {
@@ -1529,7 +1529,7 @@ class c
         public void LocalIEnumerableFunctionWithOutParameter2()
         {
             var comp = CreateCompilation(@"
-class c
+class @c
 {
     static void Main(string[] args)
     {

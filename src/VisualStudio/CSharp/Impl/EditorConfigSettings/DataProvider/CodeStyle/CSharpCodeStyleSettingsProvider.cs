@@ -142,6 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferIndexOperator, description: ServicesVSResources.Prefer_index_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferRangeOperator, description: ServicesVSResources.Prefer_range_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, description: CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTupleSwap, description: ServicesVSResources.Prefer_tuple_swap, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetPatternMatchingCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -150,6 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, description: CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, description: CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferNotPattern, description: CSharpVSResources.Prefer_pattern_matching_over_mixed_type_check, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, description: CSharpVSResources.Prefer_extended_property_pattern, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetVariableCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

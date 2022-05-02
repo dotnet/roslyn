@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -165,7 +164,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
             static bool ShouldFade(AnalyzerOptions options, SyntaxTree tree, string language, CancellationToken cancellationToken)
             {
-                return options.GetOption(FadingOptions.FadeOutUnusedImports, language, tree, cancellationToken);
+#if CODE_STYLE
+                return true;
+#else
+                return options.GetOption(Fading.FadingOptions.FadeOutUnusedImports, language, tree, cancellationToken);
+#endif
             }
         }
 

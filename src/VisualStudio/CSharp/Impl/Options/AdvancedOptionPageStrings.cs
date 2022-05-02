@@ -67,6 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Suppress_hints_when_parameter_names_differ_only_by_suffix
             => ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix;
 
+        public static string Option_Suppress_hints_when_argument_matches_parameter_name
+            => ServicesVSResources.Suppress_hints_when_argument_matches_parameter_name;
+
         public static string Option_Display_inline_type_hints
             => ServicesVSResources.Display_inline_type_hints;
 
@@ -78,6 +81,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_hints_for_implicit_object_creation
             => ServicesVSResources.Show_hints_for_implicit_object_creation;
+
+        public static string Option_Display_diagnostics_inline_experimental
+            => ServicesVSResources.Display_diagnostics_inline_experimental;
+
+        public static string Option_at_the_end_of_the_line_of_code
+            => ServicesVSResources.at_the_end_of_the_line_of_code;
+
+        public static string Option_on_the_right_edge_of_the_editor_window
+            => ServicesVSResources.on_the_right_edge_of_the_editor_window;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -287,5 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
+
+        public static string Stack_Trace_Explorer
+            => ServicesVSResources.Stack_Trace_Explorer;
+
+        public static string Option_Automatically_open_stack_trace_explorer_on_focus
+            => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
     }
 }

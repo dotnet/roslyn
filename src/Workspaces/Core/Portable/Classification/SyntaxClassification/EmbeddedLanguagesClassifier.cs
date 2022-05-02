@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                                            .ToImmutableArray();
         }
 
-        public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             foreach (var language in _languagesProvider.Languages)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 if (classifier != null)
                 {
                     var count = result.Count;
-                    classifier.AddClassifications(workspace, token, semanticModel, result, cancellationToken);
+                    classifier.AddClassifications(token, semanticModel, options, result, cancellationToken);
                     if (result.Count != count)
                     {
                         // This classifier added values.  No need to check the other ones.

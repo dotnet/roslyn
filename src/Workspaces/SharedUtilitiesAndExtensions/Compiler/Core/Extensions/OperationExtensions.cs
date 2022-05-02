@@ -126,6 +126,12 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
+            else if (operation.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
+                simpleAssignmentOperation.Value == operation &&
+                simpleAssignmentOperation.IsRef)
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
             else if (operation.Parent is IIncrementOrDecrementOperation)
             {
                 return ValueUsageInfo.ReadWrite;
@@ -364,5 +370,20 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsNullLiteral(this IOperation operand)
             => operand is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
+
+        /// <summary>
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation? WalkDownConversion(this IOperation? operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
     }
 }

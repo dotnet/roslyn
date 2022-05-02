@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     return false;
                 }
 
-                if (uintChar < (uint)0x00010000)
+                if (uintChar < 0x00010000)
                 {
                     // something like \U0000000A
                     //

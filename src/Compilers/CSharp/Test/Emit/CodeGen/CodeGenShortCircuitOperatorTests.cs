@@ -5491,15 +5491,15 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         Func<object> a = () => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 33),
-    // (18,41): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object F2(C<T> c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(18, 41),
-    // (20,44): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object P1 => (new C<T>())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(20, 44)
+                // (15,34): error CS8977: 'T' cannot be made nullable.
+                //         Func<object> a = () => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 34),
+                // (18,42): error CS8977: 'T' cannot be made nullable.
+                //     static public object F2(C<T> c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(18, 42),
+                // (20,45): error CS8977: 'T' cannot be made nullable.
+                //     static public object P1 => (new C<T>())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(20, 45)
                 );
         }
 
@@ -5620,15 +5620,15 @@ unsafe class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
-    // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         Func<object, object> a = o => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(16, 40),
-    // (19,38): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object F2(C c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(19, 38),
-    // (21,41): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object P1 => (new C())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(21, 41)
+                // (16,41): error CS8977: 'void*' cannot be made nullable.
+                //         Func<object, object> a = o => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(16, 41),
+                // (19,39): error CS8977: 'void*' cannot be made nullable.
+                //     static public object F2(C c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(19, 39),
+                // (21,42): error CS8977: 'void*' cannot be made nullable.
+                //     static public object P1 => (new C())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(21, 42)
                 );
         }
 
@@ -5757,9 +5757,9 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         for (; x?.M();)
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 17)
+                // (15,18): error CS8977: 'T' cannot be made nullable.
+                //         for (; x?.M();)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 18)
                 );
         }
 
@@ -7514,6 +7514,38 @@ False
 ";
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(57629, "https://github.com/dotnet/roslyn/issues/57629")]
+        public void Issue57629()
+        {
+            var source = @"
+namespace OperatorQuestionmarkProblem
+{
+    public class OuterClass<TValue>
+    {
+        public class InnerClass
+        {
+            public TValue SomeInfo() { throw null; }
+
+            public InnerClass Next { get; set; }
+
+            void Test()
+            {
+                Next?.SomeInfo();
+                _ = Next?.SomeInfo();
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (15,26): error CS8977: 'TValue' cannot be made nullable.
+                //                 _ = Next?.SomeInfo();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".SomeInfo()").WithArguments("TValue").WithLocation(15, 26)
+                );
         }
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -23,7 +24,6 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -55,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
-            : base(undoRegistry, editorOperations)
+            IEditorOperationsFactoryService editorOperations,
+            IGlobalOptionService globalOptions)
+            : base(undoRegistry, editorOperations, globalOptions)
         {
         }
 
@@ -327,6 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             // Add braces for the selected node
             if (addBrace)
             {
@@ -348,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     or ElseClauseSyntax)
                 {
                     // Add the braces and get the next caretPosition
-                    var (newRoot, nextCaretPosition) = AddBraceToSelectedNode(document, root, selectedNode, args.TextView.Options, cancellationToken);
+                    var (newRoot, nextCaretPosition) = AddBraceToSelectedNode(document, root, selectedNode, documentOptions, cancellationToken);
                     if (document.Project.Solution.Workspace.TryApplyChanges(document.WithSyntaxRoot(newRoot).Project.Solution))
                     {
                         args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, nextCaretPosition));
@@ -373,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     var insertionPosition = GetBraceInsertionPosition(selectedNode);
 
                     // 2. Insert the braces and move caret
-                    InsertBraceAndMoveCaret(args.TextView, document, insertionPosition, cancellationToken);
+                    InsertBraceAndMoveCaret(args.TextView, document, documentOptions, insertionPosition, cancellationToken);
                 }
             }
             else
@@ -383,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     document,
                     root,
                     selectedNode,
-                    args.TextView.Options,
+                    documentOptions,
                     cancellationToken);
 
                 if (document.Project.Solution.Workspace.TryApplyChanges(document.WithSyntaxRoot(newRoot).Project.Solution))
@@ -397,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             SyntaxNode selectedNode,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             // For these nodes, directly modify the node and replace it.
@@ -412,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     document,
                     root,
                     selectedNode,
-                    WithBraces(selectedNode, editorOptions),
+                    WithBraces(selectedNode, documentOptions),
                     cancellationToken);
                 // Locate the open brace token, and move the caret after it.
                 var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
@@ -426,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // var c = new Obje$$ct() => var c = new Object();
             if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
             {
-                var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: true, editorOptions);
+                var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: true, documentOptions);
                 var newRoot = ReplaceNodeAndFormat(
                     document,
                     root,
@@ -478,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // In this case 'Print("Bar")' is considered as the innerStatement so when we inserted the empty block, we need also insert that
             if (selectedNode.IsEmbeddedStatementOwner())
             {
-                return AddBraceToEmbeddedStatementOwner(document, root, selectedNode, editorOptions, cancellationToken);
+                return AddBraceToEmbeddedStatementOwner(document, root, selectedNode, documentOptions, cancellationToken);
             }
 
             throw ExceptionUtilities.UnexpectedValue(selectedNode);
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             SyntaxNode selectedNode,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             // Remove the initializer from ObjectCreationExpression
@@ -502,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // e.g. var c = new Bar() => var c = new Bar();
             if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
             {
-                var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: false, editorOptions);
+                var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: false, documentOptions);
                 var newRoot = ReplaceNodeAndFormat(
                     document,
                     root,
@@ -601,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // Consider this as a SwitchExpression, add the brace after 'switch'
                 if (switchStatementNode.OpenParenToken.IsMissing
                     && switchStatementNode.CloseParenToken.IsMissing
-                    && IsTokenPartOfExpresion(switchStatementNode.GetFirstToken().GetPreviousToken()))
+                    && IsTokenPartOfExpression(switchStatementNode.GetFirstToken().GetPreviousToken()))
                 {
                     return switchStatementNode.SwitchKeyword.Span.End;
                 }
@@ -621,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             };
         }
 
-        private static bool IsTokenPartOfExpresion(SyntaxToken syntaxToken)
+        private static bool IsTokenPartOfExpression(SyntaxToken syntaxToken)
         {
             if (syntaxToken.IsMissing || syntaxToken.IsKind(SyntaxKind.None))
             {
@@ -631,18 +633,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return !syntaxToken.GetAncestors<ExpressionSyntax>().IsEmpty();
         }
 
-        private static string GetBracePairString(IEditorOptions editorOptions)
+        private static string GetBracePairString(DocumentOptionSet documentOptions)
             => string.Concat(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken),
-                editorOptions.GetNewLineCharacter(),
+                documentOptions.GetOption(FormattingOptions2.NewLine),
                 SyntaxFacts.GetText(SyntaxKind.CloseBraceToken));
 
         private void InsertBraceAndMoveCaret(
             ITextView textView,
             Document document,
+            DocumentOptionSet documentOptions,
             int insertionPosition,
             CancellationToken cancellationToken)
         {
-            var bracePair = GetBracePairString(textView.Options);
+            var bracePair = GetBracePairString(documentOptions);
 
             // 1. Insert { }.
             var newDocument = document.InsertText(insertionPosition, bracePair, cancellationToken);

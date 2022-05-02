@@ -4214,7 +4214,7 @@ class Program
         Console.WriteLine(a is nameof);
     }
 }
-class nameof { }
+class @nameof { }
 ";
             var expectedOutput =
 @"True
@@ -4449,7 +4449,7 @@ public class C
             // pattern)
             var source =
 @"
-public class var {}
+public class @var {}
 unsafe public class Typ
 {
     public static void Main(int* a, var* c, Typ* e)
@@ -4973,7 +4973,7 @@ public class Program738490379
             string Type() => types[r.Next(types.Length)];
             string Pattern(int d = 5)
             {
-                switch (r.Next(d <= 1 ? 9 : 12))
+                switch (r.Next(d <= 1 ? 9 : 13))
                 {
                     default:
                         return Expression(); // a "constant" pattern
@@ -4989,11 +4989,13 @@ public class Program738490379
                     case 8:
                         return "(" + Pattern(d - 1) + ")";
                     case 9:
-                        return makeRecursivePattern(d);
+                        return r.Next(2) == 0 ? makeRecursivePattern(d) : makeListPattern(d);
                     case 10:
                         return Pattern(d - 1) + " and " + Pattern(d - 1);
                     case 11:
                         return Pattern(d - 1) + " or " + Pattern(d - 1);
+                    case 12:
+                        return ".." + (r.Next(2) == 0 ? Pattern(d - 1) : null);
                 }
 
                 string makeRecursivePattern(int d)
@@ -5008,6 +5010,12 @@ public class Program738490379
                         bool haveIdentifier = r.Next(2) == 0;
                         return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
                     }
+                }
+
+                string makeListPattern(int d)
+                {
+                    bool haveIdentifier = r.Next(2) == 0;
+                    return $"[{makePatternList(d - 1, false)}]{(haveIdentifier ? " x" + r.Next(10) : null)}";
                 }
 
                 string makePatternList(int d, bool propNames)
@@ -7185,6 +7193,46 @@ public class C
                 //         if (outer is var _ and {} and (_, _) x) return x; // error 7
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
                 );
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_05()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public ref struct R
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+    public static implicit operator R(Span<int> span) => throw null;
+}
+public struct S
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+}
+public class C
+{
+    public void M1(ref R r, ref S s)
+    {
+        R outer = stackalloc int[100];
+        if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+        if (outer is { SProp.RProp: var sr0 }) r = sr0; // OK
+        if (outer is { SProp.SProp: var ss0 }) s = ss0; // OK
+        if (outer is { RProp.SProp: var rs0 }) s = rs0; // OK
+        if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+        if (outer is { SProp: { RProp: var sr1 }}) r = sr1; // OK
+        if (outer is { SProp: { SProp: var ss1 }}) s = ss1; // OK
+        if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
+    }
+}").VerifyDiagnostics(
+                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
         }
 
         [Fact]

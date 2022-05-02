@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -75,7 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void SetRuleSetFile(string filePath);
 
         void StartBatch();
+        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
         void EndBatch();
+        ValueTask EndBatchAsync();
 
         void ReorderSourceFiles(IEnumerable<string> filePaths);
     }

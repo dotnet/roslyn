@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -67,16 +68,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 get { return this.CurrentSolution.Projects.First(); }
             }
 
-            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project? project = null, bool allowDecompilation = false)
+            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project? project = null, bool signaturesOnly = true)
             {
                 project ??= this.DefaultProject;
                 Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, allowDecompilation: true);
             }
 
-            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string? symbolMetadataName = null, Project? project = null, bool allowDecompilation = false)
+            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string? symbolMetadataName = null, Project? project = null, bool signaturesOnly = true)
             {
                 symbolMetadataName ??= AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
                 project ??= this.DefaultProject;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
                 Contract.ThrowIfNull(symbol);
 
-                if (allowDecompilation)
+                if (!signaturesOnly)
                 {
                     foreach (var reference in compilation.References)
                     {
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, allowDecompilation: true);
 
                 return result;
             }
@@ -129,9 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool allowDecompilation = false)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool signaturesOnly = true)
             {
-                var result = await GenerateSourceAsync(symbolMetadataName, project, allowDecompilation);
+                var result = await GenerateSourceAsync(symbolMetadataName, project, signaturesOnly);
                 VerifyResult(result, expected);
             }
 
@@ -273,7 +274,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspace.Create(xmlString);
+                // We construct our own composition here because we only want the decompilation metadata as source provider
+                // to be available.
+                var composition = EditorTestCompositions.EditorFeatures
+                    .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                    .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
+
+                return TestWorkspace.Create(xmlString, composition: composition);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)

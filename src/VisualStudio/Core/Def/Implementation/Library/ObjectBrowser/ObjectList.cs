@@ -765,7 +765,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             catch (OperationCanceledException)
             {
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
             }
         }

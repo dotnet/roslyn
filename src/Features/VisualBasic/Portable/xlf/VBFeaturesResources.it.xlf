@@ -1719,7 +1719,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nome dello spazio dei nomi&gt;</target>
+        <target state="translated">&lt;nome spazio dei nomi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
@@ -1734,7 +1734,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome della classe&gt;</target>
+        <target state="translated">&lt;nome classe&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">

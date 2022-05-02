@@ -4,13 +4,21 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
+        protected sealed class DesktopServiceHubHostOnly : ExecutionCondition
+        {
+            public override bool ShouldSkip => string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase);
+            public override string SkipReason => "https://github.com/dotnet/roslyn/issues/57395";
+        }
+
         protected CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
             : base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
         {

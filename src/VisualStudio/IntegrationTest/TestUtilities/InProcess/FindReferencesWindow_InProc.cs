@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void NavigateTo(string windowCaption, Reference reference, bool isPreview)
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
         {
             InvokeOnUIThread(cancellationToken =>
             {
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     if (reference.Equals(CreateReference(item)))
                     {
-                        item.NavigateTo(isPreview);
+                        item.NavigateTo(isPreview, shouldActivate);
                     }
                 }
             });

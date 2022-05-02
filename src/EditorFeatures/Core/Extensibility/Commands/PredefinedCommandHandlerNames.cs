@@ -183,5 +183,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for showing the Value Tracking tool window.
         /// </summary>
         public const string ShowValueTracking = "Show Value Tracking";
+
+        /// <summary>
+        /// Command handler name for showing the Callstack Explorer tool window.
+        /// </summary>
+        public const string ShowCallstackExplorer = "Show Callstack Explorer";
     }
 }

@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override Assembly LoadFromPathImpl(string fullPath)
+            protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
                 => throw new FileNotFoundException(fullPath);
         }
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
                     if (anySideEffects)
                     {
-                        var annotation = WarningAnnotation.Create("Warning: Expression may have side effects. Code meaning may change.");
+                        var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_Expression_may_change_code_meaning);
                         expression = expression.ReplaceNode(memberAccess.Expression, memberAccess.Expression.WithAdditionalAnnotations(annotation));
                     }
                 }

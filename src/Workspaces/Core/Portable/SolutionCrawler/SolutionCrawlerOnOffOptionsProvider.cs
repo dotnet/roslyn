@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class SolutionCrawlerOnOffOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

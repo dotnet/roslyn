@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -126,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentService = previewWorkspace.Services.GetPersistentStorageService(previewWorkspace.CurrentSolution.Options);
 
-            await using var storage = await persistentService.GetStorageAsync(previewWorkspace.CurrentSolution, CancellationToken.None);
+            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
-            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
+            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
             Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
 

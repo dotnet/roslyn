@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.AddItemsAsync(_callbackId, count, cancellationToken), cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemCompletedAsync(_callbackId, cancellationToken), cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemsCompletedAsync(_callbackId, count, cancellationToken), cancellationToken);
 
             #endregion
 
@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
+
+            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportInformationalMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.SetSearchTitleAsync(_callbackId, title, cancellationToken), cancellationToken);

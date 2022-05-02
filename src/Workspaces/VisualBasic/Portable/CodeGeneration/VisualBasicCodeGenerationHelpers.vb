@@ -119,13 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             options = If(options, CodeGenerationOptions.Default)
 
-            Return Function(list)
-                       If [next] IsNot Nothing Then
-                           Return [next](list)
-                       End If
-
-                       Return Nothing
-                   End Function
+            Return Function(list) [next]?(list)
         End Function
 
         Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
@@ -134,13 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             options = If(options, CodeGenerationOptions.Default)
 
-            Return Function(list)
-                       If [next] IsNot Nothing Then
-                           Return [next](list)
-                       End If
-
-                       Return Nothing
-                   End Function
+            Return Function(list) [next]?(list)
         End Function
 
         Public Function Insert(Of TDeclaration As SyntaxNode)(

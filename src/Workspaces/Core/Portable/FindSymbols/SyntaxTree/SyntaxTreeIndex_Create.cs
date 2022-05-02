@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
-                var containsGlobalAttributes = false;
+                var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
-                            containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
+                            containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
 
                             TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsAwait,
                             containsTupleExpressionOrTupleType,
                             containsImplicitObjectCreation,
-                            containsGlobalAttributes,
+                            containsGlobalSuppressMessageAttribute,
                             containsConversion),
                     new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
@@ -223,6 +225,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var (_, builder) in extensionMethodInfo)
                     builder.Free();
             }
+        }
+
+        private static bool IsGlobalSuppressMessageAttribute(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            if (!syntaxFacts.IsGlobalAttribute(node))
+                return false;
+
+            var name = syntaxFacts.GetNameOfAttribute(node);
+            if (syntaxFacts.IsQualifiedName(name))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(name, out _, out _, out var right);
+                name = right;
+            }
+
+            if (!syntaxFacts.IsIdentifierName(name))
+                return false;
+
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(name);
+            var identifierName = identifier.ValueText;
+
+            return
+                syntaxFacts.StringComparer.Equals(identifierName, "SuppressMessage") ||
+                syntaxFacts.StringComparer.Equals(identifierName, nameof(SuppressMessageAttribute));
         }
 
         private static void TryAddGlobalAliasInfo(

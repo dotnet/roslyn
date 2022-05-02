@@ -26,17 +26,17 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
-        private IGlobalOptionService _optionService;
+        private IGlobalOptionService _globalOptions;
         private IThreadingContext _threadingContext;
         private HostWorkspaceServices _workspaceServices;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            if (_optionService == null)
+            if (_globalOptions == null)
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-                _optionService = componentModel.GetService<IGlobalOptionService>();
+                _globalOptions = componentModel.GetService<IGlobalOptionService>();
                 _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
@@ -50,15 +50,15 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             base.OnApply(e);
 
-            SetLoggers(_optionService, _threadingContext, _workspaceServices);
+            SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, HostWorkspaceServices workspaceServices)
+        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, HostWorkspaceServices workspaceServices)
         {
-            var loggerTypeNames = GetLoggerTypes(optionService).ToImmutableArray();
+            var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
 
             // update loggers in VS
-            var isEnabled = Logger.GetLoggingChecker(optionService);
+            var isEnabled = Logger.GetLoggingChecker(globalOptions);
 
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
@@ -76,19 +76,19 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
         }
 
-        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService optionService)
+        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
         {
-            if (optionService.GetOption(LoggerOptions.EtwLoggerKey))
+            if (globalOptions.GetOption(LoggerOptions.EtwLoggerKey))
             {
                 yield return nameof(EtwLogger);
             }
 
-            if (optionService.GetOption(LoggerOptions.TraceLoggerKey))
+            if (globalOptions.GetOption(LoggerOptions.TraceLoggerKey))
             {
                 yield return nameof(TraceLogger);
             }
 
-            if (optionService.GetOption(LoggerOptions.OutputWindowLoggerKey))
+            if (globalOptions.GetOption(LoggerOptions.OutputWindowLoggerKey))
             {
                 yield return nameof(OutputWindowLogger);
             }

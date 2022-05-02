@@ -38,13 +38,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         // Methods that are not string.Format but still should qualify to be replaced.
         // Ex: Console.WriteLine("{0}", a) => Console.WriteLine($"{a}");
-        private static readonly (string typeName, string[] methods)[] CompositeFormattedMethods = new (string, string[])[]
-            {
-                (typeof(Console).FullName!, new[] { nameof(Console.Write), nameof(Console.WriteLine) }),
-                (typeof(Debug).FullName!, new[] { nameof(Debug.WriteLine), nameof(Debug.Print)}),
-                (typeof(Trace).FullName!, new[] { nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation)}),
-                (typeof(TraceSource).FullName!, new[] { nameof(TraceSource.TraceInformation)})
-            };
+        private static readonly ImmutableArray<(string typeName, ImmutableArray<string> methods)> s_compositeFormattedMethods = ImmutableArray.Create(
+            (typeof(Console).FullName!, ImmutableArray.Create(nameof(Console.Write), nameof(Console.WriteLine))),
+            (typeof(Debug).FullName!, ImmutableArray.Create(nameof(Debug.WriteLine), nameof(Debug.Print))),
+            (typeof(Trace).FullName!, ImmutableArray.Create(nameof(Trace.TraceError), nameof(Trace.TraceWarning), nameof(Trace.TraceInformation))),
+            (typeof(TraceSource).FullName!, ImmutableArray.Create(nameof(TraceSource.TraceInformation))));
 
         protected abstract SyntaxNode GetInterpolatedString(string text);
 
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var stringInvocationMethods = CollectMethods(stringType, nameof(string.Format));
-            var compositeFormattedInvocationMethods = CompositeFormattedMethods
+            var stringInvocationMethods = CollectMethods(stringType, ImmutableArray.Create(nameof(string.Format)));
+            var compositeFormattedInvocationMethods = s_compositeFormattedMethods
                 .SelectMany(pair => CollectMethods(semanticModel.Compilation.GetTypeByMetadataName(pair.typeName), pair.methods))
                 .ToImmutableArray();
 
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             // Local Functions
 
-            static ImmutableArray<IMethodSymbol> CollectMethods(INamedTypeSymbol? typeSymbol, params string[] methodNames)
+            static ImmutableArray<IMethodSymbol> CollectMethods(INamedTypeSymbol? typeSymbol, ImmutableArray<string> methodNames)
             {
                 if (typeSymbol is null)
                 {

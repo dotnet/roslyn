@@ -6,6 +6,10 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 
+#if !DOTNET_BUILD_FROM_SOURCE
+using Microsoft.CodeAnalysis.SQLite.v2;
+#endif
+
 namespace Microsoft.CodeAnalysis.Storage
 {
     internal static class PersistentStorageExtensions
@@ -20,19 +24,18 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            switch (database)
+            return database switch
             {
-                case StorageDatabase.SQLite:
-                    return services.GetService<ISQLiteStorageServiceFactory>()?.Create(configuration) ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                case StorageDatabase.CloudCache:
-                    return services.GetService<ICloudCacheStorageServiceFactory>()?.Create(configuration) ??
-                           NoOpPersistentStorageService.GetOrThrow(configuration);
-
-                default:
-                    return NoOpPersistentStorageService.GetOrThrow(configuration);
-            }
+#if !DOTNET_BUILD_FROM_SOURCE
+                StorageDatabase.SQLite
+                    => services.GetService<SQLitePersistentStorageService>() ??
+                       NoOpPersistentStorageService.GetOrThrow(configuration),
+#endif
+                StorageDatabase.CloudCache
+                    => services.GetService<ICloudCacheStorageService>() ??
+                       NoOpPersistentStorageService.GetOrThrow(configuration),
+                _ => NoOpPersistentStorageService.GetOrThrow(configuration),
+            };
         }
     }
 }

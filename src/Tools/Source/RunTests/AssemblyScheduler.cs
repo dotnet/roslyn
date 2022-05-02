@@ -300,11 +300,6 @@ namespace RunTests
                     continue;
                 }
 
-                if (MethodAttributes.Public != (methodDefinition.Attributes & MethodAttributes.Public))
-                {
-                    continue;
-                }
-
                 count++;
             }
 

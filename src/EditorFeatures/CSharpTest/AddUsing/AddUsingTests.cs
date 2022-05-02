@@ -6530,7 +6530,7 @@ class Program
 </Workspace>";
 
             await TestMissingAsync(InitialWorkspace, new TestParameters(
-                options: Option(CompletionOptions.HideAdvancedMembers, true),
+                options: Option(CompletionOptions.Metadata.HideAdvancedMembers, true),
                 testHost: testHost));
         }
     }

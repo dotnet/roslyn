@@ -169,18 +169,29 @@ under `AppData`, not from `Program File`).
 
 ### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
 
-1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs`, which should be sufficient to build all C# code, installing any prerequisites if prompted to)
+1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs+libs.tests`, which should be sufficient to build all C# code, installing any prerequisites if prompted to, and perhaps `git clean -xdf` and `build.cmd -restore` initially - see [runtime repo documentation](https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md) for specific prerequisites and build instructions)
 2. `build.cmd -pack` on your `roslyn` repo
 3. in `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset` delete the version of the toolset that you just packed so that the new one will get put into the cache
 4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) then build again
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
-    - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
+    - add `<UsingToolMicrosoftNetCompilers>true</UsingToolMicrosoftNetCompilers>` and `<MicrosoftNetCompilersToolsetVersion>4.1.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
 ### Testing with extra IOperation validation
 
 Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.
 For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
+
+### Running the PublicAPI fixer
+
+1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
+`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
+2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+`C:\Source\roslyn> .\restore.cmd`
+`C:\Source\roslyn> .\build.cmd`
+3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
+`C:\Source\roslyn> cd ..`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
 
 ## Contributing
 

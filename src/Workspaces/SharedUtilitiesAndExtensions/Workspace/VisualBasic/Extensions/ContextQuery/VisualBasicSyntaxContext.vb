@@ -170,9 +170,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Friend Overrides Function IsAwaitKeywordContext() As Boolean
             If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
+                If IsInQuery Then
+                    ' There are some places where Await is allowed:
+                    ' BC36929: 'Await' may only be used in a query expression within the first collection expression of the initial 'From' clause or within the collection expression of a 'Join' clause.
+                    If TargetToken.Kind = SyntaxKind.InKeyword Then
+                        Dim collectionRange = TryCast(TargetToken.Parent, CollectionRangeVariableSyntax)
+                        If collectionRange IsNot Nothing Then
+                            If TypeOf collectionRange.Parent Is FromClauseSyntax AndAlso TypeOf collectionRange.Parent.Parent Is QueryExpressionSyntax Then
+                                Dim fromClause = DirectCast(collectionRange.Parent, FromClauseSyntax)
+                                Dim queryExpression = DirectCast(collectionRange.Parent.Parent, QueryExpressionSyntax)
+                                ' Await is only allowed for the first collection in a from clause. There are two forms to consider here:
+                                ' 1. From x In xs From y In ys
+                                ' 2. From x In xs, y In ys
+                                ' 1. and 2. can be combined, but in any combination, Await is only allowed on the very first collection
+                                If fromClause.Variables.FirstOrDefault() Is collectionRange AndAlso queryExpression.Clauses.FirstOrDefault() Is collectionRange.Parent Then
+                                    Return True
+                                End If
+                            ElseIf TypeOf collectionRange.Parent Is SimpleJoinClauseSyntax OrElse TypeOf collectionRange.Parent Is GroupJoinClauseSyntax Then
+                                Return True
+                            End If
+                        End If
+                    End If
+
+                    Return False
+                End If
                 For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
                     If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
-                                        SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
+                                   SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
                         Return True
                     End If
 

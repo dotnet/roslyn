@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var service = document.GetLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
-                    document, position, documentsToSearchSet, cancellationToken).ConfigureAwait(false);
+                    document, position, documentsToSearchSet, options, cancellationToken).ConfigureAwait(false);
 
                 return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
             }, cancellationToken);

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis
             private readonly ICompilationTracker _underlyingTracker;
             private readonly SourceGeneratedDocumentState _replacedGeneratedDocumentState;
 
+            private AsyncLazy<Checksum>? _lazyDependentChecksum;
+
             /// <summary>
             /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
             /// <see cref="GetCompilationAsync"/>.
@@ -31,13 +32,17 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
+            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            public ProjectState ProjectState => _underlyingTracker.ProjectState;
+
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
                 _underlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
+                SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
 
-            public ProjectState ProjectState => _underlyingTracker.ProjectState;
+            public GeneratorDriver? GeneratorDriver => _underlyingTracker.GeneratorDriver;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
@@ -52,23 +57,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file needs to search for declarations
-                // with other names; those APIs are only used by certain code fixes which isn't a need for now. This will need to be fixed up when
-                // we complete https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
-            }
-
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file needs to search for declarations
-                // with other names; those APIs are only used by certain code fixes which isn't a need for now. This will need to be fixed up when
-                // we complete https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
-            }
-
-            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default)
+            public ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
                 // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
@@ -120,31 +109,28 @@ namespace Microsoft.CodeAnalysis
                 return _compilationWithReplacement;
             }
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
-            }
-
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
+                => _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
+
+            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                return _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+                if (_lazyDependentChecksum == null)
+                {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // note: solution is captured here, but it will go away once GetValueAsync executes.
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                }
+
+                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
             }
 
-            public async Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
-            {
-                var compilation = await GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                // If it's the same language we can just make a CompilationReference
-                if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                {
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
-                else
-                {
-                    var version = await GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-                    return MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
-                }
-            }
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+                => Checksum.Create(
+                    await _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
+                    await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {

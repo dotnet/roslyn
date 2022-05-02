@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
 
+        public bool IsNullChecked => false;
         public bool IsDiscard => false;
     }
 }

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Options
             var changedOptionsKeysSerializable = _changedOptionKeys
                 .Where(key => serializableOptions.Contains(key.Option) && (!key.Option.IsPerLanguage || languages.Contains(key.Language!)))
                 .ToImmutableHashSet();
-            return new SerializableOptionSet(languages, optionService, serializableOptions, serializableOptionValues, changedOptionsKeysSerializable);
+            return new SerializableOptionSet(optionService, serializableOptionValues, changedOptionsKeysSerializable);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)

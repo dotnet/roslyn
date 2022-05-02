@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -15,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// </summary>
     internal abstract class AbstractRoslynTableDataSource<TItem, TData> : AbstractTableDataSource<TItem, TData>
         where TItem : TableItem
+        where TData : notnull
     {
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
             => ConnectToSolutionCrawlerService(workspace);

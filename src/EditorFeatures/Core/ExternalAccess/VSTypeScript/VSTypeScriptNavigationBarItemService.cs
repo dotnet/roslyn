@@ -47,17 +47,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public async Task<bool> TryNavigateToItemAsync(
             Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
-            var navigationSpan = item.TryGetNavigationSpan(textVersion);
-            if (navigationSpan != null)
-            {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Spans.First() is safe here as we filtered out any items with no spans above in ConvertItems.
+            var navigationSpan = item.GetCurrentItemSpan(textVersion, item.Spans.First());
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var workspace = document.Project.Solution.Workspace;
-                var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-                navigationService.TryNavigateToPosition(
-                    workspace, document.Id, navigationSpan.Value.Start,
-                    virtualSpace: 0, options: null, cancellationToken: cancellationToken);
-            }
+            var workspace = document.Project.Solution.Workspace;
+            var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
+            navigationService.TryNavigateToPosition(
+                workspace, document.Id, navigationSpan.Start,
+                virtualSpace: 0, options: null, cancellationToken: cancellationToken);
 
             return true;
         }
@@ -75,7 +73,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
                 item.Spans,
-                item.Spans.First(),
                 ConvertItems(item.ChildItems, textVersion),
                 item.Indent,
                 item.Bolded,

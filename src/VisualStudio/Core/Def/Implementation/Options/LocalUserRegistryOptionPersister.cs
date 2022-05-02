@@ -35,8 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public static async Task<LocalUserRegistryOptionPersister> CreateAsync(IAsyncServiceProvider provider)
         {
             // SLocalRegistry service is free-threaded -- see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1408594.
-            var localRegistry = await provider.GetServiceAsync<SLocalRegistry, ILocalRegistry4>(throwOnFailure: true).ConfigureAwait(false);
-            Contract.ThrowIfFalse(ErrorHandler.Succeeded(localRegistry!.GetLocalRegistryRootEx((uint)__VsLocalRegistryType.RegType_UserSettings, out var rootHandle, out var rootPath)));
+            // Note: not using IAsyncServiceProvider.GetServiceAsync<TService, TInterface> since the extension method might switch to UI thread.
+            // See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1408619/.
+            var localRegistry = (ILocalRegistry4?)await provider.GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(false);
+            Contract.ThrowIfNull(localRegistry);
+            Contract.ThrowIfFalse(ErrorHandler.Succeeded(localRegistry.GetLocalRegistryRootEx((uint)__VsLocalRegistryType.RegType_UserSettings, out var rootHandle, out var rootPath)));
 
             var handle = (__VsLocalRegistryRootHandle)rootHandle;
             Contract.ThrowIfTrue(string.IsNullOrEmpty(rootPath));

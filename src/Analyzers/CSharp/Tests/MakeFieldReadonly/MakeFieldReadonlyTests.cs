@@ -1717,18 +1717,38 @@ public class Repro
         }
 
         [WorkItem(46785, "https://github.com/dotnet/roslyn/issues/46785")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46785"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task UsedAsRef_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
-    private string [|_x|] = string.Empty;
+    private string [|x|] = string.Empty;
 
     public bool M()
     {
         ref var myVar = ref x;
         return myVar is null;
+    }
+}");
+        }
+
+        [WorkItem(57983, "https://github.com/dotnet/roslyn/issues/57983")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public class Test
+{
+    private ulong [|nextD3D12ComputeFenceValue|];
+
+    internal void Repro()
+    {
+        ref ulong d3D12FenceValue = ref Unsafe.NullRef<ulong>();
+        d3D12FenceValue = ref nextD3D12ComputeFenceValue;
+        d3D12FenceValue++;
     }
 }");
         }

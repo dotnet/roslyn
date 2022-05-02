@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.OpenFile(new Project(ProjectName), WellKnownProjectTemplates.CSharpNetCoreClassLibraryClassFileName);
         }
 
-        [WpfFact]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySyntaxErrorSquiggles()
@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [WpfFact]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
         [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySemanticErrorSquiggles()

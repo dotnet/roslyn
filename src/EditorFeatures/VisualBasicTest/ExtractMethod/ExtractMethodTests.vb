@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.NotNull(result)
             Assert.Equal(succeeded, result.Succeeded OrElse result.SucceededWithSuggestion)
 
-            Return Await result.Document.GetSyntaxRootAsync()
+            Return Await (Await result.GetFormattedDocumentAsync(CancellationToken.None)).document.GetSyntaxRootAsync()
         End Function
 
         Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task

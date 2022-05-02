@@ -5053,7 +5053,7 @@ class C<T>
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
-static class m
+static class @m
 {
     public static int NotAConstant()
     {
@@ -5061,7 +5061,7 @@ static class m
     }
 }
 
-public enum e1
+public enum @e1
 {
     a
 }
@@ -10291,7 +10291,7 @@ class Outer<T2>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/56664"), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(55190, "https://github.com/dotnet/roslyn/issues/55190")]
         public void GenericAttributeParameter_01()
         {
             var source = @"
@@ -10325,9 +10325,7 @@ class Program
     }
 }
 ";
-            // The expected output here will change once we consume a runtime
-            // which has a fix for https://github.com/dotnet/runtime/issues/56492
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "CustomAttributeFormatException");
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder

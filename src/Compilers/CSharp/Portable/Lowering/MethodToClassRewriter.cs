@@ -197,24 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarations = (BoundMultipleLocalDeclarations?)this.Visit(node.DeclarationsOpt);
             var expression = (BoundExpression?)this.Visit(node.ExpressionOpt);
             var body = (BoundStatement)this.Visit(node.Body);
-            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarations, expression, disposableConversion, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
-        }
-
-        private Conversion RewriteConversion(Conversion conversion)
-        {
-            switch (conversion.Kind)
-            {
-                case ConversionKind.ExplicitUserDefined:
-                case ConversionKind.ImplicitUserDefined:
-                    Debug.Assert(conversion.ConstrainedToTypeOpt is null);
-                    Debug.Assert(conversion.Method is not null);
-                    return new Conversion(conversion.Kind, VisitMethodSymbol(conversion.Method), conversion.IsExtensionMethod);
-                case ConversionKind.MethodGroup:
-                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
-                default:
-                    return conversion;
-            }
+            return node.Update(newLocals, declarations, expression, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
         [return: NotNullIfNotNull("type")]
@@ -569,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             method = VisitMethodSymbol(method);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
+            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, node.WasTargetTyped, type);
         }
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
@@ -594,7 +577,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (method.ContainingType.IsAnonymousType)
+            if (method.ContainingType is null)
+            {
+                Debug.Assert(method is SynthesizedGlobalMethodSymbol);
+                return method;
+            }
+            else if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

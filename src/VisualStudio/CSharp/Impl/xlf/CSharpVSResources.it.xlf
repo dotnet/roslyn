@@ -122,6 +122,11 @@
         <target state="translated">Inserisci parentesi graffa di apertura in una nuova riga per oggetto, raccolta, matrice e inizializzatori with</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Preferisci il modello di proprietà estesa</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Preferisci la creazione implicita di oggetti quando il tipo è apparente</target>

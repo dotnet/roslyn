@@ -107,6 +107,11 @@
         <target state="translated">Zestawy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">Automatycznie otwieraj Stack Trace Explorer przy fokusie</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Unikaj instrukcji wyrażeń, które niejawnie ignorują wartość</target>
@@ -195,6 +200,16 @@
       <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
         <source>Choose which action you would like to perform on the unused references.</source>
         <target state="translated">Wybierz akcję, którą chcesz wykonać na nieużywanych odwołaniach.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="translated">Wyczyść</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="translated">Zamknij kartę</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
@@ -295,6 +310,11 @@
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Wyświetl wszystkie wskazówki po naciśnięciu klawiszy Alt+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="translated">Wyświetl diagnostykę w tekście (eksperymentalne)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -482,6 +502,11 @@
         <target state="translated">Dziedziczone interfejsy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">Diagnostyka w tekście (eksperymentalna)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Wskazówki w tekście</target>
@@ -507,6 +532,11 @@
         <target state="translated">Wprowadź niezdefiniowane zmienne TODO</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="translated">Nieprawidłowa nazwa typu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Źródło elementu</target>
@@ -526,11 +556,6 @@
         <source>Kind</source>
         <target state="translated">Rodzaj</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Language_client_initialization_failed">
-        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="translated">Zainicjowanie języka {0} zakończyło się niepowodzeniem. Stan = {1}. Wyjątek = {2}</target>
-        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -580,6 +605,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">Preferencje modyfikatora:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="translated">Przenieś składowe statyczne do innego typu:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -777,6 +807,11 @@
         <target state="translated">Przejdź do pozycji „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">Przejdź do źródeł zewnętrznych</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
         <target state="translated">Nigdy</target>
@@ -922,6 +957,16 @@
         <target state="translated">Preferencje dotyczące nawiasów:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Wklej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="translated">Wklej prawidłowy ślad stosu, aby wyświetlić jego wartościach i nawigować po nich</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">Wstrzymano (zadania w kolejce: {0})</target>
@@ -982,6 +1027,11 @@
         <target state="translated">Preferuj statyczne funkcje lokalne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="translated">Preferuj zamianę krotki</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">Projekty</target>
@@ -1020,6 +1070,11 @@
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">Usuń nieużywane odwołania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Usuń niepotrzebne użycia</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1197,9 +1252,29 @@
         <target state="translated">Niektóre kolory w schemacie kolorów są przesłaniane przez zmiany wprowadzone na stronie opcji Środowisko &gt; Czcionki i kolory. Wybierz pozycję „Użyj ustawień domyślnych” na stronie Czcionki i kolory, aby wycofać wszystkie dostosowania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Sortuj użycia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Eksplorator śladu stosu</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="translated">Ślad stosu {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Sugestia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="translated">Pomiń wskazówki, gdy argument pasuje do nazwy parametru</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1542,6 +1617,11 @@
         <target state="translated">Element „{0}” zostanie zmieniony na publiczny.</target>
         <note />
       </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="translated">na końcu wiersza kodu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generated_by_0_suffix">
         <source>[generated by {0}]</source>
         <target state="translated">[wygenerowane przez: {0}]</target>
@@ -1600,11 +1680,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">Typy podstawowe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Różne pliki</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -2566,6 +2641,11 @@ Dodatkowe informacje: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="translated">na prawej krawędzi okna edytora</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

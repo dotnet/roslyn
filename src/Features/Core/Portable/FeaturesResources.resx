@@ -225,23 +225,23 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_1_0" xml:space="preserve">
-    <value>Generate enum member '{1}.{0}'</value>
+  <data name="Generate_enum_member_0" xml:space="preserve">
+    <value>Generate enum member '{0}'</value>
   </data>
-  <data name="Generate_constant_1_0" xml:space="preserve">
-    <value>Generate constant '{1}.{0}'</value>
+  <data name="Generate_constant_0" xml:space="preserve">
+    <value>Generate constant '{0}'</value>
   </data>
-  <data name="Generate_read_only_property_1_0" xml:space="preserve">
-    <value>Generate read-only property '{1}.{0}'</value>
+  <data name="Generate_read_only_property_0" xml:space="preserve">
+    <value>Generate read-only property '{0}'</value>
   </data>
-  <data name="Generate_property_1_0" xml:space="preserve">
-    <value>Generate property '{1}.{0}'</value>
+  <data name="Generate_property_0" xml:space="preserve">
+    <value>Generate property '{0}'</value>
   </data>
-  <data name="Generate_read_only_field_1_0" xml:space="preserve">
-    <value>Generate read-only field '{1}.{0}'</value>
+  <data name="Generate_read_only_field_0" xml:space="preserve">
+    <value>Generate read-only field '{0}'</value>
   </data>
-  <data name="Generate_field_1_0" xml:space="preserve">
-    <value>Generate field '{1}.{0}'</value>
+  <data name="Generate_field_0" xml:space="preserve">
+    <value>Generate field '{0}'</value>
   </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
@@ -297,8 +297,8 @@
   <data name="Introduce_query_variable_for_0" xml:space="preserve">
     <value>Introduce query variable for '{0}'</value>
   </data>
-  <data name="Anonymous_Types_colon" xml:space="preserve">
-    <value>Anonymous Types:</value>
+  <data name="Types_colon" xml:space="preserve">
+    <value>Types:</value>
   </data>
   <data name="is_" xml:space="preserve">
     <value>is</value>
@@ -587,14 +587,14 @@
   <data name="Unknown_symbol_kind" xml:space="preserve">
     <value>Unknown symbol kind</value>
   </data>
-  <data name="Generate_abstract_property_1_0" xml:space="preserve">
-    <value>Generate abstract property '{1}.{0}'</value>
+  <data name="Generate_abstract_property_0" xml:space="preserve">
+    <value>Generate abstract property '{0}'</value>
   </data>
-  <data name="Generate_abstract_method_1_0" xml:space="preserve">
-    <value>Generate abstract method '{1}.{0}'</value>
+  <data name="Generate_abstract_method_0" xml:space="preserve">
+    <value>Generate abstract method '{0}'</value>
   </data>
-  <data name="Generate_method_1_0" xml:space="preserve">
-    <value>Generate method '{1}.{0}'</value>
+  <data name="Generate_method_0" xml:space="preserve">
+    <value>Generate method '{0}'</value>
   </data>
   <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
     <value>Requested assembly already loaded from '{0}'.</value>
@@ -965,11 +965,12 @@ This version used in: {2}</value>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
+  <data name="Await_the_preceding_expression" xml:space="preserve">
+    <value>Await the preceding expression</value>
   </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
+  <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
+    <value>Await the preceding expression and add ConfigureAwait({0}).</value>
+    <comment>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
@@ -2439,7 +2440,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
   </data>
   <data name="Regex_balancing_group_long" xml:space="preserve">
     <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</value>
@@ -2929,10 +2930,96 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Renaming {0} requires restarting the application because it is not supported by the runtime.</value>
   </data>
+  <data name="Move_static_members_to_another_type" xml:space="preserve">
+    <value>Move static members to another type...</value>
+  </data>
   <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
+  <data name="Miscellaneous_Files" xml:space="preserve">
+    <value>Miscellaneous Files</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Silent" xml:space="preserve">
+    <value>Silent</value>
+  </data>
+  <data name="embedded" xml:space="preserve">
+    <value>embedded</value>
+    <comment>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</comment>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>external</value>
+    <comment>External means "external source", meaning source files that are not part of the current solution</comment>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded" xml:space="preserve">
+    <value>Could not find portable PDB on disk or embedded.</value>
+  </data>
+  <data name="Error_reading_PDB_0" xml:space="preserve">
+    <value>Error reading PDB: '{0}'</value>
+  </data>
+  <data name="Found_embedded_PDB_file" xml:space="preserve">
+    <value>Found embedded PDB file.</value>
+  </data>
+  <data name="Found_PDB_file_at_0" xml:space="preserve">
+    <value>Found PDB file at '{0}'</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server" xml:space="preserve">
+    <value>Found PDB on symbol server.</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server_but_could_not_read_file" xml:space="preserve">
+    <value>Found PDB on symbol server but could not read file.</value>
+  </data>
+  <data name="Navigating_to_symbol_0_from_1" xml:space="preserve">
+    <value>Navigating to symbol '{0}' from '{1}'.</value>
+  </data>
+  <data name="No_source_document_info_found_in_PDB" xml:space="preserve">
+    <value>No source document info found in PDB.</value>
+  </data>
+  <data name="Source_code_language_information_was_not_found_in_PDB" xml:space="preserve">
+    <value>Source code language information was not found in PDB.</value>
+  </data>
+  <data name="Source_is_a_reference_assembly" xml:space="preserve">
+    <value>Source is a reference assembly, not enough information to find PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB" xml:space="preserve">
+    <value>'{0}' found in embedded PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_could_not_write_file_1" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but could not write to temp file: '{1}'</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_cached_source_file" xml:space="preserve">
+    <value>'{0}' found in embedded PDB and found cached source file.</value>
+  </data>
+  <data name="_0_found_via_SourceLink" xml:space="preserve">
+    <value>'{0}' found via SourceLink.</value>
+  </data>
+  <data name="_0_found_via_SourceLink_but_couldnt_read_file" xml:space="preserve">
+    <value>'{0}' found via SourceLink but couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_original_location" xml:space="preserve">
+    <value>'{0}' found in original location.</value>
+  </data>
+  <data name="_0_found_in_original_location_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded_or_server" xml:space="preserve">
+    <value>Could not find PDB on disk, or embedded, or on a symbol server.</value>
+  </data>
+  <data name="Timeout_SourceLink" xml:space="preserve">
+    <value>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Timeout_symbol_server" xml:space="preserve">
+    <value>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
+    <value>Symbol found in assembly path '{0}'</value>
   </data>
 </root>

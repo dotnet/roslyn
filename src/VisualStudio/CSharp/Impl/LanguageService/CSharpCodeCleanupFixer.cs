@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [Export(typeof(AbstractCodeCleanUpFixer))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal partial class CSharpCodeCleanUpFixer : AbstractCodeCleanUpFixer
+    internal class CSharpCodeCleanUpFixer : AbstractCodeCleanUpFixer
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

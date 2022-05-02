@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
             {
                 var rangeType = compilation.GetBestTypeByMetadataName("System.Range");
-                if (rangeType == null)
+                if (rangeType == null || !rangeType.IsAccessibleWithin(compilation.Assembly))
                 {
                     infoCache = null;
                     return false;

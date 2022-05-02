@@ -1005,9 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that.
-                    // For parameterless struct constructors from metadata, IsDefaultValueTypeConstructor()
-                    // ignores requireZeroInit and simply checks if the method is implicitly declared.
-                    if (!method.IsDefaultValueTypeConstructor(requireZeroInit: false))
+                    if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
                     }

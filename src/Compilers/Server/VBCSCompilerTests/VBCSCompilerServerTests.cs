@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                     var thread = new Thread(() =>
                     {
-                        using (var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created))
+                        using (var mutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName, createdNew: out created))
                         using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
                             readyMre.Set();
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                             stream.Close();
 
                             doneMre.WaitOne();
-                            mutex.ReleaseMutex();
+                            mutex.Dispose();
                         }
                     });
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     {
                         using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
-                            var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created);
+                            var mutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName, createdNew: out created);
                             readyMre.Set();
 
                             stream.WaitForConnection();
@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                             // Client is waiting for a response.  Close the mutex now.  Then close the connection 
                             // so the client gets an error.
-                            mutex.ReleaseMutex();
                             mutex.Dispose();
                             stream.Close();
 

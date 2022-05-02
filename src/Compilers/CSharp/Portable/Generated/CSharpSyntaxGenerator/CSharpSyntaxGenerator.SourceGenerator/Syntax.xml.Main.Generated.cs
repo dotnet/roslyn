@@ -303,6 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
         public virtual TResult? VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ListPatternSyntax node.</summary>
+        public virtual TResult? VisitListPattern(ListPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SlicePatternSyntax node.</summary>
+        public virtual TResult? VisitSlicePattern(SlicePatternSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual TResult? VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
@@ -1010,6 +1016,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
         public virtual void VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ListPatternSyntax node.</summary>
+        public virtual void VisitListPattern(ListPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a SlicePatternSyntax node.</summary>
+        public virtual void VisitSlicePattern(SlicePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
@@ -1719,6 +1731,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitUnaryPattern(UnaryPatternSyntax node)
             => node.Update(VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
+        public override SyntaxNode? VisitListPattern(ListPatternSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Patterns), VisitToken(node.CloseBracketToken), (VariableDesignationSyntax?)Visit(node.Designation));
+
+        public override SyntaxNode? VisitSlicePattern(SlicePatternSyntax node)
+            => node.Update(VisitToken(node.DotDotToken), (PatternSyntax?)Visit(node.Pattern));
+
         public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
 
@@ -1996,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitParameter(ParameterSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Default));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.ExclamationExclamationToken), (EqualsValueClauseSyntax?)Visit(node.Default));
 
         public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
@@ -3719,6 +3737,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
         public static UnaryPatternSyntax UnaryPattern(PatternSyntax pattern)
             => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), pattern);
+
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SyntaxToken openBracketToken, SeparatedSyntaxList<PatternSyntax> patterns, SyntaxToken closeBracketToken, VariableDesignationSyntax? designation)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (ListPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ListPattern((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, patterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.PatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SeparatedSyntaxList<PatternSyntax> patterns, VariableDesignationSyntax? designation)
+            => SyntaxFactory.ListPattern(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), patterns, SyntaxFactory.Token(SyntaxKind.CloseBracketToken), designation);
+
+        /// <summary>Creates a new ListPatternSyntax instance.</summary>
+        public static ListPatternSyntax ListPattern(SeparatedSyntaxList<PatternSyntax> patterns = default)
+            => SyntaxFactory.ListPattern(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), patterns, SyntaxFactory.Token(SyntaxKind.CloseBracketToken), default);
+
+        /// <summary>Creates a new SlicePatternSyntax instance.</summary>
+        public static SlicePatternSyntax SlicePattern(SyntaxToken dotDotToken, PatternSyntax? pattern)
+        {
+            if (dotDotToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(dotDotToken));
+            return (SlicePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.SlicePattern((Syntax.InternalSyntax.SyntaxToken)dotDotToken.Node!, pattern == null ? null : (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new SlicePatternSyntax instance.</summary>
+        public static SlicePatternSyntax SlicePattern(PatternSyntax? pattern = default)
+            => SyntaxFactory.SlicePattern(SyntaxFactory.Token(SyntaxKind.DotDotToken), pattern);
 
         /// <summary>Creates a new InterpolatedStringTextSyntax instance.</summary>
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
@@ -5514,7 +5559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.BracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
-        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
         {
             switch (identifier.Kind())
             {
@@ -5522,12 +5567,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
+            switch (exclamationExclamationToken.Kind())
+            {
+                case SyntaxKind.ExclamationExclamationToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(exclamationExclamationToken));
+            }
+            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken?)exclamationExclamationToken.Node, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
+        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+            => SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, default, @default);
+
+        /// <summary>Creates a new ParameterSyntax instance.</summary>
         public static ParameterSyntax Parameter(SyntaxToken identifier)
-            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
+            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default, default);
 
         /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
         public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)

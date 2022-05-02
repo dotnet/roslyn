@@ -146,7 +146,7 @@ public static class TestReferences
             public static PortableExecutableReference dll => s_errTestMod02.Value;
         }
 
-        public static class badresfile
+        public static class @badresfile
         {
             private static readonly Lazy<PortableExecutableReference> s_badresfile = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.badresfile).GetReference(display: "badresfile.res"),

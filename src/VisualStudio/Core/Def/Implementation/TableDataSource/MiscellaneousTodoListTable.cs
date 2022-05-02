@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-            => new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
+            => _ = new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
 
         private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
         {

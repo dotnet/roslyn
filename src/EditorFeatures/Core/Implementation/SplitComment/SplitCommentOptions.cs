@@ -11,23 +11,20 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
-    internal class SplitCommentOptions
-    {
-        public static PerLanguageOption2<bool> Enabled =
-           new PerLanguageOption2<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
-               storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitComments"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class SplitCommentOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class SplitCommentOptions : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SplitCommentOptionsProvider()
+        public SplitCommentOptions()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SplitCommentOptions.Enabled);
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Enabled);
+
+        public static PerLanguageOption2<bool> Enabled =
+           new PerLanguageOption2<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
+               storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitComments"));
     }
 }

@@ -1197,7 +1197,7 @@ class C
             var source = @"
 using System;
 
-public class goo
+public class @goo
 {
     public static void Main()
     {

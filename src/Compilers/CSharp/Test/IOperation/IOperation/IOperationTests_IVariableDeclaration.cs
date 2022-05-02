@@ -1422,7 +1422,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 
@@ -1468,7 +1468,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 
@@ -1478,7 +1478,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &reference.i2')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i2')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i2')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i2')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i2')
                     Reference: 
@@ -1728,7 +1728,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 

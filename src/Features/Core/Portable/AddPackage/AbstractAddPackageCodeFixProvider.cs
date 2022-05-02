@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
             var language = document.Project.Language;
 
-            var options = workspaceServices.Workspace.Options;
+            var options = document.Project.Solution.Options;
             var searchNugetPackages = options.GetOption(
                 SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 

@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -13,18 +14,27 @@ namespace Roslyn.Test.Utilities.TestGenerators
 {
     internal class SingleFileTestGenerator : ISourceGenerator
     {
-        private readonly string _content;
-        private readonly string _hintName;
+        private readonly List<(string content, string hintName)> _sources = new();
 
-        public SingleFileTestGenerator(string content, string hintName = "generatedFile")
+        public SingleFileTestGenerator()
         {
-            _content = content;
-            _hintName = hintName;
+        }
+
+        public SingleFileTestGenerator(string content, string? hintName = null)
+        {
+            AddSource(content, hintName);
+        }
+
+        public void AddSource(string content, string? hintName = null)
+        {
+            hintName ??= "generatedFile" + (_sources.Any() ? (_sources.Count + 1).ToString() : "");
+            _sources.Add((content, hintName));
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            foreach (var (content, hintName) in _sources)
+                context.AddSource(hintName, SourceText.From(content, Encoding.UTF8));
         }
 
         public void Initialize(GeneratorInitializationContext context)

@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
@@ -473,6 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
                 currentToken.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // paramName!!
+            if (currentToken.IsKind(SyntaxKind.ExclamationExclamationToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.Parameter))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

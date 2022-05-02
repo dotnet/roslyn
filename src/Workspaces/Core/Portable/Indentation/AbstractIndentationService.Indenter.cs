@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 
                     var formatter = _service.CreateSmartTokenFormatter(this);
                     var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
-                                           .WaitAndGetResult(CancellationToken);
+                                           .WaitAndGetResult_CanCallOnBackground(CancellationToken);
 
                     var updatedSourceText = sourceText.WithChanges(changes);
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)

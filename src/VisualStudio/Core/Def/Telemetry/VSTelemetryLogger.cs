@@ -5,7 +5,9 @@
 #nullable disable
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
@@ -152,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
-                telemetryEvent = AppendProperties(telemetryEvent, functionId, kvLogMessage);
+                AppendProperties(telemetryEvent, functionId, kvLogMessage);
             }
             else
             {
@@ -167,26 +169,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             return telemetryEvent;
         }
 
-        private static T AppendProperties<T>(T @event, FunctionId functionId, KeyValueLogMessage logMessage)
-            where T : TelemetryEvent
+        private static void AppendProperties(TelemetryEvent telemetryEvent, FunctionId functionId, KeyValueLogMessage logMessage)
         {
-            if (!logMessage.ContainsProperty)
+            foreach (var (key, value) in logMessage.Properties)
             {
-                return @event;
-            }
-
-            foreach (var kv in logMessage.Properties)
-            {
-                var propertyName = functionId.GetPropertyName(kv.Key);
-
                 // call SetProperty. VS telemetry will take care of finding correct
                 // API based on given object type for us.
                 // 
                 // numeric data will show up in ES with measurement prefix.
-                @event.Properties.Add(propertyName, kv.Value);
-            }
 
-            return @event;
+                telemetryEvent.Properties.Add(functionId.GetPropertyName(key), value switch
+                {
+                    PiiValue pii => new TelemetryPiiProperty(pii.Value),
+                    IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? new TelemetryPiiProperty(pii.Value) : item)),
+                    _ => value
+                });
+            }
         }
     }
 }

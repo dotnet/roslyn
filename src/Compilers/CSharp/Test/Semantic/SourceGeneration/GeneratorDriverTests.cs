@@ -1548,25 +1548,36 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<Compilation> compilationsCalledFor = new List<Compilation>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var filePaths = ctx.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).Select((tree, _) => tree.FilePath);
-
-                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider.Select((c, ct) => c).WithTrackingName("IdentityTransform"), (spc, c) => { });
             }));
 
             // run the generator once, and check it was passed the compilation
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, compilationsCalledFor.Count);
-            Assert.Equal(compilation, compilationsCalledFor[0]);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["IdentityTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source => Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason));
+                    Assert.Collection(step.Outputs,
+                        output => Assert.Equal(IncrementalStepRunReason.New, output.Reason));
+                });
 
             // run the same compilation through again, and confirm the output wasn't called
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, compilationsCalledFor.Count);
-            Assert.Equal(compilation, compilationsCalledFor[0]);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["IdentityTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source => Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason));
+                    Assert.Collection(step.Outputs,
+                        output => Assert.Equal(IncrementalStepRunReason.Cached, output.Reason));
+                });
         }
 
         [Fact]
@@ -1584,48 +1595,208 @@ class C { }
             var text1 = new InMemoryAdditionalText("Text1", "content1");
             var text2 = new InMemoryAdditionalText("Text2", "content2");
 
-            List<Compilation> compilationsCalledFor = new List<Compilation>();
-            List<AdditionalText> textsCalledFor = new List<AdditionalText>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider.Select((c, ct) => c).WithTrackingName("CompilationTransform"), (spc, c) => { });
 
-                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, c) => { textsCalledFor.Add(c); });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((at, ct) => at).WithTrackingName("AdditionalTextsTransform"), (spc, at) => { });
             }));
 
             // run the generator once, and check it was passed the compilation
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, compilationsCalledFor.Count);
-            Assert.Equal(compilation, compilationsCalledFor[0]);
-            Assert.Equal(1, textsCalledFor.Count);
-            Assert.Equal(text1, textsCalledFor[0]);
+            var runResult = driver.GetRunResult().Results[0];
 
-            // clear the results, add an additional text, but keep the compilation the same
-            compilationsCalledFor.Clear();
-            textsCalledFor.Clear();
+            Assert.Collection(runResult.TrackedSteps["CompilationTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(compilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(compilation, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["AdditionalTextsTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text1, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text1, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
+
+            // add an additional text, but keep the compilation the same
             driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(text2));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(0, compilationsCalledFor.Count);
-            Assert.Equal(1, textsCalledFor.Count);
-            Assert.Equal(text2, textsCalledFor[0]);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["CompilationTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(compilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(compilation, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["AdditionalTextsTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text1, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text1, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                },
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text2, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text2, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
 
             // now edit the compilation
-            compilationsCalledFor.Clear();
-            textsCalledFor.Clear();
             var newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newComp"));
             driver = driver.RunGenerators(newCompilation);
-            Assert.Equal(1, compilationsCalledFor.Count);
-            Assert.Equal(newCompilation, compilationsCalledFor[0]);
-            Assert.Equal(0, textsCalledFor.Count);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["CompilationTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(newCompilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(newCompilation, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["AdditionalTextsTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text1, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text1, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                },
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text2, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text2, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
 
             // re run without changing anything
-            compilationsCalledFor.Clear();
-            textsCalledFor.Clear();
             driver = driver.RunGenerators(newCompilation);
-            Assert.Equal(0, compilationsCalledFor.Count);
-            Assert.Equal(0, textsCalledFor.Count);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["CompilationTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(newCompilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(newCompilation, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["AdditionalTextsTransform"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text1, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text1, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                },
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(text2, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal(text2, output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
         }
 
         [Fact]
@@ -1678,39 +1849,128 @@ class C { }
 
             List<AdditionalText> texts = new List<AdditionalText>() { new InMemoryAdditionalText("abc", "") };
 
-            List<(Compilation, ImmutableArray<AdditionalText>)> calledFor = new List<(Compilation, ImmutableArray<AdditionalText>)>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.Collect())
                                                 // comparer that ignores the LHS (additional texts)
-                                                .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
+                                                .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0))
+                                                .WithTrackingName("Step")
+                                                .Select((x, ct) => x)
+                                                .WithTrackingName("Step2");
                 ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
-                    calledFor.Add(c);
                 });
             }));
 
             // run the generator once, and check it was passed the compilation + additional texts
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: texts);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: texts, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
 
-            Assert.Equal(1, calledFor.Count);
-            Assert.Equal(compilation, calledFor[0].Item1);
-            Assert.Equal(texts[0], calledFor[0].Item2.Single());
+            Assert.Collection(runResult.TrackedSteps["Step"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(compilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason);
+                        },
+                        source =>
+                        {
+                            Assert.Equal(texts[0], ((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value)[0]);
+                            Assert.Equal(IncrementalStepRunReason.New, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            var value = ((Compilation, ImmutableArray<AdditionalText>))output.Value;
+                            Assert.Equal(compilation, value.Item1);
+                            Assert.Equal(texts[0], value.Item2.Single());
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
 
-            // edit the additional texts, and verify that the output was *not* called again on the next run
+            // edit the additional texts, and verify that the step output is considered "unchanged" and that the value is the same as the previous value.
             driver = driver.RemoveAdditionalTexts(texts.ToImmutableArray());
             driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult().Results[0];
 
-            Assert.Equal(1, calledFor.Count);
+            Assert.Collection(runResult.TrackedSteps["Step"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(compilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        },
+                        source =>
+                        {
+                            Assert.Empty((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            var value = ((Compilation, ImmutableArray<AdditionalText>))output.Value;
+                            Assert.Equal(compilation, value.Item1);
+                            Assert.Equal(texts[0], value.Item2.Single());
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason);
+                        });
+                });
+
+            // Verify that a step that consumes the result of the Combine step gets the old value as an input
+            // and considers the value cached.
+            Assert.Collection(runResult.TrackedSteps["Step2"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            var value = ((Compilation, ImmutableArray<AdditionalText>))source.Source.Outputs[source.OutputIndex].Value;
+                            Assert.Equal(compilation, value.Item1);
+                            Assert.Equal(texts[0], value.Item2.Single());
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            var value = ((Compilation, ImmutableArray<AdditionalText>))output.Value;
+                            Assert.Equal(compilation, value.Item1);
+                            Assert.Equal(texts[0], value.Item2.Single());
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
 
             // now edit the compilation, run the generator, and confirm that the output *was* called again this time with the new compilation and no additional texts
             Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
             driver = driver.RunGenerators(newCompilation);
-            Assert.Equal(2, calledFor.Count);
-            Assert.Equal(newCompilation, calledFor[1].Item1);
-            Assert.Empty(calledFor[1].Item2);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["Step"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        source =>
+                        {
+                            Assert.Equal(newCompilation, source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, source.Source.Outputs[source.OutputIndex].Reason);
+                        },
+                        source =>
+                        {
+                            Assert.Empty((ImmutableArray<AdditionalText>)source.Source.Outputs[source.OutputIndex].Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, source.Source.Outputs[source.OutputIndex].Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            var value = ((Compilation, ImmutableArray<AdditionalText>))output.Value;
+                            Assert.Equal(newCompilation, value.Item1);
+                            Assert.Empty(value.Item2);
+                            Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                        });
+                });
         }
 
         [Fact]
@@ -1760,33 +2020,64 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
                 ctx.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"));
 
-                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
+                var input = ctx.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node)
+                .Select((c, ct) => c).WithTrackingName("Classes");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
 
-            Assert.Equal(2, classes.Count);
-            Assert.Equal("C", classes[0].Identifier.ValueText);
-            Assert.Equal("D", classes[1].Identifier.ValueText);
+            Assert.Collection(runResult.TrackedSteps["Classes"],
+                step =>
+                {
+                    Assert.Equal("C", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.New, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.New, step.Outputs[0].Reason);
+                });
 
-            // clear classes, re-run
-            classes.Clear();
+            // re-run without changes
             driver = driver.RunGenerators(compilation);
-            Assert.Empty(classes);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["Classes"],
+                step =>
+                {
+                    Assert.Equal("C", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
 
             // modify the original tree, see that the post init is still cached
             var c2 = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText("class E{}", parseOptions));
-            classes.Clear();
             driver = driver.RunGenerators(c2);
-            Assert.Single(classes);
-            Assert.Equal("E", classes[0].Identifier.ValueText);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["Classes"],
+                step =>
+                {
+                    Assert.Equal("E", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.Modified, step.Outputs[0].Reason);
+                },
+                step =>
+                {
+                    Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
         }
 
         [Fact]
@@ -1829,38 +2120,47 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            List<ParseOptions> parseOptionsCalledFor = new List<ParseOptions>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, p) => { parseOptionsCalledFor.Add(p); });
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, p) => { });
             }));
 
             // run the generator once, and check it was passed the parse options
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, parseOptionsCalledFor.Count);
-            Assert.Equal(parseOptions, parseOptionsCalledFor[0]);
+            GeneratorRunResult runResult = driver.GetRunResult().Results[0];
+            Assert.Single(runResult.TrackedSteps["ParseOptions"]);
+            var output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
+            Assert.Equal(parseOptions, output);
 
-            // clear the results, and re-run
-            parseOptionsCalledFor.Clear();
+            // re-run without changes
             driver = driver.RunGenerators(compilation);
-            Assert.Empty(parseOptionsCalledFor);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["ParseOptions"],
+                step =>
+                {
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
 
             // now update the parse options
-            parseOptionsCalledFor.Clear();
             var newParseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Diagnose);
             driver = driver.WithUpdatedParseOptions(newParseOptions);
 
             // check we ran
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, parseOptionsCalledFor.Count);
-            Assert.Equal(newParseOptions, parseOptionsCalledFor[0]);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Single(runResult.TrackedSteps["ParseOptions"]);
+            output = runResult.TrackedSteps["ParseOptions"][0].Outputs[0].Value;
+            Assert.Equal(newParseOptions, output);
 
-            // clear the results, and re-run
-            parseOptionsCalledFor.Clear();
+            // re-run without changes
             driver = driver.RunGenerators(compilation);
-            Assert.Empty(parseOptionsCalledFor);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["ParseOptions"],
+                step =>
+                {
+                    Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
+                });
 
             // replace it with null, and check that it throws
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
@@ -1877,11 +2177,15 @@ class C { }
             compilation.VerifyDiagnostics();
 
             Assert.Single(compilation.SyntaxTrees);
-            string? analyzerOptionsValue = string.Empty;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, p) => p.GlobalOptions.TryGetValue("test", out analyzerOptionsValue));
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider.Select((p, ct) =>
+                {
+                    p.GlobalOptions.TryGetValue("test", out var analyzerOptionsValue);
+                    return analyzerOptionsValue;
+                }).WithTrackingName("AnalyzerConfig"),
+                (spc, p) => { });
             }));
 
             var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
@@ -1889,17 +2193,38 @@ class C { }
             var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
 
             // run the generator once, and check it was passed the configs
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal("value1", analyzerOptionsValue);
+            var runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["AnalyzerConfig"],
+                step =>
+                {
+                    Assert.Equal("AnalyzerConfig", step.Name);
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("value1", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
 
-            // clear the results, and re-run
-            analyzerOptionsValue = null;
+            // re-run without changes.
             driver = driver.RunGenerators(compilation);
-            Assert.Null(analyzerOptionsValue);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["AnalyzerConfig"],
+                step =>
+                {
+                    Assert.Equal("AnalyzerConfig", step.Name);
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("value1", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
 
             // now update the config
-            analyzerOptionsValue = null;
             builder.Clear();
             builder.Add("test", "value2");
             var newOptionsProvider = optionsProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
@@ -1907,7 +2232,19 @@ class C { }
 
             // check we ran
             driver = driver.RunGenerators(compilation);
-            Assert.Equal("value2", analyzerOptionsValue);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["AnalyzerConfig"],
+                step =>
+                {
+                    Assert.Equal("AnalyzerConfig", step.Name);
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("value2", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                        });
+                });
 
             // replace it with null, and check that it throws
             Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedAnalyzerConfigOptions(null!));
@@ -1928,35 +2265,173 @@ class C { }
             InMemoryAdditionalText additionalText2 = new InMemoryAdditionalText("path2.txt", "");
             InMemoryAdditionalText additionalText3 = new InMemoryAdditionalText("path3.txt", "");
 
-
-            List<string?> additionalTextPaths = new List<string?>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t.Path), (spc, p) => { additionalTextPaths.Add(p); });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t.Path).WithTrackingName("Paths"), (spc, p) => { });
             }));
 
             // run the generator once and check we saw the additional file
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 });
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(3, additionalTextPaths.Count);
-            Assert.Equal("path1.txt", additionalTextPaths[0]);
-            Assert.Equal("path2.txt", additionalTextPaths[1]);
-            Assert.Equal("path3.txt", additionalTextPaths[2]);
+            var runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Paths"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path1.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.New, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path1.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                },
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path2.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.New, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path2.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                },
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path3.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.New, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path3.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
 
             // re-run and check nothing else got added
-            additionalTextPaths.Clear();
             driver = driver.RunGenerators(compilation);
-            Assert.Empty(additionalTextPaths);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Paths"],
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path1.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path1.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                       });
+               },
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path2.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path2.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                       });
+               },
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path3.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path3.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                       });
+               });
 
-            // now, update the additional text, but keep the path the same
-            additionalTextPaths.Clear();
+            // now, update the additional text with a new path
             driver = driver.ReplaceAdditionalText(additionalText2, new InMemoryAdditionalText("path4.txt", ""));
 
             // run, and check that only the replaced file was invoked
             driver = driver.RunGenerators(compilation);
-            Assert.Single(additionalTextPaths);
-            Assert.Equal("path4.txt", additionalTextPaths[0]);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Paths"],
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path1.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path1.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                       });
+               },
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path4.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Modified, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path4.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                       });
+               },
+               step =>
+               {
+                   Assert.Collection(step.Inputs,
+                       input =>
+                       {
+                           var consumedInput = input.Source.Outputs[input.OutputIndex];
+                           Assert.Equal("path3.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                           Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                       });
+                   Assert.Collection(step.Outputs,
+                       output =>
+                       {
+                           Assert.Equal("path3.txt", output.Value);
+                           Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                       });
+               });
 
             // replace it with null, and check that it throws
             Assert.Throws<ArgumentNullException>(() => driver.ReplaceAdditionalText(additionalText1, null!));
@@ -1975,59 +2450,176 @@ class C { }
 
             InMemoryAdditionalText additionalText = new InMemoryAdditionalText("path.txt", "abc");
 
-            List<string?> additionalTextPaths = new List<string?>();
-            List<string?> additionalTextsContents = new List<string?>();
-
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var texts = ctx.AdditionalTextsProvider;
-                var paths = texts.Select((t, _) => t?.Path);
-                var contents = texts.Select((t, _) => t?.GetText()?.ToString());
+                var paths = texts.Select((t, _) => t?.Path).WithTrackingName("Path");
+                var contents = texts.Select((t, ct) => t?.GetText(ct)?.ToString()).WithTrackingName("Content");
 
-                ctx.RegisterSourceOutput(paths, (spc, p) => { additionalTextPaths.Add(p); });
-                ctx.RegisterSourceOutput(contents, (spc, p) => { additionalTextsContents.Add(p); });
+                ctx.RegisterSourceOutput(paths, (spc, p) => { });
+                ctx.RegisterSourceOutput(contents, (spc, p) => { });
             }));
 
             // run the generator once and check we saw the additional file
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText });
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, additionalTextPaths.Count);
-            Assert.Equal("path.txt", additionalTextPaths[0]);
-
-            Assert.Equal(1, additionalTextsContents.Count);
-            Assert.Equal("abc", additionalTextsContents[0]);
+            var runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Path"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.New, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["Content"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.New, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("abc", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.New, output.Reason);
+                        });
+                });
 
             // re-run and check nothing else got added
             driver = driver.RunGenerators(compilation);
-            Assert.Equal(1, additionalTextPaths.Count);
-            Assert.Equal(1, additionalTextsContents.Count);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Path"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["Content"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Cached, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("abc", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Cached, output.Reason);
+                        });
+                });
 
             // now, update the additional text, but keep the path the same
-            additionalTextPaths.Clear();
-            additionalTextsContents.Clear();
             var secondText = new InMemoryAdditionalText("path.txt", "def");
             driver = driver.ReplaceAdditionalText(additionalText, secondText);
 
-            // run, and check that only the contents got re-run
+            // run, and check that only the contents are marked as modified
             driver = driver.RunGenerators(compilation);
-            Assert.Empty(additionalTextPaths);
-
-            Assert.Equal(1, additionalTextsContents.Count);
-            Assert.Equal("def", additionalTextsContents[0]);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Path"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Modified, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["Content"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Modified, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("def", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                        });
+                });
 
             // now replace the text with a different path, but the same text
-            additionalTextPaths.Clear();
-            additionalTextsContents.Clear();
             var thirdText = new InMemoryAdditionalText("path2.txt", "def");
             driver = driver.ReplaceAdditionalText(secondText, thirdText);
 
             // run, and check that only the paths got re-run
             driver = driver.RunGenerators(compilation);
-
-            Assert.Equal(1, additionalTextPaths.Count);
-            Assert.Equal("path2.txt", additionalTextPaths[0]);
-
-            Assert.Empty(additionalTextsContents);
+            runResult = driver.GetRunResult().Results[0];
+            Assert.Collection(runResult.TrackedSteps["Path"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path2.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Modified, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("path2.txt", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+                        });
+                });
+            Assert.Collection(runResult.TrackedSteps["Content"],
+                step =>
+                {
+                    Assert.Collection(step.Inputs,
+                        input =>
+                        {
+                            var consumedInput = input.Source.Outputs[input.OutputIndex];
+                            Assert.Equal("path2.txt", Assert.IsType<InMemoryAdditionalText>(consumedInput.Value).Path);
+                            Assert.Equal(IncrementalStepRunReason.Modified, consumedInput.Reason);
+                        });
+                    Assert.Collection(step.Outputs,
+                        output =>
+                        {
+                            Assert.Equal("def", output.Value);
+                            Assert.Equal(IncrementalStepRunReason.Unchanged, output.Reason);
+                        });
+                });
         }
 
         [Theory]
@@ -2077,6 +2669,99 @@ class C { }
                 }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
+            }
+        }
+
+        [Fact]
+        public void IncrementalGeneratorInputSourcesHaveNames()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax c, (context, ct) => context.Node).WithTrackingName("Syntax"), (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+                ctx.RegisterImplementationSourceOutput(ctx.MetadataReferencesProvider, (context, ct) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { new InMemoryAdditionalText("text.txt", "") }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            // Assert that the well-named providers recorded steps with well known names.
+            Assert.Contains(WellKnownGeneratorInputs.Compilation, runResult.TrackedSteps.Keys);
+            Assert.Contains(WellKnownGeneratorInputs.AnalyzerConfigOptions, runResult.TrackedSteps.Keys);
+            Assert.Contains(WellKnownGeneratorInputs.ParseOptions, runResult.TrackedSteps.Keys);
+            Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, runResult.TrackedSteps.Keys);
+            Assert.Contains(WellKnownGeneratorInputs.MetadataReferences, runResult.TrackedSteps.Keys);
+
+            // Assert that a syntax provider records itself.
+            Assert.Contains("Syntax", runResult.TrackedSteps.Keys);
+
+            // Source output steps have the well-defined SourceOutputStep name
+            Assert.Contains(WellKnownGeneratorOutputs.SourceOutput, runResult.TrackedSteps.Keys);
+            Assert.Contains(WellKnownGeneratorOutputs.ImplementationSourceOutput, runResult.TrackedSteps.Keys);
+            // Source output steps should also be in the TrackedOutputSteps collection
+            Assert.Contains(WellKnownGeneratorOutputs.SourceOutput, runResult.TrackedOutputSteps.Keys);
+            Assert.Contains(WellKnownGeneratorOutputs.ImplementationSourceOutput, runResult.TrackedOutputSteps.Keys);
+
+            Assert.Equal(8, runResult.TrackedSteps.Count);
+            Assert.Equal(2, runResult.TrackedOutputSteps.Count);
+        }
+
+        [Fact]
+        public void Steps_From_Common_Input_Nodes_Recorded_In_All_Generators_Steps()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            InMemoryAdditionalText additionalText = new InMemoryAdditionalText("path.txt", "abc");
+
+            var generator1 = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+            });
+            var generator2 = new LocalPipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator1.AsSourceGenerator(), generator2.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { additionalText }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            GeneratorDriverRunResult runResult = driver.GetRunResult();
+            Assert.All(runResult.Results,
+                result => Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, result.TrackedSteps.Keys));
+            Assert.Equal(2, runResult.Results.Length);
+        }
+
+        // Introduce a local type here since GeneratorDriver validates that each generator is only included once
+        // by checking the type
+        private sealed class LocalPipelineCallbackGenerator : IIncrementalGenerator
+        {
+            private readonly Action<IncrementalGeneratorInitializationContext> _callback;
+
+            public LocalPipelineCallbackGenerator(Action<IncrementalGeneratorInitializationContext> callback)
+            {
+                _callback = callback;
+            }
+
+            public void Initialize(IncrementalGeneratorInitializationContext context)
+            {
+                _callback(context);
             }
         }
 

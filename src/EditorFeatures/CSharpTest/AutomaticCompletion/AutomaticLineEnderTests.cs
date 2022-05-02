@@ -203,6 +203,40 @@ $$", "class {$$}");
         }
 
         [WpfFact]
+        [WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
+        public void EmbededStatementFollowedByStatement()
+        {
+            Test(@"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true)
+        {
+            $$
+        }
+        if (true)
+        {
+        }
+    }
+}", @"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true$$)
+        if (true)
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
         public void Statement()
         {
             Test(@"class C

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
     /// Currently GlobalOptionService.CreateLazySerializableOptionsByLanguage loads all IOptionProvider types eagerly to determine whether or not they contribute to solution options.
     /// This is causing RPS regression.
     /// </summary>
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class XamlOptions : IOptionProvider
     {
         private const string FeatureName = "XamlOptions";

@@ -121,6 +121,23 @@ namespace Roslyn.Utilities
 
             return;
 
+            void AddItemsToBatch(IEnumerable<TItem> items)
+            {
+                // no equality comparer.  We want to process all items.
+                if (_equalityComparer == null)
+                {
+                    _nextBatch.AddRange(items);
+                    return;
+                }
+
+                // We're deduping items.  Only add the item if it's the first time we've seen it.
+                foreach (var item in items)
+                {
+                    if (_uniqueItems.Add(item))
+                        _nextBatch.Add(item);
+                }
+            }
+
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
@@ -140,23 +157,6 @@ namespace Roslyn.Utilities
         {
             lock (_gate)
                 return _updateTask;
-        }
-
-        private void AddItemsToBatch(IEnumerable<TItem> items)
-        {
-            // no equality comparer.  We want to process all items.
-            if (_equalityComparer == null)
-            {
-                _nextBatch.AddRange(items);
-                return;
-            }
-
-            // We're deduping items.  Only add the item if it's the first time we've seen it.
-            foreach (var item in items)
-            {
-                if (_uniqueItems.Add(item))
-                    _nextBatch.Add(item);
-            }
         }
 
         private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)

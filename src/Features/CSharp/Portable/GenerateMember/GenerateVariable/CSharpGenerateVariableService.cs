@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             if (propertyDeclaration.ExplicitInterfaceSpecifier != null)
             {
                 var semanticModel = document.SemanticModel;
-                propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol;
+                propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
                 if (propertySymbol != null && !propertySymbol.ExplicitInterfaceImplementations.Any())
                 {
                     var info = semanticModel.GetTypeInfo(propertyDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);

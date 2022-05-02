@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return false;
             }
 
-            if ((object)statementRange.FirstStatement != (object)statementRange.LastStatement)
+            if (statementRange.FirstStatement != statementRange.LastStatement)
             {
                 return false;
             }

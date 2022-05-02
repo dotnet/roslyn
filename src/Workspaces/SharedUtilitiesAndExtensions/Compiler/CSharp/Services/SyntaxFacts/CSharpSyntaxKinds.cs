@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
 
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
+        public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
+        public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
 
         public int GenericName => (int)SyntaxKind.GenericName;
         public int IdentifierName => (int)SyntaxKind.IdentifierName;

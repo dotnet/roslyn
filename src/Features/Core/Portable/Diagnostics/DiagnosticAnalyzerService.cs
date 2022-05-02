@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             Document document,
             TextSpan? range,
-            string? diagnosticId,
+            Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics, priority,
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, priority,
                     blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 

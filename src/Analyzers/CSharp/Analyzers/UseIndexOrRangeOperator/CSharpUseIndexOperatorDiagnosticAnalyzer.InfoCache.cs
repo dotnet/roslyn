@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
             {
                 var indexType = compilation.GetBestTypeByMetadataName("System.Index");
-                if (indexType == null)
+                if (indexType == null || !indexType.IsAccessibleWithin(compilation.Assembly))
                 {
                     infoCache = null;
                     return false;

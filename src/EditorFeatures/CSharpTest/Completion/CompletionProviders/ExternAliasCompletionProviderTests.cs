@@ -34,7 +34,7 @@ class C
         {
             var markup = @"
 extern alias $$ ";
-            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 1, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 1, "C#", "C#");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -42,7 +42,7 @@ extern alias $$ ";
         {
             var markup = @"
 extern alias goo $$ ";
-            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -50,7 +50,7 @@ extern alias goo $$ ";
         {
             var markup = @"
 extern alias $$ ";
-            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "global", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "global", 0, "C#", "C#");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -59,7 +59,7 @@ extern alias $$ ";
             var markup = @"
 extern alias goo;
 extern alias $$";
-            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#");
         }
 
         [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal sealed class StorageOptions : IOptionProvider
     {
         internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static readonly Option<bool> CloudCacheFeatureFlag = new(
             FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
-            new FeatureFlagStorageLocation("Roslyn.CloudCache"));
+            new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             Database,

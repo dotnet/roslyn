@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            CompletionOptions options,
             CancellationToken cancellationToken)
         {
             var getCacheResults = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
@@ -70,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 return null;
             }
 
-            var hideAdvancedMembers = currentProject.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, currentProject.Language);
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             return getCacheResults.Value.SelectAsArray(GetItemsFromCacheResult);
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                          currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
                          syntaxContext.IsAttributeNameContext,
                          IsCaseSensitive,
-                         hideAdvancedMembers);
+                         options.HideAdvancedMembers);
             }
         }
 

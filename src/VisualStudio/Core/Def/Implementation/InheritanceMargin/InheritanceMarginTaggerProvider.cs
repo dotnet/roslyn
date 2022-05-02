@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -38,8 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider) : base(
                 threadingContext,
+                globalOptions,
                 listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
         {
         }
@@ -77,7 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         protected override async Task ProduceTagsAsync(
             TaggerContext<InheritanceMarginTag> context,
             DocumentSnapshotSpan spanToTag,
-            int? caretPosition)
+            int? caretPosition,
+            CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -85,14 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-
-            var shouldDisableFeature = optionValue == false;
-            if (shouldDisableFeature)
+            if (GlobalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, document.Project.Language) == false)
             {
                 return;
             }

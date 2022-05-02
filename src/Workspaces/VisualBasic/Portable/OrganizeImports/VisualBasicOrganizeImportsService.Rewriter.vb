@@ -13,18 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
 
             Private ReadOnly _placeSystemNamespaceFirst As Boolean
             Private ReadOnly _separateGroups As Boolean
+            Private ReadOnly _newLineTrivia As SyntaxTrivia
 
             Public ReadOnly TextChanges As IList(Of TextChange) = New List(Of TextChange)()
 
-            Public Sub New(placeSystemNamespaceFirst As Boolean, separateGroups As Boolean)
+            Public Sub New(placeSystemNamespaceFirst As Boolean, separateGroups As Boolean, newLineTrivia As SyntaxTrivia)
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst
                 _separateGroups = separateGroups
+                _newLineTrivia = newLineTrivia
             End Sub
 
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode
                 node = DirectCast(MyBase.VisitCompilationUnit(node), CompilationUnitSyntax)
                 Dim organizedImports = ImportsOrganizer.Organize(
-                    node.Imports, _placeSystemNamespaceFirst, _separateGroups)
+                    node.Imports, _placeSystemNamespaceFirst, _separateGroups, _newLineTrivia)
 
                 Dim result = node.WithImports(organizedImports)
                 If result IsNot node Then

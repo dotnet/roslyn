@@ -6,6 +6,8 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,13 +18,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(globalOptions As IGlobalOptionService)
+            MyBase.New(globalOptions)
         End Sub
 
         Protected Overrides Sub AddAllParameterNameHintLocations(
                 semanticModel As SemanticModel,
+                syntaxFacts As ISyntaxFactsService,
                 node As SyntaxNode,
-                buffer As ArrayBuilder(Of (position As Integer, parameter As IParameterSymbol, kind As HintKind)),
+                buffer As ArrayBuilder(Of (position As Integer, identifierArgument As String, parameter As IParameterSymbol, kind As HintKind)),
                 cancellationToken As CancellationToken)
 
             Dim argumentList = TryCast(node, ArgumentListSyntax)
@@ -49,7 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                     Continue For
                 End If
 
-                buffer.Add((argument.Span.Start, parameter, GetKind(argument.Expression)))
+                Dim argumentIdentifier = GetIdentifierNameFromArgument(argument, syntaxFacts)
+                buffer.Add((argument.Span.Start, argumentIdentifier, parameter, GetKind(argument.Expression)))
             Next
         End Sub
 

@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger);
     }
 }

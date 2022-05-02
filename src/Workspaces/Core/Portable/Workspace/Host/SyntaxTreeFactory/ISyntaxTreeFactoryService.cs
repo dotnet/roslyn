@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptions();
 
         ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
+
+        ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
 
         // new tree from root node
         SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root);

@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             => type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-            => (short)(scope switch
+            => scope switch
             {
                 FixAllScope.Document => 1,
                 FixAllScope.Project => 2,
                 FixAllScope.Solution => 3,
                 _ => 4,
-            });
+            };
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {

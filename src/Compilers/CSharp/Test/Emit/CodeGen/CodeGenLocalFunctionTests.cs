@@ -4508,11 +4508,11 @@ Console.WriteLine(AwaitAwait().Result);
             var source = @"
 using System;
 
-struct async
+struct @async
 {
     public override string ToString() => ""2"";
 }
-struct await
+struct @await
 {
     public override string ToString() => ""2"";
 }

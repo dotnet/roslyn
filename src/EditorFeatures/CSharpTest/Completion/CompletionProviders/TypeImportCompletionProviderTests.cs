@@ -24,18 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(TypeImportCompletionProvider);
 
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public TypeImportCompletionProviderTests()
         {
-            return base.WithChangedOptions(options)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
+            ShowImportCompletionItemsOptionValue = true;
+            IsExpandedCompletion = true;
         }
 
         #region "Option tests"

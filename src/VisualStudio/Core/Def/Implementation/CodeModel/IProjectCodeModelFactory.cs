@@ -15,5 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory);
         EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath);
+        EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument);
     }
 }

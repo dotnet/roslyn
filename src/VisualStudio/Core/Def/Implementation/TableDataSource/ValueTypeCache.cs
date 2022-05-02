@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 
@@ -26,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             public static readonly Cache<T> Instance = new();
 
-            private static readonly Func<T, object> s_boxer = v => (object)v;
+            private static readonly Func<T, object> s_boxer = v => v;
 
             // this will be never released, must be used only for fixed size set
             private readonly ConcurrentDictionary<T, object> _map =
