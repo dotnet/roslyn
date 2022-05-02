@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
     // PROTOTYPE(semi-auto-props): Add ENC tests.
 
+    // PROTOTYPE(semi-auto-props): Add a test where a virtual `get; set;` auto property is overridden by a sealed `get => 0;`.
+    // A synthesized sealed accessor is expected to be produced.
+
+    // PROTOTYPE(semi-auto-props): Add a test where a virtual property is `public virtual int P6 { get => 0; set { } }`, and
+    // it's overridden by `public override int P6 { get => field; }`
+    // The assignment of the property in constructor should use the base setter.
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         /// <summary>
