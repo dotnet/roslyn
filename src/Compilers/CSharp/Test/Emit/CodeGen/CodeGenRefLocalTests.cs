@@ -3894,5 +3894,78 @@ class Program
   IL_0007:  ret
 }");
         }
+
+        [Fact]
+        public void ReadValueAndDiscard_05()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadValueAndDiscard_06()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
     }
 }
