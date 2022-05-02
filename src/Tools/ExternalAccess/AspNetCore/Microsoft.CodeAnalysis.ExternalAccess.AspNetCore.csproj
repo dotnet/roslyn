@@ -24,6 +24,8 @@
     <!--
       ⚠ ONLY ASP.NET CORE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Analyzers" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.UnitTests" />
   </ItemGroup>
 
