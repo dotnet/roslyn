@@ -26,23 +26,12 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         public string Language { get; }
 
-        /// <summary>
-        /// Identifiers in code (or StringSyntaxAttribute) used to identify an embedded language string. For example
-        /// <c>Regex</c> or <c>Json</c>.
-        /// </summary>
-        /// <remarks>This can be used to find usages of an embedded language using a comment marker like <c>//
-        /// lang=regex</c> or passed to a symbol annotated with <c>[StringSyntaxAttribyte("Regex")]</c>.  The identifier
-        /// is case sensitive for the StringSyntaxAttribute, and case insensitive for the comment.
-        /// </remarks>
-        public string[] Identifiers { get; }
-
         public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string language, params string[] identifiers)
+            string name, string language)
             : base(typeof(IEmbeddedLanguageClassifier))
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
-            Identifiers = identifiers ?? throw new ArgumentNullException(nameof(identifiers));
         }
     }
 
@@ -59,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public bool SupportsUnannotatedAPIs { get; }
 
         public ExportEmbeddedLanguageClassifierInternalAttribute(
-            string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(name, language, identifiers)
+            string name, string language, bool supportsUnannotatedAPIs)
+            : base(name, language)
         {
             SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
         }

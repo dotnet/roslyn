@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     internal class EmbeddedLanguageMetadata : OrderableLanguageMetadata
     {
         /// <summary>
-        /// The particular language-IDs this language supports (for example 'regex/regexp/etc.').
-        /// </summary>
-        public IEnumerable<string> Identifiers { get; }
-
-        /// <summary>
         /// If this language supports strings being passed to APIs that do not have a <c>// lang=...</c> comment or a
         /// <c>[StringSyntax]</c> attribute on them.  This is not exposed publicly as all modern language plugins should
         /// use those mechanisms.  This is for Regex/Json to support lighting up on older platform APIs that shipped
@@ -26,15 +21,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         public EmbeddedLanguageMetadata(IDictionary<string, object> data)
             : base(data)
         {
-            this.Identifiers = ((IReadOnlyDictionary<string, object>)data).GetEnumerableMetadata<string>(nameof(Identifiers)).WhereNotNull();
             this.SupportsUnannotatedAPIs = data.GetValueOrDefault(nameof(SupportsUnannotatedAPIs)) is bool b ? b : false;
         }
 
         public EmbeddedLanguageMetadata(
-            string name, string language, IEnumerable<string> after, IEnumerable<string> before, IEnumerable<string> identifiers, bool supportsUnannotatedAPIs)
+            string name, string language, IEnumerable<string> after, IEnumerable<string> before, bool supportsUnannotatedAPIs)
             : base(name, language, after, before)
         {
-            this.Identifiers = identifiers;
             SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
         }
     }

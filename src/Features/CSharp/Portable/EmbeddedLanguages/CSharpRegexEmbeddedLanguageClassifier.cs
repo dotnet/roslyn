@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
     // want that to happen for APIs that are certain to be another language like Regex.
     [ExtensionOrder(Before = PredefinedEmbeddedLanguageClassifierNames.Json)]
     [ExportEmbeddedLanguageClassifierInternal(
-        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
+        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true), Shared]
     internal class CSharpRegexEmbeddedLanguageClassifier : AbstractRegexEmbeddedLanguageClassifier
     {
         [ImportingConstructor]

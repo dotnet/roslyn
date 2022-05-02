@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <summary>
         /// Classifiers that can annotated older APIs not updated to use the [StringSyntax] attribute.
         /// </summary>
-        private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _legacyClassifiers;
+        private readonly ImmutableArray<IEmbeddedLanguageClassifier> _legacyClassifiers;
 
         /// <summary>
         /// Finally classifier to run if there is no embedded language in a string.  It will just classify escape sequences.
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// This allows for multiple classifiers to be available.  The first classifier though that returns
         /// classifications for a string will 'win' and no other classifiers will contribute.
         /// </summary>
-        private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ArrayBuilder<IEmbeddedLanguageClassifier>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Helper to look at string literals and determine what language they are annotated to take.
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Classification
             var orderedClassifiers = ExtensionOrderer.Order(allClassifiers).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
 
             // Grab out the classifiers that handle unannotated literals and APIs.
-            _legacyClassifiers = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
+            _legacyClassifiers = orderedClassifiers.SelectAsArray(c => c.Metadata.SupportsUnannotatedAPIs, c => c.Value);
 
             foreach (var classifier in orderedClassifiers)
             {
-                foreach (var identifier in classifier.Metadata.Identifiers)
-                    _identifierToClassifiers.MultiAdd(identifier, classifier);
+                foreach (var identifier in classifier.Value.Identifiers)
+                    _identifierToClassifiers.MultiAdd(identifier, classifier.Value);
             }
 
             foreach (var (_, classifiers) in _identifierToClassifiers)
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.Classification
                         foreach (var classifier in classifiers)
                         {
                             // keep track of what classifiers we've run so we don't call into them multiple times.
-                            _classifierBuffer.Add(classifier.Value);
+                            _classifierBuffer.Add(classifier);
 
                             // If this classifier added values then need to check the other ones.
-                            if (TryClassify(classifier.Value, context))
+                            if (TryClassify(classifier, context))
                                 return;
                         }
                     }
@@ -185,11 +185,11 @@ namespace Microsoft.CodeAnalysis.Classification
                     foreach (var legacyClassifier in _service._legacyClassifiers)
                     {
                         // don't bother trying to classify again if we already tried above.
-                        if (_classifierBuffer.Contains(legacyClassifier.Value))
+                        if (_classifierBuffer.Contains(legacyClassifier))
                             continue;
 
                         // If this classifier added values then need to check the other ones.
-                        if (TryClassify(legacyClassifier.Value, context))
+                        if (TryClassify(legacyClassifier, context))
                             return;
                     }
 
