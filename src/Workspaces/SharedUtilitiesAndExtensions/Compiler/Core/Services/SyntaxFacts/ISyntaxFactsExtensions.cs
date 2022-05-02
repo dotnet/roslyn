@@ -503,6 +503,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return argumentList;
         }
 
+        public static SyntaxNode? GetDefaultOfParameter(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParameter(node, out _, out var @default);
+            return @default;
+        }
+
         public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
@@ -512,6 +518,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static SyntaxToken GetIdentifierOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfGenericName(node, out var identifier, out _);
+            return identifier;
+        }
+
+        public static SyntaxToken GetIdentifierOfParameter(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParameter(node, out var identifier, out _);
             return identifier;
         }
 

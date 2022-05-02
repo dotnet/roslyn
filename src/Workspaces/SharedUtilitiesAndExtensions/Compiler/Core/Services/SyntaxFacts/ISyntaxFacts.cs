@@ -288,8 +288,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxToken? GetNameOfParameter([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode? GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode? GetParameterList(SyntaxNode node);
         bool IsParameterList([NotNullWhen(true)] SyntaxNode? node);
 
@@ -306,7 +304,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
-        SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
         SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node);
@@ -539,6 +536,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
         void GetPartsOfNamedMemberInitializer(SyntaxNode node, out SyntaxNode name, out SyntaxNode expression);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
+        void GetPartsOfParameter(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode? @default);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);
         void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);

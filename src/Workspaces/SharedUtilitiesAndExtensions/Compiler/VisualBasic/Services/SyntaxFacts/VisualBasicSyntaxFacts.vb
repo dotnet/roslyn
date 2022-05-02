@@ -185,14 +185,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
-        Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFacts.GetNameOfParameter
-            Return DirectCast(node, ParameterSyntax).Identifier?.Identifier
-        End Function
-
-        Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetDefaultOfParameter
-            Return DirectCast(node, ParameterSyntax).Default
-        End Function
-
         Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetParameterList
             Return node.GetParameterList()
         End Function
@@ -1379,10 +1371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
         End Function
 
-        Public Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfParameter
-            Return DirectCast(node, ParameterSyntax).Identifier.Identifier
-        End Function
-
         Public Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
             Select Case node.Kind()
                 Case SyntaxKind.EnumStatement,
@@ -1883,6 +1871,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             type = objectCreationExpression.Type
             argumentList = objectCreationExpression.ArgumentList
             initializer = objectCreationExpression.Initializer
+        End Sub
+
+        Public Sub GetPartsOfParameter(node As SyntaxNode, ByRef identifier As SyntaxToken, ByRef [default] As SyntaxNode) Implements ISyntaxFacts.GetPartsOfParameter
+            Dim parameter = DirectCast(node, ParameterSyntax)
+            identifier = parameter.Identifier.Identifier
+            [default] = parameter.Default
         End Sub
 
         Public Sub GetPartsOfParenthesizedExpression(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedExpression

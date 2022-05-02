@@ -183,12 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
-        public SyntaxToken? GetNameOfParameter(SyntaxNode? node)
-            => (node as ParameterSyntax)?.Identifier;
-
-        public SyntaxNode? GetDefaultOfParameter(SyntaxNode node)
-            => ((ParameterSyntax)node).Default;
-
         public SyntaxNode? GetParameterList(SyntaxNode node)
             => node.GetParameterList();
 
@@ -1314,9 +1308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
 
-        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
-            => ((ParameterSyntax)node).Identifier;
-
         public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
             => node switch
             {
@@ -1680,6 +1671,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             type = objectCreationExpression.Type;
             argumentList = objectCreationExpression.ArgumentList;
             initializer = objectCreationExpression.Initializer;
+        }
+
+        public void GetPartsOfParameter(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode? @default)
+        {
+            var parameter = (ParameterSyntax)node;
+            identifier = parameter.Identifier;
+            @default = parameter.Default;
         }
 
         public void GetPartsOfParenthesizedExpression(
