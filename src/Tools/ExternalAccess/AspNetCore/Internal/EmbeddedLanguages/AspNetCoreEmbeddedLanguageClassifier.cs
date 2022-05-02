@@ -17,7 +17,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
     [ExportEmbeddedLanguageClassifierInternal(
-        nameof(AspNetCoreEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false), Shared]
+        nameof(AspNetCoreEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false, "Route"), Shared]
     internal class AspNetCoreEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         // Following CWTs are used to cache the  providers from projects' references,
@@ -25,34 +25,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier>>> _analyzerReferencesToClassifiersMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ClassifierExtensionProvider> _analyzerReferenceToProviderMap = new();
 
-        private readonly ImmutableArray<string> _identifiers;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AspNetCoreEmbeddedLanguageClassifier()
         {
         }
 
-        public ImmutableArray<string> Identifiers
-        {
-            get
-            {
-                if (_identifiers.IsDefault)
-                {
-                    var classifiers = 
-                }
-            }
-        }
-
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
+            if (context.Project is null)
+                return;
+
+            var classifiers = GetClassifiers(context.Project);
+            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(context);
+            foreach (var classifier in classifiers)
+                classifier.RegisterClassifications(aspContext);
         }
 
-        private ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier> GetClassifiers(Project? project)
+        private ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier> GetClassifiers(Project project)
         {
-            if (project is null)
-                return ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier>.Empty;
-
             if (_analyzerReferencesToClassifiersMap.TryGetValue(project.AnalyzerReferences, out var classifiers))
                 return classifiers.Value;
 
@@ -72,28 +63,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
                 }
 
                 return result.ToImmutable();
-            }
-        }
-
-        private sealed class ClassifierExtensionProvider
-            : AbstractProjectExtensionProvider<IAspNetCoreEmbeddedLanguageClassifier, ExportAspNetCoreEmbeddedLanguageClassifierAttribute>
-        {
-            public ClassifierExtensionProvider(AnalyzerReference reference)
-                : base(reference)
-            {
-            }
-
-            protected override bool SupportsLanguage(ExportAspNetCoreEmbeddedLanguageClassifierAttribute exportAttribute, string language)
-            {
-                return exportAttribute.Language == null
-                    || exportAttribute.Language.Length == 0
-                    || exportAttribute.Language.Contains(language);
-            }
-
-            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier> extensions)
-            {
-                extensions = default;
-                return false;
             }
         }
     }
