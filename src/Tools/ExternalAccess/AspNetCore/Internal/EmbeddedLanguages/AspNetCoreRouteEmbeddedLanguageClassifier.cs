@@ -3,10 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
@@ -14,17 +19,67 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
         nameof(AspNetCoreRouteEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false, "Route"), Shared]
     internal class AspNetCoreRouteEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
-        private readonly IAspNetCoreRouteEmbeddedLanguageClassifier? _classifier;
+        // Following CWTs are used to cache the  providers from projects' references,
+        // so we can avoid the slow path unless there's any change to the references.
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, IAspNetCoreRouteEmbeddedLanguageClassifier> _analyzerReferencesToClassifierMap = new();
+        private readonly ConditionalWeakTable<AnalyzerReference, IAspNetCoreRouteEmbeddedLanguageClassifier> _analyzerReferenceToClassifierMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AspNetCoreRouteEmbeddedLanguageClassifier(
-            [Import(AllowDefault = true)] IAspNetCoreRouteEmbeddedLanguageClassifier? classifier)
+        public AspNetCoreRouteEmbeddedLanguageClassifier()
         {
-            _classifier = classifier;
         }
 
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
-            => _classifier?.RegisterClassifications(new AspNetCoreEmbeddedLanguageClassificationContext(context));
+        {
+        }
+
+        private IAspNetCoreRouteEmbeddedLanguageClassifier? GetClassifier(Project? project)
+        {
+            if (project is null)
+                return null;
+
+            if (_analyzerReferencesToClassifierMap.TryGetValue(project.AnalyzerReferences, out var classifier))
+                return classifier;
+
+            return GetClassifierSlow(project);
+
+            IAspNetCoreRouteEmbeddedLanguageClassifier? GetClassifierSlow(Project project)
+                => _analyzerReferencesToClassifierMap.GetValue(project.AnalyzerReferences, _ => ComputeClassifier(project));
+
+            IAspNetCoreRouteEmbeddedLanguageClassifier? ComputeClassifier(Project project)
+            {
+                foreach (var reference in project.AnalyzerReferences)
+                {
+                    var classifier = _analyzerReferenceToClassifierMap.GetValue(reference, r => GetClassifier(r));
+                    if (classifier != null)
+                        return classifier;
+                }
+
+                return null;
+            }
+        }
+
+        private sealed class ClassifierExtensionProvider
+            : AbstractProjectExtensionProvider<IAspNetCoreRouteEmbeddedLanguageClassifier, ExportCompletionProviderAttribute>
+        {
+            public ClassifierExtensionProvider(AnalyzerReference reference)
+                : base(reference)
+            {
+            }
+
+            protected override bool SupportsLanguage(ExportCompletionProviderAttribute exportAttribute, string language)
+            {
+                return exportAttribute.Language == null
+                    || exportAttribute.Language.Length == 0
+                    || exportAttribute.Language.Contains(language);
+            }
+
+            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
+            {
+                extensions = default;
+                return false;
+            }
+        }
     }
 }
