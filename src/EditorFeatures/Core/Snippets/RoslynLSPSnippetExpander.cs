@@ -21,38 +21,38 @@ namespace Microsoft.CodeAnalysis.Snippets
     [Export(typeof(RoslynLSPSnippetExpander))]
     internal class RoslynLSPSnippetExpander : IRoslynLSPSnippetExpander
     {
-        protected readonly object? LspSnippetExpander;
-        protected readonly Type? ExpanderType;
-        protected readonly MethodInfo? ExpanderMethodInfo;
+        private readonly object? _lspSnippetExpander;
+        private readonly Type? _expanderType;
+        private readonly MethodInfo? _expanderMethodInfo;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynLSPSnippetExpander(
             [Import("Microsoft.VisualStudio.LanguageServer.Client.Snippets.LanguageServerSnippetExpander", AllowDefault = true)] object? languageServerSnippetExpander)
         {
-            LspSnippetExpander = languageServerSnippetExpander;
+            _lspSnippetExpander = languageServerSnippetExpander;
 
-            if (LspSnippetExpander is not null)
+            if (_lspSnippetExpander is not null)
             {
-                ExpanderType = LspSnippetExpander.GetType();
-                ExpanderMethodInfo = ExpanderType.GetMethod("TryExpand");
+                _expanderType = _lspSnippetExpander.GetType();
+                _expanderMethodInfo = _expanderType.GetMethod("TryExpand");
             }
         }
 
-        public bool TryExpand(TextSpan textSpan, string? lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
+        public bool TryExpand(TextSpan textSpan, string lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
         {
             Contract.ThrowIfFalse(CanExpandSnippet());
 
             var textEdit = new TextEdit()
             {
                 Range = ProtocolConversions.TextSpanToRange(textSpan, textSnapshot.AsText()),
-                NewText = lspSnippetText!
+                NewText = lspSnippetText
             };
 
             try
             {
                 // ExpanderMethodInfo should not be null at this point.
-                var expandMethodResult = ExpanderMethodInfo!.Invoke(LspSnippetExpander, new object[] { textEdit, textView, textSnapshot });
+                var expandMethodResult = _expanderMethodInfo!.Invoke(_lspSnippetExpander, new object[] { textEdit, textView, textSnapshot });
                 return expandMethodResult is not null && (bool)expandMethodResult;
             }
             catch
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public bool CanExpandSnippet()
         {
-            return ExpanderMethodInfo is not null;
+            return _expanderMethodInfo is not null;
         }
     }
 }

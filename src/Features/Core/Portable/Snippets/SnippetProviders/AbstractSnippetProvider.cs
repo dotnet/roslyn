@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        protected abstract int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
+        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
 
         /// <summary>
         /// Every SnippetProvider will need a method to retrieve the "main" snippet syntax once it has been inserted as a TextChange.
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
         /// </summary>
-        protected abstract ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the location is valid for a snippet,

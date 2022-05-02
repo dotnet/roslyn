@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
 
-        protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
             syntaxFacts.GetPartsOfIfStatement(caretTarget, out _, out var statement);
 
@@ -71,15 +71,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
-            syntaxFacts.GetPartsOfIfStatement(node, out var condition, out var statement);
+            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
+            syntaxFacts.GetPartsOfIfStatement(node, out var condition, out var _);
 
-            // Need to get the statement span start and add 1 to insert between the the curly braces
-            arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: null, priority: 0, caretPosition: statement.SpanStart + 1, placeholderSpans: ImmutableArray<TextSpan>.Empty));
-
-            arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: condition.ToString(), priority: 1, caretPosition: null, placeholderSpans: ImmutableArray.Create(new TextSpan(condition.SpanStart, 0))));
+            arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
         }

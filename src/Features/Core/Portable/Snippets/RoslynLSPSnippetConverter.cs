@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -14,94 +17,128 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal static class RoslynLSPSnippetConverter
     {
-        public static string? GenerateLSPSnippet(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> placeholders)
+        public static async Task<string> GenerateLSPSnippetAsync(Document document, int caretPosition, ImmutableArray<SnippetPlaceholder> placeholders, TextChange collapsedTextChange)
+        {
+            var extendedTextChange = await ExtendSnippetTextChangeAsync(document, collapsedTextChange, placeholders, caretPosition).ConfigureAwait(false);
+            return ConvertToLSPSnippetString(extendedTextChange, placeholders, caretPosition);
+        }
+
+        private static string ConvertToLSPSnippetString(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
         {
             var textChangeStart = textChange.Span.Start;
             var textChangeText = textChange.NewText!;
             using var _ = PooledStringBuilder.GetInstance(out var lspSnippetString);
             var map = GetMapOfSpanStartsToLSPStringItem(placeholders, textChangeStart);
 
-            for (var i = 0; i < textChangeText.Length;)
+            for (var i = 0; i < textChangeText.Length + 1;)
             {
-                var (str, strLength) = GetStringInPosition(map, position: i);
-                if (str.IsEmpty())
+                if (i == caretPosition - textChangeStart)
                 {
-                    lspSnippetString.Append(textChangeText[i]);
+                    lspSnippetString.Append("$0");
                     i++;
                 }
-                else
-                {
-                    lspSnippetString.Append(str);
-                    i += strLength;
 
-                    if (strLength == 0)
+                if (i < textChangeText.Length)
+                {
+                    var (str, strLength) = GetStringInPosition(map, position: i);
+                    if (str.IsEmpty())
                     {
                         lspSnippetString.Append(textChangeText[i]);
                         i++;
                     }
+                    else
+                    {
+                        lspSnippetString.Append(str);
+                        i += strLength;
+                    }
+                }
+                else
+                {
+                    break;
                 }
             }
 
             return lspSnippetString.ToString();
         }
 
-        private static Dictionary<int, RoslynLSPSnippetStringItem> GetMapOfSpanStartsToLSPStringItem(ImmutableArray<RoslynLSPSnippetItem> placeholders, int textChangeStart)
+        private static Dictionary<int, (string identifier, int priority)> GetMapOfSpanStartsToLSPStringItem(ImmutableArray<SnippetPlaceholder> placeholders, int textChangeStart)
         {
-            var map = new Dictionary<int, RoslynLSPSnippetStringItem>();
+            var map = new Dictionary<int, (string, int)>();
 
-            foreach (var placeholder in placeholders)
+            for (var i = 0; i < placeholders.Length; i++)
             {
-                foreach (var span in placeholder.PlaceHolderSpans)
+                var placeholder = placeholders[i];
+                foreach (var position in placeholder.PlaceHolderPositions)
                 {
-                    map.Add(span.Start - textChangeStart, new RoslynLSPSnippetStringItem(placeholder.Identifier, placeholder.Priority));
-                }
-
-                if (placeholder.CaretPosition.HasValue)
-                {
-                    map.Add(placeholder.CaretPosition.Value - textChangeStart, new RoslynLSPSnippetStringItem(placeholder.Identifier, placeholder.Priority));
+                    map.Add(position - textChangeStart, (placeholder.Identifier, i + 1));
                 }
             }
 
             return map;
         }
 
-        private static (string str, int strLength) GetStringInPosition(Dictionary<int, RoslynLSPSnippetStringItem> map, int position)
+        private static (string str, int strLength) GetStringInPosition(Dictionary<int, (string identifier, int priority)> map, int position)
         {
-            if (map.TryGetValue(position, out var lspStringItem))
+            if (map.TryGetValue(position, out var placeholderInfo))
             {
-                if (lspStringItem.Identifier is not null)
-                {
-                    return ($"${{{lspStringItem.Priority}:{lspStringItem.Identifier}}}", lspStringItem.Identifier.Length);
-                }
-                else
-                {
-                    return ("$0", 0);
-                }
+                return ($"${{{placeholderInfo.priority}:{placeholderInfo.identifier}}}", placeholderInfo.identifier.Length);
             }
 
             return (string.Empty, 0);
         }
 
-        public static TextChange ExtendSnippetTextChange(TextChange textChange, ImmutableArray<RoslynLSPSnippetItem> placeholders)
+        private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
         {
-            var newTextChange = textChange;
+            var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition);
+
+            if (extendedSpan.Length == 0)
+            {
+                return textChange;
+            }
+
+            var documentText = await document.GetTextAsync().ConfigureAwait(false);
+            var newString = documentText.ToString(extendedSpan);
+            var newTextChange = new TextChange(new TextSpan(extendedSpan.Start, 0), newString);
+
+            return newTextChange;
+        }
+
+        private static TextSpan GetUpdatedTextSpan(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
+        {
+            var textSpanLength = textChange.NewText!.Length;
+
+            var startPosition = textChange.Span.Start;
+            var endPosition = textChange.Span.Start + textSpanLength;
+
             foreach (var placeholder in placeholders)
             {
-                foreach (var span in placeholder.PlaceHolderSpans)
+                foreach (var position in placeholder.PlaceHolderPositions)
                 {
-                    if (newTextChange.Span.Start > span.Start)
+                    if (startPosition > position)
                     {
-                        newTextChange = new TextChange(new TextSpan(span.Start, 0), textChange.NewText!);
+                        endPosition += startPosition - caretPosition;
+                        startPosition = position;
                     }
-                }
 
-                if (placeholder.CaretPosition is not null && textChange.Span.Start > placeholder.CaretPosition)
-                {
-                    newTextChange = new TextChange(new TextSpan(placeholder.CaretPosition.Value, 0), textChange.NewText!);
+                    if (startPosition + textSpanLength < position)
+                    {
+                        endPosition = position;
+                    }
                 }
             }
 
-            return newTextChange;
+            if (startPosition > caretPosition)
+            {
+                endPosition += startPosition - caretPosition;
+                startPosition = caretPosition;
+            }
+
+            if (startPosition + textSpanLength < caretPosition)
+            {
+                endPosition = caretPosition;
+            }
+
+            return TextSpan.FromBounds(startPosition, endPosition);
         }
     }
 }

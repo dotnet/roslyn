@@ -22,18 +22,18 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// The position that the cursor should end up on
         /// </summary>
-        public readonly int? CursorPosition;
+        public readonly int CursorPosition;
 
         /// <summary>
         /// The items that we will want to rename as well as the ordering
         /// in which to visit those items.
         /// </summary>
-        public readonly ImmutableArray<RoslynLSPSnippetItem> Placeholders;
+        public readonly ImmutableArray<SnippetPlaceholder> Placeholders;
 
         public SnippetChange(
             ImmutableArray<TextChange> textChanges,
-            int? cursorPosition,
-            ImmutableArray<RoslynLSPSnippetItem> placeholders)
+            int cursorPosition,
+            ImmutableArray<SnippetPlaceholder> placeholders)
         {
             if (textChanges.IsEmpty)
             {

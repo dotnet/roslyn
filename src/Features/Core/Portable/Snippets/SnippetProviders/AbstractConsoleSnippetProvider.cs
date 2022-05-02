@@ -74,14 +74,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
         }
 
-        protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
             var openParenToken = GetOpenParenToken(caretTarget, syntaxFacts);
-            if (openParenToken is null)
-            {
-                return null;
-            }
-
+            Contract.ThrowIfNull(openParenToken);
             return openParenToken.Value.Span.End;
         }
 
@@ -102,19 +98,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override ImmutableArray<RoslynLSPSnippetItem> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<RoslynLSPSnippetItem>.GetInstance(out var arrayBuilder);
-            var openParenToken = GetOpenParenToken(node, syntaxFacts);
-
-            if (openParenToken is null)
-            {
-                return ImmutableArray<RoslynLSPSnippetItem>.Empty;
-            }
-
-            arrayBuilder.Add(new RoslynLSPSnippetItem(identifier: null, priority: 0, caretPosition: openParenToken.Value.Span.End, placeholderSpans: ImmutableArray<TextSpan>.Empty));
-
-            return arrayBuilder.ToImmutable();
+            return ImmutableArray<SnippetPlaceholder>.Empty;
         }
 
         private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)

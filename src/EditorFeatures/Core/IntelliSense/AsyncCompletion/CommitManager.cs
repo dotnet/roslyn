@@ -245,9 +245,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // TryExpand method and determine if it succeeded or not.
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
-                change.Properties!.TryGetValue(SnippetCompletionItem.LSPSnippetKey, out var lspSnippetText);
+                change.Properties.TryGetValue(SnippetCompletionItem.LSPSnippetKey, out var lspSnippetText);
 
-                if (!_roslynLSPSnippetExpander.TryExpand(change.TextChange.Span, lspSnippetText, _textView, triggerSnapshot))
+                if (!_roslynLSPSnippetExpander.TryExpand(change.TextChange.Span, lspSnippetText!, _textView, triggerSnapshot))
                 {
                     FatalError.ReportAndCatch(new InvalidOperationException(""), ErrorSeverity.Critical);
                 }

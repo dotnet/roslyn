@@ -4,32 +4,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal readonly struct RoslynLSPSnippetStringItem
+    internal readonly struct SnippetPlaceholder
     {
         /// <summary>
         /// The identifier in the snippet that needs to be renamed.
         /// Will be null in the case of the final tab stop location,
         /// the '$0' case.
         /// </summary>
-        public readonly string? Identifier;
+        public readonly string Identifier;
 
         /// <summary>
-        /// The value associated with the identifier.
-        /// EX: if (${1:true})
-        ///     {$0
-        ///     }
-        /// The '1' and '0' are represented by this value.
+        /// The spans associated with the identifier that will need to
+        /// be converted into LSP formatted strings.
         /// </summary>
-        public readonly int Priority;
+        public readonly ImmutableArray<int> PlaceHolderPositions;
 
-        public RoslynLSPSnippetStringItem(string? identifier, int priority)
+        public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
         {
             Identifier = identifier;
-            Priority = priority;
+            PlaceHolderPositions = placeholderPositions;
         }
     }
 }

@@ -47,10 +47,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            var finalTextChange = RoslynLSPSnippetConverter.ExtendSnippetTextChange(change, snippet.Placeholders);
-            var lspSnippet = RoslynLSPSnippetConverter.GenerateLSPSnippet(finalTextChange, snippet.Placeholders);
+            var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change).ConfigureAwait(false);
             var props = ImmutableDictionary<string, string>.Empty
-                .Add(SnippetCompletionItem.LSPSnippetKey, lspSnippet!);
+                .Add(SnippetCompletionItem.LSPSnippetKey, lspSnippet);
 
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), properties: props, snippet.CursorPosition, includesCommitCharacter: true);
         }
