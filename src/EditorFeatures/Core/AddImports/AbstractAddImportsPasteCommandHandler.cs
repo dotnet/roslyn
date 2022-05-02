@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -115,32 +117,46 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return;
             }
 
-            using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
-            var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var backgroundWorkContext = indicatorFactory.Create(
+                args.TextView,
+                snapshotSpan,
+                DialogText,
+                cancelOnEdit: true,
+                cancelOnFocusLost: true);
 
-            // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
-            // intended to tell us how long we're blocking the user from typing with this action. 
-            using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+            var cancellationToken = backgroundWorkContext.UserCancellationToken;
 
-            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(async () =>
+            Task.Run(async () =>
             {
-                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
+                    // intended to tell us how long we're blocking the user from typing with this action. 
+                    using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
 
-                var options = new AddMissingImportsOptions(
-                    CleanupOptions: cleanupOptions,
-                    HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
+                    var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
-                return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-            });
-#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
-            if (updatedDocument is null)
-            {
-                return;
-            }
+                    var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
-            workspace.TryApplyChanges(updatedDocument.Project.Solution);
+                    var options = new AddMissingImportsOptions(
+                        CleanupOptions: cleanupOptions,
+                        HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
+
+                    var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+
+                    if (updatedDocument is null)
+                    {
+                        return;
+                    }
+
+                    workspace.TryApplyChanges(updatedDocument.Project.Solution);
+                }
+                finally
+                {
+                    backgroundWorkContext.Dispose();
+                }
+            }, cancellationToken);
         }
     }
 }
