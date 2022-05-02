@@ -17,7 +17,9 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
     [ExportEmbeddedLanguageClassifierInternal(
-        nameof(AspNetCoreEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false, "Route"), Shared]
+        nameof(AspNetCoreEmbeddedLanguageClassifier), LanguageNames.CSharp, supportsUnannotatedAPIs: false,
+        // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
+        identifiers: new[] { "Route" }), Shared]
     internal class AspNetCoreEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         // Following CWTs are used to cache the  providers from projects' references,
