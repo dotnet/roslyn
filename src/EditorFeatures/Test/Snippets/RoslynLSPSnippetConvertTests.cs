@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
     [UseExportProvider]
     public class RoslynLSPSnippetConvertTests
     {
+        #region Edgecase extend TextChange tests
+
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
         public Task TestExtendSnippetTextChangeForwardsForCaret()
         {
@@ -212,6 +214,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
         }
 
+        #endregion
+
+        #region LSP Snippet generation tests
+
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
         public Task TestForLoopSnippet()
         {
@@ -233,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
                 new SnippetPlaceholder("i", placeholders1),
                 new SnippetPlaceholder("length", placeholders2)), textChange);
         }
+
+        #endregion
 
         protected static TestWorkspace CreateWorkspaceFromCode(string code)
          => TestWorkspace.CreateCSharp(code);
