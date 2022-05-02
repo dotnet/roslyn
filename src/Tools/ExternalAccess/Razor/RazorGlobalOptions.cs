@@ -29,15 +29,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public RazorAutoFormattingOptions GetAutoFormattingOptions()
             => new(_globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp));
 
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// For testing purposes only. Razor does not use MEF composition for host services so we need to return a mock.
         /// </summary>
         public static RazorGlobalOptions GetGlobalOptions(Workspace workspace)
             => new(new TestGlobalOptionService());
+#pragma warning restore
 
         private sealed class TestGlobalOptionService : IGlobalOptionService
         {
+#pragma warning disable CS0067 // Remove unused event
             public event EventHandler<OptionChangedEventArgs>? OptionChanged;
+#pragma warning restore
 
             public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
                 => default!;
