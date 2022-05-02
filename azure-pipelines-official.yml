@@ -54,7 +54,7 @@ variables:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: ManagedLanguageSecrets
+  - group: DotNet-Roslyn-Insertion-Variables
 
   - name: BuildConfiguration
     value: release
