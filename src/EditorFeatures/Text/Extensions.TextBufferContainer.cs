@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// A weak map of all Editor ITextBuffers and their associated SourceTextContainer
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new ConditionalWeakTable<ITextBuffer, TextBufferContainer>();
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer>.CreateValueCallback s_createContainerCallback = CreateContainer;
+            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new();
 
             public static TextBufferContainer From(ITextBuffer buffer)
             {
@@ -47,11 +46,8 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentNullException(nameof(buffer));
                 }
 
-                return s_textContainerMap.GetValue(buffer, s_createContainerCallback);
+                return s_textContainerMap.GetValue(buffer, static buffer => new TextBufferContainer(buffer));
             }
-
-            private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
-                => new TextBufferContainer(editorBuffer);
 
             public ITextBuffer? TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();
