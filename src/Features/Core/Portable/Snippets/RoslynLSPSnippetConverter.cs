@@ -50,23 +50,23 @@ namespace Microsoft.CodeAnalysis.Snippets
                     i++;
                 }
 
-                if (i < textChangeText.Length)
+                var (str, strLength) = GetStringInPosition(map, position: i);
+                if (str.IsEmpty())
                 {
-                    var (str, strLength) = GetStringInPosition(map, position: i);
-                    if (str.IsEmpty())
+                    if (i < textChangeText.Length)
                     {
                         lspSnippetString.Append(textChangeText[i]);
                         i++;
                     }
                     else
                     {
-                        lspSnippetString.Append(str);
-                        i += strLength;
+                        break;
                     }
                 }
                 else
                 {
-                    break;
+                    lspSnippetString.Append(str);
+                    i += strLength;
                 }
             }
 
@@ -148,11 +148,10 @@ namespace Microsoft.CodeAnalysis.Snippets
                 {
                     if (startPosition > position)
                     {
-                        endPosition += startPosition - position;
                         startPosition = position;
                     }
 
-                    if (startPosition + textSpanLength < position)
+                    if (endPosition < position)
                     {
                         endPosition = position;
                     }
@@ -161,11 +160,10 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             if (startPosition > caretPosition)
             {
-                endPosition += startPosition - caretPosition;
                 startPosition = caretPosition;
             }
 
-            if (startPosition + textSpanLength < caretPosition)
+            if (endPosition < caretPosition)
             {
                 endPosition = caretPosition;
             }
