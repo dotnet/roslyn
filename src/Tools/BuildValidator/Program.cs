@@ -72,6 +72,7 @@ namespace BuildValidator
             var excludes = new List<string>(exclude ?? Array.Empty<string>());
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
             excludes.Add(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar);
+            excludes.Add(Path.DirectorySeparatorChar + "refint" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);

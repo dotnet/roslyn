@@ -163,9 +163,6 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   # Disable telemetry on CI.
   if ($ci) {
     $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
- 
-    # In case of network error, try to log the current IP for reference
-    Try-LogClientIpAddress
   }
 
   # Source Build uses DotNetCoreSdkDir variable
@@ -368,8 +365,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # If the version of msbuild is going to be xcopied,
   # use this version. Version matches a package here:
-  # https://dev.azure.com/dnceng/public/_packaging?_a=package&feed=dotnet-eng&package=RoslynTools.MSBuild&protocolType=NuGet&version=16.10.0-preview2&view=overview
-  $defaultXCopyMSBuildVersion = '16.10.0-preview2'
+  # https://dev.azure.com/dnceng/public/_packaging?_a=package&feed=dotnet-eng&package=RoslynTools.MSBuild&protocolType=NuGet&version=17.1.0&view=overview
+  $defaultXCopyMSBuildVersion = '17.1.0'
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
   $vsMinVersionStr = if ($vsRequirements.version) { $vsRequirements.version } else { $vsMinVersionReqdStr }
@@ -893,24 +890,6 @@ if (!$disableConfigureToolsetImport) {
       }
     }
   }
-}
-
-function Try-LogClientIpAddress()
-{
-    Write-Host "Attempting to log this client's IP for Azure Package feed telemetry purposes"
-    try
-    {
-        $result = Invoke-WebRequest -Uri "http://co1r5a.msedge.net/fdv2/diagnostics.aspx" -UseBasicParsing
-        $lines = $result.Content.Split([Environment]::NewLine) 
-        $socketIp = $lines | Select-String -Pattern "^Socket IP:.*"
-        Write-Host $socketIp
-        $clientIp = $lines | Select-String -Pattern "^Client IP:.*"
-        Write-Host $clientIp
-    }
-    catch
-    {
-        Write-Host "Unable to get this machine's effective IP address for logging: $_"
-    }
 }
 
 #
