@@ -1726,13 +1726,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw New NotImplementedException()
         End Function
 
-        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
-            Dim interpolatedStringExpressionSyntax As InterpolatedStringExpressionSyntax = DirectCast(node, InterpolatedStringExpressionSyntax)
-            stringStartToken = interpolatedStringExpressionSyntax.DollarSignDoubleQuoteToken
-            contents = interpolatedStringExpressionSyntax.Contents
-            stringEndToken = interpolatedStringExpressionSyntax.DoubleQuoteToken
-        End Sub
-
         Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
@@ -1823,6 +1816,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             condition = conditionalExpression.Condition
             whenTrue = conditionalExpression.WhenTrue
             whenFalse = conditionalExpression.WhenFalse
+        End Sub
+
+        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
+            Dim interpolatedStringExpression = DirectCast(node, InterpolatedStringExpressionSyntax)
+            stringStartToken = interpolatedStringExpression.DollarSignDoubleQuoteToken
+            contents = interpolatedStringExpression.Contents
+            stringEndToken = interpolatedStringExpression.DoubleQuoteToken
         End Sub
 
         Public Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfInvocationExpression

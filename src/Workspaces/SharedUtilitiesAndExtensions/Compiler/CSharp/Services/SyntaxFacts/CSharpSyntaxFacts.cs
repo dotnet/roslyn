@@ -1523,15 +1523,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public void GetPartsOfInterpolationExpression(SyntaxNode node,
-            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
-        {
-            var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
-            stringStartToken = interpolatedStringExpression.StringStartToken;
-            contents = interpolatedStringExpression.Contents;
-            stringEndToken = interpolatedStringExpression.StringEndToken;
-        }
-
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -1627,6 +1618,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             var genericName = (GenericNameSyntax)node;
             identifier = genericName.Identifier;
             typeArguments = genericName.TypeArgumentList.Arguments;
+        }
+
+        public void GetPartsOfInterpolationExpression(SyntaxNode node,
+            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
+        {
+            var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
+            stringStartToken = interpolatedStringExpression.StringStartToken;
+            contents = interpolatedStringExpression.Contents;
+            stringEndToken = interpolatedStringExpression.StringEndToken;
         }
 
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
