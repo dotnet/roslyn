@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock _workGate;
-                private readonly Dictionary<DocumentId, Data> _pendingWork;
+                private readonly NonReentrantLock _workGate = new();
+                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -51,9 +51,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration = registration;
 
                     _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
-
-                    _workGate = new NonReentrantLock();
-                    _pendingWork = new Dictionary<DocumentId, Data>();
 
                     Start();
 
@@ -338,8 +335,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock _workGate;
-                    private readonly Dictionary<ProjectId, Data> _pendingWork;
+                    private readonly NonReentrantLock _workGate = new();
+                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
@@ -353,9 +350,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _processor = processor;
 
                         _gate = new SemaphoreSlim(initialCount: 0);
-
-                        _workGate = new NonReentrantLock();
-                        _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
 

@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private readonly int _correlationId;
-        private readonly DiagnosticAnalyzerTelemetry _telemetry;
+        private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IDocumentTrackingService _documentTrackingService;
-        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
+        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -56,10 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _stateManager = new StateManager(workspace, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
-            _telemetry = new DiagnosticAnalyzerTelemetry();
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
-            _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;

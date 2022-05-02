@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is quite common for multiple projects to have the same set of analyzer references, yet we will create
         /// multiple instances of the analyzer list and thus not share the info.
         /// </remarks>
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers = new();
 
         internal HostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> hostAnalyzerReferences)
         {
@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
-            _skippedHostAnalyzers = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>>();
         }
 
         /// <summary>
