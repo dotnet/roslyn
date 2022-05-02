@@ -503,6 +503,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return expression;
         }
 
+        public static SyntaxToken GetIdentifierOfGenericName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfGenericName(node, out var identifier, out _);
+            return identifier;
+        }
+
         public static SyntaxList<SyntaxNode> GetImportsOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out _, out var imports, out _);

@@ -195,9 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
 
-        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode node)
-            => ((GenericNameSyntax)node).Identifier;
-
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
                usingDirective.Name == node;
@@ -1644,6 +1641,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             condition = conditionalExpression.Condition;
             whenTrue = conditionalExpression.WhenTrue;
             whenFalse = conditionalExpression.WhenFalse;
+        }
+
+        public void GetPartsOfGenericName(SyntaxNode node, out SyntaxToken identifier, out SeparatedSyntaxList<SyntaxNode> typeArguments)
+        {
+            var genericName = (GenericNameSyntax)node;
+            identifier = genericName.Identifier;
+            typeArguments = genericName.TypeArgumentList.Arguments;
         }
 
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)

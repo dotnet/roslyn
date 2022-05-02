@@ -201,10 +201,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.ParameterList)
         End Function
 
-        Public Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfGenericName
-            Return DirectCast(genericName, GenericNameSyntax).Identifier
-        End Function
-
         Public Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingDirectiveName
             Return node.IsParentKind(SyntaxKind.SimpleImportsClause) AndAlso
                    DirectCast(node.Parent, SimpleImportsClauseSyntax).Name Is node
@@ -1868,6 +1864,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Dim invocation = DirectCast(node, InvocationExpressionSyntax)
             expression = invocation.Expression
             argumentList = invocation.ArgumentList
+        End Sub
+
+        Public Sub GetPartsOfGenericName(node As SyntaxNode, ByRef identifier As SyntaxToken, ByRef typeArguments As SeparatedSyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfGenericName
+            Dim genericName = DirectCast(node, GenericNameSyntax)
+            identifier = genericName.Identifier
+            typeArguments = genericName.TypeArgumentList.Arguments
         End Sub
 
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
