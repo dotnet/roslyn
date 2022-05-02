@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
-        public Task TestExtendSnippetTextChangeForwardsForPlaceholderAndCaret()
+        public Task TestExtendSnippetTextChangeForwardsForPlaceholderThenCaret()
         {
             var markup =
 @"[|if (true)
@@ -118,20 +118,96 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
-        public Task TestExtendSnippetTextChangeBackwardsForPlaceholderAndCaret()
+        public Task TestExtendSnippetTextChangeForwardsForCaretThenPlaceholder()
         {
             var markup =
-@"{|placeholder:test|} $$[|if (true)
+@"[|if (true)
+{
+}|] $$ {|placeholder:test|}";
+
+            var expectedLSPSnippet =
+@"if (true)
+{
+} $0 ${1:test}";
+            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
+            var stringSpan = dictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[..stringSpan.Length]);
+            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
+            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeBackwardsForPlaceholderThenCaret()
+        {
+            var markup =
+@"{|placeholder:test|} $$ [|if (true)
 {
 }|]";
 
             var expectedLSPSnippet =
-@"${1:test} $0if (true)
+@"${1:test} $0 if (true)
 {
 }";
             MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
             var stringSpan = dictionary[""].First();
             var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
+            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
+            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeBackwardsForCaretThenPlaceholder()
+        {
+            var markup =
+@"$$ {|placeholder:test|} [|if (true)
+{
+}|]";
+
+            var expectedLSPSnippet =
+@"$0 ${1:test} if (true)
+{
+}";
+            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
+            var stringSpan = dictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
+            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
+            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeBackwardsForCaretForwardsForPlaceholder()
+        {
+            var markup =
+@"$$ [|if (true)
+{
+}|] {|placeholder:test|}";
+
+            var expectedLSPSnippet =
+@"$0 if (true)
+{
+} ${1:test}";
+            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
+            var stringSpan = dictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString.Substring(stringSpan.Start, stringSpan.Length));
+            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
+            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeBackwardsForPlaceholderForwardsForCaret()
+        {
+            var markup =
+@"{|placeholder:test|} [|if (true)
+{
+}|] $$";
+
+            var expectedLSPSnippet =
+@"${1:test} if (true)
+{
+} $0";
+            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
+            var stringSpan = dictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString.Substring(stringSpan.Start, stringSpan.Length));
             var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
             return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
         }
