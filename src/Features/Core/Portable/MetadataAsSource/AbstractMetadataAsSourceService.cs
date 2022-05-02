@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -26,8 +27,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Document document,
             Compilation symbolCompilation,
             ISymbol symbol,
-            SyntaxFormattingOptions formattingOptions,
-            SimplifierOptions simplifierOptions,
+            CodeCleanupOptions cleanupOptions,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                formattingOptions,
+                cleanupOptions.FormattingOptions,
                 GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
-            return await Simplifier.ReduceAsync(formattedDoc, reducers, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDoc, reducers, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);

@@ -49,6 +49,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
+                    protected override void OnPaused()
+                    {
+                    }
+
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
                     {
                         get

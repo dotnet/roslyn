@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
 
-        public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
