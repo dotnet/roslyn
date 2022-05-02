@@ -776,7 +776,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(18, 16),
                 // (18,20): error CS1003: Syntax error, ',' expected
                 //         [A(out var s)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "s").WithArguments(",", "").WithLocation(18, 20));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "s").WithArguments(",").WithLocation(18, 20));
         }
 
         [Fact]
@@ -3850,7 +3850,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
                 // (13,17): error CS1003: Syntax error, ',' expected
                 //         int Bar => 2;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(13, 17),
                 // (13,20): error CS1002: ; expected
                 //         int Bar => 2;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "2").WithLocation(13, 20),
