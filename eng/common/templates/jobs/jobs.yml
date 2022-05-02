@@ -16,7 +16,7 @@ parameters:
 
   # Optional: Enable publishing using release pipelines
   enablePublishUsingPipelines: false
-  
+
   graphFileGeneration:
     # Optional: Enable generating the graph files at the end of the build
     enabled: false
@@ -74,7 +74,7 @@ jobs:
         - ${{ each job in parameters.jobs }}:
           - ${{ job.job }}
       pool:
-        vmImage: vs2017-win2016
+        vmImage: windows-2019
       runAsPublic: ${{ parameters.runAsPublic }}
       publishUsingPipelines: ${{ parameters.enablePublishUsingPipelines }}
       enablePublishBuildArtifacts: ${{ parameters.enablePublishBuildArtifacts }}
@@ -87,4 +87,4 @@ jobs:
       dependsOn:
         - Asset_Registry_Publish
       pool:
-        vmImage: vs2017-win2016
+        vmImage: windows-2019

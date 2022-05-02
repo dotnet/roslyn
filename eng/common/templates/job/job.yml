@@ -46,6 +46,9 @@ parameters:
   # Optional: enable sending telemetry
   enableTelemetry: false
 
+  # Options: Don't run CG
+  disableComponentGovernance: false
+
   # Optional: define the helix repo for telemetry (example: 'dotnet/arcade')
   helixRepo: ''
 
@@ -140,7 +143,7 @@ jobs:
 
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-      - task: MicroBuildSigningPlugin@2
+      - task: MicroBuildSigningPlugin@3
         displayName: Install MicroBuild plugin
         inputs:
           signType: $(_SignType)
@@ -156,6 +159,10 @@ jobs:
 
   - ${{ each step in parameters.steps }}:
     - ${{ step }}
+
+  - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest'), ne(parameters.disableComponentGovernance, 'true')) }}:
+      - task: ComponentGovernanceComponentDetection@0
+        continueOnError: true
 
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
