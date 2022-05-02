@@ -79,9 +79,6 @@ verbosity='minimal'
 runtime_source_feed=''
 runtime_source_feed_key=''
 
-runtimeSourceFeed=''
-runtimeSourceFeedKey=''
-
 properties=''
 while [[ $# > 0 ]]; do
   opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
