@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap = new();
             private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap = new();
 
-            private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
-                = new(r => new ProjectCompletionProvider(r));
-
             private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
             private readonly Func<string, CompletionProvider?> _getProviderByName;
 
@@ -142,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var builder);
                     foreach (var reference in project.AnalyzerReferences)
                     {
-                        var projectCompletionProvider = _analyzerReferenceToCompletionProvidersMap.GetValue(reference, _createProjectCompletionProvidersProvider);
+                        var projectCompletionProvider = _analyzerReferenceToCompletionProvidersMap.GetValue(reference, static r => new ProjectCompletionProvider(r));
                         foreach (var completionProvider in projectCompletionProvider.GetExtensions(project.Language))
                         {
                             builder.Add(completionProvider);
