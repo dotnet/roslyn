@@ -1316,9 +1316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 _ => throw ExceptionUtilities.UnexpectedValue(node),
             };
 
-        public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
-            => ((IdentifierNameSyntax)node).Identifier;
-
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {
             return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(

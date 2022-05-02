@@ -521,6 +521,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return identifier;
         }
 
+        public static SyntaxToken GetIdentifierOfIdentifierName(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            => syntaxFacts.GetIdentifierOfSimpleName(node);
+
         public static SyntaxToken GetIdentifierOfParameter(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfParameter(node, out var identifier, out _);
