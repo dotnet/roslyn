@@ -91,23 +91,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     // If we have any fields we'd like to generate, offer a code action to do that.
                     if (state.ParameterToNewFieldMap.Count > 0)
                     {
-                        result.Add(new MyCodeAction(
+                        result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
+                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c),
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_fields)));
                     }
 
                     // Same with a version that generates properties instead.
                     if (state.ParameterToNewPropertyMap.Count > 0)
                     {
-                        result.Add(new MyCodeAction(
+                        result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
+                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c),
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_properties)));
                     }
 
                     // Always offer to just generate the constructor and nothing else.
-                    result.Add(new MyCodeAction(
+                    result.Add(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
-                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
+                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c),
+                        nameof(FeaturesResources.Generate_constructor_in_0)));
 
                     return result.ToImmutable();
                 }
@@ -181,14 +184,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse: s => !reservedNames.Any(n => comparer.Equals(s, n)))
                 .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
                 .Skip(reservedNames.Count).ToImmutableArray();
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

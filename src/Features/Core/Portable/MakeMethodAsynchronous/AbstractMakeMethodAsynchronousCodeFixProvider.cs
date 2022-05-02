@@ -61,8 +61,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             // Offer to convert to a Task return type.
             context.RegisterCodeFix(
-                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                CodeAction.Create(
+                    GetMakeAsyncTaskFunctionResource(),
+                    c => FixNodeAsync(context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c),
+                    nameof(GetMakeAsyncTaskFunctionResource)),
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
@@ -70,8 +72,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
+                    CodeAction.Create(
+                        GetMakeAsyncVoidFunctionResource(),
+                        c => FixNodeAsync(context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
+                        nameof(GetMakeAsyncVoidFunctionResource)),
                     context.Diagnostics);
             }
         }
@@ -228,14 +232,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, equivalenceKey: title)
-            {
-            }
         }
     }
 }

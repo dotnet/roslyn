@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
                 return;
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(new PriorityBasedCodeAction(
                 priority,
                 c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c)));
         }
@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        private sealed class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             internal override CodeActionPriority Priority { get; }
 
-            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_DebuggerDisplay_attribute, createChangedDocument, nameof(FeaturesResources.Add_DebuggerDisplay_attribute))
             {
                 Priority = priority;

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
+            context.RegisterCodeFix(new PriorityBasedCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckWithoutNameCodeFixProvider))
             {
             }

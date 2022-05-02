@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(_ => UpdateDocumentAsync(document, root, token)),
+                new PriorityBasedCodeAction(_ => UpdateDocumentAsync(document, root, token)),
                 literalExpression.Span);
         }
 
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     CreateInterpolatedString(document, literalExpression, syntaxFacts.IsVerbatimStringLiteral(token)))));
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
             {
             }

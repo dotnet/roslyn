@@ -59,15 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(new PriorityBasedCodeAction(
                 c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(context.Options), c)));
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpAnalyzersResources.Convert_to_top_level_statements, createChangedDocument, nameof(ConvertToTopLevelStatementsCodeRefactoringProvider))
             {
             }

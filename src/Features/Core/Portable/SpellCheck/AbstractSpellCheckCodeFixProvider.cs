@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
-                context.RegisterCodeFix(new MyCodeAction(
+                context.RegisterCodeFix(new PriorityBasedCodeAction(
                     string.Format(FeaturesResources.Fix_typo_0, nameText), codeActions), context.Diagnostics);
             }
             else
@@ -235,11 +235,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
+        private class PriorityBasedCodeAction : CodeAction.CodeActionWithNestedActions
         {
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+            public PriorityBasedCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
                 : base(title, nestedActions, isInlinable: true)
             {
             }

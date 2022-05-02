@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (!CanOfferUseProgramMain(option, root, compilation, forAnalyzer: false))
                 return;
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(new PriorityBasedCodeAction(
                 c => ConvertToProgramMainAsync(document, c)));
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(CSharpAnalyzersResources.Convert_to_Program_Main_style_program, createChangedDocument, nameof(ConvertToProgramMainCodeRefactoringProvider))
             {
             }

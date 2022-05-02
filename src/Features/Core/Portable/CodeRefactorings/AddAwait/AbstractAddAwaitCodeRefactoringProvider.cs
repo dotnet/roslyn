@@ -49,15 +49,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 if (IsValidAwaitableExpression(model, syntaxFacts, expression, cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             GetTitle(),
-                            c => AddAwaitAsync(document, expression, withConfigureAwait: false, c)),
+                            c => AddAwaitAsync(document, expression, withConfigureAwait: false, c),
+                            equivalenceKey: nameof(GetTitle)),
                         expression.Span);
 
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             GetTitleWithConfigureAwait(),
-                            c => AddAwaitAsync(document, expression, withConfigureAwait: true, c)),
+                            c => AddAwaitAsync(document, expression, withConfigureAwait: true, c),
+                            equivalenceKey: nameof(GetTitleWithConfigureAwait)),
                         expression.Span);
                 }
             }
@@ -108,14 +110,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .WithTriviaFrom(expression);
 
             return document.ReplaceNodeAsync(expression, awaitExpression, cancellationToken);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

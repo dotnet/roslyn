@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             if (IsVerbatim(literalExpression))
             {
                 // always offer to convert from verbatim string to normal string.
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(new PriorityBasedCodeAction(
                     CSharpFeaturesResources.Convert_to_regular_string,
                     c => ConvertToRegularStringAsync(document, literalExpression, c)));
             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             {
                 // Offer to convert to a verbatim string if the normal string contains simple
                 // escapes that can be directly embedded in the verbatim string.
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(new PriorityBasedCodeAction(
                     CSharpFeaturesResources.Convert_to_verbatim_string,
                     c => ConvertToVerbatimStringAsync(document, literalExpression, c)));
             }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             return false;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             /// <summary>
             /// This is a generally useful feature on strings.  But it's not likely to be something
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
             /// </summary>
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+            public PriorityBasedCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }

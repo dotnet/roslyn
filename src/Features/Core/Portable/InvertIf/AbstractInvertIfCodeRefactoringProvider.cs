@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(GetTitle(),
-                    c => InvertIfAsync(document, ifNode, c)),
+                CodeAction.Create(
+                    GetTitle(),
+                    c => InvertIfAsync(document, ifNode, c),
+                    nameof(GetTitle)),
                 ifNode.Span);
         }
 
@@ -588,14 +590,6 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

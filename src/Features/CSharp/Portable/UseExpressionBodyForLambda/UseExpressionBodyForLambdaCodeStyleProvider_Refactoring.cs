@@ -109,19 +109,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
             if (CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
             {
-                result.Add(new MyCodeAction(
+                result.Add(CodeAction.Create(
                     UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c)));
+                        document, root, lambdaNode, c),
+                    nameof(UseExpressionBodyTitle)));
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
             {
-                result.Add(new MyCodeAction(
+                result.Add(CodeAction.Create(
                     UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c)));
+                        document, root, lambdaNode, c),
+                    nameof(UseBlockBodyTitle)));
             }
 
             return result.ToImmutable();

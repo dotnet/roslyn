@@ -185,10 +185,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (actionsBuilder.ToImmutableAndClear(), actionsBuilderAllOccurrences.ToImmutableAndClear());
 
             // Local function to create a code action with more ease
-            MyCodeAction CreateNewCodeAction(string actionName, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction)
+            CodeAction CreateNewCodeAction(string actionName, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction)
             {
-                return new MyCodeAction(actionName, c => IntroduceParameterAsync(
-                    document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, c));
+                return CodeAction.Create(
+                    actionName,
+                    c => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, c),
+                    actionName);
             }
         }
 
@@ -316,14 +318,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return methodCallSites;
-        }
-
-        private class MyCodeAction : SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
 
         private enum IntroduceParameterCodeActionKind

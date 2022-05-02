@@ -171,14 +171,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var fields = parameters.SelectAsArray(p => (ISymbol)CreateField(p, options, rules));
             var properties = parameters.SelectAsArray(p => (ISymbol)CreateProperty(p, options, rules));
 
-            var allFieldsAction = new MyCodeAction(
+            var allFieldsAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_fields,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatementOpt, parameters, fields, c));
-            var allPropertiesAction = new MyCodeAction(
+                    document, constructorDeclaration, blockStatementOpt, parameters, fields, c),
+                nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
+            var allPropertiesAction = CodeAction.Create(
                 FeaturesResources.Create_and_assign_remaining_as_properties,
                 c => AddAllSymbolInitializationsAsync(
-                    document, constructorDeclaration, blockStatementOpt, parameters, properties, c));
+                    document, constructorDeclaration, blockStatementOpt, parameters, properties, c),
+                nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
             return (allFieldsAction, allPropertiesAction);
         }
@@ -193,12 +195,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             var field = CreateField(parameter, options, rules);
             var property = CreateProperty(parameter, options, rules);
-            var fieldAction = new MyCodeAction(
+            var fieldAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, field, c));
-            var propertyAction = new MyCodeAction(
+                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, field, c),
+                nameof(FeaturesResources.Create_and_assign_field_0));
+            var propertyAction = CodeAction.Create(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, property, c));
+                c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatementOpt, parameter, property, c),
+                nameof(FeaturesResources.Create_and_assign_property_0));
 
             return (fieldAction, propertyAction);
         }
@@ -237,10 +241,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var title = string.Format(resource, fieldOrProperty.Name);
 
-            return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+            return ImmutableArray.Create(CodeAction.Create(
                 title,
                 c => AddSingleSymbolInitializationAsync(
-                    document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c)));
+                    document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c),
+                title));
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)

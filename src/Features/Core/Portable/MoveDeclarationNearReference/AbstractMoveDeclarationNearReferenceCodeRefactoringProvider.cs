@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, declaration, c)),
+                new LowPriorityCodeAction(c => MoveDeclarationNearReferenceAsync(document, declaration, c)),
                 declaration.Span);
         }
 
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class LowPriorityCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            public LowPriorityCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Move_declaration_near_reference, createChangedDocument, nameof(FeaturesResources.Move_declaration_near_reference))
             {
             }

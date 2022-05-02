@@ -122,9 +122,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     memberName = name;
                 }
 
-                var codeAction = new MyCodeAction(
+                var codeAction = CodeAction.Create(
                     $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c));
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
+                    nameof(AbstractFullyQualifyCodeFixProvider));
 
                 yield return codeAction;
             }
@@ -334,14 +335,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             => symbols.Distinct()
                .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                .Order();
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
 
         private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
         {

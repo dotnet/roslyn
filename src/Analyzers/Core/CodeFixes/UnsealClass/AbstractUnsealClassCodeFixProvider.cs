@@ -45,9 +45,10 @@ namespace Microsoft.CodeAnalysis.UnsealClass
                 if (definition != null && definition.DeclaringSyntaxReferences.Length > 0)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             string.Format(TitleFormat, type.Name),
-                            c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c)),
+                            c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c),
+                            nameof(AbstractUnsealClassCodeFixProvider)),
                         context.Diagnostics);
                 }
             }
@@ -82,14 +83,6 @@ namespace Microsoft.CodeAnalysis.UnsealClass
             }
 
             return solution;
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             if (canBeSingleLine)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    new PriorityBasedCodeAction(
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, formattingOptions, c),
                         nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             else
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    new PriorityBasedCodeAction(
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, formattingOptions, c),
                         nameof(CSharpFeaturesResources.Convert_to_raw_string),
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                     CleanupWhitespace(characters).Length > 0)
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(
+                        new PriorityBasedCodeAction(
                             CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
                             c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, formattingOptions, c),
                             nameof(CSharpFeaturesResources.without_leading_whitespace_may_change_semantics),
@@ -377,11 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 token.TrailingTrivia);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class PriorityBasedCodeAction : CodeAction.DocumentChangeAction
         {
             internal override CodeActionPriority Priority { get; }
 
-            public MyCodeAction(
+            public PriorityBasedCodeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string equivalenceKey,
