@@ -60,6 +60,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("true", placeholders)), textChange);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestForLoopSnippet()
+        {
+            var markup =
+@"[|for (var {|placeholder1:i|} = 0; {|placeholder1:i|} < {|placeholder2:length|}; {|placeholder1:i|}++)
+{$$
+}|]";
+
+            var expectedLSPSnippet =
+@"for (var ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
+{$0
+}";
+            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
+            var stringSpan = dictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString);
+            var placeholders1 = dictionary["placeholder1"].Select(span => span.Start).ToImmutableArray();
+            var placeholders2 = dictionary["placeholder2"].Select(span => span.Start).ToImmutableArray();
+            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(
+                new SnippetPlaceholder("i", placeholders1),
+                new SnippetPlaceholder("length", placeholders2)), textChange);
+        }
+
         protected static TestWorkspace CreateWorkspaceFromCode(string code)
          => TestWorkspace.CreateCSharp(code);
 

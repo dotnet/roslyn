@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.Snippets
                 if (i == caretPosition - textChangeStart)
                 {
                     lspSnippetString.Append("$0");
+
+                    // Special case for cursor position since they will occur between positions
+                    // so we still wants to insert the character following the cursor position.
+                    if (i < textChangeText.Length)
+                    {
+                        lspSnippetString.Append(textChangeText[i]);
+                    }
+
                     i++;
                 }
 
