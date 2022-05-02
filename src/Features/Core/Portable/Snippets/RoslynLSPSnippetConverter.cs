@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ConvertToLSPSnippetString(extendedTextChange, placeholders, caretPosition);
         }
 
+        /// <summary>
+        /// Iterates through every index in the snippet string and determines where the
+        /// LSP formatted chunks should be inserted for each placeholder.
+        /// </summary>
         private static string ConvertToLSPSnippetString(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
         {
             var textChangeStart = textChange.Span.Start;
@@ -61,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             return lspSnippetString.ToString();
         }
 
+        /// <summary>
+        /// Preprocesses the list of placeholders into a dictionary that maps the insertion position
+        /// in the string to the placeholder's identifier and the number associated with it.
+        /// </summary>
         private static Dictionary<int, (string identifier, int priority)> GetMapOfSpanStartsToLSPStringItem(ImmutableArray<SnippetPlaceholder> placeholders, int textChangeStart)
         {
             var map = new Dictionary<int, (string, int)>();
@@ -77,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return map;
         }
 
+        /// <summary>
+        /// Tries to see if a value exists at that position in the map, and if so it
+        /// generates a string that is LSP formatted as well as passes back the length
+        /// of the identifier so that it can skip forward in the string.
+        /// </summary>
         private static (string str, int strLength) GetStringInPosition(Dictionary<int, (string identifier, int priority)> map, int position)
         {
             if (map.TryGetValue(position, out var placeholderInfo))
@@ -87,6 +100,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             return (string.Empty, 0);
         }
 
+        /// <summary>
+        /// We need to extend the snippet's TextChange if any of the placeholders or
+        /// if the caret position comes before or after the span of the TextChange.
+        /// If so, then find the new string that encompasses all of the placeholders
+        /// and caret position.
+        /// </summary>
         private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
         {
             var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition);
@@ -103,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return newTextChange;
         }
 
+        /// <summary>
+        /// Iterates through the placeholders and determines if any of the positions
+        /// come before or after what is indicated by the snippet's TextChange.
+        /// If so, adjust the starting and ending position accordingly.
+        /// </summary>
         private static TextSpan GetUpdatedTextSpan(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
         {
             var textSpanLength = textChange.NewText!.Length;

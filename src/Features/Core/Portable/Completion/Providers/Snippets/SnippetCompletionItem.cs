@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
     internal class SnippetCompletionItem
     {
         public static string LSPSnippetKey = "LSPSnippet";
+        public static string SnippetIdentifierKey = "SnippetIdentifier";
 
         public static CompletionItem Create(
             string displayText,
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         {
             var props = ImmutableDictionary<string, string>.Empty
                 .Add("Position", position.ToString())
-                .Add("SnippetIdentifier", snippetIdentifier);
+                .Add(SnippetIdentifierKey, snippetIdentifier);
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public static string GetSnippetIdentifier(CompletionItem item)
         {
-            Contract.ThrowIfFalse(item.Properties.TryGetValue("SnippetIdentifier", out var text));
+            Contract.ThrowIfFalse(item.Properties.TryGetValue(SnippetIdentifierKey, out var text));
             return text;
         }
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public static bool IsSnippet(CompletionItem item)
         {
-            return item.Properties.TryGetValue("SnippetIdentifier", out var _);
+            return item.Properties.TryGetValue(SnippetIdentifierKey, out var _);
         }
     }
 }
