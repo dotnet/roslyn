@@ -28,7 +28,7 @@
     <!-- BEGIN External Access -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" Partner="AspNetCore"  Key="$(AspNetCoreKey)"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <!-- END External Access -->
     <!-- BEGIN MONODEVELOP

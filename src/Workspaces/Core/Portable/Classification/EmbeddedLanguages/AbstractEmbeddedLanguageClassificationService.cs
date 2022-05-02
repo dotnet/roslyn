@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public Worker(
                 AbstractEmbeddedLanguageClassificationService service,
-                Project project,
+                Project? project,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ClassificationOptions options,
