@@ -368,8 +368,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.CodeLens", "src\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj", "{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests", "src\Features\LanguageServer\ProtocolUnitTests\Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
@@ -506,6 +504,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Setup.arm64", "src\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj", "{A80077D1-D911-4238-9367-0E790C475814}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Setup.x86", "src\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj", "{46429C41-0733-4568-9BA6-3F52CB47C4ED}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6131713D-DFB4-49B5-8010-50071FED3E85}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package.Arm64", "src\NuGet\Microsoft.Net.Compilers.Toolset\arm64\Microsoft.Net.Compilers.Toolset.Package.Arm64.csproj", "{A9A8ADE5-F123-4109-9FA4-4B92F1657043}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1057,10 +1059,6 @@ Global
 		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1229,6 +1227,14 @@ Global
 		{46429C41-0733-4568-9BA6-3F52CB47C4ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46429C41-0733-4568-9BA6-3F52CB47C4ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46429C41-0733-4568-9BA6-3F52CB47C4ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6131713D-DFB4-49B5-8010-50071FED3E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6131713D-DFB4-49B5-8010-50071FED3E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6131713D-DFB4-49B5-8010-50071FED3E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6131713D-DFB4-49B5-8010-50071FED3E85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9A8ADE5-F123-4109-9FA4-4B92F1657043}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1394,7 +1400,6 @@ Global
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{2FB6C157-DF91-4B1C-9827-A4D1C08C73EC} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{1DDE89EE-5819-441F-A060-2FF4A986F372} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8} = {8977A560-45C2-4EC2-A849-97335B382C74}
@@ -1459,6 +1464,8 @@ Global
 		{DA7378DB-1FF2-48A0-994D-7F71E8191308} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{A80077D1-D911-4238-9367-0E790C475814} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{46429C41-0733-4568-9BA6-3F52CB47C4ED} = {BE25E872-1667-4649-9D19-96B83E75A44E}
+		{6131713D-DFB4-49B5-8010-50071FED3E85} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
+		{A9A8ADE5-F123-4109-9FA4-4B92F1657043} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
