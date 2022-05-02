@@ -191,7 +191,7 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
-        InstallDotNetSdk $dotnetRoot $dotnetSdkVersion
+        InstallDotNetSdk -dotnetRoot $dotnetRoot -version $dotnetSdkVersion -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
       } else {
         Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to find dotnet with SDK version '$dotnetSdkVersion'"
         ExitWithExitCode 1
@@ -546,7 +546,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   return $vsInfo[0]
 }
 
-function InitializeBuildTool() {
+function InitializeBuildTool([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) {
   if (Test-Path variable:global:_BuildTool) {
     # If the requested msbuild parameters do not match, clear the cached variables.
     if($global:_BuildTool.Contains('ExcludePrereleaseVS') -and $global:_BuildTool.ExcludePrereleaseVS -ne $excludePrereleaseVS) {
@@ -639,7 +639,8 @@ function InitializeNativeTools() {
   }
 }
 
-function InitializeToolset() {
+function InitializeToolset([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey)
+{
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
   }
@@ -661,7 +662,7 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
-  $buildTool = InitializeBuildTool
+  $buildTool = InitializeBuildTool -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
 
   $proj = Join-Path $ToolsetDir 'restore.proj'
   $bl = if ($binaryLog) { '/bl:' + (Join-Path $LogDir 'ToolsetRestore.binlog') } else { '' }

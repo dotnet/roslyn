@@ -120,7 +120,7 @@ jobs:
         -ExtractPath $(Build.ArtifactStagingDirectory)\artifacts
       displayName: Extract Archive Artifacts
       continueOnError: ${{ parameters.sdlContinueOnError }}
-  
+
   - template: /eng/common/templates/steps/execute-sdl.yml
     parameters:
       overrideGuardianVersion: ${{ parameters.overrideGuardianVersion }}

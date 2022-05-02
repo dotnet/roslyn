@@ -36,6 +36,10 @@ prepare_machine=${prepare_machine:-false}
 # True to restore toolsets and dependencies.
 restore=${restore:-true}
 
+# Allows restoring .NET Core Runtimes and SDKs from alternative feeds
+runtimeSourceFeed=${runtimeSourceFeed:-""}
+runtimeSourceFeedKey=${runtimeSourceFeedKey:-""}
+
 # Adjusts msbuild verbosity level.
 verbosity=${verbosity:-'minimal'}
 
@@ -107,6 +111,12 @@ function InitializeDotNetCli {
   fi
 
   local install=$1
+  local runtimeSourceFeedArg=""
+  local runtimeSourceFeedKeyArg=""
+  if [[ $# == 3 ]]; then
+    runtimeSourceFeedArg=$2
+    runtimeSourceFeedKeyArg=$3
+  fi
 
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
   export DOTNET_MULTILEVEL_LOOKUP=0
@@ -152,7 +162,7 @@ function InitializeDotNetCli {
 
     if [[ ! -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
       if [[ "$install" == true ]]; then
-        InstallDotNetSdk "$dotnet_root" "$dotnet_sdk_version"
+        InstallDotNetSdk "$dotnet_root" "$dotnet_sdk_version" "unset" $runtimeSourceFeedArg $runtimeSourceFeedKeyArg
       else
         Write-PipelineTelemetryError -category 'InitializeToolset' "Unable to find dotnet with SDK version '$dotnet_sdk_version'"
         ExitWithExitCode 1
@@ -241,6 +251,28 @@ function InstallDotNet {
     Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK from any of the specified locations."
     ExitWithExitCode 1
   fi
+}
+
+function with_retries {
+  local maxRetries=5
+  local retries=1
+  echo "Trying to run '$@' for maximum of $maxRetries attempts."
+  while [[ $((retries++)) -le $maxRetries ]]; do
+    "$@"
+
+    if [[ $? == 0 ]]; then
+      echo "Ran '$@' successfully."
+      return 0
+    fi
+
+    timeout=$((3**$retries-1))
+    echo "Failed to execute '$@'. Waiting $timeout seconds before next attempt ($retries out of $maxRetries)." 1>&2
+    sleep $timeout
+  done
+
+  echo "Failed to execute '$@' for $maxRetries times." 1>&2
+
+  return 1
 }
 
 function with_retries {
