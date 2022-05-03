@@ -10,6 +10,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
@@ -17,19 +18,15 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-public static class CreateReleaseTags
+internal static class CreateReleaseTags
 {
     private static Roslyn s_roslynInfo = new();
-    public static async Task<int> CreateReleaseTagsAsync(ILogger logger)
+    public static async Task<int> CreateReleaseTagsAsync(RoslynToolsSettings settings, ILogger logger)
     {
         try
         {
-            var client = new SecretClient(
-                vaultUri: new Uri("https://managedlanguages.vault.azure.net"),
-                credential: new DefaultAzureCredential(includeInteractiveCredentials: true));
-
-            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", client, "vslsnap-vso-auth-token");
-            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", client, "vslsnap-build-auth-token");
+            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
+            using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
 
             var connections = new[] { devdivConnection, dncengConnection };
 

@@ -12,6 +12,7 @@ internal static class RootRoslynCommand
     {
         var command = new RootCommand()
         {
+            AuthenticateCommand.GetCommand(),
             PRFinderCommand.GetCommand(),
             NuGetPrepareCommand.GetCommand(),
             NuGetPublishCommand.GetCommand(),
