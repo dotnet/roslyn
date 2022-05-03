@@ -153,6 +153,7 @@ var dest =
 var dest =
     $@""\""[||]"";");
         }
+
         [WpfFact]
         public void TestPasteSimpleVerbatimLiteralContent()
         {

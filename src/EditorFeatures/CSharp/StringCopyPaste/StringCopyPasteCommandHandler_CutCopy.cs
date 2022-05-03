@@ -34,10 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Action nextCommandHandler)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-            CaptureCutCopyInformation(textView, subjectBuffer);
 
             // Ensure that the copy always goes through all other handlers.
             nextCommandHandler();
+
+            CaptureCutCopyInformation(textView, subjectBuffer);
         }
 
         private void CaptureCutCopyInformation(ITextView textView, ITextBuffer subjectBuffer)

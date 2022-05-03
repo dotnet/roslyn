@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
                     _roslynSequenceNumber = data is int v ? v : FailureValue;
                 else
                     _dataObject.SetData(format, data, autoConvert);
-
             }
         }
     }
