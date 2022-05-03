@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -18,14 +19,16 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
         TLanguageKindEnum,
         TExpressionSyntax,
-        TSimpleNameSyntax>
+        TSimpleNameSyntax,
+        TSimplifierOptions>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
+        where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
+            : base(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.AddQualification,
                    options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -33,17 +36,16 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(OptionSet options)
+        public override bool OpenFileOnly(SimplifierOptions? options)
         {
-            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions2.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions2.QualifyEventAccess, GetLanguageName()).Notification;
+            // analyzer is only active in C# and VB projects
+            Contract.ThrowIfNull(options);
 
-            return !(qualifyFieldAccessOption == NotificationOption2.Warning || qualifyFieldAccessOption == NotificationOption2.Error ||
-                     qualifyPropertyAccessOption == NotificationOption2.Warning || qualifyPropertyAccessOption == NotificationOption2.Error ||
-                     qualifyMethodAccessOption == NotificationOption2.Warning || qualifyMethodAccessOption == NotificationOption2.Error ||
-                     qualifyEventAccessOption == NotificationOption2.Warning || qualifyEventAccessOption == NotificationOption2.Error);
+            return
+               !(options.QualifyFieldAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyPropertyAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyMethodAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                 options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
         protected abstract string GetLanguageName();
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference, OperationKind.Invocation);
 
         protected abstract Location GetLocation(IOperation operation);
+        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -117,8 +120,16 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             if (instanceOperation.Syntax is not TSimpleNameSyntax simpleName)
                 return;
 
-            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(operation);
-            var optionValue = context.GetOption(applicableOption, context.Operation.Syntax.Language);
+            var symbolKind = operation switch
+            {
+                IMemberReferenceOperation memberReferenceOperation => memberReferenceOperation.Member.Kind,
+                IInvocationOperation invocationOperation => invocationOperation.TargetMethod.Kind,
+                _ => throw ExceptionUtilities.UnexpectedValue(operation),
+            };
+
+            var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+            if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
+                return;
 
             var shouldOptionBePresent = optionValue.Value;
             var severity = optionValue.Notification.Severity;
@@ -152,26 +163,5 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return symbol == null || symbol.IsStatic || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
             }
         }
-    }
-
-    internal static class QualifyMembersHelpers
-    {
-        public static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
-            => symbolKind switch
-            {
-                SymbolKind.Field => CodeStyleOptions2.QualifyFieldAccess,
-                SymbolKind.Property => CodeStyleOptions2.QualifyPropertyAccess,
-                SymbolKind.Method => CodeStyleOptions2.QualifyMethodAccess,
-                SymbolKind.Event => CodeStyleOptions2.QualifyEventAccess,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
-            };
-
-        internal static PerLanguageOption2<CodeStyleOption2<bool>> GetApplicableOptionFromSymbolKind(IOperation operation)
-            => operation switch
-            {
-                IMemberReferenceOperation memberReferenceOperation => GetApplicableOptionFromSymbolKind(memberReferenceOperation.Member.Kind),
-                IInvocationOperation invocationOperation => GetApplicableOptionFromSymbolKind(invocationOperation.TargetMethod.Kind),
-                _ => throw ExceptionUtilities.UnexpectedValue(operation),
-            };
     }
 }

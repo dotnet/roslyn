@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using TOption = Microsoft.CodeAnalysis.Options.IOption2;
@@ -54,12 +55,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: true, out value!);
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, (T?)option.DefaultValue, out value!);
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, [MaybeNullWhen(false)] out T value)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, useDefaultIfMissing: false, out value);
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, defaultValue: default, out value);
 
-        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, bool useDefaultIfMissing, out T? value)
+        public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable;
+
+        private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
         {
             var hasEditorConfigStorage = false;
             foreach (var storageLocation in option.StorageLocations)
@@ -87,9 +91,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (useDefaultIfMissing)
+            if (defaultValue.HasValue)
             {
-                value = (T?)option.DefaultValue;
+                value = defaultValue.Value;
                 return hasEditorConfigStorage;
             }
             else

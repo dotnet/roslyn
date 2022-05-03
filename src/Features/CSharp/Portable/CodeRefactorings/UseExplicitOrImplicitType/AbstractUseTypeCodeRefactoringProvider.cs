@@ -11,12 +11,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 {
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         protected abstract string Title { get; }
         protected abstract Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken);
         protected abstract TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -50,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var typeStyle = AnalyzeTypeName(declaredType, semanticModel, optionSet, cancellationToken);
+            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var typeStyle = AnalyzeTypeName(declaredType, semanticModel, simplifierOptions, cancellationToken);
             if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
             {
                 // the analyzer would handle this.  So we do not.
@@ -64,9 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     Title,
-                    c => UpdateDocumentAsync(document, declaredType, c)),
+                    c => UpdateDocumentAsync(document, declaredType, c),
+                    Title),
                 declaredType.Span);
         }
 
@@ -127,14 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

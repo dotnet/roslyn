@@ -97,23 +97,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, helper,
-                        useExpressionBody: true, cancellationToken: c)),
+                var title = helper.UseExpressionBodyTitle.ToString();
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        title,
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, helper,
+                            useExpressionBody: true, cancellationToken: c),
+                        title),
                     declaration.Span);
                 succeeded = true;
             }
 
             if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
             {
+                var title = helper.UseBlockBodyTitle.ToString();
                 context.RegisterRefactoring(
-                    new MyCodeAction(
-                        helper.UseBlockBodyTitle.ToString(),
+                    CodeAction.Create(
+                        title,
                         c => UpdateDocumentAsync(
                             document, root, declaration, helper,
-                            useExpressionBody: false, cancellationToken: c)),
+                            useExpressionBody: false, cancellationToken: c),
+                        title),
                     declaration.Span);
                 succeeded = true;
             }
@@ -149,14 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var newRoot = root.ReplaceNode(parent, updatedParent);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

@@ -8,12 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
 
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title,
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    c => RemoveUnnecessaryImportsAsync(context.Document, context.GetOptionsProvider(), c),
                     title),
                 context.Diagnostics);
             return Task.CompletedTask;
@@ -34,11 +38,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
+        private async Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document,
+            CodeActionOptionsProvider options,
+            CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), options, cancellationToken).ConfigureAwait(false);
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

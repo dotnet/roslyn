@@ -11,10 +11,13 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -75,9 +78,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 // avoid loading the actual file from disk since it doesn't exist yet.
                 var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: false);
                 var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                                 .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
-
-                Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
+                                                                 .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
                 if (useDecompiler)
                 {
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                         if (decompiledSourceService != null)
                         {
-                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, cancellationToken).ConfigureAwait(false);
+                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!useDecompiler)
                 {
                     var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetRequiredService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
+                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.GenerationOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We have the content, so write it out to disk

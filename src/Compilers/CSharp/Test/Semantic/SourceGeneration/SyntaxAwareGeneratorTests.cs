@@ -2077,6 +2077,64 @@ class C
             Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception!.Message);
         }
 
+        [Fact]
+        public void Syntax_Provider_Doesnt_Attribute_Incorrect_Timing()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var sleepTimeInMs = 50;
+            var testGenerator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+            }).AsSourceGenerator();
+
+            var testGenerator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider<object>((s, _) => s is AssignmentExpressionSyntax, (c, _) => { Thread.Sleep(sleepTimeInMs); return true; }), (spc, s) => { });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 });
+            driver = driver.RunGenerators(compilation);
+
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+            Assert.Equal(2, timing.GeneratorTimes.Length);
+
+            // check generator one took at least 'sleepTimeInMs'
+            var timing1 = timing.GeneratorTimes[0];
+            Assert.Equal(testGenerator, timing1.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing1.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing1.ElapsedTime);
+            Assert.True(timing1.ElapsedTime.TotalMilliseconds >= sleepTimeInMs);
+
+            // check generator two took at least 'sleepTimeInMs' * 2
+            var timing2 = timing.GeneratorTimes[1];
+            Assert.Equal(testGenerator2, timing2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= timing2.ElapsedTime);
+            Assert.True(timing2.ElapsedTime.TotalMilliseconds >= sleepTimeInMs * 2);
+
+            // now check that generator two took longer than generator one (and one didn't get attributed the time)
+            Assert.True(timing2.ElapsedTime > timing1.ElapsedTime);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

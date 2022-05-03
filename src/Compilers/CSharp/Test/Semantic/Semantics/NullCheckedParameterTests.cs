@@ -87,7 +87,7 @@ abstract class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "FirstName").WithArguments("C.FirstName").WithLocation(4, 12),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     string FirstName!! { get; set; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(4, 21),
                 // (4,26): error CS1002: ; expected
                 //     string FirstName!! { get; set; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "get").WithLocation(4, 26),
@@ -139,19 +139,19 @@ partial class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (5,24): error CS1003: Syntax error, '!!' expected
                 //     void M1(string name! !="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(5, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!").WithLocation(5, 24),
                 // (7,25): error CS1003: Syntax error, '!!' expected
                 //     void M3(string name ! !="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!").WithLocation(7, 25),
                 // (8,25): error CS1003: Syntax error, '!!' expected
                 //     void M4(string name ! ! ="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(8, 25),
                 // (9,24): error CS1003: Syntax error, '!!' expected
                 //     void M5(string name! ! ="a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(9, 24),
                 // (10,24): error CS1003: Syntax error, '!!' expected
                 //     void M6(string name! != "a") { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(10, 24)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!").WithLocation(10, 24)
                 );
         }
 
@@ -168,7 +168,7 @@ partial class C
                 .VerifyDiagnostics(
                     // (4,25): error CS1003: Syntax error, '!!' expected
                     //     void M0(string name !/*comment1*/
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(4, 25)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(4, 25)
                     );
         }
 
@@ -186,7 +186,7 @@ partial class C
                 .VerifyDiagnostics(
                     // (4,12): error CS1003: Syntax error, '!!' expected
                     //     void M0(string name
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("!!", "!").WithLocation(4, 12)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("!!").WithLocation(4, 12)
                     );
         }
 
@@ -283,7 +283,7 @@ class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (8,22): error CS1003: Syntax error, ',' expected
                     //     void M2(__arglist!!)
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(8, 22));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58335")]
@@ -474,22 +474,22 @@ class C
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                     // (7,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(7, 39),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(7, 39),
                     // (8,40): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 40),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(8, 40),
                     // (9,40): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 40),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(9, 40),
                     // (9,41): error CS1003: Syntax error, '=>' expected
                     //         Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(9, 41),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(9, 41),
                     // (10,38): error CS0103: The name 'x' does not exist in the current context
                     //         Func<string, string> func3 = x! => x;
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 38),
                     // (10,41): error CS1003: Syntax error, ',' expected
                     //         Func<string, string> func3 = x! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(10, 41),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(10, 41),
                     // (10,44): error CS1002: ; expected
                     //         Func<string, string> func3 = x! => x;
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(10, 44),
@@ -504,7 +504,7 @@ class C
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(11, 38),
                     // (11,42): error CS1003: Syntax error, ',' expected
                     //         Func<string, string> func4 = x ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(11, 42),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(11, 42),
                     // (11,45): error CS1002: ; expected
                     //         Func<string, string> func4 = x ! => x;
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(11, 45),
@@ -516,13 +516,13 @@ class C
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(11, 45),
                     // (13,42): error CS1003: Syntax error, '=>' expected
                     //         Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(13, 42),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(13, 42),
                     // (15,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(15, 39),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(15, 39),
                     // (16,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(16, 39));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(16, 39));
         }
 
         [Fact]

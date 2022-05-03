@@ -4,16 +4,18 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
@@ -22,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     /// Contains helpers used by several simplifier subclasses.
     /// </summary>
     internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
-        : AbstractSimplifier<TSyntax, TSimplifiedSyntax>
+        : AbstractSimplifier<TSyntax, TSimplifiedSyntax, CSharpSimplifierOptions>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
     {
+        private static readonly ConditionalWeakTable<SemanticModel, StrongBox<bool>> s_modelToHasUsingAliasesMap = new();
+
         /// <summary>
         /// Returns the predefined keyword kind for a given <see cref="SpecialType"/>.
         /// </summary>
@@ -70,16 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // equivalent node in the original tree, and from there determine if the tree has any using alias
             // directives.
             var originalModel = semanticModel.GetOriginalSemanticModel();
-
-            // Perf: We are only using the syntax tree root in a fast-path syntax check. If the root is not readily
-            // available, it is fine to continue through the normal algorithm.
-            if (originalModel.SyntaxTree.TryGetRoot(out var root))
-            {
-                if (!HasUsingAliasDirective(root))
-                {
-                    return false;
-                }
-            }
+            var hasUsingAliases = HasUsingAliases(originalModel, cancellationToken);
+            if (!hasUsingAliases)
+                return false;
 
             // If the Symbol is a constructor get its containing type
             if (symbol.IsConstructor())
@@ -177,45 +174,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return false;
+
+            static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
+            {
+                var current = expression;
+                while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+                {
+                    current = currentMember.Expression;
+                    continue;
+                }
+
+                return current.IsKind(SyntaxKind.AliasQualifiedName,
+                                      SyntaxKind.IdentifierName,
+                                      SyntaxKind.GenericName,
+                                      SyntaxKind.QualifiedName);
+            }
         }
 
-        private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
+        private static bool HasUsingAliases(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var current = expression;
-            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+            if (!s_modelToHasUsingAliasesMap.TryGetValue(semanticModel, out var hasAliases))
             {
-                current = currentMember.Expression;
-                continue;
+                hasAliases = new StrongBox<bool>(ComputeHasUsingAliases(semanticModel, cancellationToken));
+                lock (s_modelToHasUsingAliasesMap)
+                {
+                    s_modelToHasUsingAliasesMap.Remove(semanticModel);
+                    s_modelToHasUsingAliasesMap.Add(semanticModel, hasAliases);
+                }
             }
 
-            return current.IsKind(SyntaxKind.AliasQualifiedName,
-                                  SyntaxKind.IdentifierName,
-                                  SyntaxKind.GenericName,
-                                  SyntaxKind.QualifiedName);
+            return hasAliases.Value;
         }
 
-        private static bool HasUsingAliasDirective(SyntaxNode syntax)
+        private static bool ComputeHasUsingAliases(SemanticModel model, CancellationToken cancellationToken)
         {
-            var (usings, members) = syntax switch
-            {
-                BaseNamespaceDeclarationSyntax ns => (ns.Usings, ns.Members),
-                CompilationUnitSyntax compilationUnit => (compilationUnit.Usings, compilationUnit.Members),
-                _ => default,
-            };
+            if (!model.SyntaxTree.HasCompilationUnitRoot)
+                return false;
 
-            foreach (var usingDirective in usings)
+            var root = (CompilationUnitSyntax)model.SyntaxTree.GetRoot(cancellationToken);
+            if (HasUsingAliasDirective(root))
+                return true;
+
+            var firstMember =
+                root.Members.Count > 0 ? root.Members[0] :
+                root.AttributeLists.Count > 0 ? root.AttributeLists[0] : (SyntaxNode)null;
+            if (firstMember == null)
+                return false;
+
+            var scopes = model.GetImportScopes(firstMember.SpanStart, cancellationToken);
+            return scopes.Any(static s => s.Aliases.Length > 0);
+
+            static bool HasUsingAliasDirective(SyntaxNode syntax)
             {
-                if (usingDirective.Alias != null)
-                    return true;
+                var (usings, members) = syntax switch
+                {
+                    BaseNamespaceDeclarationSyntax ns => (ns.Usings, ns.Members),
+                    CompilationUnitSyntax compilationUnit => (compilationUnit.Usings, compilationUnit.Members),
+                    _ => default,
+                };
+
+                foreach (var usingDirective in usings)
+                {
+                    if (usingDirective.Alias != null)
+                        return true;
+                }
+
+                foreach (var member in members)
+                {
+                    if (HasUsingAliasDirective(member))
+                        return true;
+                }
+
+                return false;
             }
-
-            foreach (var member in members)
-            {
-                if (HasUsingAliasDirective(member))
-                    return true;
-            }
-
-            return false;
         }
 
         // We must verify that the alias actually binds back to the thing it's aliasing.
@@ -278,35 +309,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             var originalSemanticModel = semanticModel.GetOriginalSemanticModel();
             if (!originalSemanticModel.SyntaxTree.HasCompilationUnitRoot)
-            {
                 return null;
-            }
 
             var namespaceId = GetNamespaceIdForAliasSearch(semanticModel, token, cancellationToken);
-            if (namespaceId < 0)
-            {
+            if (namespaceId == null)
                 return null;
-            }
 
-            if (!AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId, symbol, out var aliasSymbol))
+            if (!AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId.Value, symbol, out var aliasSymbol))
             {
                 // add cache
-                AliasSymbolCache.AddAliasSymbols(originalSemanticModel, namespaceId, semanticModel.LookupNamespacesAndTypes(token.SpanStart).OfType<IAliasSymbol>());
+                AliasSymbolCache.AddAliasSymbols(
+                    originalSemanticModel, namespaceId.Value, semanticModel.LookupNamespacesAndTypes(token.SpanStart).OfType<IAliasSymbol>());
 
                 // retry
-                AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId, symbol, out aliasSymbol);
+                AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId.Value, symbol, out aliasSymbol);
             }
 
             return aliasSymbol;
         }
 
-        private static int GetNamespaceIdForAliasSearch(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        private static int? GetNamespaceIdForAliasSearch(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var startNode = GetStartNodeForNamespaceId(semanticModel, token, cancellationToken);
             if (!startNode.SyntaxTree.HasCompilationUnitRoot)
-            {
-                return -1;
-            }
+                return null;
 
             // NOTE: If we're currently in a block of usings, then we want to collect the
             // aliases that are higher up than this block.  Using aliases declared in a block of
@@ -316,65 +342,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 startNode = usingDirective.Parent.Parent;
                 if (startNode == null)
-                {
-                    return -1;
-                }
+                    return null;
             }
 
             // check whether I am under a namespace
             var @namespace = startNode.GetAncestorOrThis<BaseNamespaceDeclarationSyntax>();
             if (@namespace != null)
-            {
-                // since we have node inside of the root, root should be already there
-                // search for namespace id should be quite cheap since normally there should be
-                // only a few namespace defined in a source file if it is not 1. that is why it is
-                // not cached.
-                var startIndex = 1;
-                return GetNamespaceId(startNode.SyntaxTree.GetRoot(cancellationToken), @namespace, ref startIndex);
-            }
+                return @namespace.SpanStart;
 
-            // no namespace, under compilation unit directly
-            return 0;
+            // no namespace, under compilation unit directly.  Pass -1 so there is no ambiguity with a namespace decl
+            // that starts at position 0.
+            return -1;
         }
 
         private static SyntaxNode GetStartNodeForNamespaceId(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (!semanticModel.IsSpeculativeSemanticModel)
-            {
                 return token.Parent;
-            }
 
             var originalSemanticMode = semanticModel.GetOriginalSemanticModel();
             token = originalSemanticMode.SyntaxTree.GetRoot(cancellationToken).FindToken(semanticModel.OriginalPositionForSpeculation);
 
             return token.Parent;
-        }
-
-        private static int GetNamespaceId(SyntaxNode container, BaseNamespaceDeclarationSyntax target, ref int index)
-            => container switch
-            {
-                CompilationUnitSyntax compilation => GetNamespaceId(compilation.Members, target, ref index),
-                BaseNamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
-                _ => throw ExceptionUtilities.UnexpectedValue(container)
-            };
-
-        private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, BaseNamespaceDeclarationSyntax target, ref int index)
-        {
-            foreach (var member in members)
-            {
-                if (member is not BaseNamespaceDeclarationSyntax childNamespace)
-                    continue;
-
-                if (childNamespace == target)
-                    return index;
-
-                index++;
-                var result = GetNamespaceId(childNamespace, target, ref index);
-                if (result > 0)
-                    return result;
-            }
-
-            return -1;
         }
 
         protected static TypeSyntax CreatePredefinedTypeSyntax(ExpressionSyntax expression, SyntaxKind keywordKind)
@@ -394,9 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return nameOfInvocationExpr != null;
         }
 
-        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
+        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, CSharpSimplifierOptions options, SemanticModel semanticModel)
         {
-            if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
+            if (!options.PreferPredefinedTypeKeywordInMemberAccess.Value)
                 return false;
 
             return (expression.IsDirectChildOfMemberAccessExpression() || expression.InsideCrefReference()) &&

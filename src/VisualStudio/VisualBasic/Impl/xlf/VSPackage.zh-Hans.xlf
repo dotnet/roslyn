@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">为重新分配变量添加下划线;显示内联提示;自动插入 End 构造;更改整齐排列设置;更改大纲模式;自动插入 Interface 和 MustOverride 成员;显示或隐藏过程行分隔符;打开或关闭错误纠正建议;打开或关闭引用和关键字的突出显示;正则表达式;对正则表达式着色;突出显示光标下的相关部分;报告无效正则表达式;regex;正则表达式;使用增强色;编辑器配色方案;继承边距;导入指令;</target>
+        <target state="translated">为重新分配变量添加下划线;显示内联提示;自动插入 End 构造;更改整齐排列设置;更改大纲模式;自动插入 Interface 和 MustOverride 成员;显示或隐藏过程行分隔符;打开或关闭错误纠正建议;打开或关闭引用和关键字的突出显示;
+正则表达式;
+正则表达式;
+游标下的相关组件;
+报告无效正则表达式;
+正则表达式;
+正则表达式;
+JSON;
+对 JSON 字符串着色;
+报告无效 JSON 字符串;
+为 JSON 字符串检测并提供编辑器功能;
+使用增强颜色;编辑器配色方案;继承边距;导入指令;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var options = CompletionOptions.Default with
             {
-                HideAdvancedMembers = context.Options.HideAdvancedMembers,
+                HideAdvancedMembers = context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers,
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
                 TargetTypedCompletionFilter = false,
@@ -187,8 +187,13 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 // Wrap the spell checking actions into a single top level suggestion
                 // so as to not clutter the list.
-                context.RegisterCodeFix(new MyCodeAction(
-                    string.Format(FeaturesResources.Fix_typo_0, nameText), codeActions), context.Diagnostics);
+                context.RegisterCodeFix(
+                    CodeAction.CreateWithPriority(
+                        CodeActionPriority.Low,
+                        string.Format(FeaturesResources.Fix_typo_0, nameText),
+                        codeActions,
+                        isInlinable: true),
+                    context.Diagnostics);
             }
             else
             {
@@ -209,9 +214,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 : text;
         }
 
-        private SpellCheckCodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
+        private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
         {
-            return new SpellCheckCodeAction(
+            return CodeAction.CreateWithPriority(
+                CodeActionPriority.Low,
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);
@@ -223,26 +229,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));
 
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class SpellCheckCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
-
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
-            {
-            }
         }
     }
 }

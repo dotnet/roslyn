@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -36,11 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        {
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+        }
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
@@ -149,7 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 operationContext, _threadingContext);
             if (document != null)
             {
-                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var formattingOptions = document.SupportsSyntaxTree ? document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken) : null;
+                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
                 newDocument = Formatter.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {

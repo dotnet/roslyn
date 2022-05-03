@@ -217,25 +217,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var options = codeGenerationService.GetOptions(
-                targetSyntaxTree.Options,
-                documentOptions,
-                new CodeGenerationContext(autoInsertionLocation: false));
+            var globalOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
 
-            var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
+            var options = targetDocument.GetCleanCodeGenerationOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+
+            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
+            var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
             newRoot = Simplifier.ReduceAsync(
-                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
-            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace.Services,
-                formattingOptions,
+                options.CleanupOptions.FormattingOptions,
                 formattingRules,
                 cancellationToken);
 

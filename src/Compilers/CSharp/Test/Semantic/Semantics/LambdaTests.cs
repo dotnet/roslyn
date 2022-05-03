@@ -1973,7 +1973,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,61): error CS1003: Syntax error, ',' expected
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",").WithLocation(2, 61),
     // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
@@ -6311,39 +6311,66 @@ class A : Attribute { }
         }
 
         [Fact]
-        public void ParameterScope_NotInMethodAttributeNameOf()
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_01()
         {
-            var comp = CreateCompilation(@"
-class C
+            var source =
+@"using System;
+class Program
 {
-    void M()
+    static void Main()
     {
-
-        var _ =
-            [My(nameof(parameter))] // 1
-            void(int parameter) => { };
+        Action<int> a = int => { };
     }
-
-    [My(nameof(parameter))] // 2
-    void M2(int parameter) { }
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-");
+}";
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,24): error CS0103: The name 'parameter' does not exist in the current context
-                //             [My(nameof(parameter))] // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 24),
-                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
-                //     [My(nameof(parameter))] // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
-                );
+                // (6,25): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 25));
+        }
 
-            VerifyParameter(comp, 0);
-            VerifyParameter(comp, 1);
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1041: Identifier expected; 'ref' is a keyword
+                //         Action<int> a = ref => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(6, 25));
+        }
+
+        [Fact]
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        public void KeywordParameterName_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Action<int> a = ref int => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8171: Cannot initialize a by-value variable with a reference
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "a = ref int => { }").WithLocation(6, 21),
+                // (6,29): error CS1041: Identifier expected; 'int' is a keyword
+                //         Action<int> a = ref int => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
         }
 
         /// <summary>
@@ -6532,38 +6559,6 @@ public class MyAttribute : System.Attribute
                 // (9,17): error CS0103: The name 'parameter' does not exist in the current context
                 //     void M2([My(parameter)] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 17)
-                );
-
-            VerifyParameter(comp, 0);
-            VerifyParameter(comp, 1);
-        }
-
-        [Fact]
-        public void ParameterScope_NotInParameterAttributeNameOf()
-        {
-            var comp = CreateCompilation(@"
-class C
-{
-    void M()
-    {
-        var _ = void ([My(nameof(parameter))] int parameter) => throw null;
-    }
-
-    void M2([My(nameof(parameter))] int parameter) => throw null;
-}
-
-public class MyAttribute : System.Attribute
-{
-    public MyAttribute(string name1) { }
-}
-");
-            comp.VerifyDiagnostics(
-                // (6,34): error CS0103: The name 'parameter' does not exist in the current context
-                //         var _ = void ([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 34),
-                // (9,24): error CS0103: The name 'parameter' does not exist in the current context
-                //     void M2([My(nameof(parameter))] int parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 24)
                 );
 
             VerifyParameter(comp, 0);

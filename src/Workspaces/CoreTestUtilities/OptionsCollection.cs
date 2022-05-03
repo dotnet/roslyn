@@ -4,7 +4,10 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
 #if !NETCOREAPP
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>
     {
-        private readonly Dictionary<OptionKey2, object?> _options = new Dictionary<OptionKey2, object?>();
+        private readonly Dictionary<OptionKey2, object?> _options = new();
         private readonly string _languageName;
 
         public OptionsCollection(string languageName)
@@ -66,5 +69,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
+
+#if !CODE_STYLE
+        public OptionSet ToOptionSet()
+            => new OptionValueSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
+
+        public AnalyzerConfigOptions ToAnalyzerConfigOptions(HostLanguageServices languageServices)
+        {
+            var optionService = languageServices.WorkspaceServices.GetRequiredService<IOptionService>();
+            return ToOptionSet().AsAnalyzerConfigOptions(optionService, languageServices.Language);
+        }
+
+        public void SetGlobalOptions(IGlobalOptionService globalOptions)
+        {
+            foreach (var (optionKey, value) in _options)
+            {
+                globalOptions.SetGlobalOption((OptionKey)optionKey, value);
+            }
+        }
+#endif
     }
 }

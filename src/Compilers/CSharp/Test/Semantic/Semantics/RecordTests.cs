@@ -9736,7 +9736,7 @@ record C(int Y)
             comp.VerifyDiagnostics(
                 // (9,9): error CS8147: Properties which return by reference cannot have set accessors
                 //         set { }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 9),
                 // (15,32): error CS1525: Invalid expression term 'ref'
                 //         var c = new C(0) { X = ref a[0] };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(15, 32),
@@ -30376,6 +30376,53 @@ public record C(int I) : B(I);";
                 "void D.Deconstruct(out System.Int32 I)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void RecordPositionalMembersScope()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+record R1(string Id) { }
+
+[Obsolete(nameof(Id))]
+record R2(string Id);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void TypeParametersAndTypeMembersInScopeOnTypeAttribute()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+class C1
+{
+    int Id { get; set; }
+}
+
+[Obsolete(Constant)]
+class C2
+{
+    const string Constant = """";
+}
+
+[Obsolete(T)]
+class C3<T>
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                    // (16,11): error CS0119: 'T' is a type, which is not valid in the given context
+                    // [Obsolete(T)]
+                    Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(16, 11)
+                    );
         }
     }
 }

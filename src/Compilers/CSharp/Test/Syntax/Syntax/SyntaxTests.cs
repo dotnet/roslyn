@@ -239,5 +239,14 @@ void goo()
         {
             Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
         }
+
+        [Fact]
+        public void Punctuation()
+        {
+            foreach (var kind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(SyntaxFacts.IsPunctuation(kind));
+            }
+        }
     }
 }

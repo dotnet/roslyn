@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
-        private static IdeAnalyzerOptions OptionOn()
-            => new(ReportInvalidRegexPatterns: true);
+        private OptionsCollection OptionOn()
+            => Option(IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarning1()
@@ -41,7 +41,7 @@ class Program
         var r = new Regex(@""[|)|]"");
     }     
 }",
-                ideAnalyzerOptions: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
@@ -60,7 +60,7 @@ class Program
         var r = new Regex(""[|\u0029|]"");
     }     
 }",
-                ideAnalyzerOptions: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));

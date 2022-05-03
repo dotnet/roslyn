@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
-                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
 
         private async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = originalFixAllContext.CancellationToken;
             var progressTracker = originalFixAllContext.GetProgressTracker();
-            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(originalFixAllContext);
+            progressTracker.Description = originalFixAllContext.GetDefaultFixAllTitle();
 
             // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
             // applying fixes.
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = fixAllContext.State.CodeActionOptionsProvider(document.Project.Language) with { IsBlocking = false };
+                var options = new NonBlockingCodeActionOptionsProvider(fixAllContext.State.CodeActionOptionsProvider);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>
@@ -187,6 +189,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.AddRange(await task.ConfigureAwait(false));
 
             return result.ToImmutable();
+        }
+
+        private sealed class NonBlockingCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
+        {
+            private readonly CodeActionOptionsProvider _provider;
+
+            public NonBlockingCodeActionOptionsProvider(CodeActionOptionsProvider provider)
+                => _provider = provider;
+
+            public override CodeActionOptions GetOptions(HostLanguageServices languageService)
+                => _provider.GetOptions(languageService) with { IsBlocking = false };
         }
 
         /// <summary>

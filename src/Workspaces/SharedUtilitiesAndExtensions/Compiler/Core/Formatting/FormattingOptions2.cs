@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const string FeatureName = "FormattingOptions";
 
         public static PerLanguageOption2<bool> UseTabs =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), defaultValue: false,
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocation: new EditorConfigStorageLocation<bool>(
                 "indent_style",
                 s => s == "tab",
@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> TabSize =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), defaultValue: 4,
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
             storageLocation: EditorConfigStorageLocation.ForInt32Option("tab_width"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption2<int> IndentationSize =
-            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), defaultValue: 4,
+            new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
             storageLocation: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         public static PerLanguageOption2<string> NewLine =
-            new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), defaultValue: Environment.NewLine,
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
             storageLocation: new EditorConfigStorageLocation<string>(
                 "end_of_line",
                 parseValue: value => value.Trim() switch

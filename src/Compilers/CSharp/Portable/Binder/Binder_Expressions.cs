@@ -612,7 +612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                     return BindSimpleBinaryOperator((BinaryExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.LogicalOrExpression:
                     return BindConditionalLogicalOperator((BinaryExpressionSyntax)node, diagnostics);
@@ -706,6 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiplyAssignmentExpression:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                     return BindCompoundAssignment((AssignmentExpressionSyntax)node, diagnostics);
 
@@ -4223,7 +4226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsNullableType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
+                    diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location);
                 }
 
                 switch (type.TypeKind)
@@ -4258,7 +4261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Array:
                         // ex: new ref[]
                         type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
-                            diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, type));
+                            diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location));
                         goto case TypeKind.Class;
 
                     default:

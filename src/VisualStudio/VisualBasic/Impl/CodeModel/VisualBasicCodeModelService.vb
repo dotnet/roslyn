@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -34,13 +35,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
-        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory, threadingContext As IThreadingContext)
+        Friend Sub New(
+            provider As HostLanguageServices,
+            editorOptionsFactoryService As IEditorOptionsFactoryService,
+            refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
+            commitBufferManagerFactory As CommitBufferManagerFactory,
+            globalOptions As IGlobalOptionService,
+            threadingContext As IThreadingContext)
+
             MyBase.New(
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
                 LineAdjustmentFormattingRule.Instance,
                 EndRegionFormattingRule.Instance,
+                globalOptions,
                 threadingContext)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory

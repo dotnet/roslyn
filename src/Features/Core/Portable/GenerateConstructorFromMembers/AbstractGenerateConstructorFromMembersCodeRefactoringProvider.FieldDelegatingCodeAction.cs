@@ -15,23 +15,26 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private class FieldDelegatingCodeAction : CodeAction
+        private sealed class FieldDelegatingCodeAction : CodeAction
         {
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public FieldDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
-                bool addNullChecks)
+                bool addNullChecks,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _state = state;
                 _addNullChecks = addNullChecks;
+                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -75,12 +78,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     : null;
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                            afterThisLocation: afterThisLocation),
+                        _fallbackOptions),
                     _state.ContainingType,
                     members,
-                    new CodeGenerationContext(
-                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

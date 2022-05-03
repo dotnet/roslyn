@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
@@ -9,6 +10,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Roslyn.Utilities;
 
 #if !CODE_STYLE
 using System.Threading.Tasks;
@@ -20,60 +24,101 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal interface ISyntaxFormatting
     {
-        SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
+        SyntaxFormattingOptions DefaultOptions { get; }
+        SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions);
+
         ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
 
     [DataContract]
-    internal abstract class SyntaxFormattingOptions
+    internal sealed record class LineFormattingOptions(
+        [property: DataMember(Order = 0)] bool UseTabs = false,
+        [property: DataMember(Order = 1)] int TabSize = 4,
+        [property: DataMember(Order = 2)] int IndentationSize = 4,
+        string? NewLine = null)
     {
-        [DataMember(Order = 0)]
-        public readonly bool UseTabs;
+        [property: DataMember(Order = 3)]
+        public string NewLine { get; init; } = NewLine ?? Environment.NewLine;
 
-        [DataMember(Order = 1)]
-        public readonly int TabSize;
+        public static readonly LineFormattingOptions Default = new();
 
-        [DataMember(Order = 2)]
-        public readonly int IndentationSize;
-
-        [DataMember(Order = 3)]
-        public readonly string NewLine;
-
-        [DataMember(Order = 4)]
-        public readonly bool SeparateImportDirectiveGroups;
-
-        protected const int BaseMemberCount = 5;
-
-        protected SyntaxFormattingOptions(
-            bool useTabs,
-            int tabSize,
-            int indentationSize,
-            string newLine,
-            bool separateImportDirectiveGroups)
+        public static LineFormattingOptions Create(AnalyzerConfigOptions options, LineFormattingOptions? fallbackOptions)
         {
-            UseTabs = useTabs;
-            TabSize = tabSize;
-            IndentationSize = indentationSize;
-            NewLine = newLine;
-            SeparateImportDirectiveGroups = separateImportDirectiveGroups;
-        }
+            fallbackOptions ??= Default;
 
-        public abstract SyntaxFormattingOptions With(bool useTabs, int tabSize, int indentationSize);
+            return new(
+                UseTabs: options.GetEditorConfigOption(FormattingOptions2.UseTabs, fallbackOptions.UseTabs),
+                TabSize: options.GetEditorConfigOption(FormattingOptions2.TabSize, fallbackOptions.TabSize),
+                IndentationSize: options.GetEditorConfigOption(FormattingOptions2.IndentationSize, fallbackOptions.IndentationSize),
+                NewLine: options.GetEditorConfigOption(FormattingOptions2.NewLine, fallbackOptions.NewLine));
+        }
 
 #if !CODE_STYLE
-        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)
+        public static async Task<LineFormattingOptions> FromDocumentAsync(Document document, LineFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
         {
-            var formattingService = services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
-            return formattingService.GetFormattingOptions(configOptions);
-        }
-
-        public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+            var documentOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return Create(documentOptions, fallbackOptions);
         }
 #endif
     }
+
+    internal abstract class SyntaxFormattingOptions
+    {
+        [DataMember(Order = 0)]
+        public readonly LineFormattingOptions LineFormatting;
+
+        [DataMember(Order = 1)]
+        public readonly bool SeparateImportDirectiveGroups;
+
+        protected const int BaseMemberCount = 2;
+
+        protected SyntaxFormattingOptions(
+            LineFormattingOptions? lineFormatting,
+            bool separateImportDirectiveGroups)
+        {
+            LineFormatting = lineFormatting ?? LineFormattingOptions.Default;
+            SeparateImportDirectiveGroups = separateImportDirectiveGroups;
+        }
+
+        public abstract SyntaxFormattingOptions With(LineFormattingOptions lineFormatting);
+
+        public bool UseTabs => LineFormatting.UseTabs;
+        public int TabSize => LineFormatting.TabSize;
+        public int IndentationSize => LineFormatting.IndentationSize;
+        public string NewLine => LineFormatting.NewLine;
+
+#if !CODE_STYLE
+        public static SyntaxFormattingOptions GetDefault(HostLanguageServices languageServices)
+            => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
+
+        public static SyntaxFormattingOptions Create(OptionSet options, SyntaxFormattingOptions? fallbackOptions, HostLanguageServices languageServices)
+        {
+            var formattingService = languageServices.GetRequiredService<ISyntaxFormattingService>();
+            var configOptions = options.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
+            return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
+        }
+#endif
+    }
+
+    internal interface SyntaxFormattingOptionsProvider
+#if !CODE_STYLE
+        : OptionsProvider<SyntaxFormattingOptions>
+#endif
+    {
+    }
+
+#if !CODE_STYLE
+    internal static class SyntaxFormattingOptionsProviders
+    {
+        public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return SyntaxFormattingOptions.Create(documentOptions, fallbackOptions, document.Project.LanguageServices);
+        }
+
+        public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetSyntaxFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+    }
+#endif
 }

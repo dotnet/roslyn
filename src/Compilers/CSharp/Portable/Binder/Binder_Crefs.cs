@@ -960,11 +960,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (HasNonObsoleteError(localDiagnostics.DiagnosticBag))
                 {
                     Debug.Assert(typeSyntax.Parent is object);
-                    ErrorCode code = typeSyntax.Parent.Kind() == SyntaxKind.ConversionOperatorMemberCref
-                        ? ErrorCode.WRN_BadXMLRefReturnType
-                        : ErrorCode.WRN_BadXMLRefParamType;
                     CrefSyntax crefSyntax = GetRootCrefSyntax(memberCrefSyntax);
-                    diagnostics.Add(code, typeSyntax.Location, typeSyntax.ToString(), crefSyntax.ToString());
+                    if (typeSyntax.Parent.Kind() == SyntaxKind.ConversionOperatorMemberCref)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_BadXMLRefReturnType, typeSyntax.Location);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_BadXMLRefParamType, typeSyntax.Location, typeSyntax.ToString(), crefSyntax.ToString());
+                    }
                 }
             }
             else

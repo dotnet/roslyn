@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.Editor.SetText(@"using System;
@@ -71,7 +71,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void SemanticClassification()
         {
             VisualStudio.Editor.SetText(@"
@@ -106,7 +106,7 @@ class Program : Attribute
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void VerifyProjectConfigChange()
         {
             VisualStudio.Editor.SetText(@"
