@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private readonly EventMap _eventMap;
+        private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
 
-        private readonly object _gate;
-        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
+        private readonly object _gate = new();
+        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
@@ -53,12 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
 
             // queue to serialize events.
-            _eventMap = new EventMap();
-
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
-
-            _gate = new object();
-            _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
 
             _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }

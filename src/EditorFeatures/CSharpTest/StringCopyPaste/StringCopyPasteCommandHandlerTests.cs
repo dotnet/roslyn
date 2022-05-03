@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+<<<<<<< HEAD
 using System.Composition;
 using System.Data.SqlTypes;
+=======
+>>>>>>> stringCopyPaste
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
@@ -15,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -22,8 +26,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup)
                 => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), unknownCopy: copyFileMarkup == null);
 
+<<<<<<< HEAD
             public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
                 => XElement.Parse(($@"
 <Workspace>
@@ -80,12 +83,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         <Document Markup=""SpansOnly"">{copyFileMarkup}</Document>
     </Project>")}
 </Workspace>"));
+=======
+            public static XElement GetWorkspaceXml(string markup)
+                => markup.Contains("<Workspace>")
+                    ? XElement.Parse(markup)
+                    : XElement.Parse($@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document Markup=""SpansOnly"">{markup}</Document>
+    </Project>
+</Workspace>");
+>>>>>>> stringCopyPaste
 
             internal void AssertCodeIs(string expectedCode)
             {
-                MarkupTestFile.GetPositionAndSpans(expectedCode, out var massaged, out int? caretPosition, out var spans);
+                TestFileMarkupParser.GetPositionAndSpans(
+                    expectedCode, out var massaged, out int? caretPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
-                Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretPosition, TextView.Caret.Position.BufferPosition.Position);
 
                 var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
                 if (virtualSpaces.Key != null)
@@ -155,15 +170,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             private static void GetCodeAndCaretPosition(string expectedMarkup, out string expected, out int caretPosition)
             {
-                expectedMarkup = expectedMarkup.Replace("$", "\uD7FF");
+                // Used so test can contain `$$` (for raw interpolations) without us thinking that it is an actual caret
+                // position
+                const string NON_TEST_CHARACTER = "\uD7FF";
 
-                MarkupTestFile.GetPositionAndSpan(expectedMarkup, out expected, out int? cursorPosition, out var caretSpan);
-                Contract.ThrowIfTrue(cursorPosition != null);
+                expectedMarkup = expectedMarkup.Replace("$", NON_TEST_CHARACTER);
 
-                expected = expected.Replace("\uD7FF", "$");
+                TestFileMarkupParser.GetSpan(expectedMarkup, out expected, out var caretSpan);
 
-                Assert.True(caretSpan.HasValue && caretSpan.Value.IsEmpty);
-                caretPosition = caretSpan!.Value.Start;
+                expected = expected.Replace(NON_TEST_CHARACTER, "$");
+
+                caretPosition = caretSpan.Start;
             }
 
             private void ValidateAfter(string afterUndoMarkup)

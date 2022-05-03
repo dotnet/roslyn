@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public UnknownSourcePasteProcessor(
             string newLine,
+            IndentationOptions indentationOptions,
             ITextSnapshot2 snapshotBeforePaste,
             ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             bool pasteWasSuccessful)
-            : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
+            : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _pasteWasSuccessful = pasteWasSuccessful;
         }
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var mustBeMultiLine = RawContentMustBeMultiLine(TextAfterPaste, TextContentsSpansAfterPaste);
 
-            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, cancellationToken);
+            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, IndentationOptions, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var buffer);
 

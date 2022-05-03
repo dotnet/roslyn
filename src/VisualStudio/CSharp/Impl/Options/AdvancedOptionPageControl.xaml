@@ -57,27 +57,6 @@
                 </StackPanel>
             </GroupBox>
             
-            <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
-                <StackPanel>
-                    <CheckBox x:Name="Split_string_literals_on_enter"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
-                    <CheckBox x:Name="Fix_text_pasted_into_string_literals"
-                              x:Uid="Fix_text_pasted_into_string_literals"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals}" />
-                    <CheckBox x:Name="ShowRemarksInQuickInfo"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
-                    <CheckBox x:Name="RenameTrackingPreview"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
-                    <CheckBox x:Name="Underline_reassigned_variables"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
-                </StackPanel>
-            </GroupBox>
-            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
@@ -178,7 +157,28 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
                 </StackPanel>
             </GroupBox>
-            
+
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="Split_string_literals_on_enter"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
+                    <CheckBox x:Name="Fix_text_pasted_into_string_literals_experimental"
+                              x:Uid="Fix_text_pasted_into_string_literals_experimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals_experimental}" />
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Underline_reassigned_variables"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="RegularExpressionsGroupBox"
                         Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
                 <StackPanel>

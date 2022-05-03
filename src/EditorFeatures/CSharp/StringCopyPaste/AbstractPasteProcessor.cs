@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -85,6 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
 
+        protected readonly IndentationOptions IndentationOptions;
+
         /// <summary>
         /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no
         /// errors in it, this quote count should be the same for the start and end delimiter.
@@ -104,12 +107,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         protected AbstractPasteProcessor(
             string newLine,
+            IndentationOptions indentationOptions,
             ITextSnapshot2 snapshotBeforePaste,
             ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste)
         {
+            NewLine = newLine;
+            IndentationOptions = indentationOptions;
+
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
 
@@ -119,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             DocumentBeforePaste = documentBeforePaste;
             DocumentAfterPaste = documentAfterPaste;
 
-            NewLine = newLine;
             StringExpressionBeforePaste = stringExpressionBeforePaste;
 
             TextContentsSpansBeforePaste = GetTextContentSpans(

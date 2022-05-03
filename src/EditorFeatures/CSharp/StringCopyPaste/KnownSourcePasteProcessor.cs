@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public KnownSourcePasteProcessor(
             string newLine,
+            IndentationOptions indentationOptions,
             ITextSnapshot2 snapshotBeforePaste,
             ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ExpressionSyntax stringExpressionCopiedFrom,
             ITextSnapshot snapshotCopiedFrom,
             ITextBufferFactoryService3 textBufferFactoryService)
-            : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
+            : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
             _snapshotCopiedFrom = snapshotCopiedFrom;

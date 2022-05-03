@@ -65,20 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
             });
 
-            // Editor Help
-            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
-            BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
-            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
-            BindToOption(Fix_text_pasted_into_string_literals, FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
-            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
-            BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
-            });
-
             // Go To Definition
             BindToOption(Enable_navigation_to_decompiled_sources, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
@@ -128,6 +114,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
+
+            // Editor Help
+            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
+            BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
+            BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
+            BindToOption(Fix_text_pasted_into_string_literals_experimental, FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
+            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
+            BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation.
+                // If so, default to that.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+            });
 
             // Regular Expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.CSharp);

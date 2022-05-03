@@ -330,8 +330,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Automatically_open_stack_trace_explorer_on_focus
             => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
 
-        public static string Option_Fix_text_pasted_into_string_literals
-            => ServicesVSResources.Fix_text_pasted_into_string_literals;
+        public static string Option_Fix_text_pasted_into_string_literals_experimental
+            => ServicesVSResources.Fix_text_pasted_into_string_literals_experimental;
 
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;

@@ -139,21 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var pasteWasSuccessful = PasteWasSuccessful(
                 snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
 
-<<<<<<< HEAD
             var textChanges = GetEdits(cancellationToken);
-=======
-            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-            var processor = new UnknownSourcePasteProcessor(
-                snapshotBeforePaste,
-                snapshotAfterPaste,
-                documentBeforePaste,
-                documentAfterPaste,
-                stringExpressionBeforePaste,
-                textView.Options.GetNewLineCharacter(),
-                pasteWasSuccessful);
-
-            var textChanges = processor.GetEdits(cancellationToken);
->>>>>>> stringCopyPaste
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -204,20 +190,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
             {
                 var newLine = textView.Options.GetNewLineCharacter();
+                var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // See if this is a paste of the last copy that we heard about.
-                var edits = TryGetEditsFromKnownCopySource(cancellationToken);
+                var edits = TryGetEditsFromKnownCopySource(indentationOptions, cancellationToken);
                 if (!edits.IsDefaultOrEmpty)
                     return edits;
 
                 // If not, then just go through teh fallback code path that applies more heuristics.
                 var unknownPasteProcessor = new UnknownSourcePasteProcessor(
-                    newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                    newLine, indentationOptions,
+                    snapshotBeforePaste, snapshotAfterPaste,
+                    documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
                 return unknownPasteProcessor.GetEdits(cancellationToken);
             }
 
-            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(CancellationToken cancellationToken)
+            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(IndentationOptions indentationOptions, CancellationToken cancellationToken)
             {
                 var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
                 if (service != null &&
@@ -237,7 +226,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                             var newLine = textView.Options.GetNewLineCharacter();
 
                             var knownProcessor = new KnownSourcePasteProcessor(
-                                newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                                newLine, indentationOptions,
+                                snapshotBeforePaste, snapshotAfterPaste,
+                                documentBeforePaste, documentAfterPaste,
                                 stringExpressionBeforePaste, stringExpressionCopiedFrom,
                                 _lastSelectedSpans[0].Snapshot, _textBufferFactoryService);
                             return knownProcessor.GetEdits(cancellationToken);
