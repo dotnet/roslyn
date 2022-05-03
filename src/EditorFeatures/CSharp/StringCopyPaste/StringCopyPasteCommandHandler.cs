@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 documentAfterPaste,
                 stringExpressionBeforePaste,
                 textView.Options.GetNewLineCharacter(),
+                indentationOptions,
                 pasteWasSuccessful);
 
             var textChanges = processor.GetEdits(cancellationToken);

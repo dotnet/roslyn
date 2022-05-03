@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
 
+        protected readonly IndentationOptions IndentationOptions;
+
         /// <summary>
         /// Whether or not the string expression remained successfully parseable after the paste.  <see
         /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
@@ -114,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             string newLine,
+            IndentationOptions indentationOptions,
             bool pasteWasSuccessful)
         {
             SnapshotBeforePaste = snapshotBeforePaste;
@@ -128,10 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             StringExpressionBeforePaste = stringExpressionBeforePaste;
             NewLine = newLine;
 
+            IndentationOptions = indentationOptions;
+            PasteWasSuccessful = pasteWasSuccessful;
+
             TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
-
-            PasteWasSuccessful = pasteWasSuccessful;
 
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
         }

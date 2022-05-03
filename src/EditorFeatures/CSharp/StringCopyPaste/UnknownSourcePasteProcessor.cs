@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             string newLine,
+            IndentationOptions indentationOptions,
             bool pasteWasSuccessful)
-            : base(snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine, pasteWasSuccessful)
+            : base(snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine, indentationOptions, pasteWasSuccessful)
         {
         }
 
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var mustBeMultiLine = RawContentMustBeMultiLine(TextAfterPaste, TextContentsSpansAfterPaste);
 
-            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, cancellationToken);
+            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, IndentationOptions, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
