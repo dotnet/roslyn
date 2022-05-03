@@ -24,7 +24,11 @@ internal static class CompilerFeatureRequiredHelpers
 {
     internal static string? GetUnsupportedCompilerFeature(EntityHandle token, PEModule containingModule, CompilerFeatureRequiredFeatures allowedFeatures)
     {
-        Debug.Assert(!token.IsNil);
+        if (token.IsNil)
+        {
+            return null;
+        }
+
         Debug.Assert((allowedFeatures & CompilerFeatureRequiredFeatures.Unknown) == 0);
 
         var compilerRequiredFeatures = containingModule.GetCompilerFeatureRequiredFeatures(token);
