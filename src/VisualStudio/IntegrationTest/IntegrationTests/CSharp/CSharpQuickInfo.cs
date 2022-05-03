@@ -40,7 +40,7 @@ class Program
                 VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/53979"), Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void QuickInfo_Documentation()
         {
             SetUpEditor(@"
@@ -55,7 +55,7 @@ class Program$$
             Assert.Equal("class Program\r\nHello!", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/53979"), Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void International()
         {
             SetUpEditor(@"
@@ -74,7 +74,7 @@ class العربية123
 This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/53979"), Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void SectionOrdering()
         {
             SetUpEditor(@"
