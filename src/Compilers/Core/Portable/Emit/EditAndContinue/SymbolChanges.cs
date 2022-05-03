@@ -333,8 +333,11 @@ namespace Microsoft.CodeAnalysis.Emit
                             // If a type has a single change that is a deletion, then nothing will be emitted
                             // for it, so we need to make sure we track the containing type of the delection
                             // from the new compilation, as containing changes.
-                            changesBuilder.Add(edit.NewContainingSymbol, SymbolChange.ContainsChanges);
-                            AddContainingTypesAndNamespaces(changesBuilder, edit.NewContainingSymbol);
+                            if (!changesBuilder.ContainsKey(edit.NewContainingSymbol))
+                            {
+                                changesBuilder.Add(edit.NewContainingSymbol, SymbolChange.ContainsChanges);
+                                AddContainingTypesAndNamespaces(changesBuilder, edit.NewContainingSymbol);
+                            }
                         }
                         continue;
 
