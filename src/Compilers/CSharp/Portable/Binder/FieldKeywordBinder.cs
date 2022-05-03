@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _accessor = accessor;
         }
 
-        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword(BindingDiagnosticBag diagnostics)
         {
-            return _accessor.Property.GetOrCreateBackingFieldForFieldKeyword();
+            return _accessor.Property.GetOrCreateBackingFieldForFieldKeyword(diagnostics);
         }
     }
 }

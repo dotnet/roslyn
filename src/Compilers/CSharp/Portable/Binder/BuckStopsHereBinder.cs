@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword(BindingDiagnosticBag diagnostics)
         {
             // There's supposed to either be a FieldKeywordBinder or a SpeculativeFieldKEywordBinder in the chain.
             throw ExceptionUtilities.Unreachable;

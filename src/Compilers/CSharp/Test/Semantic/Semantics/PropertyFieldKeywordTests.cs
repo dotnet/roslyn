@@ -39,13 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     // both expression body and block body. We should confirm that SemanticModel doesn't bind an expression body in presence of a block body.
 
     // PROTOTYPE(semi-auto-props): Add ENC tests.
-
-    // PROTOTYPE(semi-auto-props): Add a test where a virtual `get; set;` auto property is overridden by a sealed `get => 0;`.
-    // A synthesized sealed accessor is expected to be produced.
-
-    // PROTOTYPE(semi-auto-props): Add a test where a virtual property is `public virtual int P6 { get => 0; set { } }`, and
-    // it's overridden by `public override int P6 { get => field; }`
-    // The assignment of the property in constructor should use the base setter.
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         /// <summary>
@@ -85,6 +78,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             }
 
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+        }
+
+        [Fact]
+        public void TestVirtualPropertyOverride()
+        {
+            var comp = CreateCompilation(@"
+public class Base
+{
+    public virtual int P1 { get; set; }
+    public virtual int P2 { get => 0; set { } }
+}
+
+public class Derived1 : Base
+{
+    public override int P1 { get => field; }
+    public override int P2 { get => field; }
+}
+
+public class Derived2 : Base
+{
+    public override int P1 { set => _ = field; }
+    public override int P2 { set => _ = field; }
+}
+
+public class Derived3 : Base
+{
+    // PROTOTYPE(semi-auto-props):
+    // This should produce ERR_AutoPropertyMustOverrideSet ""Auto-implemented properties must override all accessors of the overridden property.""
+    // instead of ERR_AutoPropertyMustHaveGetAccessor, unless https://github.com/dotnet/csharplang/issues/6089 is accepted.
+    public override int P1 { set; }
+}
+
+public class Derived4 : Base
+{
+    public override int P1 { get => field; set => field = value; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.VerifyDiagnostics(
+                // (10,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P1 { get => field; } // PROTOTYPE(semi-auto-props): This should error
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("Derived1.P1").WithLocation(10, 25),
+                // (11,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P2 { get => field; } // PROTOTYPE(semi-auto-props): This should error
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithArguments("Derived1.P2").WithLocation(11, 25),
+                // (16,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P1 { set => _ = field; } // PROTOTYPE(semi-auto-props): This should error
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("Derived2.P1").WithLocation(16, 25),
+                // (17,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P2 { set => _ = field; } // PROTOTYPE(semi-auto-props): This should error
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithArguments("Derived2.P2").WithLocation(17, 25),
+                // (25,30): error CS8051: Auto-implemented properties must have get accessors.
+                //     public override int P1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("Derived3.P1.set").WithLocation(25, 30)
+                );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
