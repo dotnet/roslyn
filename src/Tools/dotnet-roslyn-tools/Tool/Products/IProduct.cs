@@ -15,5 +15,5 @@ internal interface IProduct
     string? ArtifactsFolderName { get; }
     string[] ArtifactsSubFolderNames { get; }
 
-    string GetBuildPipelineName(string buildProjectName);
+    string? GetBuildPipelineName(string buildProjectName);
 }

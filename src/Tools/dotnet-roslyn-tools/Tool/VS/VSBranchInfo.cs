@@ -2,16 +2,14 @@
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.Utilities;
+using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
+using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Microsoft.VisualStudio.Services.WebApi;
-using Microsoft.RoslynTools.Authentication;
 using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Microsoft.RoslynTools.VS;
 
@@ -19,8 +17,9 @@ internal static class VSBranchInfo
 {
     public static IProduct[] AllProducts = new IProduct[]
     {
-        new Products.Roslyn(),
-        new Products.Razor()
+        new Roslyn(),
+        new Razor(),
+        new TypeScript(),
     };
 
     public static async Task<int> GetInfoAsync(string branch, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
@@ -73,8 +72,14 @@ internal static class VSBranchInfo
         var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, GitVersionType.Branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
 
         // Try getting build info from dnceng first
-        var builds = await dnceng.TryGetBuildsAsync(product.GetBuildPipelineName(dnceng.BuildProjectName), buildNumber);
         var buildConnection = dnceng;
+        var builds = await TryGetBuildsAsync(product, buildConnection, buildNumber);
+        if (builds is null)
+        {
+            // if that fails, try devdiv
+            buildConnection = devdiv;
+            builds = await TryGetBuildsAsync(product, buildConnection, buildNumber);
+        }
 
         if (builds is null or { Count: 0 })
         {
@@ -85,7 +90,7 @@ internal static class VSBranchInfo
         {
             WriteNameAndValue("Build Number", build.BuildNumber);
             WriteNameAndValue("Commit SHA", build.SourceVersion);
-            WriteNameAndValue("Link", $"{product.RepoBaseUrl}/tree/{build.SourceVersion}", "    ");
+            WriteNameAndValue("Link", $"{product.RepoBaseUrl}/commit/{build.SourceVersion}", "    ");
             WriteNameAndValue("Source Branch", build.SourceBranch.Replace("refs/heads/", ""));
             WriteNameAndValue("Build", ((ReferenceLink)build.Links.Links["web"]).Href);
 
@@ -94,6 +99,22 @@ internal static class VSBranchInfo
                 await WriteArtifactInfo(product, buildConnection, build);
             }
         }
+    }
+
+    private static async Task<List<Build>?> TryGetBuildsAsync(IProduct product, AzDOConnection buildConnection, string buildNumber)
+    {
+        var pipelineName = product.GetBuildPipelineName(buildConnection.BuildProjectName);
+        if (pipelineName is not null)
+        {
+            var builds = await buildConnection.TryGetBuildsAsync(pipelineName, buildNumber);
+
+            if (builds is not null)
+            {
+                return builds;
+            }
+        }
+
+        return null;
     }
 
     // Inspired by Mitch Denny: https://dev.azure.com/mseng/AzureDevOps/_git/ArtifactTool?path=/src/ArtifactTool/Commands/PipelineArtifacts/PipelineArtifactDownloadCommand.cs&version=GBusers/midenn/fcs-integration&line=68&lineEnd=69&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents

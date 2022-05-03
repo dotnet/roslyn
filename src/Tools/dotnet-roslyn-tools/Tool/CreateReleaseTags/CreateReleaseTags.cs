@@ -172,7 +172,7 @@ internal static class CreateReleaseTags
         AzDOConnection buildConnection,
         string buildNumber)
     {
-        var build = (await buildConnection.TryGetBuildsAsync(s_roslynInfo.GetBuildPipelineName(buildConnection.BuildProjectName), buildNumber))?.SingleOrDefault();
+        var build = (await buildConnection.TryGetBuildsAsync(s_roslynInfo.GetBuildPipelineName(buildConnection.BuildProjectName)!, buildNumber))?.SingleOrDefault();
 
         if (build == null)
         {

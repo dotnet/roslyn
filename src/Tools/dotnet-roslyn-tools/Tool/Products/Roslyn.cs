@@ -15,7 +15,7 @@ internal class Roslyn : IProduct
     public string? ArtifactsFolderName => "PackageArtifacts";
     public string[] ArtifactsSubFolderNames => new[] { "PackageArtifacts/PreRelease", "PackageArtifacts/Release" };
 
-    public string GetBuildPipelineName(string buildProjectName)
+    public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch
         {
             "DevDiv" => "Roslyn-Signed",
