@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
 
+        protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
+
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
@@ -50,10 +52,11 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            syntaxFacts.GetPartsOfIfStatement(caretTarget, out _, out var statement);
+            GetIfStatementConditionAndCursorPosition(caretTarget, out _, out var cursorPosition);
 
-            // Need to get the statement span start and add 1 to insert between the the curly braces
-            return statement.SpanStart + 1;
+            // Place at the end of the node specified for cursor position.
+            // Is the statement node in C# and the "Then" keyword
+            return cursorPosition;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -74,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            syntaxFacts.GetPartsOfIfStatement(node, out var condition, out var _);
-
+            GetIfStatementConditionAndCursorPosition(node, out var condition, out var unusedVariable);
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();

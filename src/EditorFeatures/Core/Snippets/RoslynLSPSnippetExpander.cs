@@ -54,7 +54,17 @@ namespace Microsoft.CodeAnalysis.Snippets
             {
                 // ExpanderMethodInfo should not be null at this point.
                 var expandMethodResult = _expanderMethodInfo!.Invoke(_lspSnippetExpander, new object[] { textEdit, textView, textSnapshot });
-                return expandMethodResult is not null && (bool)expandMethodResult;
+                if (expandMethodResult is null)
+                {
+                    throw new Exception("The result of the invoked LSP snippet expander is null.");
+                }
+
+                if (!(bool)expandMethodResult)
+                {
+                    throw new Exception("The invoked LSP snippet expander came back as false.");
+                }
+
+                return true;
             }
             catch (Exception e)
             {

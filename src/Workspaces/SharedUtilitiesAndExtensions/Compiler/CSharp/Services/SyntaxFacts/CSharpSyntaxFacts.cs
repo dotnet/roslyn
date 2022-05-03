@@ -1654,13 +1654,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             whenFalse = conditionalExpression.WhenFalse;
         }
 
-        public void GetPartsOfIfStatement(SyntaxNode node, out SyntaxNode condition, out SyntaxNode statement)
-        {
-            var ifStatement = (IfStatementSyntax)node;
-            condition = ifStatement.Condition;
-            statement = ifStatement.Statement;
-        }
-
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
         {
             var invocation = (InvocationExpressionSyntax)node;
@@ -1732,9 +1725,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
-
-        public SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node)
-            => ((GlobalStatementSyntax)node).Statement;
 
         public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
             => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;

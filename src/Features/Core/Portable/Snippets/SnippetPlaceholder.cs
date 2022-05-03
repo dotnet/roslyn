@@ -14,17 +14,22 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         /// <summary>
         /// The identifier in the snippet that needs to be renamed.
-        /// Will be null in the case of the final tab stop location,
-        /// the '$0' case.
         /// </summary>
         public readonly string Identifier;
 
         /// <summary>
-        /// The spans associated with the identifier that will need to
+        /// The positions associated with the identifier that will need to
         /// be converted into LSP formatted strings.
         /// </summary>
         public readonly ImmutableArray<int> PlaceHolderPositions;
 
+        /// <summary>
+        /// Example:
+        /// For loop would have two placeholders:
+        /// for (var {1:i} = 0; {1:i} &lt; {2:length}; {i}++)
+        /// Identifier: i, 3 associated  positions 
+        /// IdentifierL length, 1 associated position
+        /// </summary>
         public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
         {
             Identifier = identifier;

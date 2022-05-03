@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
-            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).SingleOrDefault();
+            var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
+            var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
             // All the TextChanges from the original document. Will include any imports (if necessary) and all snippet associated
             // changes after having been formatted.

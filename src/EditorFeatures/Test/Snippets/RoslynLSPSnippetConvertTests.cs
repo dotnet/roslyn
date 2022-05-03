@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             using var workspace = CreateWorkspaceFromCode(markup);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document!, cursorPosition!.Value, placeholders, textChange).ConfigureAwait(false);
+            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document!, cursorPosition!.Value, placeholders, textChange, CancellationToken.None).ConfigureAwait(false);
             AssertEx.EqualOrDiff(output, lspSnippetString);
         }
 
