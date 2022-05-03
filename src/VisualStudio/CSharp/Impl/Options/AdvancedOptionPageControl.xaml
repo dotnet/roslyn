@@ -139,7 +139,7 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox x:Uid="CommentsGuidesGroupBox"
+            <GroupBox x:Uid="CommentsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
