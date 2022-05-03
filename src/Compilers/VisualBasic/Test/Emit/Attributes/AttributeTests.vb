@@ -4670,8 +4670,12 @@ End Class
 Class C
 End Class
 "
-            CreateCompilation(code).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_BadAttributeConstructor1, "My").WithArguments("Integer?").WithLocation(10, 2))
+            CreateCompilation(code).AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer?', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(Nothing)>
+ ~~
+]]></expected>)
         End Sub
     End Class
 End Namespace
