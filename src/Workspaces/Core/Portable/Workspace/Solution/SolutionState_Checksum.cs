@@ -119,14 +119,29 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    // get states by id order to have deterministic checksum.  Limit to the requested set of projects
-                    // if applicable.
+                    // get states by id order to have deterministic checksum.  Limit expensive computation to the
+                    // requested set of projects if applicable.
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
-                    var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
-                                                                .Select(id => ProjectStates[id])
-                                                                .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                                .Select(s => s.GetChecksumAsync(cancellationToken))
-                                                                .ToArray();
+                    var projectChecksumTasks = orderedProjectIds
+                        .Select(id => (state: ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
+                        .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
+                        .Select(async t =>
+                        {
+                            // if it's a project that's specifically in the sync'ed cone, include this checksum so that
+                            // this project definitely syncs over.
+                            if (t.mustCompute)
+                                return await t.state.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+                            // If it's a project that is not in the cone, still try to get the latest checksum for it if
+                            // we have it.  That way we don't send over a checksum *without* that project, causing the
+                            // OOP side to throw that project away (along with all the compilation info stored with it).
+                            if (t.state.TryGetStateChecksums(out var stateChecksums))
+                                return stateChecksums.Checksum;
+
+                            // We have never computed the checksum for this project.  Don't send anything for it.
+                            return null;
+                        })
+                        .ToArray();
 
                     var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
@@ -146,7 +161,13 @@ namespace Microsoft.CodeAnalysis
                         _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
+                    return new SolutionStateChecksums(
+                        attributesChecksum,
+                        optionsChecksum,
+                        new ChecksumCollection(projectChecksums.WhereNotNull().ToArray()),
+                        analyzerReferenceChecksums,
+                        frozenSourceGeneratedDocumentIdentityChecksum,
+                        frozenSourceGeneratedDocumentTextChecksum);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

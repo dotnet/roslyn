@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class RenameTrackingCommitter : ForegroundThreadAffinitizedObject
+        private class RenameTrackingCommitter
         {
             private readonly StateMachine _stateMachine;
             private readonly SnapshotSpan _snapshotSpan;
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 string displayText)
-                : base(stateMachine.ThreadingContext)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Commit(CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
 
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Now that the necessary work has been done to create the intermediate and final
                 // solutions during PreparePreview, check one more time for cancellation before making all of the
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Update document in an ITextUndoTransaction with custom behaviors on undo/redo to
                 // deal with the state machine.
@@ -242,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 string newName,
                 int trackingSessionId)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Perform rename in a workspace undo action so that undo will revert all 
                 // references. It should also be performed in an ITextUndoTransaction to handle 

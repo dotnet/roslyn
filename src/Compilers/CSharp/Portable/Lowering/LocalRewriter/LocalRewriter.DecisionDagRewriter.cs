@@ -737,19 +737,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LabelSymbol defaultLabel = node.Otherwise;
 
-                if (input.Type.IsValidV6SwitchGoverningType())
+                if (input.Type.IsValidV6SwitchGoverningType() || input.Type.IsSpanOrReadOnlySpanChar())
                 {
                     // If we are emitting a hash table based string switch,
                     // we need to generate a helper method for computing
                     // string hash value in <PrivateImplementationDetails> class.
-                    MethodSymbol stringEquality = null;
+
                     if (input.Type.SpecialType == SpecialType.System_String)
                     {
-                        EnsureStringHashFunction(node.Cases.Length, node.Syntax);
-                        stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
+                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.String);
+                        // Report required missing member diagnostic
+                        _localRewriter.TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality, out _);
+                    }
+                    else if (input.Type.IsReadOnlySpanChar())
+                    {
+                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.ReadOnlySpanChar);
+                    }
+                    else if (input.Type.IsSpanChar())
+                    {
+                        EnsureStringHashFunction(node.Cases.Length, node.Syntax, StringPatternInput.SpanChar);
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, stringEquality);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else if (input.Type.IsNativeIntegerType)
@@ -775,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(input.Type);
                     }
 
-                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, equalityMethod: null);
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else
@@ -817,12 +826,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            private enum StringPatternInput
+            {
+                String,
+                SpanChar,
+                ReadOnlySpanChar,
+            }
+
             /// <summary>
             /// Checks whether we are generating a hash table based string switch and
             /// we need to generate a new helper method for computing string hash value.
             /// Creates the method if needed.
             /// </summary>
-            private void EnsureStringHashFunction(int labelsCount, SyntaxNode syntaxNode)
+            private void EnsureStringHashFunction(int labelsCount, SyntaxNode syntaxNode, StringPatternInput stringPatternInput)
             {
                 var module = _localRewriter.EmitModule;
                 if (module == null)
@@ -852,22 +868,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
                 var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
-                if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
+                if (privateImplClass.GetMethod(stringPatternInput switch
+                {
+                    StringPatternInput.String => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName,
+                    StringPatternInput.SpanChar => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName,
+                    StringPatternInput.ReadOnlySpanChar => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedSpanHashFunctionName,
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                }) != null)
                 {
                     return;
                 }
 
                 // cannot emit hash method if have no access to Chars.
-                var charsMember = _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
+                var charsMember = stringPatternInput switch
+                {
+                    StringPatternInput.String => _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars),
+                    StringPatternInput.SpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item),
+                    StringPatternInput.ReadOnlySpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
                 if ((object)charsMember == null || charsMember.HasUseSiteError)
                 {
                     return;
                 }
 
                 TypeSymbol returnType = _factory.SpecialType(SpecialType.System_UInt32);
-                TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
+                TypeSymbol paramType = stringPatternInput switch
+                {
+                    StringPatternInput.String => _factory.SpecialType(SpecialType.System_String),
+                    StringPatternInput.SpanChar => _factory.WellKnownType(WellKnownType.System_Span_T)
+                        .Construct(_factory.SpecialType(SpecialType.System_Char)),
+                    StringPatternInput.ReadOnlySpanChar => _factory.WellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                        .Construct(_factory.SpecialType(SpecialType.System_Char)),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
 
-                var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
+                SynthesizedGlobalMethodSymbol method = stringPatternInput switch
+                {
+                    StringPatternInput.String => new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType),
+                    StringPatternInput.SpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: false),
+                    StringPatternInput.ReadOnlySpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: true),
+                    _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
+                };
                 privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 

@@ -2286,7 +2286,7 @@ class C
         }
 
         [Fact]
-        public void UnaryOperator_NoParameters()
+        public void UnaryOperator_NoParameters_01()
         {
             var source = @"
 /// <summary>
@@ -2307,6 +2307,33 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
+        }
+
+        [Fact]
+        public void UnaryOperator_NoParameters_02()
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator -""/>.
+/// </summary>
+class C
+{
+    public static C operator -(C c)
+    {
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var crefSyntax = GetCrefSyntaxes(compilation).Single();
+
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator -' that could not be resolved
+                // /// See <see cref="operator -"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator -").WithArguments("operator -").WithLocation(3, 20)
+                );
+
+            Assert.Null(actualSymbol);
         }
 
         [Fact]
@@ -6584,7 +6611,7 @@ class Cat { }
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
             {
@@ -6593,7 +6620,7 @@ class Cat { }
             });
         }
 
-        private static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
+        internal static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
             Symbol ambiguityWinner;
             var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);

@@ -269,10 +269,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                // If we're generating into an interface, then we don't use any modifiers.
-                if (destination is not CodeGenerationDestination.CompilationUnit and
-                    not CodeGenerationDestination.Namespace and
-                    not CodeGenerationDestination.InterfaceType)
+                // If we're generating into an interface, then allow modifiers for static abstract members
+                if (destination is CodeGenerationDestination.InterfaceType)
+                {
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+                        // We only generate the abstract keyword in interfaces for static abstract members
+                        if (method.IsAbstract)
+                        {
+                            tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        }
+                    }
+                }
+                else if (destination is not CodeGenerationDestination.CompilationUnit and
+                    not CodeGenerationDestination.Namespace)
                 {
                     AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, options, Accessibility.Private);
 

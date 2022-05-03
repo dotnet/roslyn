@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -225,7 +226,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithReferencesFindUsagesContext(
+                this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
@@ -235,7 +237,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithoutReferencesFindUsagesContext(
+                this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
@@ -292,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private void RemoveExistingInfoBar()
         {
-            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             var infoBar = _infoBar;
             _infoBar = null;
@@ -305,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private IVsInfoBarHost? GetInfoBarHost()
         {
-            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Guid of the FindRefs window.  Defined here:
             // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24

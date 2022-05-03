@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     /// This service is created on the UI thread during package initialization, but it must not
     /// block the initialization process.
     /// </summary>
-    internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
+    internal abstract class AbstractSnippetInfoService : ISnippetInfoService, IVsExpansionEvents
     {
         private readonly Guid _languageGuidForSnippets;
         private IVsExpansionManager? _expansionManager;
@@ -48,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             Shell.IAsyncServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext)
         {
             _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
             _languageGuidForSnippets = languageGuidForSnippets;
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public int OnAfterSnippetsUpdate()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (_expansionManager != null)
             {
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             // The rest of the process requires being on the UI thread, see the explanation on
             // PopulateSnippetCacheFromExpansionEnumeration for details
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </remarks>
         private void PopulateSnippetCacheFromExpansionEnumeration(IVsExpansionEnumeration expansionEnumerator)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var updatedSnippets = ExtractSnippetInfo(expansionEnumerator);
             var updatedSnippetShortcuts = GetShortcutsHashFromSnippets(updatedSnippets);
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         private ImmutableArray<SnippetInfo> ExtractSnippetInfo(IVsExpansionEnumeration expansionEnumerator)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var snippetListBuilder = ImmutableArray.CreateBuilder<SnippetInfo>();
             var snippetInfo = new VsExpansion();

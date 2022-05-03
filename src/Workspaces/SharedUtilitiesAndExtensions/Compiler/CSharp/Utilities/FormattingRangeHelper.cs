@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 PropertyDeclarationSyntax or
                 ConstructorDeclarationSyntax or
                 DestructorDeclarationSyntax or
-                OperatorDeclarationSyntax)
+                OperatorDeclarationSyntax or
+                ConversionOperatorDeclarationSyntax)
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }

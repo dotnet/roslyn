@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // See if we need to generate an invisible member.  If we do, then reset the name
                 // back to what then member wants it to be.
-                var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
+                var generateInvisibleMember = ShouldGenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
                 // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     addNew, addUnsafe, propertyGenerationBehavior);
             }
 
-            private bool GenerateInvisibleMember(ISymbol member, string memberName)
+            private bool ShouldGenerateInvisibleMember(ISymbol member, string memberName)
             {
                 if (Service.HasHiddenExplicitImplementation)
                 {
@@ -352,6 +352,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     // If we had a conflict with a member of the same name, then we have to generate
                     // as an invisible member.
                     if (member.Name != memberName)
+                    {
+                        return true;
+                    }
+
+                    // If the member is less accessible than type, for which we are implementing it,
+                    // then only explicit implementation is valid.
+                    if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
                     {
                         return true;
                     }

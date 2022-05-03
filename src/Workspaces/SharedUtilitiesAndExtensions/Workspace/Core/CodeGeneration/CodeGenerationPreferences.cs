@@ -21,18 +21,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     internal abstract class CodeGenerationPreferences
     {
-        protected readonly OptionSet Options;
-
-        public CodeGenerationPreferences(OptionSet options)
-        {
-            Options = options;
-        }
-
-        public abstract string Language { get; }
         public abstract bool PlaceImportsInsideNamespaces { get; }
+        public bool PlaceSystemNamespaceFirst { get; }
 
-        public bool PlaceSystemNamespaceFirst
-            => Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language);
+        public CodeGenerationPreferences(bool placeSystemNamespaceFirst)
+        {
+            PlaceSystemNamespaceFirst = placeSystemNamespaceFirst;
+        }
 
 #if !CODE_STYLE
         public abstract CodeGenerationOptions GetOptions(CodeGenerationContext context);

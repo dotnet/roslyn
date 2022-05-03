@@ -120,12 +120,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
-            {
-                return;
-            }
-
             await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
         }
 
@@ -146,9 +140,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                CompilationWithAnalyzers? compilationWithAnalyzers = null;
+
+                if (FullAnalysisEnabled(project, forceAnalyzerRun))
+                {
+                    compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                }
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)
@@ -384,8 +383,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
-            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
+            if (analyzer == FileContentLoadAnalyzer.Instance ||
+                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
@@ -539,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                    && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }

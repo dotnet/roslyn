@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             string methodName,
             TRequestType request,
             LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
             RequestExecutionQueue queue,
             CancellationToken cancellationToken) where TRequestType : class
         {
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var strongHandler = (IRequestHandler<TRequestType, TResponseType>?)handler;
             Contract.ThrowIfNull(strongHandler, string.Format("Request handler not found for method {0}", methodName));
 
-            var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, clientCapabilities, clientName, methodName, cancellationToken).ConfigureAwait(false);
+            var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
@@ -117,11 +116,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
             string methodName,
             CancellationToken cancellationToken) where TRequestType : class
         {
-            return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken);
+            return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken);
         }
 
         public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()

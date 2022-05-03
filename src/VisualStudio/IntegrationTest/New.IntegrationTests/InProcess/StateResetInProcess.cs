@@ -11,11 +11,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,9 +38,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
+            // clear configuration options, so that the workspace configuration global option update below is effective:
+            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            configurationService.Clear();
+
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             ResetOption2(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
-            ResetOption2(globalOptions, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetOption2(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
             ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);

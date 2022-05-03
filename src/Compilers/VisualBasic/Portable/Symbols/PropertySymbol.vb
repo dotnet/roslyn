@@ -627,6 +627,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitProperty(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitProperty(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitProperty(Me)
         End Sub

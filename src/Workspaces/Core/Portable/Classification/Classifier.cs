@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             var languageServices = workspaceServices.GetLanguageServices(semanticModel.Language);
             var classsificationService = languageServices.GetRequiredService<ISyntaxClassificationService>();
+            var embeddedLanguageService = languageServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
             var syntaxClassifiers = classsificationService.GetDefaultSyntaxClassifiers();
 
@@ -74,12 +75,8 @@ namespace Microsoft.CodeAnalysis.Classification
             classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
             classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
 
-            var embeddedLanguageService = languageServices.GetService<IEmbeddedLanguageClassificationService>();
-            if (embeddedLanguageService != null)
-            {
-                // intentionally adding to the semanticClassifications array here.
-                embeddedLanguageService.AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, semanticClassifications, cancellationToken);
-            }
+            // intentionally adding to the semanticClassifications array here.
+            embeddedLanguageService.AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();

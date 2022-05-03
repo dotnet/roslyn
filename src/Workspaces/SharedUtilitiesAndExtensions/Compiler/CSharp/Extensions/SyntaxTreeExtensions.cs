@@ -417,7 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            if (token.IsKind(SyntaxKind.StringLiteralToken,
+                             SyntaxKind.SingleLineRawStringLiteralToken,
+                             SyntaxKind.MultiLineRawStringLiteralToken,
+                             SyntaxKind.UTF8StringLiteralToken,
+                             SyntaxKind.UTF8SingleLineRawStringLiteralToken,
+                             SyntaxKind.UTF8MultiLineRawStringLiteralToken))
             {
                 var span = token.Span;
 
@@ -465,6 +470,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // '|  (e.g. incomplete char literal)
                 return (position > span.Start && position < span.End)
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '\'', cancellationToken);
+            }
+
+            return false;
+        }
+
+        public static bool IsInInactiveRegion(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(syntaxTree);
+
+            // cases:
+            // $ is EOF
+
+            // #if false
+            //    |
+
+            // #if false
+            //    |$
+
+            // #if false
+            // |
+
+            // #if false
+            // |$
+
+            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
+            {
+                return false;
+            }
+
+            // The latter two are the hard cases we don't actually have an 
+            // DisabledTextTrivia yet. 
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return true;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax branch)
+                        {
+                            return !branch.IsActive || !branch.BranchTaken;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            return IsPreProcessorKeywordContext(
+                syntaxTree, position,
+                syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true));
+        }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, SyntaxToken preProcessorTokenOnLeftOfPosition)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            // cases:
+            //  #|
+            //  #d|
+            //  # |
+            //  # d|
+
+            // note: comments are not allowed between the # and item.
+            var token = preProcessorTokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsKind(SyntaxKind.HashToken))
+            {
+                return true;
             }
 
             return false;

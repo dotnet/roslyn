@@ -3539,6 +3539,28 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ISymbol IndexerSymbol { get; }
     }
+    /// <summary>
+    /// Represents a UTF8 encoded byte representation of a string.
+    /// <para>
+    ///   Current usage:
+    ///   (1) C# UTF8 string literal expression.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.UTF8String"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IUTF8StringOperation : IOperation
+    {
+        /// <summary>
+        /// The underlying string value.
+        /// </summary>
+        string Value { get; }
+    }
     #endregion
 
     #region Implementations
@@ -10062,6 +10084,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitImplicitIndexerReference(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitIndexerReference(this, argument);
     }
+    internal sealed partial class UTF8StringOperation : Operation, IUTF8StringOperation
+    {
+        internal UTF8StringOperation(string value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Value = value;
+            Type = type;
+        }
+        public string Value { get; }
+        internal override int ChildOperationsCount => 0;
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.UTF8String;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitUTF8String(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUTF8String(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -10660,6 +10701,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (ImplicitIndexerReferenceOperation)operation;
             return new ImplicitIndexerReferenceOperation(Visit(internalOperation.Instance), Visit(internalOperation.Argument), internalOperation.LengthSymbol, internalOperation.IndexerSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitUTF8String(IUTF8StringOperation operation, object? argument)
+        {
+            var internalOperation = (UTF8StringOperation)operation;
+            return new UTF8StringOperation(internalOperation.Value, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -10797,6 +10843,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitListPattern(IListPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitSlicePattern(ISlicePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUTF8String(IUTF8StringOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -10931,6 +10978,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitListPattern(IListPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSlicePattern(ISlicePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitUTF8String(IUTF8StringOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

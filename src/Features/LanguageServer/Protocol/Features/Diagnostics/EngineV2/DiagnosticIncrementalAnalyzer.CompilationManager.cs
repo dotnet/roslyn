@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return null;
             }
 
-            var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+            var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
             if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers) &&
                 ((WorkspaceAnalyzerOptions)compilationWithAnalyzers!.AnalysisOptions.Options!).IdeOptions == ideOptions)

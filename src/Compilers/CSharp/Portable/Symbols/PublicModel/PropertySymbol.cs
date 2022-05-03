@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return visitor.VisitProperty(this);
         }
 
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitProperty(this, argument);
+        }
+
         #endregion
     }
 }

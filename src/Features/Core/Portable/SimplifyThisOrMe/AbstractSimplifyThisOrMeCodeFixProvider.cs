@@ -34,16 +34,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
             context.RegisterCodeFix(new MyCodeAction(
                 GetTitle(),
-                c => FixAsync(document, diagnostic, c),
+                GetDocumentUpdater(context),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;
@@ -51,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

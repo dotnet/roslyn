@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             }
 
             protected override async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-                RequestExecutionQueue queue, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, CancellationToken cancellationToken)
+                RequestExecutionQueue queue, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request, ClientCapabilities clientCapabilities, string methodName, CancellationToken cancellationToken)
                 where TRequestType : class
                 where TResponseType : default
             {
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {

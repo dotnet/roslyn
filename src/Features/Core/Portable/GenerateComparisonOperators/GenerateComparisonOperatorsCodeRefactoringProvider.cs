@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 FeaturesResources.Generate_comparison_operators,
                 nestedActions.ToImmutable(),
                 isInlinable: false));

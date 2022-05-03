@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int SingleLineDocCommentTrivia => (int)SyntaxKind.SingleLineDocumentationCommentTrivia;
         public int? MultiLineDocCommentTrivia => (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
         public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+        public int IfDirectiveTrivia => (int)SyntaxKind.IfDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
@@ -38,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
         public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
         public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
+
+        public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
         public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
         public int IfKeyword => (int)SyntaxKind.IfKeyword;

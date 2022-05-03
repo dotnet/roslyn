@@ -644,6 +644,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (SyntaxFacts.IsCheckedOperator(operatorName))
+                    {
+                        AddKeyword(SyntaxKind.CheckedKeyword);
+                        AddSpace();
+                    }
+
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                         SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
                 }
@@ -653,8 +659,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // "System.IntPtr.explicit operator System.IntPtr(int)"
 
+                bool isChecked = false;
+
                 if (operatorName == WellKnownMemberNames.ExplicitConversionName)
                 {
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.CheckedExplicitConversionName)
+                {
+                    isChecked = true;
                     AddKeyword(SyntaxKind.ExplicitKeyword);
                 }
                 else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
@@ -670,6 +683,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 AddKeyword(SyntaxKind.OperatorKeyword);
                 AddSpace();
+
+                if (isChecked)
+                {
+                    AddKeyword(SyntaxKind.CheckedKeyword);
+                    AddSpace();
+                }
+
                 AddReturnType(symbol);
             }
         }

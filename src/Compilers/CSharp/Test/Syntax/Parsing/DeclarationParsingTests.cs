@@ -5500,6 +5500,64 @@ class Class1<T>{
             Assert.Equal("f", ps.ParameterList.Parameters[1].Identifier.ToString());
         }
 
+        [Fact]
+        public void TestClassUnsignedRightShiftOperatorMethod()
+        {
+            var text = "class a { b operator >>> (c d, e f) { } }";
+            var file = this.ParseFile(text);
+
+            UsingNode(text, file);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "a");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "e");
+                                }
+                                N(SyntaxKind.IdentifierToken, "f");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         private void TestClassUnaryOperatorMethod(SyntaxKind op1)
         {
             var text = "class a { b operator " + SyntaxFacts.GetText(op1) + " (c d) { } }";

@@ -95,13 +95,15 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
+- Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
+- UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -324,6 +326,7 @@ __makeref( x )
 - Default literal
 - Implicit object creation (target-typed new)
 - Function type (in type inference comparing function types of lambdas or method groups)
+- UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
 
 ## Types 
 
@@ -352,14 +355,15 @@ __makeref( x )
 - Interface method 
 - Field
 - User-defined indexer
-- User-defined operator
-- User-defined conversion
+- User-defined operator (including checked)
+- User-defined conversion (including checked)
 
 ## Patterns
 - Discard Pattern
 - Var Pattern
 - Declaration Pattern
 - Constant Pattern
+- Constant `string` matching `Span<char>`
 - Recursive Pattern
 - Parenthesized Pattern
 - `and` Pattern

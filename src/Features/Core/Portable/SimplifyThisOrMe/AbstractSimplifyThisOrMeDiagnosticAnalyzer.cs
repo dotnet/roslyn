@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
@@ -18,12 +19,14 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TLanguageKindEnum,
         TExpressionSyntax,
         TThisExpressionSyntax,
-        TMemberAccessExpressionSyntax> :
+        TMemberAccessExpressionSyntax,
+        TSimplifierOptions> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
+        where TSimplifierOptions : SimplifierOptions
     {
         private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
 
@@ -43,13 +46,15 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected abstract bool CanSimplifyTypeNameExpression(
-            SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
+            SemanticModel model, TMemberAccessExpressionSyntax memberAccess, TSimplifierOptions options, out TextSpan issueSpan, CancellationToken cancellationToken);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
+
+        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -61,13 +66,13 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
             }
 
-            var analyzerOptions = context.Options;
             var syntaxTree = node.SyntaxTree;
-            var optionSet = analyzerOptions.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
+
+            var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
 
             var model = context.SemanticModel;
             if (!CanSimplifyTypeNameExpression(
-                    model, expr, optionSet, out var issueSpan, cancellationToken))
+                    model, expr, simplifierOptions, out var issueSpan, cancellationToken))
             {
                 return;
             }
@@ -83,8 +88,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
             }
 
-            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, model.Language);
+            var optionValue = simplifierOptions.QualifyMemberAccess(symbolInfo.Symbol.Kind);
             if (optionValue == null)
             {
                 return;

@@ -38,7 +38,7 @@ using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncExpandingCompletionSource
+    internal sealed class CompletionSource : IAsyncExpandingCompletionSource
     {
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private readonly IThreadingContext _threadingContext;
         private readonly VSUtilities.IUIThreadOperationExecutor _operationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
@@ -72,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListener asyncListener,
             IGlobalOptionService globalOptions)
-            : base(threadingContext)
         {
             _textView = textView;
             _streamingPresenter = streamingPresenter;
+            _threadingContext = threadingContext;
             _operationExecutor = operationExecutor;
             _asyncListener = asyncListener;
             _globalOptions = globalOptions;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // We take sourceText from document to get a snapshot span.
                 // We would like to be sure that nobody changes buffers at the same time.
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 if (_textView.Selection.Mode == TextSelectionMode.Box)
                 {
@@ -526,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
 
             var context = new IntellisenseQuickInfoBuilderContext(
-                document, classificationOptions, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+                document, classificationOptions, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
             var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)

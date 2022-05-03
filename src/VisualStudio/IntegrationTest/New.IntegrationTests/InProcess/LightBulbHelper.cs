@@ -61,6 +61,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
+                    tcs.SetResult(new List<SuggestedActionSet>());
                 else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
                     tcs.TrySetCanceled();
                 else
@@ -88,7 +90,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 var version = await testServices.Shell.GetVersionAsync(cancellationToken);
-                if (Version.Parse("17.2.32210.308") >= version)
+                if (Version.Parse("17.2.32314.265") >= version)
                 {
                     // Unexpected cancellation can occur when the editor dismisses the light bulb without request
                     return null;

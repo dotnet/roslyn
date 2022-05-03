@@ -9,9 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We get the telemetry id for the original code action we are fixing,
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
-            telemetryId = OriginalCodeAction.GetType().GetTelemetryId(FixAllState.Scope.GetScopeIdForTelemetry());
+            telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.Scope);
             return true;
         }
 

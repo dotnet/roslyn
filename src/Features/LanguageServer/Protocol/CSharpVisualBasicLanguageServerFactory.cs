@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
-                clientName: null,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);
         }
     }

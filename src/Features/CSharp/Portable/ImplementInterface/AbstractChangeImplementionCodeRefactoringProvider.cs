@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c)));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 

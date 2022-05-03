@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);

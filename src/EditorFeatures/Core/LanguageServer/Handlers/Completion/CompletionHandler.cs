@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
+        internal const string EditRangeSetting = "editRange";
+
         private readonly IGlobalOptionService _globalOptions;
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(context.Solution);
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
@@ -89,31 +92,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var (list, isIncomplete, resultId) = completionListResult.Value;
 
+            if (list.IsEmpty)
+            {
+                return new LSP.VSInternalCompletionList
+                {
+                    Items = Array.Empty<LSP.CompletionItem>(),
+                    SuggestionMode = list.SuggestionModeItem != null,
+                    IsIncomplete = isIncomplete,
+                };
+            }
+
             var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
             var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+            var itemDefaultsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
-            // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            Contract.ThrowIfNull(context.Solution);
-            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag);
-
-            TextSpan? defaultSpan = null;
-            LSP.Range? defaultRange = null;
-            if (returnTextEdits)
-            {
-                // We want to compute the document's text just once.
-                documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                // We use the first item in the completion list as our comparison point for span
-                // and range for optimization when generating the TextEdits later on.
-                var completionChange = await completionService.GetChangeAsync(
-                    document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // If possible, we want to compute the item's span and range just once.
-                // Individual items can override this range later.
-                defaultSpan = completionChange.TextChange.Span;
-                defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan.Value, documentText);
-            }
+            // We use the first item in the completion list as our comparison point for span
+            // and range for optimization when generating the TextEdits later on.
+            var completionChange = await completionService.GetChangeAsync(
+                document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var defaultSpan = completionChange.TextChange.Span;
+            var defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan, documentText);
 
             var supportsCompletionListData = context.ClientCapabilities.HasCompletionListDataCapability();
             var completionResolveData = new CompletionResolveData()
@@ -127,8 +126,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
                     request, document, item, completionItemResolveData, lspVSClientCapability, commitCharactersRuleCache,
-                    completionService, context.ClientName, returnTextEdits, snippetsSupported, stringBuilder, documentText,
-                    defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                    completionService, snippetsSupported, itemDefaultsSupported, stringBuilder, documentText,
+                    defaultSpan, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
@@ -147,6 +146,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (context.ClientCapabilities.HasCompletionListCommitCharactersCapability())
             {
                 PromoteCommonCommitCharactersOntoList(completionList);
+            }
+
+            if (itemDefaultsSupported)
+            {
+                completionList.ItemDefaults = new LSP.CompletionListItemDefaults
+                {
+                    EditRange = defaultRange,
+                };
             }
 
             var optimizedCompletionList = new LSP.OptimizedVSCompletionList(completionList);
@@ -177,13 +184,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool supportsVSExtensions,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
-                string? clientName,
-                bool returnTextEdits,
                 bool snippetsSupported,
+                bool itemDefaultsSupported,
                 StringBuilder stringBuilder,
-                SourceText? documentText,
-                TextSpan? defaultSpan,
-                LSP.Range? defaultRange,
+                SourceText documentText,
+                TextSpan defaultSpan,
                 CancellationToken cancellationToken)
             {
                 // Generate display text
@@ -213,17 +218,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         completionItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                     }
                 }
-                // If the feature flag is on, always return a TextEdit.
-                else if (returnTextEdits)
-                {
-                    var textEdit = await GenerateTextEdit(
-                        document, item, completionService, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
-                    completionItem.TextEdit = textEdit;
-                }
-                // If the feature flag is off, return an InsertText.
                 else
                 {
-                    completionItem.InsertText = SymbolCompletionItem.TryGetInsertionText(item, out var insertionText) ? insertionText : completeDisplayText;
+                    await AddTextEdit(
+                        document, item, completionItem, completionService, documentText, defaultSpan, itemDefaultsSupported, cancellationToken).ConfigureAwait(false);
                 }
 
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
@@ -239,32 +237,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 return completionItem;
 
-                static async Task<LSP.TextEdit> GenerateTextEdit(
+                static async Task AddTextEdit(
                     Document document,
                     CompletionItem item,
+                    LSP.CompletionItem lspItem,
                     CompletionService completionService,
-                    SourceText? documentText,
-                    TextSpan? defaultSpan,
-                    LSP.Range? defaultRange,
+                    SourceText documentText,
+                    TextSpan defaultSpan,
+                    bool itemDefaultsSupported,
                     CancellationToken cancellationToken)
                 {
-                    Contract.ThrowIfNull(documentText);
-                    Contract.ThrowIfNull(defaultSpan);
-                    Contract.ThrowIfNull(defaultRange);
-
                     var completionChange = await completionService.GetChangeAsync(
                         document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var completionChangeSpan = completionChange.TextChange.Span;
+                    var newText = completionChange.TextChange.NewText ?? "";
 
-                    var textEdit = new LSP.TextEdit()
+                    if (itemDefaultsSupported && completionChangeSpan == defaultSpan)
                     {
-                        NewText = completionChange.TextChange.NewText ?? "",
-                        Range = completionChangeSpan == defaultSpan.Value
-                            ? defaultRange
-                            : ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
-                    };
-
-                    return textEdit;
+                        // The span is the same as the default, we just need to store the new text as
+                        // the insert text so the client can create the text edit from it and the default range.
+                        lspItem.InsertText = newText;
+                    }
+                    else
+                    {
+                        var textEdit = new LSP.TextEdit()
+                        {
+                            NewText = newText,
+                            Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
+                        };
+                        lspItem.TextEdit = textEdit;
+                    }
                 }
             }
 

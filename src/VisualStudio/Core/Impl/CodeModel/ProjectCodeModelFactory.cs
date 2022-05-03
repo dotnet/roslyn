@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal IAsynchronousOperationListener Listener { get; }
 
         private async ValueTask ProcessNextDocumentBatchAsync(
-            ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+            ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.
             // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 

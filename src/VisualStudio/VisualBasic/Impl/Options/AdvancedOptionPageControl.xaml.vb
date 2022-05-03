@@ -18,6 +18,7 @@ Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.QuickInfo
@@ -28,7 +29,6 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
@@ -58,6 +58,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
                              Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
                          End Function)
+
+            ' Go To Definition
+            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously)
 
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
@@ -99,7 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic)
 
             ' Comments
-            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
+            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help
@@ -113,10 +116,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace,
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
+                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
                          End Function)
 
             ' Regular expressions

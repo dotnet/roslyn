@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 autoInsertionLocation: false);
 
             var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // Then, actually insert the new class in the appropriate container.
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             // follow any special formatting rules specific to them.
             var equalsAndGetHashCodeService = document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
             return await equalsAndGetHashCodeService.FormatDocumentAsync(
-                updatedDocument, cancellationToken).ConfigureAwait(false);
+                updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ReplacePropertyReferencesAsync(

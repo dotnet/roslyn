@@ -4,25 +4,23 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
-    internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
+    internal abstract partial class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
         where TSyntaxContext : SyntaxContext
     {
         protected abstract TSyntaxContext CreateContext(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
+        protected abstract AbstractRecommendationServiceRunner CreateRunner(
             TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
 
         public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, RecommendationServiceOptions options, CancellationToken cancellationToken)
@@ -43,12 +41,27 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
+        protected static ISet<INamedTypeSymbol> ComputeOuterTypes(SyntaxContext context, CancellationToken cancellationToken)
+        {
+            var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(context.LeftToken.SpanStart, cancellationToken);
+            if (enclosingSymbol != null)
+            {
+                var containingType = enclosingSymbol.GetContainingTypeOrThis();
+                if (containingType != null)
+                {
+                    return containingType.GetContainingTypes().ToSet();
+                }
+            }
+
+            return SpecializedCollections.EmptySet<INamedTypeSymbol>();
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly SyntaxContext _context;
             private readonly CancellationToken _cancellationToken;
-            private IEnumerable<INamedTypeSymbol> _lazyOuterTypesAndBases;
-            private IEnumerable<INamedTypeSymbol> _lazyEnclosingTypeBases;
+            private ImmutableArray<INamedTypeSymbol> _lazyOuterTypesAndBases;
+            private ImmutableArray<INamedTypeSymbol> _lazyEnclosingTypeBases;
 
             internal ShouldIncludeSymbolContext(SyntaxContext context, CancellationToken cancellationToken)
             {
@@ -127,24 +140,26 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 return true;
             }
 
-            private IEnumerable<INamedTypeSymbol> GetOuterTypesAndBases()
+            private ImmutableArray<INamedTypeSymbol> GetOuterTypesAndBases()
             {
-                if (_lazyOuterTypesAndBases == null)
+                if (_lazyOuterTypesAndBases.IsDefault)
                 {
-                    _lazyOuterTypesAndBases = _context.GetOuterTypes(_cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Select(t => t.OriginalDefinition);
+                    _lazyOuterTypesAndBases = ComputeOuterTypes(_context, _cancellationToken)
+                        .SelectMany(o => o.GetBaseTypesAndThis())
+                        .SelectAsArray(t => t.OriginalDefinition);
                 }
 
                 return _lazyOuterTypesAndBases;
             }
 
-            private IEnumerable<INamedTypeSymbol> GetEnclosingTypeBases()
+            private ImmutableArray<INamedTypeSymbol> GetEnclosingTypeBases()
             {
-                if (_lazyEnclosingTypeBases == null)
+                if (_lazyEnclosingTypeBases.IsDefault)
                 {
                     var enclosingType = _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken);
-                    _lazyEnclosingTypeBases = (enclosingType == null) ?
-                        SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>() :
-                        enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition);
+                    _lazyEnclosingTypeBases = enclosingType == null
+                        ? ImmutableArray<INamedTypeSymbol>.Empty
+                        : enclosingType.GetBaseTypes().SelectAsArray(b => b.OriginalDefinition);
                 }
 
                 return _lazyEnclosingTypeBases;

@@ -145,13 +145,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             currentSolution = currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                         }
 
-                        // This is a temporary generated code action, which doesn't need telemetry, hence suppressing RS0005.
-#pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
                         var batchAttributeRemoveFix = CodeAction.Create(
                             attributeRemoveFixes.First().Title,
                             createChangedSolution: ct => Task.FromResult(currentSolution),
                             equivalenceKey: fixAllState.CodeActionEquivalenceKey);
-#pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
 
                         newBatchOfFixes.Insert(0, (diagnostic: null, batchAttributeRemoveFix));
                     }

@@ -24,13 +24,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask ComputeCompilationAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var project = solution.GetRequiredProject(projectId);
 
                 await CompilationAvailableHelpers.ComputeCompilationInCurrentProcessAsync(project, cancellationToken).ConfigureAwait(false);

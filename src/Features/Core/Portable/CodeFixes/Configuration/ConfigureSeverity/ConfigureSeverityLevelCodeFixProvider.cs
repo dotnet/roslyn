@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(
+                        SolutionChangeAction.Create(
                             title,
                             solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
                             value));
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 foreach (var (value, title) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(
+                        SolutionChangeAction.Create(
                             title,
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
