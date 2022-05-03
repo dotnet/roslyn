@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                         goto case TypeKind.Error;
                     case TypeKind.Error:
-                        return binder.MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                        return binder.MakeBadExpressionForObjectCreation(syntax, type, arguments, initializerOpt, typeSyntax: syntax, diagnostics);
                     case var v:
                         throw ExceptionUtilities.UnexpectedValue(v);
                 }
