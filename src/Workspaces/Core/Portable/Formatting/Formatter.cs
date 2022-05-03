@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
             var optionService = workspace.Services.GetRequiredService<IOptionService>();
             var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionService, language);
-            return syntaxFormattingService.GetFormattingOptions(configOptionSet);
+            return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
         }
 
         internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
@@ -346,13 +346,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var syntaxFormattingService = document.GetLanguageService<ISyntaxFormattingService>();
             if (syntaxFormattingService != null)
             {
-                syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(configOptionSet);
+                syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
                 lineFormattingOptions = syntaxFormattingOptions.LineFormatting;
             }
             else
             {
                 syntaxFormattingOptions = null;
-                lineFormattingOptions = LineFormattingOptions.Create(configOptionSet);
+                lineFormattingOptions = LineFormattingOptions.Create(configOptionSet, fallbackOptions: null);
             }
 
             return (syntaxFormattingOptions, lineFormattingOptions);
