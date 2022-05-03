@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap = new();
 
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
-            = new(r => new ProjectCodeRefactoringProvider(r));
         private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
         [ImportingConstructor]
@@ -235,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 using var _ = ArrayBuilder<CodeRefactoringProvider>.GetInstance(out var builder);
                 foreach (var reference in project.AnalyzerReferences)
                 {
-                    var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
+                    var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, static reference => new ProjectCodeRefactoringProvider(reference));
                     foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
                         builder.Add(refactoring);
                 }

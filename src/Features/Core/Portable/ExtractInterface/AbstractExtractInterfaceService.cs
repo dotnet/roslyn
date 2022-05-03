@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
             Document documentWithTypeToExtractFrom,
             int position,
-            CodeCleanupOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
         }
 
-        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
                 refactoringResult.DocumentToExtractFrom,
+                extractInterfaceOptions.FallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -235,6 +236,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 document,
                 extractedInterfaceSymbol,
                 symbolMapping,
+                extractInterfaceOptions.FallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var unformattedSolution = documentWithInterface.Project.Solution;

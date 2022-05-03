@@ -625,7 +625,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,17): error CS1510: A ref or out value must be an assignable variable
                 //         s = ref s2;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s2").WithArguments("C.s2").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s2").WithLocation(8, 17));
         }
 
         [Fact]
@@ -739,7 +739,7 @@ class C
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "c").WithArguments("c").WithLocation(12, 22),
                 // (13,13): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
                 //             c = ref x;
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c").WithArguments("c").WithLocation(13, 13));
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c").WithLocation(13, 13));
         }
 
         [Fact]
@@ -926,7 +926,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         x = ref y;
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithArguments("x").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithLocation(8, 9));
         }
 
         [Fact]
@@ -1610,7 +1610,7 @@ class Test
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(23, 20),
     // (30,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref P1;
-    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(30, 20)
+    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithLocation(30, 20)
             );
         }
 
@@ -1651,7 +1651,7 @@ class Test
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(12, 27),
     // (13,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d5 = () => ref P1;
-    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(13, 27));
+    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithLocation(13, 27));
         }
 
         [Fact]
@@ -2075,13 +2075,13 @@ public class Test
             comp.VerifyDiagnostics(
                 // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(10, 24),
                 // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(15, 24),
                 // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this.x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithLocation(20, 24),
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
                 //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
@@ -2102,7 +2102,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_EscapeCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS8354: Cannot return 'this' by reference.
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(58, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithLocation(58, 24)
                 );
         }
 
@@ -2924,7 +2924,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         ref int rl = ref P;
-                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("Program.P").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(8, 26));
         }
 
         [Fact]
@@ -2945,7 +2945,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         ref int rl = ref this[0];
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(8, 26));
         }
 
         [Fact]
@@ -3308,7 +3308,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
                 //         return ref P;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P").WithArguments("Program.P").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P").WithLocation(8, 20));
         }
 
         [Fact]
@@ -3329,7 +3329,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
                 //         return ref this[0];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "this[0]").WithLocation(8, 20));
         }
 
         [Fact]
@@ -3375,7 +3375,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (10,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref d;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithArguments("this").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithLocation(10, 20)
             );
         }
 
@@ -3424,7 +3424,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (13,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "i").WithArguments("this").WithLocation(13, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "i").WithLocation(13, 20)
             );
         }
 
@@ -3538,7 +3538,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3557,7 +3557,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,20): error CS8354: Cannot return 'this' by reference.
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithLocation(6, 20)
             );
         }
 
@@ -4014,7 +4014,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 15),
                 // (10,15): error CS1003: Syntax error, ',' expected
                 //         M(out out int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(10, 15));
         }
 
         [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
@@ -4037,13 +4037,13 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(10, 15),
                 // (10,15): error CS1003: Syntax error, ',' expected
                 //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(10, 15),
                 // (10,18): error CS1525: Invalid expression term 'int'
                 //         M(out in int x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
                 // (10,22): error CS1003: Syntax error, ',' expected
                 //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 22));
         }
 
         [Fact]

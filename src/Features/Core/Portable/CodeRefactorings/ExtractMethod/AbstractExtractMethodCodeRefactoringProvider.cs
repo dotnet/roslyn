@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var extractOptions = context.Options(document.Project.LanguageServices).ExtractMethodOptions;
+            var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             var actions = await GetCodeActionsAsync(document, textSpan, extractOptions, cleanupOptions, cancellationToken).ConfigureAwait(false);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
-            ExtractMethodOptions extractOptions,
+            ExtractMethodGenerationOptions extractOptions,
             CodeCleanupOptions cleanupOptions,
             CancellationToken cancellationToken)
         {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return actions.ToImmutable();
         }
 
-        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 nameof(FeaturesResources.Extract_method));
         }
 
-        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, ExtractMethodOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, ExtractMethodGenerationOptions extractOptions, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

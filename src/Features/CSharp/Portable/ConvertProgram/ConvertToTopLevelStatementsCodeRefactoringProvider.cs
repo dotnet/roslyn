@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             context.RegisterRefactoring(CodeAction.CreateWithPriority(
                 CodeActionPriority.Low,
                 CSharpAnalyzersResources.Convert_to_top_level_statements,
-                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(context.Options), c),
+                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
                 nameof(CSharpAnalyzersResources.Convert_to_top_level_statements)));
         }
     }

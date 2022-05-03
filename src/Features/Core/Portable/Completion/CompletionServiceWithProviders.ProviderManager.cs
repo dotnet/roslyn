@@ -139,11 +139,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var builder);
                     foreach (var reference in project.AnalyzerReferences)
                     {
-                        var projectCompletionProvider = _analyzerReferenceToCompletionProvidersMap.GetValue(reference, static r => new ProjectCompletionProvider(r));
+                        var projectCompletionProvider = _analyzerReferenceToCompletionProvidersMap.GetValue(reference, static reference => new ProjectCompletionProvider(reference));
                         foreach (var completionProvider in projectCompletionProvider.GetExtensions(project.Language))
-                        {
                             builder.Add(completionProvider);
-                        }
                     }
 
                     return builder.ToImmutable();
