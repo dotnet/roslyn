@@ -22,11 +22,11 @@ dotnet tool install -g Microsoft.RoslynTools --prerelease --add-source https://p
 
 ## How to Use
 
-`dotnet roslyn-tools` functionality is broken up into subcommands.
+`dotnet roslyn-tools` functionality is broken up into subcommands. Some commands require that the `authenticate` command be run first.
 
 ```
 Description:
-  The command line tool for performing infrastructure tasks. Some commands require that the `authenticate` command be run first.
+  The command line tool for performing infrastructure tasks.
 
 Usage:
   roslyn-tools [command] [options]
