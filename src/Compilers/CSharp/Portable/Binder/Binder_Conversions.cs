@@ -343,12 +343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertObjectCreationExpression(
+        private static BoundExpression ConvertObjectCreationExpression(
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
-            BoundExpression expr = bindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
+            BoundExpression expr = bindObjectCreationExpression(node.Syntax, node.InitializerOpt, node.Binder, destination.StrippedType(), arguments, diagnostics);
             arguments.Free();
 
             Debug.Assert(expr is BoundObjectCreationExpressionBase { WasTargetTyped: true } or
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                   syntax,
                                   expr,
                                   expr is BoundBadExpression ? Conversion.NoConversion : conversion,
-                                  CheckOverflowAtRuntime,
+                                  node.Binder.CheckOverflowAtRuntime,
                                   explicitCastInCode: isCast && !wasCompilerGenerated,
                                   conversionGroupOpt,
                                   expr.ConstantValue,
@@ -376,22 +376,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return expr;
 
-            static BoundExpression bindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
+            static BoundExpression bindObjectCreationExpression(
+                SyntaxNode syntax, InitializerExpressionSyntax initializerOpt, Binder binder, 
+                TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
             {
-                var syntax = node.Syntax;
-                var binder = node.Binder;
                 switch (type.TypeKind)
                 {
                     case TypeKind.Enum:
                     case TypeKind.Struct:
                     case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
-                        return binder.BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, initializerOpt, wasTargetTyped: true);
                     case TypeKind.TypeParameter:
-                        return binder.BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                        return binder.BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, initializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
                     case TypeKind.Delegate:
-                        return binder.BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, wasTargetTyped: true, diagnostics);
+                        return binder.BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, initializerOpt, wasTargetTyped: true, diagnostics);
                     case TypeKind.Interface:
-                        return binder.BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, initializerOpt, wasTargetTyped: true);
                     case TypeKind.Array:
                     case TypeKind.Class:
                     case TypeKind.Dynamic:
