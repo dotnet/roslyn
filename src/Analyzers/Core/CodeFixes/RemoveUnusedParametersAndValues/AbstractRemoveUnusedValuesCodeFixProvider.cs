@@ -146,17 +146,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         title = CodeFixesResources.Use_discard_underscore;
 
+                        var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                        var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
+
                         // Check if this is compound assignment which is not parented by an expression statement,
                         // for example "return x += M();" OR "=> x ??= new C();"
                         // If so, we will be replacing this compound assignment with the underlying binary operation.
                         // For the above examples, it will be "return x + M();" AND "=> x ?? new C();" respectively.
                         // For these cases, we want to show the title as "Remove redundant assignment" instead of "Use discard _".
-
-                        var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                        var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                        var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
                         if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
                             !syntaxFacts.IsExpressionStatement(node.Parent))
+                        {
+                            title = CodeFixesResources.Remove_redundant_assignment;
+                        }
+                        // Also we want to show "Remove redundant assignment" title in pattern matching, e.g.
+                        // if (obj is SomeType someType) <-- "someType" will be fully removed here
+                        else if (syntaxFacts.IsDeclarationPattern(node.Parent))
                         {
                             title = CodeFixesResources.Remove_redundant_assignment;
                         }
@@ -173,7 +179,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
 
             RegisterCodeFix(context, title, GetEquivalenceKey(preference, isRemovableAssignment));
-            return;
         }
 
         private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
