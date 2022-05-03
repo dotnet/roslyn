@@ -11,11 +11,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Roslyn.Utilities;
@@ -27,13 +30,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     {
         private readonly IGlyphService _glyphService;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
+        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IGlobalOptionService globalOptions)
         {
             _glyphService = glyphService;
             _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
         }
 
         public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
@@ -72,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     includedMembers: includedMembers.AsImmutable(),
                     interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                     fileName: viewModel.DestinationViewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.DestinationViewModel.Destination));
+                    location: GetLocation(viewModel.DestinationViewModel.Destination),
+                    _globalOptions.CreateProvider());
             }
             else
             {

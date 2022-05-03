@@ -2853,6 +2853,20 @@ class ClassA
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNotForUnboundAsync()
+        {
+            var markup = @"
+class C
+{
+    async $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "async");
+            await VerifyItemIsAbsentAsync(markup, "Async");
+            await VerifyItemIsAbsentAsync(markup, "GetAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
@@ -2894,8 +2908,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    id: null,
-                    symbolSpecName: name,
+                    Guid.NewGuid(),
+                    name,
                     ImmutableArray.Create(kind));
 
                 var namingStyle = new NamingStyle(
@@ -2928,8 +2942,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    id: null,
-                    symbolSpecName: suffix,
+                    Guid.NewGuid(),
+                    name: suffix,
                     ImmutableArray.Create(kind),
                     accessibilityList: default,
                     modifiers: default);
@@ -2951,13 +2965,13 @@ public class MyClass
             var symbolSpecifications = ImmutableArray.Create(
                 new SymbolSpecification(
                     id: Guid.NewGuid(),
-                    symbolSpecName: "parameters",
+                    name: "parameters",
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
                     accessibilityList: default,
                     modifiers: default),
                 new SymbolSpecification(
                     id: Guid.NewGuid(),
-                    symbolSpecName: "fallback",
+                    name: "fallback",
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
                     accessibilityList: default,
                     modifiers: default));

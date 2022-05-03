@@ -1236,7 +1236,7 @@ public record struct S
             comp.VerifyDiagnostics(
                 // (4,6): error CS0575: Only class types can contain destructors
                 //     ~S() { }
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()").WithLocation(4, 6)
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithLocation(4, 6)
                 );
         }
 
@@ -3122,7 +3122,7 @@ public record struct @iii
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(4, 6),
                 // (4,6): error CS0575: Only class types can contain destructors
                 //     ~iiii(){}
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "iiii").WithArguments("iii.~iii()").WithLocation(4, 6)
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "iiii").WithLocation(4, 6)
                 );
         }
 
@@ -3143,7 +3143,7 @@ static record struct R(int I)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 22),
                 // (5,6): error CS0575: Only class types can contain destructors
                 //     ~R() { }
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "R").WithArguments("R.~R()").WithLocation(5, 6)
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "R").WithLocation(5, 6)
                 );
         }
 
@@ -4006,14 +4006,14 @@ record struct Pos2(int X)
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x", "preview").WithLocation(2, 15),
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
         }
 
@@ -7527,9 +7527,9 @@ record struct C
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         _ = this with { X = 42 }; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(8, 13)
                 );
 
             var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
@@ -10034,7 +10034,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(7, 27),
                 // (7,27): error CS1003: Syntax error, ']' expected
                 //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]", "").WithLocation(7, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]").WithLocation(7, 27),
                 // (7,28): error CS1002: ; expected
                 //         var b = a with { [0] = 20 };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(7, 28),

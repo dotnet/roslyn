@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
         private readonly SyntaxNode _selectedTypeDeclarationNode;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
@@ -39,12 +40,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             IExtractClassOptionsService service,
             INamedTypeSymbol selectedType,
             SyntaxNode selectedTypeDeclarationNode,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             ISymbol? selectedMember = null)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
             _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
+            _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
             Span = span;
         }
@@ -77,7 +80,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                     _selectedType.DeclaredAccessibility,
                     _selectedType.GetSymbolModifiers(),
                     TypeKind.Class,
-                    extractClassOptions.TypeName);
+                    extractClassOptions.TypeName,
+                    typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
 
                 var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
                     _selectedType,
@@ -91,6 +95,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
                         newType,
                         symbolMapping,
+                        _fallbackOptions,
                         cancellationToken).ConfigureAwait(false)
                     : await ExtractTypeHelpers.AddTypeToNewFileAsync(
                         symbolMapping.AnnotatedSolution,
@@ -100,6 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         _document.Folders,
                         newType,
                         _document,
+                        _fallbackOptions,
                         cancellationToken).ConfigureAwait(false);
 
                 // Update the original type to have the new base
@@ -204,7 +210,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());
             var updatedOriginalDocument = solution.GetRequiredDocument(_document.Id);
 
-            return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
+            return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, SyntaxAnnotation typeAnnotation, CancellationToken cancellationToken)

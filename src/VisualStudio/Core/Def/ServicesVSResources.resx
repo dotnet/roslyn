@@ -1648,6 +1648,9 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
+  <data name="Include_global_imports" xml:space="preserve">
+    <value>Include global imports</value>
+  </data>
   <data name="Inheritance_Margin" xml:space="preserve">
     <value>Inheritance Margin</value>
   </data>
@@ -1879,7 +1882,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <value>Paste a stack trace to view and navigate its values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -1939,6 +1942,10 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_top_level_statements" xml:space="preserve">
     <value>Prefer top-level statements</value>
+  </data>
+  <data name="_0_1" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Used to show a symbol name, followed by the project name it came from</comment>
   </data>
   <data name="Collapse_metadata_on_file_open" xml:space="preserve">
     <value>Collapse metadata implementations on file open</value>

@@ -22,9 +22,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -42,6 +43,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
         public string Name => ServerKind.ToUserVisibleString();
+
+        /// <summary>
+        /// Gets the optional middle layer object that can intercept outgoing requests and responses.
+        /// </summary>
+        /// <remarks>
+        /// Currently utilized by Razor to intercept Roslyn's workspace/semanticTokens/refresh requests.
+        /// </remarks>
+        public object? MiddleLayer => _middleLayer;
+
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
+        /// </summary>
+        public object? CustomMessageTarget => null;
 
         /// <summary>
         /// An enum representing this server instance.
@@ -67,6 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public object? InitializationOptions { get; }
 
         /// <summary>
+        /// Gets a value indicating whether a notification bubble show be shown when the language server fails to initialize.
+        /// </summary>
+        public abstract bool ShowNotificationOnInitializeFailed { get; }
+
+        /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
         /// Files that we care about are already provided and watched by the workspace.
         /// </summary>
@@ -85,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
@@ -93,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
+            _middleLayer = middleLayer;
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
@@ -227,6 +249,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
-        public abstract bool ShowNotificationOnInitializeFailed { get; }
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// This method is called after the language server has been activated, but connection has not been established.
+        /// </summary>
+        public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
     }
 }

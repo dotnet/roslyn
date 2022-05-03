@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">Der erste Operand eines überladenen Shift-Operators muss denselben Typ wie der enthaltende Typ oder den Typparameter aufweisen, der auf ihn beschränkt ist, und der Typ des zweiten Operanden muss "int" sein.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">Der erste Operand eines überladenen Shift-Operators muss denselben Typ wie der enthaltende Typ oder den Typparameter aufweisen, der auf ihn beschränkt ist, und der Typ des zweiten Operanden muss "int" sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">Die &amp;Methodengruppe "{0}" kann nicht in den Delegattyp "{0}" konvertiert werden.</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -1547,6 +1547,11 @@
         <target state="translated">Datensatzstrukturen</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">versiegelte "ToString" im Datensatz</target>
@@ -1560,6 +1565,11 @@
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
         <source>Utf8 String Literals</source>
         <target state="new">Utf8 String Literals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsignedRightShift">
+        <source>unsigned right shift</source>
+        <target state="new">unsigned right shift</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5851,8 +5861,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">Der erste Operand eines überladenen Schiebeoperators muss den enthaltenden Typ aufweisen, und der zweite Operand muss eine ganze Zahl sein.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">Der erste Operand eines überladenen Schiebeoperators muss den enthaltenden Typ aufweisen, und der zweite Operand muss eine ganze Zahl sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

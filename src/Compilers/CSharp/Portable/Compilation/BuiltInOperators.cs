@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolAnd)), //and
                     ImmutableArray<BinaryOperatorSignature>.Empty, //xor
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolOr)), //or
+                    ImmutableArray<BinaryOperatorSignature>.Empty, //unsigned right shift
                 };
 
                 var nonLogicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
@@ -646,6 +647,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNUIntOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
                     }),
+                    GetSignaturesFromBinaryOperatorKinds(new []
+                    {
+                        (int)BinaryOperatorKind.IntUnsignedRightShift,
+                        (int)BinaryOperatorKind.UIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LongUnsignedRightShift,
+                        (int)BinaryOperatorKind.ULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.NIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.NUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedLongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNUIntUnsignedRightShift,
+                    }),
                 };
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };
@@ -685,6 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BinaryOperatorSignature(kind, left, RightType(kind), ReturnType(kind));
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.RightShift:
+                case BinaryOperatorKind.UnsignedRightShift:
                     TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {

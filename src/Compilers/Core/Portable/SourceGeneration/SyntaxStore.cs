@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis
         public sealed class Builder
         {
             private readonly ImmutableDictionary<SyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<SyntaxInputNode, Exception>();
+            private readonly ImmutableDictionary<SyntaxInputNode, TimeSpan>.Builder _syntaxTimes = ImmutableDictionary.CreateBuilder<SyntaxInputNode, TimeSpan>();
             private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
             private readonly Compilation _compilation;
             private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
@@ -69,13 +70,12 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             syntaxInputBuilders.Add((node, node.GetBuilder(_previous._tables, _enableTracking)));
+                            _syntaxTimes[node] = TimeSpan.Zero;
                         }
                     }
 
                     if (syntaxInputBuilders.Count > 0)
                     {
-                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(_enableTracking);
-
                         // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
@@ -86,17 +86,33 @@ namespace Microsoft.CodeAnalysis
                             var model = state != EntryState.Removed ? _compilation.GetSemanticModel(tree) : null;
                             for (int i = 0; i < syntaxInputBuilders.Count; i++)
                             {
+                                var currentNode = syntaxInputBuilders[i].node;
                                 try
                                 {
-                                    _cancellationToken.ThrowIfCancellationRequested();
-                                    syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
+                                    Stopwatch sw = Stopwatch.StartNew();
+                                    try
+                                    {
+                                        _cancellationToken.ThrowIfCancellationRequested();
+                                        syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
+                                    }
+                                    finally
+                                    {
+                                        var elapsed = sw.Elapsed;
+
+                                        // if this node isn't the one that caused the update, ensure we remember it and remove the time it took from the requester
+                                        if (currentNode != syntaxInputNode)
+                                        {
+                                            _syntaxTimes[syntaxInputNode] = _syntaxTimes[syntaxInputNode].Subtract(elapsed);
+                                            _syntaxTimes[currentNode] = _syntaxTimes[currentNode].Add(elapsed);
+                                        }
+                                    }
                                 }
                                 catch (UserFunctionException ufe)
                                 {
                                     // we're evaluating this node ahead of time, so we can't just throw the exception
                                     // instead we'll hold onto it, and throw the exception when a downstream node actually
                                     // attempts to read the value
-                                    _syntaxExceptions[syntaxInputBuilders[i].node] = ufe;
+                                    _syntaxExceptions[currentNode] = ufe;
                                     syntaxInputBuilders.RemoveAt(i);
                                     i--;
                                 }
@@ -117,6 +133,34 @@ namespace Microsoft.CodeAnalysis
                 if (!_tableBuilder.TryGetTable(syntaxInputNode, out var result))
                 {
                     throw _syntaxExceptions[syntaxInputNode];
+                }
+                return result;
+            }
+
+            /// <summary>
+            /// Gets the adjustment to wall clock time that should be applied for a set of input nodes.
+            /// </summary>
+            /// <remarks>
+            /// The syntax store updates all input nodes in parallel the first time an input node is asked to update,
+            /// so that it can share the semantic model between multiple nodes and improve perf. 
+            /// 
+            /// Unfortunately that means that the first generator to request the results of a syntax node will incorrectly 
+            /// have its wall clock time contain the time of all other syntax nodes. And conversely other input nodes will 
+            /// not have the true time taken.
+            /// 
+            /// This method gets the adjustment that should be applied to the wall clock time for a set of input nodes
+            /// so that the correct time is attributed to each.
+            /// </remarks>
+            public TimeSpan GetRuntimeAdjustment(ImmutableArray<SyntaxInputNode> inputNodes)
+            {
+                TimeSpan result = TimeSpan.Zero;
+                foreach (var node in inputNodes)
+                {
+                    // only add if this node ran at all during this pass
+                    if (_syntaxTimes.TryGetValue(node, out var adjustment))
+                    {
+                        result = result.Add(adjustment);
+                    }
                 }
                 return result;
             }

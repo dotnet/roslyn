@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1175,7 +1177,7 @@ class MyClass
             var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                 testState.InvocationDocument,
                 testState.TestInvocationDocument.SelectedSpans.Single(),
-                language => ChangeNamespaceOptions.GetDefault(testState.InvocationDocument.Project.LanguageServices),
+                CodeActionOptions.DefaultProvider,
                 CancellationToken.None);
 
             Assert.Empty(actions);
@@ -1330,8 +1332,8 @@ namespace B
             var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
             ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
 
-            var (_, action) = await GetCodeActionsAsync(workspace, default);
-            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var (_, action) = await GetCodeActionsAsync(workspace);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
             var result = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
 
             // Make sure both linked documents are changed.
@@ -1343,5 +1345,29 @@ namespace B
                 Assert.Equal(expected, actualText);
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(35507, "https://github.com/dotnet/roslyn/issues/35507")]
+        public Task MoveToNamespace_MoveTypeFromSystemNamespace()
+            => TestMoveToNamespaceAsync(
+@"namespace System
+{
+    [||]class A
+    {
+
+    }
+}",
+expectedMarkup: @"namespace {|Warning:Test|}
+{
+    [||]class A
+    {
+
+    }
+}",
+targetNamespace: "Test",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"System.A", "Test.A" }
+});
     }
 }

@@ -60,9 +60,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public DetachedDefinitionItem Detach()
-                => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
-
             private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolInCurrentSolutionAsync(Workspace workspace, string symbolKey, CancellationToken cancellationToken)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||

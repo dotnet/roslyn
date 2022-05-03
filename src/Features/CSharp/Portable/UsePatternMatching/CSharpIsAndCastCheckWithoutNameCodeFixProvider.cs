@@ -37,13 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.CreateWithPriority(
+                    CodeActionPriority.Low,
+                    CSharpAnalyzersResources.Use_pattern_matching,
+                    GetDocumentUpdater(context),
+                    nameof(CSharpAnalyzersResources.Use_pattern_matching)),
+                context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Length == 1);
             var location = diagnostics[0].Location;
@@ -61,16 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedRoot = updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
             editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckWithoutNameCodeFixProvider))
-            {
-            }
-
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
         }
     }
 }

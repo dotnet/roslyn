@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Tracking parameters which have already been fixed by a fix-all operation.
             // This avoids crashing the fixer when the same parameter is null-tested multiple times.

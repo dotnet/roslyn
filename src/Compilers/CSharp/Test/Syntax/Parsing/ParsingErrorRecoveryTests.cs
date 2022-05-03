@@ -271,9 +271,9 @@ class C
                 // error CS1056: Unexpected character '$'
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
                 // error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(","),
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]")
                 );
         }
 
@@ -1870,7 +1870,7 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(1, 21),
                 // (1,21): error CS1514: { expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 21),
@@ -2073,7 +2073,7 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]").WithLocation(1, 21),
                 // (1,21): error CS1514: { expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 21),
@@ -4181,7 +4181,7 @@ class C
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
             file.Errors().Verify(
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]").WithLocation(1, 1),
                 // error CS1026: ) expected
                 Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
                 );
@@ -4351,7 +4351,7 @@ class C
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
             file.Errors().Verify(
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]").WithLocation(1, 1),
                 // error CS1026: ) expected
                 Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
                 );
@@ -6754,13 +6754,13 @@ _ _::this
             syntaxTree.GetDiagnostics().Verify(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments("."),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("["),
                 // (2,10): error CS1003: Syntax error, ']' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]"),
                 // (2,10): error CS1514: { expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
@@ -6771,13 +6771,13 @@ _ _::this
             CreateCompilation(text).VerifyDiagnostics(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".").WithLocation(2, 4),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", "").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[").WithLocation(2, 10),
                 // (2,10): error CS1003: Syntax error, ']' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 10),
                 // (2,10): error CS1514: { expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 10),
@@ -6901,6 +6901,10 @@ class C {}");
             AssertEqualRoundtrip(
 @"/// <see cref=""operator}}=""/>
 class C {}");
+
+            AssertEqualRoundtrip(
+@"/// <see cref=""operator}}}=""/>
+class C {}");
         }
 
         private void AssertEqualRoundtrip(string source)
@@ -6932,7 +6936,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "<"),
                 // (4,24): error CS1003: Syntax error, '>' expected
                 //     int I./*missing*/< {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">", "{"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">"),
                 // (4,25): error CS1513: } expected
                 //     int I./*missing*/< {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
@@ -6963,7 +6967,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "<"),
                 // (4,28): error CS1003: Syntax error, '>' expected
                 //     event D I./*missing*/< {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">", "{"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">"),
                 // (4,26): error CS7002: Unexpected use of a generic name
                 //     event D I./*missing*/< {
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "<"),

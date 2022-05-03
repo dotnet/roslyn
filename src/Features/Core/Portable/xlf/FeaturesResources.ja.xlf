@@ -615,6 +615,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">キャプチャした変数 '{0}' を削除するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="new">Directives from '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">このコードを変更しないでください。クリーンアップ コードを '{0}' メソッドに記述します</target>

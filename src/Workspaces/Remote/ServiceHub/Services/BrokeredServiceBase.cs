@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
@@ -82,17 +83,15 @@ namespace Microsoft.CodeAnalysis.Remote
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
         protected async ValueTask<T> RunWithSolutionAsync<T>(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+            var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
             var (_, result) = await workspace.RunWithSolutionAsync(
                 assetProvider,
-                solutionInfo.SolutionChecksum,
-                solutionInfo.WorkspaceVersion,
-                solutionInfo.FromPrimaryBranch,
+                solutionChecksum,
                 implementation,
                 cancellationToken).ConfigureAwait(false);
 
@@ -106,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         protected ValueTask<T> RunServiceAsync<T>(
-            PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            Checksum solutionChecksum, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
-                c => RunWithSolutionAsync(solutionInfo, implementation, c), cancellationToken);
+                c => RunWithSolutionAsync(solutionChecksum, implementation, c), cancellationToken);
         }
 
         internal static async ValueTask<T> RunServiceImplAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
@@ -131,13 +130,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         protected ValueTask RunServiceAsync(
-            PinnedSolutionInfo solutionInfo, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
+            Checksum solutionChecksum, Func<Solution, ValueTask> implementation, CancellationToken cancellationToken)
         {
             return RunServiceAsync(
                 async c =>
                 {
                     await RunWithSolutionAsync(
-                        solutionInfo,
+                        solutionChecksum,
                         async s =>
                         {
                             await implementation(s).ConfigureAwait(false);
@@ -158,6 +157,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+#if TODO // https://github.com/microsoft/vs-streamjsonrpc/issues/789
+        internal static async ValueTask<TOptions> GetClientOptionsAsync<TOptions, TCallbackInterface>(
+            RemoteCallback<TCallbackInterface> callback,
+            RemoteServiceCallbackId callbackId,
+            HostLanguageServices languageServices,
+            CancellationToken cancellationToken)
+            where TCallbackInterface : class, IRemoteOptionsCallback<TOptions>
+        {
+            var cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
+            var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
+            return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)
+                => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
+        }
+#endif
 
         private static void SetNativeDllSearchDirectories()
         {

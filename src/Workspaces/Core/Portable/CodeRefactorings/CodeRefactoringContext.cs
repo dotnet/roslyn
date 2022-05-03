@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         [Obsolete]
         bool ITypeScriptCodeRefactoringContext.IsBlocking
-            => Options(Document.Project.LanguageServices).IsBlocking;
+            => Options.GetOptions(Document.Project.LanguageServices).IsBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), _ => CodeActionOptions.Default, cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, cancellationToken)
         { }
 
         /// <summary>

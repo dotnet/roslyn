@@ -9,18 +9,19 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Utilities
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
     <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.ExtractInterface)>
-    Friend Class ExtractInterfaceCommandHandler
+    Friend NotInheritable Class ExtractInterfaceCommandHandler
         Inherits AbstractExtractInterfaceCommandHandler
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(threadingContext As IThreadingContext)
-            MyBase.New(threadingContext)
+        Public Sub New(threadingContext As IThreadingContext, globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, globalOptions)
         End Sub
     End Class
 End Namespace
