@@ -5,12 +5,16 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _listener;
 
         public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
@@ -30,10 +35,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         public AbstractEncapsulateFieldCommandHandler(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _undoManager = undoManager;
+            _globalOptions = globalOptions;
             _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
 
@@ -65,7 +72,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), _globalOptions.CreateProvider(), useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 

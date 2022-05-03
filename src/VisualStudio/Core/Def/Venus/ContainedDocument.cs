@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,6 +37,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+
 #pragma warning disable CS0618 // Type or member is obsolete
     internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -81,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
@@ -103,6 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
+            IGlobalOptionService globalOptions,
             VisualStudioProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
@@ -110,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             _componentModel = componentModel;
             _workspace = workspace;
+            _globalOptions = globalOptions;
             _project = project;
 
             Id = documentId;
@@ -760,14 +765,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-            var options = SyntaxFormattingOptions.Create(
-                _workspace.Options
-                    .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
-                    .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                    .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
-                    .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize()),
-                _workspace.Services,
-                document.Project.Language);
+
+            var formattingOptions = _globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices).With(new LineFormattingOptions(
+                UseTabs: !editorOptions.IsConvertTabsToSpacesEnabled(),
+                TabSize: editorOptions.GetTabSize(),
+                IndentationSize: editorOptions.GetIndentSize(),
+                NewLine: editorOptions.GetNewLineCharacter()));
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -781,7 +784,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
-                AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
+                AdjustIndentationForSpan(document, edit, visibleSpan, rule, formattingOptions);
             }
 
             edit.Apply();
@@ -970,10 +973,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         if (end >= 0 && text[end] == '}')
                         {
                             var token = root.FindToken(end);
-                            var syntaxFact = _workspace.Services.GetLanguageServices(_project.Language).GetService<ISyntaxFactsService>();
-                            if (token.Span.Start == end && syntaxFact != null)
+                            var service = _workspace.Services.GetLanguageServices(_project.Language).GetService<IVenusBraceMatchingService>();
+                            if (token.Span.Start == end && service != null)
                             {
-                                if (syntaxFact.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
+                                if (service.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
                                 {
                                     return 0;
                                 }

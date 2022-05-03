@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int? MultiLineDocCommentTrivia { get; }
         int? ShebangDirectiveTrivia { get; }
 
+        int IfDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords

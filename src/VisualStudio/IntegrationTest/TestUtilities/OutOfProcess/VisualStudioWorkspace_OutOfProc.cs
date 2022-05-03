@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetEnableDecompilationOption(bool value)
         {
-            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+            SetGlobalOption(WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources, language: null, value);
         }
 
         public void SetArgumentCompletionSnippetsOption(bool value)

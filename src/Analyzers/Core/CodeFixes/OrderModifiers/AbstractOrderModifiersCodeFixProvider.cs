@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var syntaxTree = await context.Document.GetRequiredSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
@@ -49,14 +47,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             if (_syntaxFacts.GetModifiers(syntaxNode) != default)
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, AnalyzersResources.Order_modifiers, nameof(AnalyzersResources.Order_modifiers));
             }
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
@@ -90,14 +86,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             int GetOrder(SyntaxToken token)
                 => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Order_modifiers, createChangedDocument, AnalyzersResources.Order_modifiers)
-            {
-            }
         }
     }
 }

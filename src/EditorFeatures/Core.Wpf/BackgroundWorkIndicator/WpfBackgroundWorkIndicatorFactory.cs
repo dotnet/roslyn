@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             bool cancelOnEdit,
             bool cancelOnFocusLost)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // If we have an outstanding context in flight, cancel it and create a new one to show the user.
             _currentContext?.CancelAndDispose();
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 
         private void OnContextDisposed(BackgroundWorkIndicatorContext context)
         {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (_currentContext == context)
                 _currentContext = null;

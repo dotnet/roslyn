@@ -7,8 +7,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -29,9 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-#if !CODE_STYLE
-        public abstract bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
-#endif
+        public abstract bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;

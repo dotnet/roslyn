@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -31,10 +33,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
         // fortunately, editor provides another extension point where we have more control over brace completion but we do not
         // want to re-implement logics base session provider already provides. so I ported editor's default session and 
         // modified it little bit so that we can use it as base class.
-        private class BraceCompletionSession : ForegroundThreadAffinitizedObject, IBraceCompletionSession
+        private class BraceCompletionSession : IBraceCompletionSession
         {
-            #region Private Members
-
             public char OpeningBrace { get; }
             public char ClosingBrace { get; }
             public ITrackingPoint OpeningPoint { get; private set; }
@@ -45,35 +45,32 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
             private readonly IBraceCompletionService _service;
-
-            #endregion
-
-            #region Constructors
+            private readonly IGlobalOptionService _globalOptions;
+            private readonly IThreadingContext _threadingContext;
 
             public BraceCompletionSession(
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
                 IEditorOperationsFactoryService editorOperationsFactoryService, IBraceCompletionService service,
-                IThreadingContext threadingContext)
-                : base(threadingContext, assertIsForeground: true)
+                IGlobalOptionService globalOptions, IThreadingContext threadingContext)
             {
-                this.TextView = textView;
-                this.SubjectBuffer = subjectBuffer;
-                this.OpeningBrace = openingBrace;
-                this.ClosingBrace = closingBrace;
-                this.ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
+                TextView = textView;
+                SubjectBuffer = subjectBuffer;
+                OpeningBrace = openingBrace;
+                ClosingBrace = closingBrace;
+                ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
                 _service = service;
+                _threadingContext = threadingContext;
+                _globalOptions = globalOptions;
             }
-
-            #endregion
 
             #region IBraceCompletionSession Methods
 
             public void Start()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 // Brace completion is not cancellable.
                 if (!this.TryStart(CancellationToken.None))
                 {
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private bool TryStart(CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position < 1)
@@ -127,8 +124,10 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 var contextAfterStart = GetBraceCompletionContext();
                 if (contextAfterStart != null)
                 {
-                    var options = IndentationOptions.FromDocumentAsync(contextAfterStart.Value.Document, cancellationToken).WaitAndGetResult(cancellationToken);
-                    var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var document = contextAfterStart.Value.Document;
+                    var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, indentationOptions, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (changesAfterStart != null)
                     {
                         ApplyBraceCompletionResult(changesAfterStart.Value);
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreBackspace(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
 
                 var caretPos = this.GetCaretPosition();
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreOverType(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
                 if (ClosingPoint == null)
                 {
@@ -249,7 +248,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PreTab(out bool handledCommand)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 handledCommand = false;
 
                 if (!HasForwardTyping)
@@ -273,7 +272,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             public void PostReturn()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 if (this.GetCaretPosition().HasValue)
                 {
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
@@ -286,8 +285,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                             return;
                         }
 
-                        var options = IndentationOptions.FromDocumentAsync(context.Value.Document, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, options, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var indentationOptions = context.Value.Document.GetIndentationOptionsAsync(_globalOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, indentationOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
                             using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
@@ -331,7 +330,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
             {
                 get
                 {
-                    this.AssertIsForeground();
+                    _threadingContext.ThrowIfNotOnUIThread();
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                     if (closingSnapshotPoint.Position > 0)
@@ -376,7 +375,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private void MoveCaretToClosingPoint()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 // find the position just after the closing brace in the view's text buffer
@@ -393,14 +392,12 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private BraceCompletionContext? GetBraceCompletionContext()
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 var snapshot = SubjectBuffer.CurrentSnapshot;
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                {
                     return null;
-                }
 
                 var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
                 var openingSnapshotPoint = OpeningPoint.GetPosition(snapshot);
@@ -411,7 +408,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private void ApplyBraceCompletionResult(BraceCompletionResult result)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 using var edit = SubjectBuffer.CreateEdit();
                 foreach (var change in result.TextChanges)
                 {

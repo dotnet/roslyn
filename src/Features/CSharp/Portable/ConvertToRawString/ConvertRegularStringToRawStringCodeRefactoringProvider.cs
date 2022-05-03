@@ -3,12 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
@@ -27,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         private enum ConvertToRawKind
         {
             SingleLine,
-            MultiLine,
             MultiLineIndented,
+            MultiLineWithoutLeadingWhitespace,
         }
 
         [ImportingConstructor]
@@ -71,54 +77,85 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
             var canBeSingleLine = CanBeSingleLine(characters);
 
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
             if (canBeSingleLine)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.CreateWithPriority(
+                        priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, c),
-                        nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine,
-                        priority),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, formattingOptions, c),
+                        nameof(CSharpFeaturesResources.Convert_to_raw_string) + "-" + ConvertToRawKind.SingleLine),
                     token.Span);
             }
             else
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(true);
-                sourceText.GetLineAndOffset(token.SpanStart, out _, out var lineOffset);
-
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.CreateWithPriority(
+                        priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, c),
-                        nameof(CSharpFeaturesResources.Convert_to_raw_string),
-                        priority),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, formattingOptions, c),
+                        nameof(CSharpFeaturesResources.Convert_to_raw_string)),
                     token.Span);
 
-                if (lineOffset > 0)
+                // Users sometimes write verbatim string literals with a extra starting newline (or indentation) purely
+                // for aesthetic reasons.  For example:
+                //
+                //      var v = @"
+                //          SELECT column1, column2, ...
+                //          FROM table_name";
+                //
+                // Converting this directly to a raw string will produce:
+                //
+                //      var v = """
+                //
+                //                  SELECT column1, column2, ...
+                //                  FROM table_name";
+                //          """
+                //
+                // Check for this and offer instead to generate:
+                //
+                //      var v = """
+                //          SELECT column1, column2, ...
+                //          FROM table_name";
+                //          """
+                //
+                // This changes the contents of the literal, but that can be fine for the domain the user is working in.
+                // Offer this, but let the user know that this will change runtime semantics.
+                if (token.IsVerbatimStringLiteral() &&
+                    HasLeadingWhitespace(characters) &&
+                    CleanupWhitespace(characters).Length > 0)
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(
-                            CSharpFeaturesResources.Convert_to_raw_string_no_indent,
-                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLine, c),
-                            nameof(CSharpFeaturesResources.Convert_to_raw_string_no_indent),
-                            priority),
+                        CodeAction.CreateWithPriority(
+                            priority,
+                            CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
+                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, formattingOptions, c),
+                            nameof(CSharpFeaturesResources.without_leading_whitespace_may_change_semantics)),
                         token.Span);
                 }
             }
         }
 
-        private static async Task<Document> UpdateDocumentAsync(
-            Document document, TextSpan span, ConvertToRawKind kind, CancellationToken cancellationToken)
+        private static bool HasLeadingWhitespace(VirtualCharSequence characters)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var newLine = options.GetOption(FormattingOptions.NewLine);
+            var index = 0;
+            while (index < characters.Length && IsCSharpWhitespace(characters[index]))
+                index++;
 
+            return index < characters.Length && IsCSharpNewLine(characters[index]);
+        }
+
+        private static async Task<Document> UpdateDocumentAsync(
+            Document document, TextSpan span, ConvertToRawKind kind, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
 
-            var replacement = GetReplacementToken(document, token, kind, newLine, cancellationToken);
+            var replacement = GetReplacementToken(document, token, kind, options, cancellationToken);
             return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
         }
 
@@ -126,38 +163,169 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             Document document,
             SyntaxToken token,
             ConvertToRawKind kind,
-            string newLine,
+            SyntaxFormattingOptions options,
             CancellationToken cancellationToken)
-        {
-            return kind switch
-            {
-                ConvertToRawKind.SingleLine => ConvertToSingleLineRawString(token),
-                ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, newLine),
-                ConvertToRawKind.MultiLineIndented => ConvertToMultiLineRawIndentedString(document, token, newLine, cancellationToken),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind),
-            };
-        }
-
-        private static SyntaxToken ConvertToMultiLineRawIndentedString(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
         {
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
 
+            // If the user asked to remove whitespace then do so now.
+            if (kind == ConvertToRawKind.MultiLineWithoutLeadingWhitespace)
+                characters = CleanupWhitespace(characters);
+
+            return kind == ConvertToRawKind.SingleLine
+                ? ConvertToSingleLineRawString(token, characters)
+                : ConvertToMultiLineRawIndentedString(document, token, options, characters, cancellationToken);
+        }
+
+        private static VirtualCharSequence CleanupWhitespace(VirtualCharSequence characters)
+        {
+            using var _ = ArrayBuilder<VirtualCharSequence>.GetInstance(out var lines);
+
+            // First, determine all the lines in the content.
+            BreakIntoLines(characters, lines);
+
+            // Remove the leading and trailing line if they are all whitespace.
+            while (lines.Count > 0 && AllWhitespace(lines.First()))
+                lines.RemoveAt(0);
+
+            while (lines.Count > 0 && AllWhitespace(lines.Last()))
+                lines.RemoveAt(lines.Count - 1);
+
+            if (lines.Count == 0)
+                return VirtualCharSequence.Empty;
+
+            // Use the remaining lines to figure out what common whitespace we have.
+            var commonWhitespacePrefix = ComputeCommonWhitespacePrefix(lines);
+
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+
+            foreach (var line in lines)
+            {
+                if (AllWhitespace(line))
+                {
+                    // For an all-whitespace line, just add the trailing newlines on the line (if present).
+                    AddRange(result, line.SkipWhile(IsCSharpWhitespace));
+                }
+                else
+                {
+                    // Normal line.  Skip the common whitespace.
+                    AddRange(result, line.Skip(commonWhitespacePrefix));
+                }
+            }
+
+            // Remove all trailing whitespace and newlines from the final string.
+            while (result.Count > 0 && (IsCSharpNewLine(result[^1]) || IsCSharpWhitespace(result[^1])))
+                result.RemoveAt(result.Count - 1);
+
+            return VirtualCharSequence.Create(result.ToImmutable());
+        }
+
+        private static void AddRange(ImmutableSegmentedList<VirtualChar>.Builder result, VirtualCharSequence sequence)
+        {
+            foreach (var c in sequence)
+                result.Add(c);
+        }
+
+        private static int ComputeCommonWhitespacePrefix(ArrayBuilder<VirtualCharSequence> lines)
+        {
+            var commonLeadingWhitespace = GetLeadingWhitespace(lines.First());
+
+            for (var i = 1; i < lines.Count; i++)
+            {
+                if (commonLeadingWhitespace.IsEmpty)
+                    return 0;
+
+                var currentLine = lines[i];
+                if (AllWhitespace(currentLine))
+                    continue;
+
+                var currentLineLeadingWhitespace = GetLeadingWhitespace(currentLine);
+                commonLeadingWhitespace = ComputeCommonWhitespacePrefix(commonLeadingWhitespace, currentLineLeadingWhitespace);
+            }
+
+            return commonLeadingWhitespace.Length;
+        }
+
+        private static VirtualCharSequence ComputeCommonWhitespacePrefix(
+            VirtualCharSequence leadingWhitespace1, VirtualCharSequence leadingWhitespace2)
+        {
+            var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
+
+            var current = 0;
+            while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
+                current++;
+
+            return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
+        }
+
+        private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
+        {
+            var current = 0;
+            while (current < line.Length && IsCSharpWhitespace(line[current]))
+                current++;
+
+            return line.GetSubSequence(TextSpan.FromBounds(0, current));
+        }
+
+        private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
+        {
+            var index = 0;
+
+            while (index < characters.Length)
+                lines.Add(GetNextLine(characters, ref index));
+        }
+
+        private static VirtualCharSequence GetNextLine(
+            VirtualCharSequence characters,
+            ref int index)
+        {
+            var end = index;
+            while (end < characters.Length && !IsCSharpNewLine(characters[end]))
+                end++;
+
+            if (end != characters.Length)
+                end += IsCarriageReturnNewLine(characters, end) ? 2 : 1;
+
+            var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
+            index = end;
+            return result;
+        }
+
+        private static bool AllWhitespace(VirtualCharSequence line)
+        {
+            var index = 0;
+            while (index < line.Length && IsCSharpWhitespace(line[index]))
+                index++;
+
+            return index == line.Length || IsCSharpNewLine(line[index]);
+        }
+
+        private static SyntaxToken ConvertToMultiLineRawIndentedString(
+            Document document,
+            SyntaxToken token,
+            SyntaxFormattingOptions formattingOptions,
+            VirtualCharSequence characters,
+            CancellationToken cancellationToken)
+        {
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
             var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-            var indentation = token.GetPreferredIndentation(document, cancellationToken);
+
+            // Auto-formatting options are not relevant since they only control behavior on typing.
+            var indentationOptions = new IndentationOptions(formattingOptions, AutoFormattingOptions.Default);
+            var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             builder.Append('"', quoteDelimeterCount);
-            builder.Append(newLine);
+            builder.Append(formattingOptions.NewLine);
 
             var atStartOfLine = true;
             for (int i = 0, n = characters.Length; i < n; i++)
             {
                 var ch = characters[i];
-                if (IsNewLine(ch))
+                if (IsCSharpNewLine(ch))
                 {
                     ch.AppendTo(builder);
                     atStartOfLine = true;
@@ -173,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 ch.AppendTo(builder);
             }
 
-            builder.Append(newLine);
+            builder.Append(formattingOptions.NewLine);
             builder.Append(indentation);
             builder.Append('"', quoteDelimeterCount);
 
@@ -185,39 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 token.TrailingTrivia);
         }
 
-        private static SyntaxToken ConvertToMultiLineRawString(SyntaxToken token, string newLine)
+        private static SyntaxToken ConvertToSingleLineRawString(
+            SyntaxToken token, VirtualCharSequence characters)
         {
-            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
-
-            // Have to make sure we have a delimiter longer than any quote sequence in the string.
-            var longestQuoteSequence = GetLongestQuoteSequence(characters);
-            var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            builder.Append('"', quoteDelimeterCount);
-            builder.Append(newLine);
-
-            foreach (var ch in characters)
-                ch.AppendTo(builder);
-
-            builder.Append(newLine);
-            builder.Append('"', quoteDelimeterCount);
-
-            return SyntaxFactory.Token(
-                token.LeadingTrivia,
-                SyntaxKind.MultiLineRawStringLiteralToken,
-                builder.ToString(),
-                characters.CreateString(),
-                token.TrailingTrivia);
-        }
-
-        private static SyntaxToken ConvertToSingleLineRawString(SyntaxToken token)
-        {
-            var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
-
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
             var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
@@ -237,21 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                 builder.ToString(),
                 characters.CreateString(),
                 token.TrailingTrivia);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument,
-                string equivalenceKey,
-                CodeActionPriority priority)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-                Priority = priority;
-            }
         }
     }
 }

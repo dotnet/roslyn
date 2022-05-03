@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -38,10 +39,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OnAutoInsertHandler(
             [ImportMany(LanguageNames.CSharp)] IEnumerable<IBraceCompletionService> csharpBraceCompletionServices,
-            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices)
+            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices,
+            IGlobalOptionService globalOptions)
         {
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
             _visualBasicBraceCompletionServices = visualBasicBraceCompletionServices.ToImmutableArray();
+            _globalOptions = globalOptions;
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
@@ -58,16 +61,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
-                request.Options, document, cancellationToken).ConfigureAwait(false);
-
-            var options = DocumentationCommentOptions.From(documentOptions);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
+                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions, document.Project.Language);
+
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    request, document, service, options, cancellationToken).ConfigureAwait(false);
+                    request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -77,9 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (request.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
+            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             {
-                var indentationOptions = IndentationOptions.From(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
+                var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
 
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
                     request, document, indentationOptions, cancellationToken).ConfigureAwait(false);

@@ -13,9 +13,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -30,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     {
         public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
 
-        private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
+        private static OptionsCollection SmartIndentButDoNotFormatWhileTyping()
         {
-            return new Dictionary<OptionKey2, object>
+            return new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+                { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.Smart },
+                { AutoFormattingOptionsStorage.FormatOnTyping, false },
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
             };
         }
 
@@ -419,7 +421,7 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var options = CSharpSyntaxFormattingOptions.Default;
             var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
@@ -1070,11 +1072,11 @@ class C : Attribute
     class C1<U>
 {
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
-                            };
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
+            };
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1101,12 +1103,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1133,12 +1135,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1165,12 +1167,12 @@ class C : Attribute
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1223,12 +1225,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1255,12 +1257,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
@@ -2289,19 +2291,284 @@ namespace TestApp
             Assert.Single(annotatedTrivia);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        [WpfFact]
+        public void FormatUserDefinedOperator()
         {
-            using var workspace = TestWorkspace.CreateCSharp(code);
-            if (changedOptionSet != null)
-            {
-                var options = workspace.Options;
-                foreach (var entry in changedOptionSet)
-                {
-                    options = options.WithChangedOption(entry.Key, entry.Value);
-                }
+            var code = @"$$
+class C
+{
+    public static C operator + ( C x, C y){
+    }
+}";
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
-            }
+            var expected = @"$$
+class C
+{
+    public static C operator +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator ++(C x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator C(int x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string(T x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked + ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked ++(C x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator checked C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator checked C(int x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUnsignedRightShift()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator>>> ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator >>>(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUnsignedRightShiftOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator >>> ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator >>>(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection globalOptions = null, ParseOptions parseOptions = null)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
+
+            globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
             var subjectDocument = workspace.Documents.Single();
 

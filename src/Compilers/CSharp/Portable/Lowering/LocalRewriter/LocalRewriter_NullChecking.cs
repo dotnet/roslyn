@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwIfNullMethod is null)
             {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;

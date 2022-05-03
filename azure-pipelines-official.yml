@@ -7,7 +7,6 @@ trigger:
     - release/dev17.*
     exclude:
     - release/dev17.0
-    - release/dev17.1
 pr: none
 
 resources:
@@ -54,8 +53,8 @@ variables:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: ManagedLanguageSecrets
-
+  - group: DotNet-Roslyn-Insertion-Variables
+    
   - name: BuildConfiguration
     value: release
   - name: Roslyn.GitHubEmail
@@ -80,7 +79,7 @@ stages:
   displayName: Build and Test
   pool:
     name: NetCore1ESPool-Svc-Internal
-    demands: ImageOverride -equals Build.Server.Amd64.VS2019
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
   - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.2') }}:
@@ -332,8 +331,10 @@ stages:
 
     - template: eng/pipelines/insert.yml
       parameters:
-        clientId: $(ClientId)
-        clientSecret: $(ClientSecret)
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
         componentBuildProjectName: internal
         sourceBranch: "$(ComponentBranchName)"
         publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"

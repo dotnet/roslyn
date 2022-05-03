@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
@@ -13,8 +14,11 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
@@ -28,11 +32,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
         Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _indentationManager As IIndentationManagerService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService)
+        Public Sub New(globalOptions As IGlobalOptionService, indentationManager As IIndentationManagerService)
             _globalOptions = globalOptions
+            _indentationManager = indentationManager
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -69,36 +75,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
-                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
-                Dim formattingOptions = SyntaxFormattingOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language)
+                Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
+                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
-                                                document,
-                                                formattingOptions,
-                                                spanToFormat,
-                                                baseSnapshot, baseTree,
-                                                dirtyRegion,
-                                                document.GetSyntaxTreeSynchronously(cancellationToken),
-                                                cancellationToken)
+                    document,
+                    formattingOptions,
+                    spanToFormat,
+                    baseSnapshot,
+                    baseTree,
+                    dirtyRegion,
+                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
                                                WhereAsArray(s_codeCleanupPredicate).
                                                Concat(commitFormattingCleanup)
 
+                Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
+                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
-                    finalDocument = CodeCleaner.CleanupAsync(document,
-                                                             textSpanToFormat,
-                                                             codeCleanups,
-                                                             cancellationToken).WaitAndGetResult(cancellationToken)
+                    finalDocument = cleanupService.CleanupAsync(
+                        document,
+                        ImmutableArray.Create(textSpanToFormat),
+                        cleanupOptions,
+                        codeCleanups,
+                        cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
                     Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-                    Dim newRoot = CodeCleaner.CleanupAsync(root,
-                                                           textSpanToFormat,
-                                                           documentOptions,
-                                                           document.Project.Solution.Workspace.Services,
-                                                           codeCleanups,
-                                                           cancellationToken).WaitAndGetResult(cancellationToken)
+
+                    Dim newRoot = cleanupService.CleanupAsync(
+                        root,
+                        ImmutableArray.Create(textSpanToFormat),
+                        formattingOptions,
+                        document.Project.Solution.Workspace.Services,
+                        codeCleanups,
+                        cancellationToken).WaitAndGetResult(cancellationToken)
+
                     If root Is newRoot Then
                         finalDocument = document
                     Else

@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
                         if (Compilation.LanguageVersion < requiredVersion &&
-                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteInfo).IsImplicit)
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo).IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
@@ -760,8 +760,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
             }
 
-            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteInfo);
+            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, isChecked: false, ref useSiteInfo);
             ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+
+            // Don't need to worry about checked user-defined operators
+            Debug.Assert(!conversion.IsUserDefined || result == ConstantValue.False);
+
             return
                 (result == null) ? (bool?)null :
                 (result == ConstantValue.True) ? true :
@@ -1234,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasBaseInterface(TypeSymbol type, NamedTypeSymbol possibleBaseInterface)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, ref useSiteInfo).IsImplicit;
+                var result = Compilation.Conversions.ClassifyBuiltInConversion(type, possibleBaseInterface, isChecked: CheckOverflowAtRuntime, ref useSiteInfo).IsImplicit;
                 diagnostics.Add(node, useSiteInfo);
                 return result;
             }

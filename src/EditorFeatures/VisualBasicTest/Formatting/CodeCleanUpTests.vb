@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -10,10 +11,13 @@ Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -329,21 +333,17 @@ End Class
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
-                Dim options = CodeActionOptions.Default
 
-                Dim solution = workspace.CurrentSolution _
-                    .WithOptions(workspace.Options _
-                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
-                                       LanguageNames.VisualBasic,
-                                       systemImportsFirst) _
-                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups,
-                                       LanguageNames.VisualBasic,
-                                       separateImportsGroups)) _
-                    .WithAnalyzerReferences({
+                Dim solution = workspace.CurrentSolution.
+                    WithOptions(workspace.Options.
+                        WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst).
+                        WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)).
+                    WithAnalyzerReferences(
+                    {
                         New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
                         New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
                         New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                                            })
+                    })
 
                 workspace.TryApplyChanges(solution)
 
@@ -358,11 +358,19 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
+                Dim options = New CodeActionOptions(
+                    CleanupOptions:=New CodeCleanupOptions(
+                        FormattingOptions:=New VisualBasicSyntaxFormattingOptions(
+                            LineFormattingOptions.Default,
+                            separateImportDirectiveGroups:=separateImportsGroups),
+                        SimplifierOptions:=VisualBasicSimplifierOptions.Default,
+                        AddImportOptions:=AddImportPlacementOptions.Default))
+
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    options,
+                    options.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

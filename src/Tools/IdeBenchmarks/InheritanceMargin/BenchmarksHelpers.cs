@@ -26,7 +26,8 @@ namespace IdeBenchmarks.InheritanceMargin
                 foreach (var document in project.Documents)
                 {
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var items = await languageService.GetInheritanceMemberItemsAsync(document, root.Span, cancellationToken).ConfigureAwait(false);
+                    var items = await languageService.GetInheritanceMemberItemsAsync(
+                        document, root.Span, includeGlobalImports: true, cancellationToken).ConfigureAwait(false);
                     builder.AddRange(items);
                 }
             }

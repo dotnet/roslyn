@@ -986,6 +986,45 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferTopLevelStatements = $@"
+using System;
+//[
+// {ServicesVSResources.Prefer_colon}
+Console.WriteLine(""Hello, World!"");
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+";
+
+        private static readonly string s_preferProgramMain = $@"
+using System;
+
+//[
+// {ServicesVSResources.Prefer_colon}
+internal class Program
+{{
+    private static void Main(string[] args)
+    {{
+        Console.WriteLine(""Hello, World!"");
+    }}
+}}
+//]
+
+//[
+// {ServicesVSResources.Over_colon}
+Console.WriteLine(""Hello, World!"");
+//]
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -1118,6 +1157,21 @@ class Customer
 //]
     }}
 }}
+";
+
+        private static readonly string s_preferUTF8StringLiterals = $@"
+using System;
+
+//[
+class WebResponse
+{{
+    // {ServicesVSResources.Prefer_colon}
+    private readonly byte[] header = ""Hello""u8;
+
+    // {ServicesVSResources.Over_colon}
+    private readonly byte[] header = new byte[] {{ 72, 101, 108, 108, 111 }};
+}}
+//]
 ";
 
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
@@ -2115,6 +2169,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferMethodGroupConversion, ServicesVSResources.Prefer_method_group_conversion, s_preferMethodGroupConversion, s_preferMethodGroupConversion, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, s_preferTopLevelStatements, s_preferProgramMain, this, optionStore, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(OptionStore);
 
@@ -2137,6 +2192,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferUTF8StringLiterals, ServicesVSResources.Prefer_UTF8_string_literals, s_preferUTF8StringLiterals, s_preferUTF8StringLiterals, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);

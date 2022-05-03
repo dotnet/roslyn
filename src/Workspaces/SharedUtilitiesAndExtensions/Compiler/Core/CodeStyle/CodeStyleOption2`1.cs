@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
+    [DataContract]
     internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
         static CodeStyleOption2()
@@ -44,19 +46,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
 
-        public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
-        private readonly NotificationOption2 _notification;
+        [DataMember(Order = 0)]
+        public T Value { get; }
+
+        [DataMember(Order = 1)]
+        public NotificationOption2 Notification { get; }
 
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
             Value = value;
-            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            Notification = notification;
         }
-
-        public T Value { get; }
 
         object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
@@ -71,11 +75,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #endif
 
         private int EnumValueAsInt32 => (int)(object)Value!;
-
-        public NotificationOption2 Notification
-        {
-            get => _notification;
-        }
 
         public XElement ToXElement() =>
             new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.

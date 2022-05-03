@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -67,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(
-                    document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.IsEmpty)
                 {
                     return;
@@ -162,19 +160,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesOnReturnAsync(
-                    document, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var options = AutoFormattingOptions.From(document.Project);
-                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
 
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

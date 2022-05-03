@@ -27,6 +27,16 @@
         <target state="translated">switch 문을 식으로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_Program_Main_style_program">
+        <source>Convert to 'Program.Main' style program</source>
+        <target state="new">Convert to 'Program.Main' style program</target>
+        <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_UTF8_string_literal">
+        <source>Convert to UTF-8 string literal</source>
+        <target state="new">Convert to UTF-8 string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">블록 범위 namespace 스로 변환</target>
@@ -36,6 +46,11 @@
         <source>Convert to file-scoped namespace</source>
         <target state="translated">파일 범위 namespace 스로 변환</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_top_level_statements">
+        <source>Convert to top-level statements</source>
+        <target state="new">Convert to top-level statements</target>
+        <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
@@ -69,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
-        <target state="new">Lambda expression can be removed</target>
+        <target state="translated">람다 식을 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -129,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
-        <target state="new">Remove unnecessary lambda expression</target>
+        <target state="translated">불필요한 람다 식 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -149,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
-        <target state="new">Simplify delegate invocation</target>
+        <target state="translated">대리자 호출 간소화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
@@ -170,6 +185,11 @@
       <trans-unit id="Unreachable_code_detected">
         <source>Unreachable code detected</source>
         <target state="translated">접근할 수 없는 코드가 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_UTF8_string_literal">
+        <source>Use UTF-8 string literal</source>
+        <target state="new">Use UTF-8 string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -264,7 +284,7 @@
       </trans-unit>
       <trans-unit id="Use_is_not_null_check">
         <source>Use 'is not null' check</source>
-        <target state="new">Use 'is not null' check</target>
+        <target state="translated">'is not null' 검사 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_is_null_check">
@@ -274,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Use_is_object_check">
         <source>Use 'is object' check</source>
-        <target state="new">Use 'is object' check</target>
+        <target state="translated">'is object' 검사 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -289,7 +309,7 @@
       </trans-unit>
       <trans-unit id="Use_parameter_null_checking">
         <source>Use parameter null checking</source>
-        <target state="new">Use parameter null checking</target>
+        <target state="translated">매개 변수 Null 검사 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">

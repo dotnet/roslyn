@@ -36,7 +36,6 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
                     </StackPanel>
-
                     <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
                               Checked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
@@ -57,6 +56,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
@@ -77,15 +77,19 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
+                    <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Always_use_default_symbol_servers_for_navigation}" />
                     <CheckBox x:Name="Navigate_asynchronously_exerimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="UsingDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
                 <StackPanel>
@@ -106,6 +110,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="QuickActionsBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
                 <StackPanel>
@@ -113,6 +118,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -122,6 +128,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightKeywords}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="OutliningGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}">
                 <StackPanel>
@@ -139,6 +146,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="FadingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
                 <StackPanel>
@@ -148,6 +156,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unreachable_code}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>
@@ -157,7 +166,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Uid="CommentsGuidesGroupBox"
+            
+            <GroupBox x:Uid="CommentsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
@@ -168,6 +178,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="RegularExpressionsGroupBox"
                         Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
                 <StackPanel>
@@ -307,6 +318,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
@@ -315,6 +327,9 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                    <CheckBox x:Uid="IncludeGlobalImports"
+                              x:Name="IncludeGlobalImports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
 

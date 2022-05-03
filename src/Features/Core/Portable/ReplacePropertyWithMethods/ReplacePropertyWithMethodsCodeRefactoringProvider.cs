@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 : FeaturesResources.Replace_0_with_methods;
 
             context.RegisterRefactoring(
-                new ReplacePropertyWithMethodsCodeAction(
+                CodeAction.Create(
                     string.Format(resourceString, propertyName),
                     c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                     propertyName),
@@ -435,13 +435,5 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public int GetHashCode((IPropertySymbol property, ReferenceLocation location) obj)
             => obj.location.Location.SourceSpan.GetHashCode();
-
-        private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
-        {
-            public ReplacePropertyWithMethodsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
-        }
     }
 }

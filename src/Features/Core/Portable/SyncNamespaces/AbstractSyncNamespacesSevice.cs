@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         /// <inheritdoc/>
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             // all projects must be of the same language
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             Solution solution,
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
-            CodeActionOptions options,
+            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             var diagnosticProvider = new DiagnosticProvider(diagnosticsByProject);
@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
 
             return new FixAllContext(
                 new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
+                    diagnosticSpan: firstDiagnostic.Location.SourceSpan,
                     document,
                     document.Project,
                     codeFixProvider,
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                     codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider,
-                    _ => options),
+                    options),
                 new ProgressTracker(),
                 cancellationToken);
         }

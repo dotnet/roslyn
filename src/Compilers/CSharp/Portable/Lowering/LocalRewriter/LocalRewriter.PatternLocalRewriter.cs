@@ -208,7 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
-                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteInfo);
+                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, isChecked: false, ref useSiteInfo);
+
+                            Debug.Assert(!conversion.IsUserDefined);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
                             if (conversion.Exists)
@@ -479,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case 2: null check followed by cast to a base type
                 if (test is BoundDagNonNullTest nonNullTest &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation2 &&
-                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteInfo) is Conversion conv &&
+                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, isChecked: false, ref useSiteInfo) is Conversion conv &&
                     (conv.IsIdentity || conv.Kind == ConversionKind.ImplicitReference || conv.IsBoxing) &&
                     typeEvaluation2.Input == nonNullTest.Input)
                 {

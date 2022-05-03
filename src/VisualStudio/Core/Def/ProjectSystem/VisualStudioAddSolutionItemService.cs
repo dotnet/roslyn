@@ -41,10 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangeTrackers = new ConcurrentDictionary<string, FileChangeTracker>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
-            _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
+            _dte = await serviceProvider.GetServiceAsync<DTE, DTE>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            _fileChangeService = await serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsFileChangeEx>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
         }
 
         public void TrackFilePathAndAddSolutionItemWhenFileCreated(string filePath)

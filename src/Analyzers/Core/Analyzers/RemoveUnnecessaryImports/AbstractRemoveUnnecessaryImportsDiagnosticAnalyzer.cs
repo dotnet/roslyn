@@ -14,12 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
@@ -116,7 +111,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-        public bool OpenFileOnly(OptionSet options) => false;
+        public bool OpenFileOnly(SimplifierOptions? options) => false;
 
         public override void Initialize(AnalysisContext context)
         {

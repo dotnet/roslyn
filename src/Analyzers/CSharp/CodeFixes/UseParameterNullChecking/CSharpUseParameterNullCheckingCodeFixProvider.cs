@@ -33,20 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseParameterNullCheckingId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics[0];
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_parameter_null_checking, nameof(CSharpAnalyzersResources.Use_parameter_null_checking));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Tracking parameters which have already been fixed by a fix-all operation.
             // This avoids crashing the fixer when the same parameter is null-tested multiple times.
@@ -97,14 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_parameter_null_checking, createChangedDocument, nameof(CSharpUseParameterNullCheckingCodeFixProvider))
-            {
-            }
         }
     }
 }

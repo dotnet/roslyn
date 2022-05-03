@@ -11,6 +11,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -38,6 +39,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var span = ProtocolConversions.RangeToTextSpan(request.Range, text);
             var breakpointService = document.Project.LanguageServices.GetRequiredService<IBreakpointResolutionService>();
+
+            if (span.Length > 0)
+            {
+                // If we have a non-empty span then it means that the debugger is asking us to adjust an
+                // existing span.  In Everett we didn't do this so we had some good and some bad
+                // behavior.  For example if you had a breakpoint on: "int i = 1;" and you changed it to "int
+                // i = 1, j = 2;", then the breakpoint wouldn't adjust.  That was bad.  However, if you had the
+                // breakpoint on an open or close curly brace then it would always "stick" to that brace
+                // which was good.
+                //
+                // So we want to keep the best parts of both systems.  We want to appropriately "stick"
+                // to tokens and we also want to adjust spans intelligently.
+                //
+                // However, it turns out the latter is hard to do when there are parse errors in the
+                // code.  Things like missing name nodes cause a lot of havoc and make it difficult to
+                // track a closing curly brace.
+                //
+                // So the way we do this is that we default to not intelligently adjusting the spans
+                // while there are parse errors.  But when there are no parse errors then the span is
+                // adjusted.
+                if (document.SupportsSyntaxTree)
+                {
+                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(tree);
+                    if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                    {
+                        // Keep the span as is.
+                        return request.Range;
+                    }
+                }
+            }
 
             var result = await breakpointService.ResolveBreakpointAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (result == null)

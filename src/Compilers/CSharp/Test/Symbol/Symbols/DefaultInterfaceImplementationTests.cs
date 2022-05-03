@@ -2213,7 +2213,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
                 // (4,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P1 {add; remove;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 9),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 9)
@@ -2244,7 +2244,7 @@ public interface I1
             compilation1.VerifyEmitDiagnostics(
                 // (4,9): error CS8053: Instance properties in interfaces cannot have initializers..
                 //     int P1 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 9)
                 );
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -11761,7 +11761,7 @@ public interface I1
             compilation1.VerifyEmitDiagnostics(
                 // (4,24): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public virtual int P1 { get; } = 0; 
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 24),
                 // (4,29): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual int P1 { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 29)
@@ -12578,7 +12578,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 24),
                 // (14,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int P4 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(14, 17),
                 // (14,21): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P4 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(14, 21),
@@ -14023,7 +14023,7 @@ class Test2 : I1, I2, I3
             ValidatePropertyModifiers_14(source1,
                 // (4,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public sealed int P1 {get;} = 0; 
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 23),
                 // (4,27): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public sealed int P1 {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 27),
@@ -14286,7 +14286,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("property", "I8.P8").WithLocation(44, 26),
                 // (44,26): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract virtual int P8 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.P0").WithLocation(90, 15),
@@ -14734,7 +14734,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I4.P4.set").WithLocation(16, 47),
                 // (20,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     extern sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(20, 23),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(23, 15),
@@ -14966,7 +14966,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 25),
                 // (20,25): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     override sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 25),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(20, 25),
                 // (20,29): error CS0501: 'I5.P5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I5.P5.get").WithLocation(20, 29),
@@ -34108,7 +34108,7 @@ class Test2 : I4
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
                 // (44,12): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int I3.M4 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "M4").WithLocation(44, 12),
                 // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M4 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M4.get").WithLocation(44, 16),
@@ -39771,7 +39771,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.F1.set").WithLocation(4, 26),
                 // (5,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int F5 {get;} = 5;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "F5").WithArguments("I1.F5").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "F5").WithLocation(5, 17),
                 // (5,21): error CS0501: 'I1.F5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F5 {get;} = 5;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F5.get").WithLocation(5, 21)
@@ -41273,6 +41273,12 @@ public interface I1
         System.Console.WriteLine(""<="");
         return x;
     }
+
+    public static I1 operator >>>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
 }
 ";
 
@@ -41306,6 +41312,8 @@ class Test2 : I1
         x = x < y;
         x = x >= y;
         x = x <= y;
+
+        x = x >>> 3;
     }
 }
 ";
@@ -41334,11 +41342,12 @@ true
 <
 >=
 <=
+>>>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
@@ -41348,13 +41357,13 @@ true
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
@@ -41429,12 +41438,18 @@ true
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">=").WithArguments("default interface implementation", "8.0").WithLocation(124, 31),
                 // (130,31): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31),
+                // (136,31): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(136, 31),
+                // (136,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">>>").WithArguments("default interface implementation", "8.0").WithLocation(136, 31)
                 );
 
             var compilation61 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation61.VerifyDiagnostics(
                 // (4,31): error CS8701: Target runtime doesn't support default interface implementation.
@@ -41502,7 +41517,10 @@ true
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">=").WithLocation(124, 31),
                 // (130,31): error CS8701: Target runtime doesn't support default interface implementation.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<=").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<=").WithLocation(130, 31),
+                // (136,31): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public static I1 operator >>>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">>>").WithLocation(136, 31)
                 );
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
@@ -41573,7 +41591,13 @@ true
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >= y").WithArguments("default interface implementation", "8.0").WithLocation(28, 13),
                 // (29,13): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x <= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13),
+                // (31,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         x = x >>> 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >>> 3").WithArguments("default interface implementation", "8.0").WithLocation(31, 13),
+                // (31,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x = x >>> 3;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> 3").WithArguments("unsigned right shift").WithLocation(31, 13)
             };
             compilation7.VerifyDiagnostics(expected7);
 
@@ -43847,11 +43871,12 @@ public interface I1
     public static I1 operator <(int x, int y) => throw null;
     public static I1 operator >=(int x, int y) => throw null;
     public static I1 operator <=(int x, int y) => throw null;
+    public static I1 operator >>>(int x, int y) => throw null;
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0562: The parameter of a unary operator must be the containing type
@@ -43902,10 +43927,10 @@ public interface I1
                 // (19,31): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static I1 operator ^(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "^").WithLocation(19, 31),
-                // (20,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (20,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static I1 operator <<(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(20, 31),
-                // (21,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                // (21,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static I1 operator >>(int x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(21, 31),
                 // (22,31): error CS0563: One of the parameters of a binary operator must be the containing type
@@ -43919,7 +43944,10 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, ">=").WithLocation(24, 31),
                 // (25,31): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static I1 operator <=(int x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<=").WithLocation(25, 31)
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<=").WithLocation(25, 31),
+                // (26,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator >>>(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(26, 31)
                 );
         }
 
@@ -43932,8 +43960,8 @@ public interface I1
 {
     public static I1 operator <<(I1 x, I1 y) => throw null;
     public static I1 operator >>(I1 x, I1 y) => throw null;
+    public static I1 operator >>>(I1 x, I1 y) => throw null;
 }
-
 public interface I2
 {
     public static bool operator true(I2 x) => throw null;
@@ -43952,15 +43980,9 @@ public interface I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static I1 operator <<(I1 x, I1 y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(4, 31),
-                // (5,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static I1 operator >>(I1 x, I1 y) => throw null;
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(5, 31),
                 // (10,33): error CS0216: The operator 'I2.operator true(I2)' requires a matching operator 'false' to also be defined
                 //     public static bool operator true(I2 x) => throw null;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("I2.operator true(I2)", "false").WithLocation(10, 33),
@@ -44191,6 +44213,12 @@ public interface I1
         System.Console.WriteLine(""<="");
         return x;
     }
+
+    static I1 operator >>>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
 }
 ";
 
@@ -44224,6 +44252,8 @@ class Test2 : I1
         x = x < y;
         x = x >= y;
         x = x <= y;
+
+        x = x >>> 3;
     }
 }
 ";
@@ -44252,11 +44282,12 @@ true
 <
 >=
 <=
+>>>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
 
@@ -44272,12 +44303,12 @@ true
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -50560,7 +50591,7 @@ public class C2 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(9, 26)
                 );
         }
 
@@ -50585,7 +50616,7 @@ public struct C2 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(9, 26)
                 );
         }
 
@@ -50674,7 +50705,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; set; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -50703,7 +50734,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -50732,7 +50763,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { set; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -60982,16 +61013,16 @@ interface IC
             compilation1.VerifyDiagnostics(
                 // (4,20): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref int PA { get;}
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithArguments("IA.PA").WithLocation(4, 20),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithLocation(4, 20),
                 // (9,20): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithArguments("IB.PB").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithLocation(9, 20),
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     static ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20)
                 );
         }
 
@@ -61021,10 +61052,10 @@ interface IC
             compilation1.VerifyDiagnostics(
                 // (9,23): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 23),
                 // (14,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 13)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 13)
                 );
         }
 
@@ -61060,13 +61091,13 @@ interface IC
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IB.PB.get").WithLocation(9, 25),
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     sealed ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
                 // (9,30): error CS0501: 'IB.PB.set' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed ref int PB { get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     sealed ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20),
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20),
                 // (14,25): error CS0501: 'IC.PC.set' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)

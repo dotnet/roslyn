@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -120,12 +121,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
-            {
-                return;
-            }
-
             await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
         }
 
@@ -137,18 +132,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             try
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
-                var options = project.Solution.Options;
+
+                // get driver only with active analyzers.
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
+                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
 
-                // get driver only with active analyzers.
-                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+                CompilationWithAnalyzers? compilationWithAnalyzers = null;
 
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                if (FullAnalysisEnabled(project, forceAnalyzerRun))
+                {
+                    compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                }
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)
@@ -267,14 +266,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            // When the analysis scope is set to 'ActiveFile' and the active document is switched,
-            // we retrigger analysis of newly active document.
-            // For the remaining analysis scopes, we always analyze all the open files, so switching active
-            // documents between two open files doesn't require us to retrigger analysis of the newly active document.
-            if (GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
-            {
-                return;
-            }
+            // Retrigger analysis of newly active document to always get up-to-date diagnostics.
+            // Note that we do so regardless of the current background analysis scope,
+            // as we might have switched the document _while_ the diagnostic refresh was in progress for
+            // all open documents, which can lead to cancellation of diagnostic recomputation task
+            // for the newly active document.  This can lead to a race condition where we end up with
+            // stale diagnostics for the active document.  We avoid that by always recomputing
+            // the diagnostics for the newly active document whenever active document is switched.
 
             // First reset the document states.
             await TextDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
@@ -385,8 +383,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
-            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
+            if (analyzer == FileContentLoadAnalyzer.Instance ||
+                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we couldn't find a normal document, and all features are enabled for source generated documents,
                 // attempt to locate a matching source generated document in the project.
                 if (document is null
-                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                    && project.Solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }

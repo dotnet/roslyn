@@ -8,12 +8,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
 
@@ -22,29 +26,26 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var title = GetTitle();
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                CodeAction.Create(
+                    title,
+                    c => RemoveUnnecessaryImportsAsync(context.Document, context.GetOptionsProvider(), c),
+                    title),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected abstract string GetTitle();
 
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
+        private async Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document,
+            CodeActionOptionsProvider options,
+            CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), options, cancellationToken).ConfigureAwait(false);
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

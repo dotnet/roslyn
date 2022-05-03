@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +12,6 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -62,12 +58,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// representing the queue's cancellation token and the individual request cancellation token.
         /// </summary>
         private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
-        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancelSource = new();
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
 
         private readonly ILspLogger _logger;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
+        private readonly ILanguageServerNotificationManager _notificationManager;
 
         /// <summary>
         /// For test purposes only.
@@ -89,24 +86,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public RequestExecutionQueue(
             ILspLogger logger,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
+            WellKnownLspServerKinds serverKind,
+            RequestTelemetryLogger requestTelemetryLogger,
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager)
         {
             _logger = logger;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverKind = serverKind;
-
-            // Pass the language client instance type name to the telemetry logger to ensure we can
-            // differentiate between the different C# LSP servers that have the same client name.
-            // We also don't use the language client's name property as it is a localized user facing string
-            // which is difficult to write telemetry queries for.
-            _requestTelemetryLogger = new RequestTelemetryLogger(_serverKind.ToTelemetryString());
-
-            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
+            _requestTelemetryLogger = requestTelemetryLogger;
+            _lspWorkspaceManager = lspWorkspaceManager;
+            _notificationManager = notificationManager;
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -125,9 +118,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
             // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
             _queue.Complete();
-
-            _requestTelemetryLogger.Dispose();
-            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>
@@ -142,7 +132,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="handler">The handler that will handle the request.</param>
         /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
-        /// <param name="clientName">The client name.</param>
         /// <param name="methodName">The name of the LSP method.</param>
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
@@ -153,7 +142,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
-            string? clientName,
             string methodName,
             CancellationToken requestCancellationToken)
             where TRequestType : class
@@ -171,7 +159,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
-                clientName,
                 methodName,
                 textDocument,
                 request,
@@ -180,6 +167,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _logger,
                 _requestTelemetryLogger,
                 combinedCancellationToken);
+
+            // Run a continuation to ensure the cts is disposed of.
+            // We pass CancellationToken.None as we always want to dispose of the source
+            // even when the request is cancelled or the queue is shutting down.
+            _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
             var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
 
@@ -199,7 +191,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-
                     // First attempt to de-queue the work item in its own try-catch.
                     // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
                     (IQueueItem work, CancellationToken cancellationToken) queueItem;
@@ -275,13 +266,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return RequestContext.Create(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
-                queueItem.ClientName,
+                _serverKind,
                 _logger,
                 queueItem.ClientCapabilities,
                 _lspWorkspaceManager,
+                _notificationManager,
                 trackerToUse,
                 _supportedLanguages,
-                _globalOptions);
+                _globalOptions,
+                queueCancellationToken: this.CancellationToken);
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,6 +26,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
+
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
+        }
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
         {

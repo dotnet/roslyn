@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -25,8 +26,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     [Export(typeof(ICodeActionEditHandlerService))]
-    internal class CodeActionEditHandlerService : ForegroundThreadAffinitizedObject, ICodeActionEditHandlerService
+    internal class CodeActionEditHandlerService : ICodeActionEditHandlerService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IPreviewFactoryService _previewService;
         private readonly IInlineRenameService _renameService;
         private readonly ITextBufferAssociatedViewService _associatedViewService;
@@ -38,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IPreviewFactoryService previewService,
             IInlineRenameService renameService,
             ITextBufferAssociatedViewService associatedViewService)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _previewService = previewService;
             _renameService = renameService;
             _associatedViewService = associatedViewService;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 if (op is PreviewOperation previewOp)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
-                        new SolutionPreviewResult(ThreadingContext, new SolutionPreviewItem(
+                        new SolutionPreviewResult(_threadingContext, new SolutionPreviewItem(
                             projectId: null, documentId: null,
                             lazyPreview: c => previewOp.GetPreviewAsync(c))));
                     continue;
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 if (title != null)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
-                        new SolutionPreviewResult(ThreadingContext, new SolutionPreviewItem(
+                        new SolutionPreviewResult(_threadingContext, new SolutionPreviewItem(
                             projectId: null, documentId: null, text: title)));
                     continue;
                 }
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
             // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish
             // the UI thread.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (operations.IsDefaultOrEmpty)
             {
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     try
                     {
-                        this.AssertIsForeground();
+                        _threadingContext.ThrowIfNotOnUIThread();
 
                         applied = await operations.Single().TryApplyAsync(
                             workspace, progressTracker, cancellationToken).ConfigureAwait(true);
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             Workspace workspace, ImmutableArray<CodeActionOperation> operations,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var applied = true;
             var seenApplyChanges = false;
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     seenApplyChanges = true;
                 }
 
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
                 await navigationService.TryNavigateToPositionAsync(
-                    this.ThreadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
+                    this._threadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -318,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
                     await navigationService.TryNavigateToPositionAsync(
-                        this.ThreadingContext, workspace, documentId, navigationToken.Value.SpanStart, cancellationToken).ConfigureAwait(false);
+                        this._threadingContext, workspace, documentId, navigationToken.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -343,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                             var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                             if (await navigationService.TryNavigateToSpanAsync(
-                                    this.ThreadingContext, editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false))
+                                    this._threadingContext, editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false))
                             {
                                 var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
                                 var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -361,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                                     var snapshot = text.FindCorrespondingEditorTextSnapshot();
                                     if (snapshot != null)
                                     {
-                                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                                        await this._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                                         _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
                                     }
                                 }

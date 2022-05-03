@@ -4519,6 +4519,7 @@ False
                     BinaryOperatorKind.Or,
                     BinaryOperatorKind.And,
                     BinaryOperatorKind.Xor,
+                    BinaryOperatorKind.UnsignedRightShift,
                 };
 
                 foreach (var operatorKind in unaryOperators)
@@ -9485,7 +9486,7 @@ $@"class Program
             incrementOps("--", "System.IntPtr");
             incrementOps("--", "System.UIntPtr");
 
-            incrementOps("++", "nint", "nint nint.op_Increment(nint value)", useChecked: true,
+            incrementOps("++", "nint", "nint nint.op_CheckedIncrement(nint value)", useChecked: true,
                 values: $"{int.MinValue}, -1, 0, {int.MaxValue - 1}, {int.MaxValue}",
                 expectedResult: $"-2147483647, 0, 1, 2147483647, {(IntPtr.Size == 4 ? "System.OverflowException" : "2147483648")}",
 @"{
@@ -9521,7 +9522,7 @@ $@"class Program
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            incrementOps("++", "nuint", "nuint nuint.op_Increment(nuint value)", useChecked: true,
+            incrementOps("++", "nuint", "nuint nuint.op_CheckedIncrement(nuint value)", useChecked: true,
                 values: $"0, {int.MaxValue}, {uint.MaxValue - 1}, {uint.MaxValue}",
                 expectedResult: $"1, 2147483648, 4294967295, {(IntPtr.Size == 4 ? "System.OverflowException" : "4294967296")}",
 @"{
@@ -9559,7 +9560,7 @@ $@"class Program
 }");
             incrementOps("++", "System.IntPtr", null, useChecked: true);
             incrementOps("++", "System.UIntPtr", null, useChecked: true);
-            incrementOps("--", "nint", "nint nint.op_Decrement(nint value)", useChecked: true,
+            incrementOps("--", "nint", "nint nint.op_CheckedDecrement(nint value)", useChecked: true,
                 values: $"{int.MinValue}, {int.MinValue + 1}, 0, 1, {int.MaxValue}",
                 expectedResult: $"{(IntPtr.Size == 4 ? "System.OverflowException" : "-2147483649")}, -2147483648, -1, 0, 2147483646",
 @"{
@@ -9595,7 +9596,7 @@ $@"class Program
   IL_0026:  ldarg.0
   IL_0027:  ret
 }");
-            incrementOps("--", "nuint", "nuint nuint.op_Decrement(nuint value)", useChecked: true,
+            incrementOps("--", "nuint", "nuint nuint.op_CheckedDecrement(nuint value)", useChecked: true,
                 values: $"0, 1, {uint.MaxValue}",
                 expectedResult: $"System.OverflowException, 0, 4294967294",
 @"{

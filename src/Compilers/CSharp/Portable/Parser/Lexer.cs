@@ -386,8 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.Text, trailingNode);
                         break;
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.UTF8StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
                     case SyntaxKind.CharacterLiteralToken:
@@ -4079,8 +4082,7 @@ top:
                     break;
                 case '>':
                     if (AdvanceIfMatches('=')) info.Kind = SyntaxKind.GreaterThanEqualsToken;
-                    // GreaterThanGreaterThanToken is synthesized in the parser since it is ambiguous (with closing nested type parameter lists)
-                    // else if (AdvanceIfMatches('>')) info.Kind = SyntaxKind.GreaterThanGreaterThanToken;
+                    // GreaterThanGreaterThanToken/GreaterThanGreaterThanGreaterThanToken is synthesized in the parser since it is ambiguous (with closing nested type parameter lists)
                     else info.Kind = SyntaxKind.GreaterThanToken;
                     break;
                 case '<':

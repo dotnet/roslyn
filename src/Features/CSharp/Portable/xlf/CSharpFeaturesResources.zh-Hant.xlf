@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="translated">新增 'await'</target>
+        <target state="new">Add 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
-        <target state="new">Add required braces for single-line control statements</target>
+        <target state="translated">新增單行控制項陳述式所需的大括弧</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
@@ -29,32 +29,32 @@
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
-        <target state="new">Apply blank line after colon in constructor initializer preferences (experimental)</target>
+        <target state="translated">套用在建構函式初始設定式中的冒號後面加上空白行喜好設定 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
-        <target state="new">Apply blank lines between consecutive braces preferences (experimental)</target>
+        <target state="translated">套用連續大括弧間空白行喜好設定 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
-        <target state="new">Apply conditional delegate call preferences</target>
+        <target state="translated">套用條件式委派呼叫喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_deconstruct_preferences">
         <source>Apply deconstruct preferences</source>
-        <target state="new">Apply deconstruct preferences</target>
+        <target state="translated">套用解構喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_default_T_preferences">
         <source>Apply default(T) preferences</source>
-        <target state="new">Apply default(T) preferences</target>
+        <target state="translated">套用預設(T) 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_embedded_statements_on_same_line_preferences_experimental">
         <source>Apply embedded statements on same line preferences (experimental)</source>
-        <target state="new">Apply embedded statements on same line preferences (experimental)</target>
+        <target state="translated">套用相同行上內嵌陳述式喜好設定 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -69,72 +69,62 @@
       </trans-unit>
       <trans-unit id="Apply_local_over_anonymous_function_preferences">
         <source>Apply local over anonymous function preferences</source>
-        <target state="new">Apply local over anonymous function preferences</target>
+        <target state="translated">套用區域而非匿名函式喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_method_group_conversion_preferences">
         <source>Apply method group conversion preferences</source>
-        <target state="new">Apply method group conversion preferences</target>
+        <target state="translated">套用方法群組轉換喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_preferences">
         <source>Apply namespace preferences</source>
-        <target state="new">Apply namespace preferences</target>
+        <target state="translated">套用命名空間喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
-        <target state="new">Apply new() preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
+        <target state="translated">套用新增() 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_parameter_null_preferences">
         <source>Apply parameter null preferences</source>
-        <target state="new">Apply parameter null preferences</target>
+        <target state="translated">套用參數 Null 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
-        <target state="new">Apply pattern matching preferences</target>
+        <target state="translated">套用模式比對喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_range_preferences">
         <source>Apply range preferences</source>
-        <target state="new">Apply range preferences</target>
+        <target state="translated">套用範圍喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
-        <target state="new">Apply static local function preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_this_qualification_preferences">
-        <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">套用 'this.' 資格喜好設定</target>
+        <target state="translated">套用靜態區域函式喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_throw_expression_preferences">
         <source>Apply throw expression preferences</source>
-        <target state="new">Apply throw expression preferences</target>
+        <target state="translated">套用 Throw 運算式喜好設定</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply preferred 'using' placement preferences</source>
-        <target state="translated">套用慣用的 'using' 放置喜好設定</target>
-        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
-        <target state="new">Apply using statement preferences</target>
+        <target state="translated">套用 Using 陳述式喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_utf8_string_literal_preferences">
+        <source>Apply UTF-8 string literal preferences</source>
+        <target state="new">Apply UTF-8 string literal preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
-        <target state="new">Apply 'var' preferences</target>
+        <target state="translated">套用 'var' 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -146,11 +136,6 @@
         <source>Assign 'out' parameters (at start)</source>
         <target state="translated">指派 'out' 參數 (開始時)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_to_0">
-        <source>Assign to '{0}'</source>
-        <target state="translated">指派給 '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
@@ -167,11 +152,6 @@
         <target state="translated">變更為 'cast'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compare_to_0">
-        <source>Compare to '{0}'</source>
-        <target state="translated">與 '{0}' 比較</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">轉換為方法</target>
@@ -179,12 +159,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
-        <target state="new">Convert to raw string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="new">Convert to raw string (no indent)</target>
+        <target state="translated">轉換成原始字串</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -207,19 +182,14 @@
         <target state="translated">轉換為逐字字串</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="translated">宣告為可為 Null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">在專案中啟用可為 Null 的參考類型</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_return_type">
-        <source>Fix return type</source>
-        <target state="translated">修正傳回型別</target>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -267,29 +237,9 @@
         <target state="translated">選取範圍不能包含最上層陳述式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_lambda_expression">
-        <source>Simplify lambda expression</source>
-        <target state="translated">簡化 Lambda 運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_all_occurrences">
-        <source>Simplify all occurrences</source>
-        <target state="translated">簡化所有項目</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unseal_class_0">
-        <source>Unseal class '{0}'</source>
-        <target state="translated">為類別 '{0}' 解密</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">使用遞迴模式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Expression_may_change_code_meaning">
-        <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="translated">警告: 運算式可能有副作用。代碼意義可能變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -342,16 +292,6 @@
         <target state="translated">由於可能會建立明確命名的匿名類型成員，所以停用自動選取。</target>
         <note />
       </trans-unit>
-      <trans-unit id="element_name">
-        <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;元素名稱&gt;: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
-        <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="translated">因為可能建立元組類型元素，所以停用自動選擇。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
         <target state="translated">&lt;樣式變數&gt;</target>
@@ -382,11 +322,6 @@
         <target state="translated">移除 'this' 限定性條件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">可以簡化名稱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
         <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
@@ -400,11 +335,6 @@
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
         <target state="translated">選取範圍沒有包含有效的節點</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection.</source>
-        <target state="translated">無效的選取範圍。</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -477,24 +407,9 @@
         <target state="translated">組合管理 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_await">
-        <source>Insert 'await'.</source>
-        <target state="translated">插入 'await'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
         <target state="translated">使 {0} 傳回 Task 而不是 void。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_return_type_from_0_to_1">
-        <source>Change return type from {0} to {1}</source>
-        <target state="translated">將傳回類型從 {0} 變更為 {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_return_with_yield_return">
-        <source>Replace return with yield return</source>
-        <target state="translated">使用 yield return 取代 return</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -727,19 +642,9 @@
         <target state="translated">屬性目標</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
-        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'{0}' 不包含接受許多引數的建構函式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
         <source>The name '{0}' does not exist in the current context.</source>
         <target state="translated">目前內容中沒有名稱 '{0}'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hide_base_member">
-        <source>Hide base member</source>
-        <target state="translated">隱藏基底成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
@@ -847,11 +752,6 @@
         <target state="translated">反轉 if</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add [Obsolete]</source>
-        <target state="translated">新增 [Obsolete]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
         <target state="translated">使用 '{0}'</target>
@@ -861,6 +761,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">引進 'using’ 陳述式</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="new">... without leading whitespace (may change semantics)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

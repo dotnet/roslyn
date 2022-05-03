@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -46,16 +48,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             _threadingContext = threadingContext;
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serviceProvider);
 
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IServiceProvider)serviceProvider;
 
             // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-            var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
+            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.SyncNamespaces, Guids.RoslynGroupId, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
             }
         }
@@ -129,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             }
 
             var syncService = projects[0].GetRequiredLanguageService<ISyncNamespacesService>();
-            var options = _globalOptions.GetCodeActionOptions(projects[0].Language);
+            var options = _globalOptions.GetCodeActionOptionsProvider();
 
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>

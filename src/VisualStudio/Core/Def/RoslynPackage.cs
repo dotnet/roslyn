@@ -28,9 +28,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -163,6 +165,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
+
+            // Misc workspace has to be up and running by the time our package is usable so that it can track running
+            // doc events and appropriately map files to/from it and other relevant workspaces (like the
+            // metadata-as-source workspace).
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -191,36 +198,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await TaskScheduler.Default;
 
-            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
-            this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>();
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
+            await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-            this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
-
-            // The misc files workspace needs to be loaded on the UI thread.  This way it will have
-            // the appropriate task scheduler to report events on.
-            this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
-            this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
+            await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
 
-            this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
-            this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().Initialize(this);
-            this.ComponentModel.GetService<SyncNamespacesCommandHandler>().Initialize(this);
+            await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-            LoadAnalyzerNodeComponents();
+            await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
-            LoadComponentsBackgroundAsync(cancellationToken).Forget();
+            LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
         }
 
         // Overrides for VSSDK003 fix 
@@ -251,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
-            await LoadCallstackExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
+            await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
@@ -279,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 .ConfigureAwait(true);
         }
 
-        private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
+        private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -312,6 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
+            InheritanceMarginLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()
@@ -322,15 +328,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void LoadAnalyzerNodeComponents()
+        private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
         {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Initialize(this);
+            await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
             if (_ruleSetEventHandler != null)
-            {
-                _ruleSetEventHandler.Register();
-            }
+                await _ruleSetEventHandler.RegisterAsync(this, cancellationToken).ConfigureAwait(false);
         }
 
         private void UnregisterAnalyzerTracker()
@@ -360,17 +364,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
             var gate = new object();
-            GlobalOperationRegistration? localRegistration = null;
+            IDisposable? localRegistration = null;
 
-            BulkFileOperation.End += (s, a) =>
-            {
-                StopBulkFileOperationNotification();
-            };
+            BulkFileOperation.Begin += (s, a) => StartBulkFileOperationNotification();
+            BulkFileOperation.End += (s, a) => StopBulkFileOperationNotification();
 
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
+            return;
 
             void StartBulkFileOperationNotification()
             {

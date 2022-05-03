@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
             }
 
-            public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
+            public override Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }

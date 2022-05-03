@@ -6,12 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeQuality
 {
@@ -42,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-        public bool OpenFileOnly(OptionSet options)
+        public bool OpenFileOnly(SimplifierOptions? options)
             => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(

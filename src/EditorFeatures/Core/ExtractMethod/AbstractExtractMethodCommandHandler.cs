@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            var options = _globalOptions.GetExtractMethodOptions(document.Project.Language);
+            var options = document.GetExtractMethodGenerationOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var result = ExtractMethodService.ExtractMethodAsync(
                 document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
@@ -146,9 +147,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
+            var cleanupOptions = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+
             // apply the change to buffer
             // get method name token
-            ApplyChangesToBuffer(result, textBuffer, cancellationToken);
+            ApplyChangesToBuffer(result, textBuffer, cleanupOptions, cancellationToken);
 
             // start inline rename
             var methodNameAtInvocation = result.InvocationNameToken;
@@ -214,9 +217,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
-            Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, ExtractMethodOptions options, CancellationToken cancellationToken)
+            Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (options.DontPutOutOrRefOnStruct || !result.Reasons.IsSingle())
+            if (options.ExtractOptions.DontPutOutOrRefOnStruct || !result.Reasons.IsSingle())
             {
                 return null;
             }
@@ -229,7 +232,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     document,
                     spans.Single().Span.ToTextSpan(),
                     localFunction: false,
-                    options with { DontPutOutOrRefOnStruct = true },
+                    options with { ExtractOptions = options.ExtractOptions with { DontPutOutOrRefOnStruct = true } },
                     cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // retry succeeded, return new result
@@ -245,12 +248,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// Applies an ExtractMethodResult to the editor.
         /// </summary>
-        private void ApplyChangesToBuffer(ExtractMethodResult extractMethodResult, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
+        private void ApplyChangesToBuffer(ExtractMethodResult extractMethodResult, ITextBuffer subjectBuffer, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // apply extract method code to buffer
-            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
 
             // apply changes

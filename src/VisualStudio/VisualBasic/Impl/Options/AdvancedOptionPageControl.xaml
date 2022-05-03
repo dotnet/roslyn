@@ -294,6 +294,9 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                    <CheckBox x:Uid="IncludeGlobalImports"
+                              x:Name="IncludeGlobalImports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -65,6 +65,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
+                    tcs.SetResult(new List<SuggestedActionSet>());
                 else
                     tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
