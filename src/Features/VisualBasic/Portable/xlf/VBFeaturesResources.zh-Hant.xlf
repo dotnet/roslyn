@@ -12,11 +12,6 @@
         <target state="translated">新增 Await 及 'ConfigureAwait(false)'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add &lt;Obsolete&gt;</source>
-        <target state="translated">新增 &lt;已淘汰&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">新增缺少的 Import</target>
@@ -27,24 +22,14 @@
         <target state="translated">新增 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Apply_Imports_directive_placement_preferences">
-        <source>Apply Imports directive placement preferences</source>
-        <target state="translated">套用 Import 指示詞放置喜好設定</target>
-        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Apply_Me_qualification_preferences">
-        <source>Apply Me qualification preferences</source>
-        <target state="translated">套用 Me 資格喜好設定</target>
-        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Apply_isnot_preferences">
         <source>Apply IsNot preferences</source>
-        <target state="new">Apply IsNot preferences</target>
+        <target state="translated">套用 IsNot 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_creation_preferences">
         <source>Apply object creation preferences</source>
-        <target state="new">Apply object creation preferences</target>
+        <target state="translated">套用物件建立喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
@@ -97,16 +82,6 @@
         <target state="translated">引入 'Using' 陳述式</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Make_0_inheritable">
-        <source>Make '{0}' inheritable</source>
-        <target state="translated">將 '{0}' 設為可繼承</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_private_field_ReadOnly_when_possible">
-        <source>Make private field ReadOnly when possible</source>
-        <target state="translated">盡可能地將私人欄位設為 ReadOnly</target>
-        <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">將 '{0}' 陳述式移至行 {1}。</target>
@@ -126,6 +101,11 @@
         <source>Organize Imports</source>
         <target state="translated">整理 Import</target>
         <note>{Locked="Import"}</note>
+      </trans-unit>
+      <trans-unit id="Project_level_Imports">
+        <source>Project level 'Imports'</source>
+        <target state="new">Project level 'Imports'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>
@@ -262,11 +242,6 @@
         <target state="translated">移除 'Me' 限定性條件</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">可以簡化名稱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
         <source>can't determine valid range of statements to extract out</source>
         <target state="translated">無法決定要擷取的有效陳述式範圍</target>
@@ -335,11 +310,6 @@
       <trans-unit id="no_valid_statement_range_to_extract_out">
         <source>no valid statement range to extract out</source>
         <target state="translated">沒有可擷取內容的有效陳述式範圍</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection</source>
-        <target state="translated">選取範圍無效</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -620,11 +590,6 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       <trans-unit id="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse">
         <source>Specifies the group that the loop variable in a For Each statement is to traverse.</source>
         <target state="translated">指定 For Each 陳述式中迴圈變數要周遊的群組。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query">
-        <source>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</source>
-        <target state="translated">指定 For Each 陳述式中迴圈變數要周遊的群組，或指定查詢中的範圍變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces">
@@ -1492,24 +1457,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">啟用目前這一行下方原始程式檔部分中，指定之警告的回報功能。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Await">
-        <source>Insert 'Await'.</source>
-        <target state="translated">插入 'Await'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
         <target state="translated">讓 {0} 成為非同步函式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_0_to_Iterator">
-        <source>Convert {0} to Iterator</source>
-        <target state="translated">將 {0} 轉換為 Iterator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_Return_with_Yield">
-        <source>Replace 'Return' with 'Yield</source>
-        <target state="translated">以 'Yield' 取代 'Return'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
@@ -1700,11 +1650,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="attributes">
         <source>attributes</source>
         <target state="translated">屬性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Too_many_arguments_to_0">
-        <source>Too many arguments to '{0}'.</source>
-        <target state="translated">'{0}' 的引數太多。</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">

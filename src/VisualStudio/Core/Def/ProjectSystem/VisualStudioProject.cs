@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -29,8 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IWorkspaceTelemetryService? _telemetryService;
-        private readonly IWorkspaceStatusService? _workspaceStatusService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -158,9 +157,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
-            _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-
             Id = id;
             Language = language;
             _displayName = displayName;
@@ -239,18 +235,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
-                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-                // fully loaded.
-                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
-                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
-
-                // We only log telemetry during solution open
-                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                if (logThrowAwayTelemetry)
                 {
-                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                    var telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+
+                    if (telemetryService?.HasActiveSession == true)
+                    {
+                        var workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+
+                        // We only log telemetry during solution open
+
+                        // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                        // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                        // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                        // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                        // fully loaded.
+                        var isFullyLoadedTask = workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                        var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+
+                        if (!isFullyLoaded)
+                        {
+                            TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                        }
+                    }
                 }
 
                 if (_activeBatchScopes > 0)
@@ -953,7 +960,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangesToProcess.AddWork(fullFilePath);
         }
 
-        private async ValueTask ProcessFileChangesAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+        private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
         {
             await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
             await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);

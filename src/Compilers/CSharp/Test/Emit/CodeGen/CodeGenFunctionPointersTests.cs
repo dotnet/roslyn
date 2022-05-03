@@ -3587,10 +3587,10 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
+                // (9,23): error CS8811: Cannot convert &method group 'M' to delegate type 'Action'.
                 //         Action ptr2 = (Action)(&M);
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
-                // (10,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
+                // (10,23): error CS8811: Cannot convert &method group 'M' to delegate type 'Action'.
                 //         Action ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );
@@ -5203,6 +5203,7 @@ unsafe
         [InlineData("%")]
         [InlineData("<<")]
         [InlineData(">>")]
+        [InlineData(">>>")]
         [InlineData("&&")]
         [InlineData("||")]
         [InlineData("&")]
@@ -10465,7 +10466,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Expression", isSuppressed: false).WithArguments("Expression").WithLocation(5, 59),
                 // (5,69): error CS1003: Syntax error, ',' expected
                 //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(Bad, Expression) })]
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",", ")").WithLocation(5, 69),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")", isSuppressed: false).WithArguments(",").WithLocation(5, 69),
                 // (9,43): error CS8786: Calling convention of 'A.F()' is not compatible with 'Unmanaged'.
                 //         delegate* unmanaged<void> ptr2 = &F;
                 Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "F", isSuppressed: false).WithArguments("A.F()", "Unmanaged").WithLocation(9, 43)

@@ -12,11 +12,6 @@
         <target state="translated">Await 및 'ConfigureAwait(false)' 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add &lt;Obsolete&gt;</source>
-        <target state="translated">&lt;Obsolete&gt; 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">누락된 Imports 추가</target>
@@ -27,24 +22,14 @@
         <target state="translated">'Shadows' 추가</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Apply_Imports_directive_placement_preferences">
-        <source>Apply Imports directive placement preferences</source>
-        <target state="translated">Import 지시문 배치 기본 설정 적용</target>
-        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Apply_Me_qualification_preferences">
-        <source>Apply Me qualification preferences</source>
-        <target state="translated">Me 한정 기본 설정 적용</target>
-        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Apply_isnot_preferences">
         <source>Apply IsNot preferences</source>
-        <target state="new">Apply IsNot preferences</target>
+        <target state="translated">IsNot 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_creation_preferences">
         <source>Apply object creation preferences</source>
-        <target state="new">Apply object creation preferences</target>
+        <target state="translated">개체 만들기 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
@@ -97,16 +82,6 @@
         <target state="translated">'Using' 문 지정</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Make_0_inheritable">
-        <source>Make '{0}' inheritable</source>
-        <target state="translated">'{0}'을(를) 상속 가능으로 지정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_private_field_ReadOnly_when_possible">
-        <source>Make private field ReadOnly when possible</source>
-        <target state="translated">가능한 경우 프라이빗 필드를 ReadOnly로 만들기</target>
-        <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">'{0}' 문을 {1} 줄로 이동합니다.</target>
@@ -126,6 +101,11 @@
         <source>Organize Imports</source>
         <target state="translated">Import 구성</target>
         <note>{Locked="Import"}</note>
+      </trans-unit>
+      <trans-unit id="Project_level_Imports">
+        <source>Project level 'Imports'</source>
+        <target state="new">Project level 'Imports'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>
@@ -262,11 +242,6 @@
         <target state="translated">Me' 한정자 제거</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">이름을 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
         <source>can't determine valid range of statements to extract out</source>
         <target state="translated">추출할 문에 유효한 범위를 결정할 수 없습니다.</target>
@@ -335,11 +310,6 @@
       <trans-unit id="no_valid_statement_range_to_extract_out">
         <source>no valid statement range to extract out</source>
         <target state="translated">추출하는 데 유효한 문 범위가 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection</source>
-        <target state="translated">잘못된 선택 영역입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -620,11 +590,6 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       <trans-unit id="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse">
         <source>Specifies the group that the loop variable in a For Each statement is to traverse.</source>
         <target state="translated">For Each 문에서 루프 변수가 트래버스하는 그룹을 지정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query">
-        <source>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</source>
-        <target state="translated">For Each 문에서 루프 변수가 트래버스하는 그룹을 지정하거나 쿼리의 범위 변수를 지정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces">
@@ -1492,24 +1457,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">현재 줄 아래의 소스 파일 부분에서 지정한 경고를 보고합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Await">
-        <source>Insert 'Await'.</source>
-        <target state="translated">Await'를 삽입합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
         <target state="translated">{0}을(를) 비동기 함수로 설정합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_0_to_Iterator">
-        <source>Convert {0} to Iterator</source>
-        <target state="translated">반복기로 {0} 변환</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_Return_with_Yield">
-        <source>Replace 'Return' with 'Yield</source>
-        <target state="translated">Return'을 'Yield'로 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
@@ -1700,11 +1650,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="attributes">
         <source>attributes</source>
         <target state="translated">특성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Too_many_arguments_to_0">
-        <source>Too many arguments to '{0}'.</source>
-        <target state="translated">'{0}'에 대한 인수가 너무 많습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">

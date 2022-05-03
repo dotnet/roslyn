@@ -5,13 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -657,24 +660,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 debugName: projectContext.Id.Substring(delimiter + 1));
         }
 
-        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
+        public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
             LSP.FormattingOptions? options,
             Document document,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
 
             if (options != null)
             {
                 // LSP doesn't currently support indent size as an option. However, except in special
                 // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-                documentOptions = documentOptions
-                    .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                    .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
-                    .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+                formattingOptions = formattingOptions.With(new LineFormattingOptions(
+                    UseTabs: !options.InsertSpaces,
+                    TabSize: options.TabSize,
+                    IndentationSize: options.TabSize,
+                    NewLine: formattingOptions.NewLine));
             }
 
-            return documentOptions;
+            return formattingOptions;
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)

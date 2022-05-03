@@ -363,6 +363,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, value); }
         }
 
+        public string Style_PreferTopLevelStatements
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements, value); }
+        }
+
         public string Style_PreferLocalOverAnonymousFunction
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction); }
@@ -373,6 +379,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
+        }
+
+        public string Style_PreferUTF8StringLiterals
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals, value); }
         }
 
         public string Style_PreferredUsingDirectivePlacement

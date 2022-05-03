@@ -42,6 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
+        public static string Option_Always_use_default_symbol_servers_for_navigation
+            => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
+
         public static string Option_Enable_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
 
@@ -305,6 +308,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Combine_inheritance_margin_with_indicator_margin
             => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
+
+        public static string Include_global_imports
+            => ServicesVSResources.Include_global_imports;
 
         public static string Option_JSON_strings =>
             ServicesVSResources.JSON_strings;

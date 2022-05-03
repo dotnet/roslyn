@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -15,8 +16,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Implement this abstract type to provide fix all/multiple occurrences code fixes for source code problems.
     /// Alternatively, you can use any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/>.
     /// </summary>
-    public abstract class FixAllProvider
+    public abstract class FixAllProvider : IFixAllProvider
     {
+        private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
+            = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
+
         /// <summary>
         /// Gets the supported scopes for fixing all occurrences of a diagnostic.
         /// By default, it returns the following scopes:
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// (c) <see cref="FixAllScope.Solution"/>
         /// </summary>
         public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
+            => DefaultSupportedFixAllScopes;
 
         /// <summary>
         /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -52,18 +56,50 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// will be considered.
         /// </param>
         public static FixAllProvider Create(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
-        {
-            if (fixAllAsync == null)
-                throw new ArgumentNullException(nameof(fixAllAsync));
+            => Create(fixAllAsync, DefaultSupportedFixAllScopes);
 
-            return new CallbackDocumentBasedFixAllProvider(fixAllAsync);
+        /// <summary>
+        /// Create a <see cref="FixAllProvider"/> that fixes documents independently for the given <paramref name="supportedFixAllScopes"/>.
+        /// This should be used instead of <see cref="WellKnownFixAllProviders.BatchFixer"/> in the case where
+        /// fixes for a <see cref="Diagnostic"/> only affect the <see cref="Document"/> the diagnostic was produced in.
+        /// </summary>
+        /// <param name="fixAllAsync">
+        /// Callback that will the fix diagnostics present in the provided document.  The document returned will only be
+        /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
+        /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
+        /// will be considered.
+        /// </param>
+        /// <param name="supportedFixAllScopes">
+        /// Supported <see cref="FixAllScope"/>s for the fix all provider.
+        /// Note that <see cref="FixAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
+        /// and should not be part of the supported scopes.
+        /// </param>
+        public static FixAllProvider Create(
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync!!,
+            ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            if (supportedFixAllScopes.IsDefault)
+                throw new ArgumentNullException(nameof(supportedFixAllScopes));
+
+            if (supportedFixAllScopes.Contains(FixAllScope.Custom))
+                throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
+
+            return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
         }
+
+        #region IFixAllProvider implementation
+        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
+            => this.GetFixAsync((FixAllContext)fixAllContext);
+        #endregion
 
         private class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
         {
             private readonly Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> _fixAllAsync;
 
-            public CallbackDocumentBasedFixAllProvider(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
+            public CallbackDocumentBasedFixAllProvider(
+                Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+                ImmutableArray<FixAllScope> supportedFixAllScopes)
+                : base(supportedFixAllScopes)
             {
                 _fixAllAsync = fixAllAsync;
             }

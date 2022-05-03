@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
             SyntaxNode node,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateVariable, cancellationToken))
@@ -62,26 +63,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     var name = state.IdentifierToken.ValueText;
                     if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                     {
-                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
-                        AddFieldCodeActions(actions, semanticDocument, state);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                        AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
                     }
                     else
                     {
-                        AddFieldCodeActions(actions, semanticDocument, state);
-                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
+                        AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
+                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                await AddLocalCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+                await AddLocalCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
 
                 if (actions.Count > 1)
                 {
                     // Wrap the generate variable actions into a single top level suggestion
                     // so as to not clutter the list.
-                    return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                    return ImmutableArray.Create(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutable()));
+                        actions.ToImmutable(),
+                        isInlinable: true));
                 }
 
                 return actions.ToImmutable();
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             => false;
 
         private static async Task AddPropertyCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.IsInOutContext)
                 return;
@@ -114,10 +116,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             if (isOnlyReadAndIsInInterface || state.IsInConstructor)
             {
                 result.Add(new GenerateVariableCodeAction(
-                    document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state)));
+                    document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state), fallbackOptions));
             }
 
-            GenerateWritableProperty(result, document, state);
+            GenerateWritableProperty(result, document, state, fallbackOptions);
         }
 
         private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
@@ -135,27 +137,27 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             return false;
         }
 
-        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: true, isReadonly: false, isConstant: false,
-                refKind: GetRefKindFromContext(state)));
+                refKind: GetRefKindFromContext(state), fallbackOptions));
         }
 
-        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
                 if (state.IsConstant)
                 {
                     result.Add(new GenerateVariableCodeAction(
-                        document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None));
+                        document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None, fallbackOptions));
                 }
                 else
                 {
                     if (!state.OfferReadOnlyFieldFirst)
                     {
-                        GenerateWriteableField(result, document, state);
+                        GenerateWriteableField(result, document, state, fallbackOptions);
                     }
 
                     // If we haven't written to the field, or we're in the constructor for the type
@@ -163,25 +165,25 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     if (!state.IsWrittenTo || state.IsInConstructor)
                     {
                         result.Add(new GenerateVariableCodeAction(
-                            document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None));
+                            document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None, fallbackOptions));
                     }
 
                     if (state.OfferReadOnlyFieldFirst)
                     {
-                        GenerateWriteableField(result, document, state);
+                        GenerateWriteableField(result, document, state, fallbackOptions);
                     }
                 }
             }
         }
 
-        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
-                document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
+                document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None, fallbackOptions));
         }
 
         private async Task AddLocalCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateLocal())
             {
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return;
                 }
 
-                result.Add(new GenerateLocalCodeAction((TService)this, document, state));
+                result.Add(new GenerateLocalCodeAction((TService)this, document, state, fallbackOptions));
             }
         }
 
@@ -228,14 +230,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             else
             {
                 return RefKind.None;
-            }
-        }
-
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
-            {
             }
         }
     }

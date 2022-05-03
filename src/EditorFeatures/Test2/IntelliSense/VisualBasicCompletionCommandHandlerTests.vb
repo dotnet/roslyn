@@ -2659,7 +2659,7 @@ End Class
                     New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
-                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                Await state.AssertNoCompletionSession()
                 state.SendTypeChars(":")
                 Assert.Contains("(Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -2681,7 +2681,7 @@ End Class
                     New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
-                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                Await state.AssertNoCompletionSession()
                 state.SendTypeChars(":")
                 Assert.Contains("(1, Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using

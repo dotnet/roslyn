@@ -31,7 +31,7 @@
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\ElasticTriviaFormattingRule.vb" Link="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\NodeBasedFormattingRule.vb" Link="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\Rules\StructuredTriviaFormattingRule.vb" Link="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingService.vb" Link="Formatting\VisualBasicSyntaxFormattingService.vb" />
+    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormatting.vb" Link="Formatting\VisualBasicSyntaxFormatting.vb" />
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\VisualBasicSyntaxFormattingOptions.vb" Link="Formatting\VisualBasicSyntaxFormattingOptions.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -47,9 +47,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="VBCodeStyleResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

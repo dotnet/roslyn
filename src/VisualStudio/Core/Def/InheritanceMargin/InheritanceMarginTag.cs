@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -41,27 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Workspace = workspace;
             LineNumber = lineNumber;
             MembersOnLine = membersOnLine;
-            // The common case, one line has one member, avoid to use select & aggregate
-            if (membersOnLine.Length == 1)
-            {
-                var member = membersOnLine[0];
-                var targets = member.TargetItems;
-                var relationship = targets[0].RelationToMember;
-                foreach (var target in targets.Skip(1))
-                {
-                    relationship |= target.RelationToMember;
-                }
 
-                Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
-            }
-            else
-            {
-                // Multiple members on same line.
-                var aggregateRelationship = membersOnLine
-                    .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
-                    .Aggregate((r1, r2) => r1 | r2);
-                Moniker = InheritanceMarginHelpers.GetMoniker(aggregateRelationship);
-            }
+            // The common case is that one line has one member.
+            using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var allItems);
+            foreach (var marginItem in membersOnLine)
+                allItems.AddRange(marginItem.TargetItems);
+
+            var relationship = allItems[0].RelationToMember;
+            for (var i = 1; i < allItems.Count; i++)
+                relationship |= allItems[i].RelationToMember;
+
+            Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
         }
     }
 }

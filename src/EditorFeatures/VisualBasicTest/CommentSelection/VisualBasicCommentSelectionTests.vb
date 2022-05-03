@@ -83,8 +83,9 @@ End Module</code>
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
-                    workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of ITextUndoHistoryRegistry),
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GlobalOptions)
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())

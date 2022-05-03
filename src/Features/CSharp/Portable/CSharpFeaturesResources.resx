@@ -126,19 +126,9 @@
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
-  <data name="Add_await" xml:space="preserve">
-    <value>Add 'await'</value>
-    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
-  </data>
   <data name="Add_await_and_ConfigureAwaitFalse" xml:space="preserve">
     <value>Add 'await' and 'ConfigureAwait(false)'</value>
     <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Simplify_lambda_expression" xml:space="preserve">
-    <value>Simplify lambda expression</value>
-  </data>
-  <data name="Simplify_all_occurrences" xml:space="preserve">
-    <value>Simplify all occurrences</value>
   </data>
   <data name="lambda_expression" xml:space="preserve">
     <value>&lt;lambda expression&gt;</value>
@@ -152,12 +142,6 @@
   <data name="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation" xml:space="preserve">
     <value>Autoselect disabled due to possible explicitly named anonymous type member creation.</value>
   </data>
-  <data name="element_name" xml:space="preserve">
-    <value>&lt;element name&gt; : </value>
-  </data>
-  <data name="Autoselect_disabled_due_to_possible_tuple_type_element_creation" xml:space="preserve">
-    <value>Autoselect disabled due to possible tuple type element creation.</value>
-  </data>
   <data name="pattern_variable" xml:space="preserve">
     <value>&lt;pattern variable&gt;</value>
   </data>
@@ -170,12 +154,6 @@
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
   </data>
-  <data name="Declare_as_nullable" xml:space="preserve">
-    <value>Declare as nullable</value>
-  </data>
-  <data name="Fix_return_type" xml:space="preserve">
-    <value>Fix return type</value>
-  </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
   </data>
@@ -185,9 +163,6 @@
   <data name="Remove_this_qualification" xml:space="preserve">
     <value>Remove 'this' qualification</value>
   </data>
-  <data name="Name_can_be_simplified" xml:space="preserve">
-    <value>Name can be simplified</value>
-  </data>
   <data name="Can_t_determine_valid_range_of_statements_to_extract" xml:space="preserve">
     <value>Can't determine valid range of statements to extract</value>
   </data>
@@ -196,9 +171,6 @@
   </data>
   <data name="Selection_does_not_contain_a_valid_node" xml:space="preserve">
     <value>Selection does not contain a valid node</value>
-  </data>
-  <data name="Invalid_selection" xml:space="preserve">
-    <value>Invalid selection.</value>
   </data>
   <data name="Contains_invalid_selection" xml:space="preserve">
     <value>Contains invalid selection.</value>
@@ -242,17 +214,8 @@
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
-  <data name="Insert_await" xml:space="preserve">
-    <value>Insert 'await'.</value>
-  </data>
   <data name="Make_0_return_Task_instead_of_void" xml:space="preserve">
     <value>Make {0} return Task instead of void.</value>
-  </data>
-  <data name="Change_return_type_from_0_to_1" xml:space="preserve">
-    <value>Change return type from {0} to {1}</value>
-  </data>
-  <data name="Replace_return_with_yield_return" xml:space="preserve">
-    <value>Replace return with yield return</value>
   </data>
   <data name="Generate_explicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
@@ -429,14 +392,8 @@
   <data name="attribute_target" xml:space="preserve">
     <value>attribute target</value>
   </data>
-  <data name="_0_does_not_contain_a_constructor_that_takes_that_many_arguments" xml:space="preserve">
-    <value>'{0}' does not contain a constructor that takes that many arguments.</value>
-  </data>
   <data name="The_name_0_does_not_exist_in_the_current_context" xml:space="preserve">
     <value>The name '{0}' does not exist in the current context.</value>
-  </data>
-  <data name="Hide_base_member" xml:space="preserve">
-    <value>Hide base member</value>
   </data>
   <data name="Remove_new_modifier" xml:space="preserve">
     <value>Remove 'new' modifier</value>
@@ -513,17 +470,11 @@
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
-  <data name="Add_Obsolete" xml:space="preserve">
-    <value>Add [Obsolete]</value>
-  </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
   <data name="Add_required_braces_for_single_line_control_statements" xml:space="preserve">
     <value>Add required braces for single-line control statements</value>
-  </data>
-  <data name="Apply_this_qualification_preferences" xml:space="preserve">
-    <value>Apply 'this.' qualification preferences</value>
   </data>
   <data name="Apply_expression_block_body_preferences" xml:space="preserve">
     <value>Apply expression/block body preferences</value>
@@ -545,9 +496,6 @@
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Unseal_class_0" xml:space="preserve">
-    <value>Unseal class '{0}'</value>
-  </data>
   <data name="Make_ref_struct" xml:space="preserve">
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
@@ -566,9 +514,6 @@
   <data name="Warning_Inlining_temporary_variable_may_change_code_meaning" xml:space="preserve">
     <value>Warning: Inlining temporary variable may change code meaning.</value>
   </data>
-  <data name="Warning_Expression_may_change_code_meaning" xml:space="preserve">
-    <value>Warning: Expression may have side effects. Code meaning may change.</value>
-  </data>
   <data name="local_variable_declaration" xml:space="preserve">
     <value>local variable declaration</value>
   </data>
@@ -585,16 +530,6 @@
   </data>
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
-  </data>
-  <data name="Assign_to_0" xml:space="preserve">
-    <value>Assign to '{0}'</value>
-  </data>
-  <data name="Compare_to_0" xml:space="preserve">
-    <value>Compare to '{0}'</value>
-  </data>
-  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
-    <value>Apply preferred 'using' placement preferences</value>
-    <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
   <data name="Remove_in_keyword" xml:space="preserve">
     <value>Remove 'in' keyword</value>
@@ -624,8 +559,12 @@
   <data name="Convert_to_raw_string" xml:space="preserve">
     <value>Convert to raw string</value>
   </data>
-  <data name="Convert_to_raw_string_no_indent" xml:space="preserve">
-    <value>Convert to raw string (no indent)</value>
+  <data name="without_leading_whitespace_may_change_semantics" xml:space="preserve">
+    <value>... without leading whitespace (may change semantics)</value>
+    <comment>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</comment>
   </data>
   <data name="Apply_blank_lines_between_consecutive_braces_preferences_experimental" xml:space="preserve">
     <value>Apply blank lines between consecutive braces preferences (experimental)</value>
@@ -657,9 +596,6 @@
   <data name="Apply_new_preferences" xml:space="preserve">
     <value>Apply new() preferences</value>
   </data>
-  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
-    <value>Apply object collection initialization preferences</value>
-  </data>
   <data name="Apply_parameter_null_preferences" xml:space="preserve">
     <value>Apply parameter null preferences</value>
   </data>
@@ -680,5 +616,15 @@
   </data>
   <data name="Apply_var_preferences" xml:space="preserve">
     <value>Apply 'var' preferences</value>
+  </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add 'await'</value>
+    <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Global_using_directives" xml:space="preserve">
+    <value>Global 'using' directives</value>
+  </data>
+  <data name="Apply_utf8_string_literal_preferences" xml:space="preserve">
+    <value>Apply UTF-8 string literal preferences</value>
   </data>
 </root>

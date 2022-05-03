@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
@@ -24,17 +25,20 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly Document _document;
             private readonly State _state;
             private readonly string _equivalenceKey;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateTypeCodeAction(
                 TService service,
                 Document document,
                 State state,
+                CodeAndImportGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
                 _equivalenceKey = Title;
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
-                var editor = new Editor(_service, semanticDocument, _state, _intoNamespace, _inNewFile, cancellationToken: cancellationToken);
+                var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, _intoNamespace, _inNewFile, cancellationToken);
 
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
@@ -76,17 +80,19 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public override string EquivalenceKey => _equivalenceKey;
         }
 
-        private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
+        private sealed class GenerateTypeCodeActionWithOption : CodeActionWithOptions
         {
             private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
-            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state)
+            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string Title => FeaturesResources.Generate_new_type;
@@ -173,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {
                     var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                    var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);
+                    var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, fromDialog: true, generateTypeOptions, cancellationToken);
                     operations = await editor.GetOperationsAsync().ConfigureAwait(false);
                 }
 

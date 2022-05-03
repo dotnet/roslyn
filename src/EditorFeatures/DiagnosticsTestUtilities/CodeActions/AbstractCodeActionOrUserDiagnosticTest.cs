@@ -32,11 +32,12 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Options;
 
-#if CODE_STYLE
 using System.Diagnostics;
 using System.IO;
-#else
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 #endif
 
@@ -45,11 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     [UseExportProvider]
     public abstract partial class AbstractCodeActionOrUserDiagnosticTest
     {
-        public struct TestParameters
+        public sealed class TestParameters
         {
-            internal readonly CodeActionOptions codeActionOptions;
-            internal readonly IdeAnalyzerOptions ideAnalyzerOptions;
+            /// <summary>
+            /// editorconfig options.
+            /// </summary>
             internal readonly OptionsCollection options;
+            internal readonly OptionsCollection globalOptions;
             internal readonly TestHost testHost;
             internal readonly string workspaceKind;
             internal readonly object fixProviderData;
@@ -65,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ParseOptions parseOptions = null,
                 CompilationOptions compilationOptions = null,
                 OptionsCollection options = null,
-                CodeActionOptions? codeActionOptions = null,
-                IdeAnalyzerOptions? ideAnalyzerOptions = null,
+                OptionsCollection globalOptions = null,
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
@@ -79,12 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
                 this.options = options;
-                this.codeActionOptions = codeActionOptions ?? CodeActionOptions.Default;
-#if CODE_STYLE
-                this.ideAnalyzerOptions = ideAnalyzerOptions ?? IdeAnalyzerOptions.CodeStyleDefault;
-#else
-                this.ideAnalyzerOptions = ideAnalyzerOptions ?? IdeAnalyzerOptions.Default;
-#endif
+                this.globalOptions = globalOptions;
                 this.fixProviderData = fixProviderData;
                 this.index = index;
                 this.priority = priority;
@@ -98,34 +95,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public static readonly TestParameters Default = new(parseOptions: null);
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithCompilationOptions(CompilationOptions compilationOptions)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             internal TestParameters WithOptions(OptionsCollection options)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
-            internal TestParameters WithCodeActionOptions(CodeActionOptions codeActionOptions)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
-
-            internal TestParameters WithIdeAnalyzerOptions(IdeAnalyzerOptions ideAnalyzerOptions)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+            internal TestParameters WithGlobalOptions(OptionsCollection globalOptions)
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithIndex(int index)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithIncludeDiagnosticsOutsideSelection(bool includeDiagnosticsOutsideSelection)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
 
             public TestParameters WithWorkspaceKind(string workspaceKind)
-                => new(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
+                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind);
         }
 
 #pragma warning disable IDE0052 // Remove unread private members (unused when CODE_STYLE is set)
@@ -158,8 +152,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual TestParameters SetParameterDefaults(TestParameters parameters)
             => parameters;
 
-        protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters)
+        protected TestWorkspace CreateWorkspaceFromOptions(string workspaceMarkupOrCode, TestParameters parameters = null)
         {
+            parameters ??= TestParameters.Default;
+
             var composition = GetComposition().WithTestHostParts(parameters.testHost);
 
             parameters = SetParameterDefaults(parameters);
@@ -178,11 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #endif
             InitializeWorkspace(workspace, parameters);
 
-            // For CodeStyle layer testing, we create an .editorconfig at project root
-            // to apply the options as workspace options are not available in CodeStyle layer.
-            // Otherwise, we apply the options directly to the workspace.
-
-#if CODE_STYLE
+            // We create an .editorconfig at project root to apply the options.
             // We need to ensure that our projects/documents are rooted for
             // execution from CodeStyle layer as we will be adding a rooted .editorconfig to each project
             // to apply the options.
@@ -191,16 +183,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 MakeProjectsAndDocumentsRooted(workspace);
                 AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
             }
-#else
-            workspace.ApplyOptions(parameters.options);
-#endif
-            // we need to set global options since the tests are going thru incremental diagnostic analyzer that reads them from there:
-            workspace.GlobalOptions.SetIdeAnalyzerOptions(GetLanguage(), parameters.ideAnalyzerOptions);
 
+#if !CODE_STYLE
+            workspace.ApplyOptions(parameters.options);
+
+            if (parameters.globalOptions != null)
+            {
+                workspace.ApplyOptions(parameters.globalOptions);
+                parameters.globalOptions.SetGlobalOptions(workspace.GlobalOptions);
+            }
+#endif
             return workspace;
         }
 
-#if CODE_STYLE
         private static void MakeProjectsAndDocumentsRooted(TestWorkspace workspace)
         {
             const string defaultRootFilePath = @"z:\";
@@ -272,7 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return textBuilder.ToString();
             }
         }
-#endif
 
         private static TestParameters WithRegularOptions(TestParameters parameters)
             => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
@@ -282,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
-            TestParameters? parameters = null,
+            TestParameters parameters = null,
             int codeActionIndex = 0)
         {
             var ps = parameters ?? TestParameters.Default;
@@ -292,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingAsync(
             string initialMarkup,
-            TestParameters? parameters = null,
+            TestParameters parameters = null,
             int codeActionIndex = 0)
         {
             var ps = parameters ?? TestParameters.Default;
@@ -312,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestDiagnosticMissingAsync(
-            string initialMarkup, TestParameters? parameters = null)
+            string initialMarkup, TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -335,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestSmartTagTextAsync(
             string initialMarkup,
             string displayText,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -346,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestSmartTagGlyphTagsAsync(
             string initialMarkup,
             ImmutableArray<string> glyph,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -357,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestExactActionSetOfferedAsync(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
@@ -372,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestActionCountAsync(
             string initialMarkup,
             int count,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             var ps = parameters ?? TestParameters.Default;
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, ps))
@@ -390,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            OptionsCollection globalOptions = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null,
@@ -399,14 +392,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, title: title, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, title: title, testHost: testHost));
         }
 
         internal Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            TestParameters? parameters = null)
+            TestParameters parameters = null)
         {
             return TestInRegularAndScript1Async(initialMarkup, expectedMarkup, (parameters ?? TestParameters.Default).WithIndex(index));
         }
@@ -432,8 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             int index = 0,
             OptionsCollection options = null,
-            CodeActionOptions? codeActionOptions = null,
-            IdeAnalyzerOptions? ideAnalyzerOptions = null,
+            OptionsCollection globalOptions = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null,
             TestHost testHost = TestHost.InProcess)
@@ -441,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return TestAsync(
                 initialMarkup,
                 expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, codeActionOptions, ideAnalyzerOptions, fixProviderData, index, priority, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
         }
 
         private async Task TestAsync(
@@ -749,8 +741,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         internal async Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
-            TestWorkspace workspace, CodeAction action, TestParameters parameters)
+            TestWorkspace workspace, CodeAction action, TestParameters parameters = null)
         {
+            parameters ??= TestParameters.Default;
+
             if (action is null)
             {
                 var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters.WithRetainNonFixableDiagnostics(true));
@@ -878,7 +872,7 @@ Consider using the title as the equivalence key instead of 'null'";
             string input,
             params string[] outputs)
         {
-            return TestAllInRegularAndScriptAsync(input, parameters: default, outputs);
+            return TestAllInRegularAndScriptAsync(input, parameters: null, outputs);
         }
 
         protected async Task TestAllInRegularAndScriptAsync(
@@ -886,6 +880,8 @@ Consider using the title as the equivalence key instead of 'null'";
             TestParameters parameters,
             params string[] outputs)
         {
+            parameters ??= TestParameters.Default;
+
             for (var index = 0; index < outputs.Length; index++)
             {
                 var output = outputs[index];
@@ -893,6 +889,73 @@ Consider using the title as the equivalence key instead of 'null'";
             }
 
             await TestActionCountAsync(input, outputs.Length, parameters);
+        }
+
+        protected static void GetDocumentAndSelectSpanOrAnnotatedSpan(
+            TestWorkspace workspace,
+            out Document document,
+            out TextSpan span,
+            out string annotation)
+        {
+            annotation = null;
+            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            {
+                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+            }
+        }
+
+        private static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
+        {
+            var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
+            if (hostDocument == null)
+            {
+                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
+                // there if so.
+                hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
+                if (hostDocument == null)
+                {
+                    document = null;
+                    span = default;
+                    return false;
+                }
+
+                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                return true;
+            }
+
+            span = hostDocument.SelectedSpans.Single();
+            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            return true;
+        }
+
+        private static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
+        {
+            var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
+            var hostDocument = annotatedDocuments.Single();
+            var annotatedSpan = hostDocument.AnnotatedSpans.Single();
+            annotation = annotatedSpan.Key;
+            span = annotatedSpan.Value.Single();
+            return workspace.CurrentSolution.GetDocument(hostDocument.Id);
+        }
+
+        protected static FixAllScope? GetFixAllScope(string annotation)
+        {
+            if (annotation == null)
+            {
+                return null;
+            }
+
+            return annotation switch
+            {
+                "FixAllInDocument" => FixAllScope.Document,
+                "FixAllInProject" => FixAllScope.Project,
+                "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInContainingMember" => FixAllScope.ContainingMember,
+                "FixAllInContainingType" => FixAllScope.ContainingType,
+                "FixAllInSelection" => FixAllScope.Custom,
+                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
+            };
         }
     }
 }

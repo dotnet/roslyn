@@ -1119,7 +1119,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
                     // (1,24): error CS1003: Syntax error, ',' expected
                     // Func<int> func1 = (!!) => 42;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 24)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1229,7 +1229,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1285,7 +1285,7 @@ class C {
             UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1341,10 +1341,10 @@ class C {
             UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32),
                     // (1,33): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1400,7 +1400,7 @@ class C {
             UsingDeclaration("Func<string, string> func3 = x! => x;", options: TestOptions.RegularPreview,
                     // (1,33): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func3 = x! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1450,7 +1450,7 @@ class C {
             UsingDeclaration("Func<string, string> func4 = x ! => x;", options: TestOptions.RegularPreview,
                     // (1,34): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func4 = x ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 34));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 34));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1552,7 +1552,7 @@ class C {
             UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
                     // (1,34): error CS1003: Syntax error, '=>' expected
                     // Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(1, 34));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 34));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1660,7 +1660,7 @@ class C {
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1716,7 +1716,7 @@ class C {
             UsingDeclaration("Func<string, string> func9 = x! ! => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1775,7 +1775,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 34),
                     // (1,36): error CS1003: Syntax error, ',' expected
                     // Func<string[], string> func0 = x[] => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 36));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 36));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1943,7 +1943,7 @@ class C {
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 40),
                     // (1,40): error CS1003: Syntax error, ',' expected
                     // Func<string[], string> func0 = (string x[]) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 40));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 40));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2007,7 +2007,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x = null => x;", options: TestOptions.RegularPreview,
                     // (1,39): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func0 = x = null => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 39));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 39));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2324,7 +2324,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x!! = null => x;", options: TestOptions.RegularPreview,
                     // (1,41): error CS1003: Syntax error, ',' expected
                     // Func<string, string> func0 = x!! = null => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 41));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 41));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2653,7 +2653,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = x! ! => x;", options: TestOptions.RegularPreview,
                     // (1,31): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(1, 31));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!").WithLocation(1, 31));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2709,7 +2709,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,32): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 32));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 32));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2770,7 +2770,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (y, x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,35): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (y, x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 35));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 35));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2836,7 +2836,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,39): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 39));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 39));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2901,7 +2901,7 @@ class C {
             UsingDeclaration("Func<string, string> func0 = (string y, string x! !) => x;", options: TestOptions.RegularPreview,
                     // (1,49): error CS1003: Syntax error, '!!' expected
                     // Func<string, string> func0 = (string y, string x! !) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 49));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 49));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3032,6 +3032,526 @@ class C {
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_01(LanguageVersion languageVersion)
+        {
+            string source = "int =>";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1041: Identifier expected; 'int' is a keyword
+                // int =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 1),
+                // (1,7): error CS1733: Expected expression
+                // int =>
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 7));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_02(LanguageVersion languageVersion)
+        {
+            string source = "ref => { }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1041: Identifier expected; 'ref' is a keyword
+                // ref => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "ref").WithArguments("", "ref").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [Theory]
+        public void KeywordParameterName_03(LanguageVersion languageVersion)
+        {
+            string source = "ref int => { }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,1): error CS1525: Invalid expression term 'ref'
+                // ref int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int => { }").WithArguments("ref").WithLocation(1, 1),
+                // (1,5): error CS1041: Identifier expected; 'int' is a keyword
+                // ref int => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(1, 5));
+
+            N(SyntaxKind.RefExpression);
+            {
+                N(SyntaxKind.RefKeyword);
+                N(SyntaxKind.SimpleLambdaExpression);
+                {
+                    M(SyntaxKind.Parameter);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(60661, "https://github.com/dotnet/roslyn/issues/60661")]
+        [Fact]
+        public void KeywordParameterName_04()
+        {
+            string source = "delegate => { }";
+            UsingExpression(source,
+                // (1,1): error CS1041: Identifier expected; 'delegate' is a keyword
+                // delegate => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_05()
+        {
+            string source = "static => { }";
+            UsingExpression(source,
+                // (1,8): error CS1001: Identifier expected
+                // static => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 8));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.StaticKeyword);
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_06()
+        {
+            string source = "static int => { }";
+            UsingExpression(source,
+                // (1,1): error CS1525: Invalid expression term 'static'
+                // static int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 1),
+                // (1,1): error CS1073: Unexpected token 'static'
+                // static int => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("static").WithLocation(1, 1));
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_07()
+        {
+            string source = "f = [A] int => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'int'
+                // f = [A] int => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "f = [A]").WithArguments("int").WithLocation(1, 1),
+                // (1,5): error CS1525: Invalid expression term '['
+                // f = [A] int => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5));
+
+            N(SyntaxKind.SimpleAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "f");
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_08()
+        {
+            string source = "var => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_09()
+        {
+            string source = "async => { }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "async");
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_10()
+        {
+            string source = "(int) => { }";
+            UsingExpression(source,
+                // (1,5): error CS1001: Identifier expected
+                // (int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 5));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_11()
+        {
+            string source = "(int, int) => { }";
+            UsingExpression(source,
+                // (1,5): error CS1001: Identifier expected
+                // (int, int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 5),
+                // (1,10): error CS1001: Identifier expected
+                // (int, int) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 10));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordParameterName_12()
+        {
+            string source = "Action<object> a = public => { };";
+            var tree = UsingTree(source);
+            tree.GetDiagnostics().Verify(
+                // (1,20): error CS1525: Invalid expression term 'public'
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "public").WithArguments("public").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 20),
+                // (1,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "public").WithLocation(1, 20),
+                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+                // Action<object> a = public => { };
+                Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(1, 27));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_01()
+        {
+            string source = "=> { }";
+            UsingExpression(source,
+                // (1,1): error CS1001: Identifier expected
+                // => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 1));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_02()
+        {
+            string source = "[ => { }";
+            UsingExpression(source,
+                // (1,3): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,3): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,9): error CS1003: Syntax error, ']' expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 9),
+                // (1,9): error CS1001: Identifier expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1003: Syntax error, '=>' expected
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // [ => { }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.SimpleLambdaExpression);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    M(SyntaxKind.Attribute);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.CloseBracketToken);
+                }
+                M(SyntaxKind.Parameter);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MissingParameterName_03()
+        {
+            string source = "( => { }";
+            UsingExpression(source,
+                // (1,3): error CS1001: Identifier expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 3),
+                // (1,9): error CS1026: ) expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1003: Syntax error, '=>' expected
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // ( => { }
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
             }
             EOF();
         }

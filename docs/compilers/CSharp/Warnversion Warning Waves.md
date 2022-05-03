@@ -17,7 +17,7 @@ The compiler shipped with .NET 7 (the C# 11 compiler) contains the following war
 |------------|-------------|
 | CS8981 | [Type names only containing lower-cased ascii characters may become reserved for the language](https://github.com/dotnet/roslyn/issues/56653) |
 
-# Warning level 6
+## Warning level 6
 
 The compiler shipped with .NET 6 (the C# 10 compiler) contains the following warnings which are reported only under `/warn:6` or higher.
 

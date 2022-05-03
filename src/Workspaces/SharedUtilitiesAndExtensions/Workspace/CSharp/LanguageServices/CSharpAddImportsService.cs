@@ -8,12 +8,20 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
 {
@@ -27,12 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
         }
 
-#if !CODE_STYLE
-        public override bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet)
+        public override bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue)
         {
-            return optionSet.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value == AddImportPlacement.InsideNamespace;
+            var placementStyle = configOptions.GetEditorConfigOption<CodeStyleOption2<AddImportPlacement>?>(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, defaultValue: null);
+            return (placementStyle != null) ? (placementStyle.Value == AddImportPlacement.InsideNamespace) : fallbackValue;
         }
-#endif
 
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)

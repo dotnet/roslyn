@@ -29,15 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+            Checksum solutionChecksum, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            // NOTE: In projection scenarios, we might get a set of documents to search
+            // that are not all the same language and might not exist in the OOP process
+            // (like the JS parts of a .cshtml file). Filter them out here.  This will
+            // need to be revisited if we someday support FAR between these languages.
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                // NOTE: In projection scenarios, we might get a set of documents to search
-                // that are not all the same language and might not exist in the OOP process
-                // (like the JS parts of a .cshtml file). Filter them out here.  This will
-                // need to be revisited if we someday support FAR between these languages.
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
                 var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());

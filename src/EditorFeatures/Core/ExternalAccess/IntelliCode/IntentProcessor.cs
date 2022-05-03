@@ -9,10 +9,14 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +28,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
     internal class IntentSourceProvider : IIntentSourceProvider
     {
         private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public IntentSourceProvider([ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
+        public IntentSourceProvider(
+            [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
+            IGlobalOptionService globalOptions)
         {
             _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
+            _globalOptions = globalOptions;
         }
 
         private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
@@ -69,8 +77,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 originalDocument,
                 selectionTextSpan,
                 currentDocument,
-                new IntentDataProvider(intentRequestContext.IntentData),
+                new IntentDataProvider(
+                    intentRequestContext.IntentData,
+                    _globalOptions.CreateProvider()),
                 cancellationToken).ConfigureAwait(false);
+
             if (results.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IntentSource>.Empty;
@@ -93,14 +104,33 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             CancellationToken cancellationToken)
         {
             var newSolution = processorResult.Solution;
-
             // Merge linked file changes so all linked files have the same text changes.
             newSolution = await newSolution.WithMergedLinkedFileChangesAsync(originalDocument.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // For now we only support changes to the current document.  Everything else is dropped.
-            var changedDocument = newSolution.GetRequiredDocument(currentDocument.Id);
+            using var _ = PooledDictionary<DocumentId, ImmutableArray<TextChange>>.GetInstance(out var results);
+            foreach (var changedDocumentId in processorResult.ChangedDocuments)
+            {
+                // Calculate the text changes by comparing the solution with intent applied to the current solution (not to be confused with the original solution, the one prior to intent detection).
+                var docChanges = await GetTextChangesForDocumentAsync(newSolution, currentDocument.Project.Solution, changedDocumentId, cancellationToken).ConfigureAwait(false);
+                if (docChanges != null)
+                {
+                    results[changedDocumentId] = docChanges.Value;
+                }
+            }
 
-            var textDiffService = newSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            return new IntentSource(processorResult.Title, results[originalDocument.Id], processorResult.ActionName, results.ToImmutableDictionary());
+        }
+
+        private static async Task<ImmutableArray<TextChange>?> GetTextChangesForDocumentAsync(
+            Solution changedSolution,
+            Solution currentSolution,
+            DocumentId changedDocumentId,
+            CancellationToken cancellationToken)
+        {
+            var changedDocument = changedSolution.GetRequiredDocument(changedDocumentId);
+            var currentDocument = currentSolution.GetRequiredDocument(changedDocumentId);
+
+            var textDiffService = changedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
             // Compute changes against the current version of the document.
             var textDiffs = await textDiffService.GetTextChangesAsync(currentDocument, changedDocument, cancellationToken).ConfigureAwait(false);
             if (textDiffs.IsEmpty)
@@ -108,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return null;
             }
 
-            return new IntentSource(processorResult.Title, textDiffs, processorResult.ActionName);
+            return textDiffs;
         }
     }
 }

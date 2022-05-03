@@ -30,7 +30,18 @@ Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Yeniden atanan değişkenleri altını çiz;Satır içi ipuçlarını göster;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayıraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;Normal ifade;Normal ifadeleri renklendir;İmlecin altındaki ilgili bileşenleri vurgula;Geçersiz normal ifadeleri bildir;normal ifade;normal ifade;Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralşma Kenar Boşluğu;İçe Aktarma Yönergeleri;</target>
+        <target state="translated">Yeniden atanan değişkenleri altını çiz;Satır içi ipuçlarını göster;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;
+Normal ifade;
+normal ifadeler; 
+imlecin altındaki ilgili bileşenler; 
+Geçersiz normal ifadeleri bildir;
+normal ifade;
+normal ifade;
+JSON;
+JSON dizelerini renklendir;
+Geçersiz JSON dizelerini bildir;
+JSON dizeleri için düzenleyici özelliklerini algıla ve öner;
+Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçe Aktarma Yönergeleri;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

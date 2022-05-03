@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // #line (1
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,13): error CS1003: Syntax error, '-' expected
                 // #line (1, 2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("-", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("-").WithLocation(1, 13));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,15): error CS1003: Syntax error, '(' expected
                 // #line (1, 2) -
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(1, 15));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,18): error CS1003: Syntax error, ',' expected
                 // #line (1, 2) - (3
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(1, 18));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 18));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // #line (1 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", "").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(1, 10));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,14): error CS1003: Syntax error, '-' expected
                 // #line (1, 2) (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("-", "(").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("-").WithLocation(1, 14));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,16): error CS1003: Syntax error, '(' expected
                 // #line (1, 2) - 3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("(", "").WithLocation(1, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("(").WithLocation(1, 16));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // #line (1, 2) - (3 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",", "").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",").WithLocation(1, 19));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // #line (1u, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "u").WithArguments(",", "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "u").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1825,6 +1825,443 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_01()
+        {
+            string source = @"#line 1 ""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,18): error CS1025: Single-line comment or end-of-line expected
+                // #line 1 "file.cs"u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 18)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_02()
+        {
+            string source = @"#line 1 @""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"file.cs"u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_03()
+        {
+            string source = @"#line 1 ""file.cs""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,18): error CS1025: Single-line comment or end-of-line expected
+                // #line 1 "file.cs"U8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "U8").WithLocation(1, 18)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_04()
+        {
+            string source = @"#line 1 @""file.cs""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"file.cs"U8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_05()
+        {
+            string source = @"#line 1 """"""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line 1 """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 9),
+                // (1,22): error CS1025: Single-line comment or end-of-line expected
+                // #line 1 """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"\"\"file.cs\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_06()
+        {
+            string source = @"#line 1 @""""""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"""file.cs"""u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_07()
+        {
+            string source = @"#line 1 """"""file.cs""""""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line 1 """file.cs"""U8
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 9),
+                // (1,22): error CS1025: Single-line comment or end-of-line expected
+                // #line 1 """file.cs"""U8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "U8").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"\"\"file.cs\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_08()
+        {
+            string source = @"#line 1 @""""""file.cs""""""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"""file.cs"""U8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_09()
+        {
+            string source = @"#line 1 """"""
+file.cs
+""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line 1 """
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 9),
+                // (2,4): error CS1025: Single-line comment or end-of-line expected
+                // """u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(2, 4)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"\"\"" + @"
+file.cs
+" + "\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_10()
+        {
+            string source = @"#line 1 @""""""
+file.cs
+""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"""
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_11()
+        {
+            string source = @"#line 1 """"""
+file.cs
+""""""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line 1 """
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 9),
+                // (2,4): error CS1025: Single-line comment or end-of-line expected
+                // """U8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "U8").WithLocation(2, 4)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"\"\"" + @"
+file.cs
+" + "\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_12()
+        {
+            string source = @"#line 1 @""""""
+file.cs
+""""""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"""
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_13()
+        {
+            string source = @"#line (1, 2)-(3, 4) ""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,30): error CS1025: Single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) "file.cs"u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 30)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_14()
+        {
+            string source = @"#line (1, 2)-(3, 4) @""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) @"file.cs"u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.StringLiteralToken);
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_15()
+        {
+            string source = @"#line (1, 2)-(3, 4) """"""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line (1, 2)-(3, 4) """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 21),
+                // (1,34): error CS1025: Single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 34)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"\"\"file.cs\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_16()
+        {
+            string source = @"#line (1, 2)-(3, 4) @""""""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) @"""file.cs"""u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.StringLiteralToken);
                 N(SyntaxKind.EndOfDirectiveToken);
             }
             EOF();

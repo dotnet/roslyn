@@ -67,6 +67,29 @@ internal sealed class M
                 await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
             }
 
+            [Theory, CombinatorialData, WorkItem(60253, "https://github.com/dotnet/roslyn/issues/60253"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestReferenceAssembly(bool signaturesOnly)
+            {
+                var metadataSource = @"
+<Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
+Module M
+    Public Class D
+    End Class
+End Module";
+
+                var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Friend Module M
+    Public Class [|D|]
+        Public Sub New()
+    End Class
+End Module";
+
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            }
+
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
             [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]

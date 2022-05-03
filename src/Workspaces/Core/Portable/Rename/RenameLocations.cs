@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly Solution Solution;
         public readonly ISymbol Symbol;
         public readonly SymbolRenameOptions Options;
+        public readonly CodeCleanupOptionsProvider FallbackOptions;
 
         private readonly SearchResult _result;
 
@@ -39,11 +41,13 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
+            CodeCleanupOptionsProvider fallbackOptions,
             SearchResult result)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
+            FallbackOptions = fallbackOptions;
             _result = result;
         }
 
@@ -53,10 +57,11 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             ImmutableArray<ISymbol> referencedSymbols,
             ImmutableArray<ReferenceLocation> implicitLocations,
-            SymbolRenameOptions options)
+            SymbolRenameOptions options,
+            CodeCleanupOptionsProvider fallbackOptions)
         {
             return new RenameLocations(
-                symbol, solution, options,
+                symbol, solution, options, fallbackOptions,
                 new SearchResult(locations, implicitLocations, referencedSymbols));
         }
 
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Find the locations that need to be renamed.
         /// </summary>
         public static async Task<RenameLocations> FindLocationsAsync(
-            ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
@@ -80,13 +85,14 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
-                            (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, callbackId, serializedSymbol, options, cancellationToken),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)
                         {
                             var rehydrated = await TryRehydrateAsync(
-                                solution, result.Value, cancellationToken).ConfigureAwait(false);
+                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
 
                             if (rehydrated != null)
                                 return rehydrated;
@@ -99,11 +105,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
             // Couldn't effectively search in OOP. Perform the search in-proc.
             return await FindLocationsInCurrentProcessAsync(
-                symbol, solution, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
-            ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider cleanupOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -150,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.AddRange(comments.NullToEmpty());
 
                 return new RenameLocations(
-                    symbol, solution, options,
+                    symbol, solution, options, cleanupOptions,
                     new SearchResult(
                         mergedLocations.ToImmutable(),
                         mergedImplicitLocations.ToImmutable(),
@@ -234,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 this.Solution,
                 this.ReferencedSymbols,
                 this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
-                this.Options);
+                this.Options,
+                this.FallbackOptions);
     }
 }

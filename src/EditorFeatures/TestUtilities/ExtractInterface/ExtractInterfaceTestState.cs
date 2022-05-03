@@ -8,6 +8,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -15,6 +18,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -81,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 typeDiscoveryRule,
+                CodeActionOptions.DefaultProvider,
                 CancellationToken.None);
         }
 
@@ -89,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
+                CodeActionOptions.DefaultProvider,
                 (errorMessage, severity) =>
                 {
                     this.ErrorMessage = errorMessage;
@@ -102,7 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
                 ExtractFromDocument,
                 new TextSpan(_testDocument.CursorPosition.Value, 1),
+                CodeActionOptions.DefaultProvider,
                 CancellationToken.None);
+
             var action = actions.Single();
 
             var options = (ExtractInterfaceOptionsResult)action.GetOptions(CancellationToken.None);
@@ -111,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 options.IncludedMembers,
                 options.InterfaceName,
                 options.FileName,
-                ExtractInterfaceOptionsResult.ExtractLocation.SameFile);
+                ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
+                options.FallbackOptions);
 
             var operations = await action.GetOperationsAsync(changedOptions, CancellationToken.None);
             foreach (var operation in operations)

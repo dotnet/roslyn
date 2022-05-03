@@ -2,33 +2,25 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.Serialization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+    <DataContract>
     Friend NotInheritable Class VisualBasicCodeGenerationOptions
         Inherits CodeGenerationOptions
 
-        Private ReadOnly _preferences As VisualBasicCodeGenerationPreferences
-
-        Public Sub New(context As CodeGenerationContext, preferences As VisualBasicCodeGenerationPreferences)
-            MyBase.New(context)
-            _preferences = preferences
+        Public Sub New()
+            MyBase.New()
         End Sub
 
-        Public Shadows ReadOnly Property Preferences As VisualBasicCodeGenerationPreferences
-            Get
-                Return _preferences
-            End Get
-        End Property
+        Public Shared ReadOnly [Default] As New VisualBasicCodeGenerationOptions()
 
-        Protected Overrides ReadOnly Property PreferencesImpl As CodeGenerationPreferences
-            Get
-                Return _preferences
-            End Get
-        End Property
-
-        Protected Overrides Function WithContextImpl(value As CodeGenerationContext) As CodeGenerationOptions
-            Return New VisualBasicCodeGenerationOptions(value, Preferences)
+        Public Overrides Function GetInfo(context As CodeGenerationContext, parseOptions As ParseOptions) As CodeGenerationContextInfo
+            Return New VisualBasicCodeGenerationContextInfo(context, Me)
         End Function
     End Class
 End Namespace

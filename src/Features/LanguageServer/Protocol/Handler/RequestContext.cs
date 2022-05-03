@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -43,9 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly ClientCapabilities ClientCapabilities;
 
         /// <summary>
-        /// The LSP client making the request
+        /// The LSP server handling the request.
         /// </summary>
-        public readonly string? ClientName;
+        public readonly WellKnownLspServerKinds ServerKind;
 
         /// <summary>
         /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
@@ -59,6 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public readonly IGlobalOptionService GlobalOptions;
 
+        public readonly LspWorkspaceManager LspWorkspaceManager;
+        public readonly ILanguageServerNotificationManager NotificationManager;
+        public readonly CancellationToken QueueCancellationToken;
+
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
@@ -68,34 +73,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Solution? solution,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
+            CancellationToken queueCancellationToken)
         {
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
-            ClientName = clientName;
+            ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
             GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
+            LspWorkspaceManager = lspWorkspaceManager;
+            NotificationManager = notificationManager;
+            QueueCancellationToken = queueCancellationToken;
         }
 
         public static RequestContext? Create(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            CancellationToken queueCancellationToken)
         {
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
@@ -107,7 +120,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(
+                    solution: null, logger, clientCapabilities, serverKind, document: null,
+                    documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions,
+                    lspWorkspaceManager, notificationManager, queueCancellationToken);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -120,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument, clientName);
+                document = lspWorkspaceManager.GetLspDocument(textDocument);
                 if (document != null)
                     workspaceSolution = document.Project.Solution;
             }
@@ -135,12 +151,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 workspaceSolution,
                 logger,
                 clientCapabilities,
-                clientName,
+                serverKind,
                 document,
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
-                globalOptions);
+                globalOptions,
+                lspWorkspaceManager,
+                notificationManager,
+                queueCancellationToken);
             return context;
         }
 

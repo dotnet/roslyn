@@ -807,6 +807,76 @@ class Program
         }
 
         [Fact]
+        [WorkItem(60572, "https://github.com/dotnet/roslyn/issues/60572")]
+        public void TestParamArrayWithReorderedArguments_01()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class Attr : Attribute
+{
+    public Attr(bool b, int i, params object?[] parameters) { }
+}
+
+[Attr(i: 1, b: true)]
+[Attr(i: 1, b: true, parameters: ""a"")]
+class Program { }
+";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var program = comp.GetMember<NamedTypeSymbol>("Program");
+            var attrs = program.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+
+            var arguments0 = attrs[0].ConstructorArguments.ToArray();
+            Assert.Equal(3, arguments0.Length);
+            Assert.Equal(true, arguments0[0].Value);
+            Assert.Equal(1, arguments0[1].Value);
+            Assert.Empty(arguments0[2].Values);
+
+            var arguments1 = attrs[1].ConstructorArguments.ToArray();
+            Assert.Equal(3, arguments1.Length);
+            Assert.Equal(true, arguments1[0].Value);
+            Assert.Equal(1, arguments1[1].Value);
+            Assert.Equal("a", arguments1[2].Values.Single().Value);
+        }
+
+        [Fact]
+        [WorkItem(60572, "https://github.com/dotnet/roslyn/issues/60572")]
+        public void TestParamArrayWithReorderedArguments_02()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class Attr : Attribute
+{
+    public Attr(bool b, int i, params object?[] parameters) { }
+}
+
+[Attr(i: 1, b: true, ""a"")]
+[Attr(i: 1, b: true, ""a"", ""b"")]
+class Program { }
+";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (10,7): error CS8323: Named argument 'i' is used out-of-position but is followed by an unnamed argument
+                // [Attr(i: 1, b: true, "a")]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "i").WithArguments("i").WithLocation(10, 7),
+                // (11,7): error CS8323: Named argument 'i' is used out-of-position but is followed by an unnamed argument
+                // [Attr(i: 1, b: true, "a", "b")]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "i").WithArguments("i").WithLocation(11, 7));
+
+            var program = comp.GetMember<NamedTypeSymbol>("Program");
+            var attrs = program.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+            Assert.Empty(attrs[0].ConstructorArguments);
+            Assert.Empty(attrs[1].ConstructorArguments);
+        }
+
+        [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument()
         {
@@ -1710,7 +1780,7 @@ public struct Test
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
                 );
         }
 

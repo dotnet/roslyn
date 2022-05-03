@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="translated">Ajouter 'await'</target>
+        <target state="new">Add 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
-        <target state="new">Add required braces for single-line control statements</target>
+        <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
@@ -29,32 +29,32 @@
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
-        <target state="new">Apply blank line after colon in constructor initializer preferences (experimental)</target>
+        <target state="translated">Appliquer une ligne vide après le signe deux-points dans les préférences de l’initialiseur de constructeur (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
-        <target state="new">Apply blank lines between consecutive braces preferences (experimental)</target>
+        <target state="translated">Appliquer des lignes vides entre les préférences d’accolades consécutives (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
-        <target state="new">Apply conditional delegate call preferences</target>
+        <target state="translated">Appliquer les préférences d’appel de délégué conditionnel</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_deconstruct_preferences">
         <source>Apply deconstruct preferences</source>
-        <target state="new">Apply deconstruct preferences</target>
+        <target state="translated">Appliquer les préférences de déconstruction</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_default_T_preferences">
         <source>Apply default(T) preferences</source>
-        <target state="new">Apply default(T) preferences</target>
+        <target state="translated">Appliquer les préférences par défaut (T)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_embedded_statements_on_same_line_preferences_experimental">
         <source>Apply embedded statements on same line preferences (experimental)</source>
-        <target state="new">Apply embedded statements on same line preferences (experimental)</target>
+        <target state="translated">Appliquer des instructions incorporées sur les mêmes préférences de ligne (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -69,72 +69,62 @@
       </trans-unit>
       <trans-unit id="Apply_local_over_anonymous_function_preferences">
         <source>Apply local over anonymous function preferences</source>
-        <target state="new">Apply local over anonymous function preferences</target>
+        <target state="translated">Appliquer les préférences locales sur les fonctions anonymes</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_method_group_conversion_preferences">
         <source>Apply method group conversion preferences</source>
-        <target state="new">Apply method group conversion preferences</target>
+        <target state="translated">Appliquer les préférences de conversion du groupe de méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_preferences">
         <source>Apply namespace preferences</source>
-        <target state="new">Apply namespace preferences</target>
+        <target state="translated">Appliquer les préférences d’espace de noms</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
-        <target state="new">Apply new() preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
+        <target state="translated">Appliquer les préférences new()</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_parameter_null_preferences">
         <source>Apply parameter null preferences</source>
-        <target state="new">Apply parameter null preferences</target>
+        <target state="translated">Appliquer les préférences null du paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
-        <target state="new">Apply pattern matching preferences</target>
+        <target state="translated">Appliquer les préférences relatives aux critères spéciaux</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_range_preferences">
         <source>Apply range preferences</source>
-        <target state="new">Apply range preferences</target>
+        <target state="translated">Appliquer les préférences de plage</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
-        <target state="new">Apply static local function preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_this_qualification_preferences">
-        <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">Appliquer les préférences de qualification 'this.'</target>
+        <target state="translated">Appliquer les préférences de fonction locale statique</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_throw_expression_preferences">
         <source>Apply throw expression preferences</source>
-        <target state="new">Apply throw expression preferences</target>
+        <target state="translated">Appliquer les préférences de l’expression throw</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply preferred 'using' placement preferences</source>
-        <target state="translated">Appliquer les préférences de placement de 'using' par défaut</target>
-        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
-        <target state="new">Apply using statement preferences</target>
+        <target state="translated">Appliquer les préférences d’instruction using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_utf8_string_literal_preferences">
+        <source>Apply UTF-8 string literal preferences</source>
+        <target state="new">Apply UTF-8 string literal preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
-        <target state="new">Apply 'var' preferences</target>
+        <target state="translated">Appliquer les préférences 'var'</target>
         <note />
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -146,11 +136,6 @@
         <source>Assign 'out' parameters (at start)</source>
         <target state="translated">Assigner des paramètres 'out' (au début)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_to_0">
-        <source>Assign to '{0}'</source>
-        <target state="translated">Affecter à '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
@@ -167,11 +152,6 @@
         <target state="translated">Changer en cast</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compare_to_0">
-        <source>Compare to '{0}'</source>
-        <target state="translated">Comparer à '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Convertir en méthode</target>
@@ -179,12 +159,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
-        <target state="new">Convert to raw string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="new">Convert to raw string (no indent)</target>
+        <target state="translated">Convertir en chaîne brute</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -207,19 +182,14 @@
         <target state="translated">Convertir en chaîne verbatim</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_nullable">
-        <source>Declare as nullable</source>
-        <target state="translated">Déclarer comme nullable</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">Activer les types de référence nullables dans le projet</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_return_type">
-        <source>Fix return type</source>
-        <target state="translated">Corriger le type de retour</target>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -267,29 +237,9 @@
         <target state="translated">La sélection ne peut pas inclure d'instructions de niveau supérieur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_lambda_expression">
-        <source>Simplify lambda expression</source>
-        <target state="translated">Simplifier l'expression lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_all_occurrences">
-        <source>Simplify all occurrences</source>
-        <target state="translated">Simplifier toutes les occurrences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unseal_class_0">
-        <source>Unseal class '{0}'</source>
-        <target state="translated">Classe unsealed '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">Utiliser des modèles récursifs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_Expression_may_change_code_meaning">
-        <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="translated">Avertissement : L'expression peut avoir des effets secondaires. La signification du code peut changer.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -342,16 +292,6 @@
         <target state="translated">Sélection automatique désactivée en raison de la création éventuelle d'un membre de type anonyme nommé explicitement.</target>
         <note />
       </trans-unit>
-      <trans-unit id="element_name">
-        <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;nom d'élément&gt; : </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
-        <source>Autoselect disabled due to possible tuple type element creation.</source>
-        <target state="translated">Sélection automatique désactivée en raison de la création possible d'un élément de type tuple.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="pattern_variable">
         <source>&lt;pattern variable&gt;</source>
         <target state="translated">&lt;variable de modèle&gt;</target>
@@ -382,11 +322,6 @@
         <target state="translated">Supprimer la qualification 'this'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">Le nom peut être simplifié</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
         <source>Can't determine valid range of statements to extract</source>
         <target state="translated">Impossible de déterminer la plage valide d'instructions à extraire</target>
@@ -400,11 +335,6 @@
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
         <target state="translated">La sélection ne contient pas un nœud valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection.</source>
-        <target state="translated">Sélection incorrecte.</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_invalid_selection">
@@ -477,24 +407,9 @@
         <target state="translated">Organiser les instructions Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_await">
-        <source>Insert 'await'.</source>
-        <target state="translated">Insérez 'await'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
         <target state="translated">{0} doit retourner Task au lieu de void.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_return_type_from_0_to_1">
-        <source>Change return type from {0} to {1}</source>
-        <target state="translated">Changer le type de retour de {0} en {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_return_with_yield_return">
-        <source>Replace return with yield return</source>
-        <target state="translated">Remplacer return par yield return</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
@@ -727,19 +642,9 @@
         <target state="translated">cible d'attribut</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
-        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'{0}' ne contient pas de constructeur prenant en charge autant d'arguments.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
         <source>The name '{0}' does not exist in the current context.</source>
         <target state="translated">Le nom '{0}' n'existe pas dans le contexte actuel.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hide_base_member">
-        <source>Hide base member</source>
-        <target state="translated">Masquer le membre de base</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
@@ -847,11 +752,6 @@
         <target state="translated">Inverser si</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add [Obsolete]</source>
-        <target state="translated">Ajouter [obsolète]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
         <target state="translated">Utiliser '{0}'</target>
@@ -861,6 +761,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">Introduire l’instruction 'using'</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="new">... without leading whitespace (may change semantics)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

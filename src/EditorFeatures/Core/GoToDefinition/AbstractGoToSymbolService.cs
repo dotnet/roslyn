@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     // Ctrl+Click (GoToSymbol)
-    internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
+    internal abstract class AbstractGoToSymbolService : IGoToSymbolService
     {
-        protected AbstractGoToSymbolService(IThreadingContext threadingContext, bool assertIsForeground = false)
-            : base(threadingContext, assertIsForeground)
-        {
-        }
-
         public async Task GetSymbolsAsync(GoToSymbolContext context)
         {
             var document = context.Document;

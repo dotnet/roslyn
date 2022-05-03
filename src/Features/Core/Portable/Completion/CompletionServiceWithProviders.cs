@@ -62,6 +62,9 @@ namespace Microsoft.CodeAnalysis.Completion
         internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
             => _providerManager.GetImportedProviders();
 
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            => ProviderManager.GetProjectCompletionProviders(project);
+
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
             => _providerManager.GetProviders(roles);
 
@@ -100,6 +103,19 @@ namespace Microsoft.CodeAnalysis.Completion
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
             return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        internal override Task<CompletionList> GetCompletionsAsync(
+            Document document,
+            int caretPosition,
+            CompletionOptions options,
+            OptionSet passThroughOptions,
+            CompletionTrigger trigger,
+            ImmutableHashSet<string>? roles,
+            CancellationToken cancellationToken)
+        {
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
         }
 
         private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(

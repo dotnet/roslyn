@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -585,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ApplyConversionIfNotIdentity(BoundExpression? conversion, BoundValuePlaceholder? placeholder, BoundExpression replacement)
         {
-            if (conversion is BoundConversion { Conversion: { IsIdentity: false } })
+            if (hasNonIdentityConversion(conversion))
             {
                 Debug.Assert(placeholder is not null);
 
@@ -593,6 +594,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return replacement;
+
+            static bool hasNonIdentityConversion([NotNullWhen(true)] BoundExpression? expression)
+            {
+                while (expression is BoundConversion conversion)
+                {
+                    if (!conversion.Conversion.IsIdentity)
+                    {
+                        return true;
+                    }
+
+                    expression = conversion.Operand;
+                }
+
+                return false;
+            }
         }
 
         private BoundExpression ApplyConversion(BoundExpression conversion, BoundValuePlaceholder placeholder, BoundExpression replacement)

@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             RenameTrackingPreview,
             RenameTracking,
             RefactoringVerification,
-            NavigateToDecompiledSources,
             AddImportsOnPaste,
             OfferRemoveUnusedReferences,
             OfferRemoveUnusedReferencesFeatureFlag,
@@ -91,10 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
 
-        public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            FeatureName, "NavigateToDecompiledSources", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
-
         public static readonly Option2<bool> NavigateAsynchronously = new(
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
@@ -118,6 +113,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<bool> InheritanceMarginCombinedWithIndicatorMargin = new(
             FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
+
+        public static readonly PerLanguageOption2<bool> InheritanceMarginIncludeGlobalImports = new(
+            FeatureName, "InheritanceMarginIncludeGlobalImports", defaultValue: true,
+            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,

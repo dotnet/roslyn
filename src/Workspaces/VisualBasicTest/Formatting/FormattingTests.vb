@@ -4338,8 +4338,11 @@ End Module
 End Class</text>.Value)
 
             Dim propertyBlock = (Await document.GetSyntaxRootAsync()).DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
-            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(
-                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
+
+            Dim newDocument = document.WithSyntaxRoot(
+                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter))))
+
+            document = Await Formatter.FormatAsync(newDocument, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None)
 
             Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
@@ -4732,8 +4735,8 @@ End Class
 
                 Dim options = SyntaxFormattingOptions.Create(
                     workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    workspace.Services,
-                    tree.Language)
+                    fallbackOptions:=Nothing,
+                    workspace.Services.GetLanguageServices(tree.Language))
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()

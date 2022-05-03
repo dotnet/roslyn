@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// </summary>
         internal OperationStatusFlag Status { get; }
 
-        public async Task<(Document document, SyntaxToken invocationNameToken)> GetFormattedDocumentAsync(CancellationToken cancellationToken)
+        public async Task<(Document document, SyntaxToken invocationNameToken)> GetFormattedDocumentAsync(CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             if (DocumentWithoutFinalFormatting is null)
                 throw new InvalidOperationException();
@@ -91,14 +92,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             root = root.ReplaceToken(InvocationNameToken, InvocationNameToken.WithAdditionalAnnotations(annotation));
 
             var annotatedDocument = DocumentWithoutFinalFormatting.WithSyntaxRoot(root);
-            var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
+            var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
             var simplifiedRoot = await simplifiedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(DocumentWithoutFinalFormatting, cancellationToken).ConfigureAwait(false);
             var services = DocumentWithoutFinalFormatting.Project.Solution.Workspace.Services;
 
             var formattedDocument = simplifiedDocument.WithSyntaxRoot(
-                Formatter.Format(simplifiedRoot, Formatter.Annotation, services, options, FormattingRules, cancellationToken));
+                Formatter.Format(simplifiedRoot, Formatter.Annotation, services, cleanupOptions.FormattingOptions, FormattingRules, cancellationToken));
 
             var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (formattedDocument, formattedRoot.GetAnnotatedTokens(annotation).Single());

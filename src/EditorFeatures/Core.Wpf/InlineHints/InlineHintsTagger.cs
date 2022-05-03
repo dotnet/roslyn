@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -48,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
 
-        private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
         private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private readonly ITextBuffer _buffer;
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ITextBuffer buffer,
             ITagAggregator<InlineHintDataTag> tagAggregator)
         {
-            _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _taggerProvider = taggerProvider;
 
             _textView = textView;
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
-            _threadAffinitizedObject.AssertIsForeground();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             if (_format != null)
             {
                 _format = null;
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             get
             {
-                _threadAffinitizedObject.AssertIsForeground();
+                _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
                 _format ??= _formatMap.GetTextProperties(_hintClassification);
                 return _format;
             }

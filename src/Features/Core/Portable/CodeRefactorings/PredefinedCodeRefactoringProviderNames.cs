@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
+        public const string ConvertToProgramMain = "Convert To Program.Main";
         public const string ConvertToRawString = nameof(ConvertToRawString);
+        public const string ConvertToTopLevelStatements = "Convert To Top Level Statements";
         public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EnableNullable = "Enable Nullable Reference Types";

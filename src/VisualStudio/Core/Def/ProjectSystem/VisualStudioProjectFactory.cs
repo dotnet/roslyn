@@ -74,7 +74,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? filePath
                 : null;
 
-            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(true);
+            // After the call to EnsureDocumentOptionProvidersInitializedAsync, everything can be off the UI thread.
+            // Thus, we have a ConfigureAwait(false) on the call and switch explicitly after.
+            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
+            await TaskScheduler.Default;
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
             cancellationToken = CancellationToken.None;

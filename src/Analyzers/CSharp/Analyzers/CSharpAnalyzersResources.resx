@@ -358,4 +358,17 @@
   <data name="Use_is_object_check" xml:space="preserve">
     <value>Use 'is object' check</value>
   </data>
+  <data name="Convert_to_Program_Main_style_program" xml:space="preserve">
+    <value>Convert to 'Program.Main' style program</value>
+    <comment>{Locked="Program.Main"} this is the C# syntax we are going to generate</comment>
+  </data>
+  <data name="Convert_to_top_level_statements" xml:space="preserve">
+    <value>Convert to top-level statements</value>
+  </data>
+  <data name="Convert_to_UTF8_string_literal" xml:space="preserve">
+    <value>Convert to UTF-8 string literal</value>
+  </data>
+  <data name="Use_UTF8_string_literal" xml:space="preserve">
+    <value>Use UTF-8 string literal</value>
+  </data>
 </root>

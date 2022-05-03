@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,11 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// Service to maintain information about the suppression state of specific set of items in the error list.
     /// </summary>
     [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
+    [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
     internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IVsUIShell _shellService;
-        private readonly IWpfTableControl? _tableControl;
+
+        private IVsUIShell? _shellService;
+        private IWpfTableControl? _tableControl;
 
         private int _selectedActiveItems;
         private int _selectedSuppressedItems;
@@ -45,13 +49,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListSuppressionStateService(
-            SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
-            _shellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
-            var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
+        }
+
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             ClearState();
             InitializeFromTableControlIfNeeded();
