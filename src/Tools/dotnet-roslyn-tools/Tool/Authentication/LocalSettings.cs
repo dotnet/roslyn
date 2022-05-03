@@ -54,7 +54,7 @@ namespace Microsoft.RoslynTools.Authentication
             }
             catch (Exception e)
             {
-                logger.LogWarning(e, $"Failed to load the roslyn-tools settings file, may be corrupted");
+                logger.LogWarning(e, $"Failed to load the roslyn-tools settings. File may be corrupted or missing. Run `roslyn-tools authenticate` to regenerate.");
             }
 
             // Override if non-empty on command line
