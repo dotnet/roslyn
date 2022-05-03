@@ -11,6 +11,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.RoslynTools.Authentication;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace Microsoft.RoslynTools.VS;
 
@@ -43,9 +44,13 @@ internal static class VSBranchInfo
                 }
             }
         }
+        catch (VssUnauthorizedException vssEx)
+        {
+            logger.LogError(vssEx, "Authentication error occurred: {Message}. Run `roslyn-tools authenticate` to configure the AzDO authentication tokens.", vssEx.Message);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occurred: {0}", ex.Message);
+            logger.LogError(ex, "Error occurred: {Message}", ex.Message);
         }
 
         return 1;

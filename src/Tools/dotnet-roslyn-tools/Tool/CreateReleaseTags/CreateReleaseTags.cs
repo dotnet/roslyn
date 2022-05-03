@@ -14,6 +14,7 @@ using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
@@ -93,11 +94,16 @@ internal static class CreateReleaseTags
 
             return 0;
         }
+        catch (VssUnauthorizedException vssEx)
+        {
+            logger.LogError(vssEx, "Authentication error occurred: {Message}. Run `roslyn-tools authenticate` to configure the AzDO authentication tokens.", vssEx.Message);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unable to open Roslyn repo. Please run from you Roslyn repo directory.");
-            return 1;
         }
+
+        return 1;
     }
 
     private static async Task<RoslynBuildInformation?> TryGetRoslynBuildForReleaseAsync(VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)

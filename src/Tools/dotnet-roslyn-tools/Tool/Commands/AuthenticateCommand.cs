@@ -18,7 +18,7 @@ internal class AuthenticateCommand
 
     public static Symbol GetCommand()
     {
-        var command = new Command("authenticate", "Stores the VSTS and GitHub tokens required for remote operations.")
+        var command = new Command("authenticate", "Stores the AzDO and GitHub tokens required for remote operations.")
         {
             ClearOption,
             VerbosityOption
