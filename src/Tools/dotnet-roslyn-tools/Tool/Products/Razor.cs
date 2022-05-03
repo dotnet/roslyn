@@ -16,9 +16,9 @@ internal class Razor : IProduct
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
 
     public string? GetBuildPipelineName(string buildProjectName)
-    => buildProjectName switch
-    {
-        "internal" => "razor-tooling-ci-official",
-        _ => null
-    };
+        => buildProjectName switch
+        {
+            "internal" => "razor-tooling-ci-official",
+            _ => null
+        };
 }
