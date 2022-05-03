@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             _threadingContext = threadingContext;
             _globalOptions = globalOptions;
-            _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
+            _listener = listenerProvider.GetListener(FeatureAttribute.AddImportsOnPaste);
         }
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
@@ -137,6 +137,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private async Task ExecuteAsync(Document document, SnapshotSpan snapshotSpan, ITextView textView)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var backgroundWorkContext = indicatorFactory.Create(
                 textView,
@@ -167,6 +169,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return;
             }
 
+            // Required to switch back to the UI thread to call TryApplyChanges
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             document.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
         }
     }
