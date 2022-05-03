@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
         private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap = new();
 
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
         private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
         [ImportingConstructor]
@@ -207,49 +205,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return null;
         }
 
-        private ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
+        private static ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
             if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
-            {
                 return ImmutableArray<CodeRefactoringProvider>.Empty;
-            }
 
-            if (_projectRefactoringsMap.TryGetValue(project.AnalyzerReferences, out var refactorings))
-            {
-                return refactorings.Value;
-            }
-
-            return GetProjectRefactoringsSlow(project);
-
-            // Local functions
-            ImmutableArray<CodeRefactoringProvider> GetProjectRefactoringsSlow(Project project)
-            {
-                return _projectRefactoringsMap.GetValue(project.AnalyzerReferences, pId => new StrongBox<ImmutableArray<CodeRefactoringProvider>>(ComputeProjectRefactorings(project))).Value;
-            }
-
-            ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
-            {
-                using var _ = ArrayBuilder<CodeRefactoringProvider>.GetInstance(out var builder);
-                foreach (var reference in project.AnalyzerReferences)
-                {
-                    var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, static reference => new ProjectCodeRefactoringProvider(reference));
-                    foreach (var refactoring in projectCodeRefactoringProvider.GetExtensions(project.Language))
-                        builder.Add(refactoring);
-                }
-
-                return builder.ToImmutable();
-            }
+            return ProjectCodeRefactoringProvider.GetExtensions(project);
         }
 
         private class ProjectCodeRefactoringProvider
-            : AbstractProjectExtensionProvider<CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
+            : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
         {
-            public ProjectCodeRefactoringProvider(AnalyzerReference reference)
-                : base(reference)
-            {
-            }
-
             protected override bool SupportsLanguage(ExportCodeRefactoringProviderAttribute exportAttribute, string language)
             {
                 return exportAttribute.Languages == null
