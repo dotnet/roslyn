@@ -45,7 +45,13 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<TextSpan> fixAllSpans,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider optionsProvider,
+            string? equivalenceKey,
+            CancellationToken cancellationToken)
         {
             var originalRoot = editor.OriginalRoot;
 
