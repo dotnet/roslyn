@@ -29,6 +29,7 @@ namespace BuildValidator
         {
             new Regex(@"\\runtimes?\\"),
             new Regex(@"\\ref\\"),
+            new Regex(@"\\refint\\"),
             new Regex(@"\.resources?\.")
         };
 
