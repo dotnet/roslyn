@@ -8,14 +8,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
-    internal sealed class ClassifierExtensionProvider
-        : AbstractProjectExtensionProvider<IAspNetCoreEmbeddedLanguageClassifier, ExportAspNetCoreEmbeddedLanguageClassifierAttribute>
+    internal sealed class AspNetCoreClassifierExtensionProvider
+        : AbstractProjectExtensionProvider<
+            AspNetCoreClassifierExtensionProvider,
+            IAspNetCoreEmbeddedLanguageClassifier,
+            ExportAspNetCoreEmbeddedLanguageClassifierAttribute>
     {
-        public ClassifierExtensionProvider(AnalyzerReference reference)
-            : base(reference)
-        {
-        }
-
         protected override bool SupportsLanguage(ExportAspNetCoreEmbeddedLanguageClassifierAttribute exportAttribute, string language)
         {
             return exportAttribute.Language == null
