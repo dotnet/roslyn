@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     internal abstract partial class AbstractStructureTaggerProvider :
         AsynchronousTaggerProvider<IStructureTag>
     {
+        private const string RegionDirective = "#region";
+        private const string UsingDirective = "using";
+        private const string ExternDeclaration = "extern";
+        private const string ImportsStatement = "Imports";
+
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
@@ -86,127 +91,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // synchronously, but only if there are usings or #regions in the file. To
             // save some work, we'll look for both in a single pass.
             var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
-            var collapseUsings = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
+            var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
 
-            if (!collapseRegions && !collapseUsings)
+            if (!collapseRegions && !collapseImports)
             {
                 return false;
             }
 
-            if (ContainsRegionOrUsing(subjectBuffer.CurrentSnapshot, collapseRegions, collapseUsings, openDocument.Project.Language))
+            if (ContainsRegionOrImport(subjectBuffer.CurrentSnapshot, collapseRegions, collapseImports, openDocument.Project.Language))
             {
                 return true;
             }
 
             return false;
-        }
 
-        // Internal for testing. Can't use TestAccessor because the base class already defines one
-        internal static bool ContainsRegionOrUsing(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseUsings, string language)
-        {
-            foreach (var line in textSnapshot.Lines)
+            static bool ContainsRegionOrImport(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseUsings, string language)
             {
-                if (collapseRegions && StartsWithRegionTag(line))
+                foreach (var line in textSnapshot.Lines)
                 {
-                    return true;
-                }
-                else if (collapseUsings && IsUsingDeclarationOrExtern(line, language))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-
-            static bool StartsWithRegionTag(ITextSnapshotLine line)
-            {
-                if (line.Length < 7)
-                    return false;
-
-                var index = line.Start.Position;
-                Skip(line.Snapshot, ref index, line.End.Position, whitespace: true);
-                // Ignore case here because this deals with VB and C#
-                return line.StartsWith(index, "#region", ignoreCase: true);
-            }
-
-            static bool IsUsingDeclarationOrExtern(ITextSnapshotLine line, string language)
-            {
-                if (line.Length < 8)
-                    return false;
-
-                var index = line.Start.Position;
-                var text = line.Snapshot;
-                var lineEnd = line.End.Position;
-
-                // Skip whitespace at the start of the line
-                Skip(text, ref index, lineEnd, whitespace: true);
-
-                // For VB we only need to find "Imports" at the start of a line
-                if (language == LanguageNames.VisualBasic)
-                {
-                    return line.StartsWith(index, "Imports", ignoreCase: true);
+                    if (collapseRegions && StartsWithRegionTag(line))
+                    {
+                        return true;
+                    }
+                    else if (collapseUsings && IsImport(line, language))
+                    {
+                        return true;
+                    }
                 }
 
-                // For the purposes of collapsing, extern aliases are grouped with usings, so
-                // we need to check for them too
-                if (line.StartsWith(index, "extern alias", ignoreCase: false))
-                    return true;
-
-                // For C# there are 5 types of statements that start with "using", but we only want to know about 2:
-                // Want to find:
-                //     1. using Y;
-                //     2. using X = Y;
-                //     3. using static X;
-                // Don't want to find:
-                //     4. using var X = Y;
-                //     5. using ({var X = Y|X = Y|X})
-                //
-                // So any line that starts with "using", ends with ";", doesn't have "(", and has
-                // 2 or 4 words.
-
-                // We expect the using keyword first
-                if (!line.StartsWith(index, "using", ignoreCase: false))
-                    return false;
-
-                // Skip past "using"
-                index += 5;
-
-                // Skip whitespace after using keyword
-                Skip(text, ref index, lineEnd, whitespace: true);
-
-                // If we find a static then this can only be case 3
-                if (line.StartsWith(index, "static", ignoreCase: false))
-                    return true;
-
-                // If we find an open paren then this is case 4
-                if (index >= lineEnd || text[index] == '(')
-                    return false;
-
-                // Skip the next word. It could be a namespace, alias, type name, or "var"
-                Skip(text, ref index, lineEnd, whitespace: false);
-
-                // Skip whitespace after that identifier
-                Skip(text, ref index, lineEnd, whitespace: true);
-
-                // Now we either need to find a semicolon, for case 1, or an equals sign, for case 3
-                if (index < lineEnd && (text[index] == ';' || text[index] == '='))
-                    return true;
-
-                // Otherwise it must be case 5
                 return false;
-            }
 
-            static void Skip(ITextSnapshot text, ref int index, int lineEnd, bool whitespace)
-            {
-                for (; index < lineEnd; index++)
+                static bool StartsWithRegionTag(ITextSnapshotLine line)
                 {
-                    var isWhitespace = text[index] is ' ' or '\t';
-                    if (isWhitespace != whitespace)
-                        return;
-                    // If we're skipping non-whitespace we want the caller to know about the
-                    // end of the statement
-                    if (text[index] == ';')
-                        return;
+                    var start = line.GetFirstNonWhitespacePosition();
+                    return start != null && line.StartsWith(start.Value, RegionDirective, ignoreCase: true);
+                }
+
+                static bool IsImport(ITextSnapshotLine line, string language)
+                {
+                    var start = line.GetFirstNonWhitespacePosition();
+                    if (start is null)
+                        return false;
+
+                    // For VB we only need to find "Imports" at the start of a line
+                    if (language == LanguageNames.VisualBasic)
+                    {
+                        return line.StartsWith(start.Value, ImportsStatement, ignoreCase: false);
+                    }
+
+                    // For the purposes of collapsing, extern aliases are grouped with usings
+                    if (line.StartsWith(start.Value, ExternDeclaration, ignoreCase: false))
+                        return true;
+
+                    return line.StartsWith(start.Value, UsingDirective, ignoreCase: false);
                 }
             }
         }
