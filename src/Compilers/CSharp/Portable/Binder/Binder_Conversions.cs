@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
 
             static BoundExpression bindObjectCreationExpression(
-                SyntaxNode syntax, InitializerExpressionSyntax initializerOpt, Binder binder,
+                SyntaxNode syntax, InitializerExpressionSyntax? initializerOpt, Binder binder,
                 TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
             {
                 switch (type.TypeKind)
