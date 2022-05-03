@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             public static XElement GetWorkspaceXml(string markup)
                 => markup.Contains("<Workspace>")
                     ? XElement.Parse(markup)
-                    : XElement.Parse(string.Format(@"
+                    : XElement.Parse($@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{0}</Document>
+        <Document Markup=""SpansOnly"">{markup}</Document>
     </Project>
-</Workspace>", markup));
+</Workspace>");
 
             internal void AssertCodeIs(string expectedCode)
             {
