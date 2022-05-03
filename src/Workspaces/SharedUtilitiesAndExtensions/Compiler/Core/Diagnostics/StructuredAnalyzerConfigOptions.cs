@@ -17,31 +17,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <see cref="AnalyzerConfigOptions"/> that memoize structured (parsed) form of certain complex options to avoid parsing them multiple times.
 /// Storages of these complex options may directly call the specialized getters to reuse the cached values.
 /// </summary>
-internal sealed class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
+internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
 {
-    private readonly AnalyzerConfigOptions _options;
-    private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
-
-    public StructuredAnalyzerConfigOptions(AnalyzerConfigOptions options)
+    internal sealed class Implementation : StructuredAnalyzerConfigOptions
     {
-        _options = options;
-        _lazyNamingStylePreferences = new Lazy<NamingStylePreferences>(() => EditorConfigNamingStyleParser.ParseDictionary(_options));
+        private readonly AnalyzerConfigOptions _options;
+        private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
+
+        public Implementation(AnalyzerConfigOptions options)
+        {
+            _options = options;
+            _lazyNamingStylePreferences = new Lazy<NamingStylePreferences>(() => EditorConfigNamingStyleParser.ParseDictionary(_options));
+        }
+
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            => _options.TryGetValue(key, out value);
+
+        public override IEnumerable<string> Keys
+            => _options.Keys;
+
+        public override NamingStylePreferences GetNamingStylePreferences()
+            => _lazyNamingStylePreferences.Value;
     }
 
-    public StructuredAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
-        : this(new DictionaryAnalyzerConfigOptions(options))
+    public abstract NamingStylePreferences GetNamingStylePreferences();
+
+    public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
     {
         Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
+        return new Implementation(new DictionaryAnalyzerConfigOptions(options));
     }
-
-    public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-        => _options.TryGetValue(key, out value);
-
-    public override IEnumerable<string> Keys
-        => _options.Keys;
-
-    public NamingStylePreferences GetNamingStylePreferences()
-        => _lazyNamingStylePreferences.Value;
 
     public static bool TryGetStructuredOptions(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
     {
@@ -86,7 +91,7 @@ internal sealed class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
         {
             if (!s_codeStyleStructuredOptions.TryGetValue(configOptions, out options))
             {
-                options = new StructuredAnalyzerConfigOptions(configOptions);
+                options = new Implementation(configOptions);
                 s_codeStyleStructuredOptions.Add(configOptions, options);
             }
         }

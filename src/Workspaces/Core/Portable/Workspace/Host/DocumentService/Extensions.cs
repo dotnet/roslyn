@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal static class Extensions
     {
-        private const string RazorCSharp = "RazorCSharp";
+        private const string RazorCSharpLspClientName = "RazorCSharp";
 
         public static bool CanApplyChange([NotNullWhen(returnValue: true)] this TextDocument? document)
             => document?.State.CanApplyChange() ?? false;
@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.Host
             => IsRazorDocument(document.State);
 
         public static bool IsRazorDocument(this TextDocumentState documentState)
-            => documentState.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharp;
+            => documentState.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharpLspClientName;
     }
 }

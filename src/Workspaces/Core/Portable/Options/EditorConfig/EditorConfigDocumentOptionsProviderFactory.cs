@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
                 var data = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
-                return new DocumentOptions(data?.AnalyzerConfigOptions);
+                return new DocumentOptions(data?.ConfigOptions);
             }
 
             private sealed class DocumentOptions : IDocumentOptions

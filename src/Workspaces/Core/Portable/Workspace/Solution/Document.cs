@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
 
-        internal async Task<AnalyzerConfigData?> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        internal async ValueTask<AnalyzerConfigData?> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
         {
             var projectFilePath = Project.FilePath;
             // We need to work out path to this document. Documents may not have a "real" file path if they're something created
