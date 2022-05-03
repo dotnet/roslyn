@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -65,11 +64,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                      IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
-#if CODE_STYLE
-        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
-#endif
         /// <summary>
         /// Method to update the identifier token for the local/parameter declaration or reference
         /// that was flagged as an unused value write by the analyzer.
@@ -117,10 +113,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
-        {
-            return null;
-        }
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -179,13 +172,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
             }
 
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    title,
-                    c => FixAsync(context.Document, diagnostic, c),
-                    equivalenceKey: GetEquivalenceKey(preference, isRemovableAssignment)),
-                diagnostic);
-
+            RegisterCodeFix(context, title, GetEquivalenceKey(preference, isRemovableAssignment));
             return;
         }
 
@@ -194,7 +181,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // Do not offer a fix to replace unused foreach iteration variable with discard.
             // User should probably replace it with a for loop based on the collection length.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(cancellationToken));
+            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken));
         }
 
         private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
@@ -270,17 +257,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return document.WithSyntaxRoot(root);
         }
 
-        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
-            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
-#else
-            var provider = document.Project.Solution.Workspace.Services;
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-#endif
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), fallbackOptions, cancellationToken).ConfigureAwait(false);
             var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            var newRoot = await GetNewRootAsync(preprocessedDocument, options, diagnostics, cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
 
@@ -319,8 +300,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var containingMemberDeclaration = diagnosticsToFix.Key;
                 using var nameGenerator = new UniqueVariableNameGenerator(containingMemberDeclaration, semanticModel, semanticFacts, cancellationToken);
 
-                await FixAllAsync(diagnosticId, diagnosticsToFix.Select(d => d), document, semanticModel, root, containingMemberDeclaration, preference,
-                    removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
+                await FixAllAsync(
+                    diagnosticId, diagnosticsToFix.Select(d => d),
+                    document, semanticModel, root, containingMemberDeclaration, preference,
+                    removeAssignments, nameGenerator, editor, cancellationToken).ConfigureAwait(false);
             }
 
             // Second pass to post process the document.
@@ -345,7 +328,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
             switch (diagnosticId)
@@ -353,8 +335,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     // Make sure the inner diagnostics are placed first
                     FixAllExpressionValueIsUnusedDiagnostics(
-                        diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start), semanticModel, root,
-                        preference, nameGenerator, editor, syntaxFacts);
+                        diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start),
+                        document, semanticModel, root, preference, nameGenerator, editor);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
@@ -363,8 +345,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // int a = 0; int b = 1;
                     // After fix it would be int a; int b;
                     await FixAllValueAssignedIsUnusedDiagnosticsAsync(
-                        diagnostics.OrderBy(d => d.Location.SourceSpan.Start), document, semanticModel, root, containingMemberDeclaration,
-                        preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken).ConfigureAwait(false);
+                        diagnostics.OrderBy(d => d.Location.SourceSpan.Start),
+                        document, semanticModel, root, containingMemberDeclaration,
+                        preference, removeAssignments, nameGenerator, editor, cancellationToken).ConfigureAwait(false);
                     break;
 
                 default:
@@ -374,13 +357,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static void FixAllExpressionValueIsUnusedDiagnostics(
             IOrderedEnumerable<Diagnostic> diagnostics,
+            Document document,
             SemanticModel semanticModel,
             SyntaxNode root,
             UnusedValuePreference preference,
             UniqueVariableNameGenerator nameGenerator,
-            SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts)
+            SyntaxEditor editor)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
             // This method applies the code fix for diagnostics reported for expression statement dropping values.
             // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
             // based on the user's preference.
@@ -439,9 +424,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             bool removeAssignments,
             UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
-            ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
+
             // This method applies the code fix for diagnostics reported for unused value assignments to local/parameter.
             // The actual code fix depends on whether or not the right hand side of the assignment has side effects.
             // For example, if the right hand side is a constant or a reference to a local/parameter, then it has no side effects.
@@ -552,7 +539,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     else
                     {
                         var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
-                        if (newParentNode is object)
+                        if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);
                         }
@@ -676,12 +663,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>(
-                    (n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
-                                        syntaxFacts.IsExecutableBlock(n.Parent) &&
-                                        n is not TCatchStatementSyntax &&
-                                        n is not TCatchBlockSyntax,
-                                        syntaxFacts);
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(
+                    n => n.Parent is TSwitchCaseBlockSyntax ||
+                         blockFacts.IsExecutableBlock(n.Parent) &&
+                         n is not TCatchStatementSyntax &&
+                         n is not TCatchBlockSyntax);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(
@@ -836,7 +822,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
 #if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
+            var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
             var provider = document.Project.Solution.Workspace.Services;
@@ -914,14 +900,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
             return referencedSymbols.Count() == 1 &&
                 referencedSymbols.Single().Locations.IsEmpty();
-        }
-
-        private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
 
         protected sealed class UniqueVariableNameGenerator : IDisposable

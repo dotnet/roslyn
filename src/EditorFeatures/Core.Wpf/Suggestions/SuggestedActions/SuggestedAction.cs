@@ -11,19 +11,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -65,12 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        internal bool IsForCodeQualityImprovement
-            => (Provider as SyntaxEditorBasedCodeFixProvider)?.CodeFixCategory == CodeFixCategory.CodeQuality;
-
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = CodeAction.GetType().GetTelemetryId();
+            telemetryId = CodeAction.GetTelemetryId();
             return true;
         }
 
@@ -179,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void CreateLogProperties(Dictionary<string, object> map)
         {
             // set various correlation info
-            if (CodeAction is FixSomeCodeAction fixSome)
+            if (CodeAction is AbstractFixAllCodeFixCodeAction fixSome)
             {
                 // fix all correlation info
                 map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;

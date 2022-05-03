@@ -7,6 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,8 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
-            : base(serverKind, diagnosticService)
+        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
         {
         }
 
@@ -36,8 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return GetWorkspacePullDocumentsAsync(context, cancellationToken);
+            return GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -65,14 +69,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetValues();
         }
 
-        internal static async ValueTask<ImmutableArray<Document>> GetWorkspacePullDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
+        internal static async ValueTask<ImmutableArray<Document>> GetWorkspacePullDocumentsAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
-            if (context.ClientName != null)
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<Document>.Empty;
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
@@ -117,8 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
-                    if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                    if (globalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
                     {
                         context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // documents from it. If all features are enabled for source generated documents, make sure they are
                 // included as well.
                 var documents = project.Documents;
-                if (solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                if (solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     documents = documents.Concat(await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
                 }
@@ -141,6 +144,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (context.IsTracking(document.GetURI()))
                     {
                         context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+                    // for any razor file they are interested in.
+                    if (document.IsRazorDocument())
+                    {
                         continue;
                     }
 

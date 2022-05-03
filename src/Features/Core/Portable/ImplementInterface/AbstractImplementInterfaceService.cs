@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
         protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
-        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
             {
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
         }
 
-        public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             var state = State.Generate(this, document, model, node, cancellationToken);
             return GetActions(document, options, state).ToImmutableArray();
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeOptions options, State state)
+        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeGenerationOptions options, State state)
         {
             if (state == null)
             {
@@ -72,7 +72,28 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                var totalMemberCount = 0;
+                var inaccessibleMemberCount = 0;
+
+                foreach (var (_, members) in state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented)
+                {
+                    foreach (var member in members)
+                    {
+                        totalMemberCount++;
+
+                        if (AccessibilityHelper.IsLessAccessibleThan(member, state.ClassOrStructType))
+                        {
+                            inaccessibleMemberCount++;
+                        }
+                    }
+                }
+
+                // If all members to implement are inaccessible, then "Implement interface" codeaction
+                // will be the same as "Implement interface explicitly", so there is no point in having both of them
+                if (totalMemberCount != inaccessibleMemberCount)
+                {
+                    yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                }
 
                 if (ShouldImplementDisposePattern(state, explicitly: false))
                 {

@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -25,17 +26,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class ExtractTypeHelpers
     {
-        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CancellationToken cancellationToken)
+        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
             var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = options.GetInfo(context, document.Project);
 
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, options, cancellationToken)
+            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> folders,
             INamedTypeSymbol newSymbol,
             Document hintDocument,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
@@ -81,16 +84,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var namespaceParts = namespaceWithoutRoot.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                newDocument.Project.Solution,
+                new CodeGenerationSolutionContext(
+                    newDocument.Project.Solution,
+                    context,
+                    fallbackOptions),
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                context,
                 cancellationToken).ConfigureAwait(false);
 
-            var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
-            if (formattingSerivce is not null)
+            var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingService is not null)
             {
-                newTypeDocument = await formattingSerivce.FormatNewDocumentAsync(newTypeDocument, hintDocument, cancellationToken).ConfigureAwait(false);
+                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, newCleanupOptions, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -103,13 +110,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
-            var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var simplified = await Simplifier.ReduceAsync(newTypeDocument, newCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified, newCleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             return (formattedDocument, typeAnnotation);
         }
 
-        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions options, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
+        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
         {
             var typeParameters = GetRequiredTypeParametersForMembers(type, extractableMembers);
 
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, options, cancellationToken).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, formattingOptions, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
@@ -208,6 +215,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var property = member as IPropertySymbol;
                     return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
                         DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
+                case SymbolKind.Field:
+                    var field = member as IFieldSymbol;
+                    return DoesTypeReferenceTypeParameter(field.Type, typeParameter, checkedTypes);
                 default:
                     Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                     return false;

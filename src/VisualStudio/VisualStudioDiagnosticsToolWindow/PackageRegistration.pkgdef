@@ -7,24 +7,6 @@
 
 // The option page configuration is duplicated on VisualStudioDiagnosticsWindowPackage type definition.
 
-[$RootKey$\ToolsOptionsPages\Roslyn\Diagnostics]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\ToolsOptionsPages\Roslyn\Diagnostics\Internal]
-@="#0"
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-"Page"="{48993c4c-c619-42ad-b1c8-79378ad8bef2}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics\Internal]
-"Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-
-[$RootKey$\AutomationProperties\Roslyn\Diagnostics\Internal]
-"Name"="Roslyn\Diagnostics.Internal"
-
 [$RootKey$\ToolsOptionsPages\Roslyn\FeatureManager]
 @="#0"
 "Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"

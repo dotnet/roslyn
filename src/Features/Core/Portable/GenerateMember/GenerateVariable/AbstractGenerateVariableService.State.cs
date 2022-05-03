@@ -74,6 +74,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return state;
             }
 
+            public Accessibility DetermineMaximalAccessibility()
+            {
+                if (this.TypeToGenerateIn.TypeKind == TypeKind.Interface)
+                    return Accessibility.NotApplicable;
+
+                var accessibility = Accessibility.Public;
+
+                // Ensure that we're not overly exposing a type.
+                var containingTypeAccessibility = this.TypeToGenerateIn.DetermineMinimalAccessibility();
+                var effectiveAccessibility = AccessibilityUtilities.Minimum(
+                    containingTypeAccessibility, accessibility);
+
+                var returnTypeAccessibility = this.TypeMemberType.DetermineMinimalAccessibility();
+
+                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
+                    effectiveAccessibility)
+                {
+                    return returnTypeAccessibility;
+                }
+
+                return accessibility;
+            }
+
             private async Task<bool> TryInitializeAsync(
                 TService service,
                 SemanticDocument document,
@@ -323,8 +346,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                             if (symbolKind == SymbolKind.Field)
                             {
-                                OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
-                                                               FieldIsReadOnly(nextAssignedSymbol);
+                                OfferReadOnlyFieldFirst =
+                                    FieldIsReadOnly(previousAssignedSymbol) || FieldIsReadOnly(nextAssignedSymbol);
                             }
 
                             AfterThisLocation ??= previousAssignedSymbol?.Locations.FirstOrDefault();

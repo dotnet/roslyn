@@ -1228,7 +1228,7 @@ class C
             Assert.Equal("b", parsedArgs.MetadataReferences.Single().Reference);
 
             parsedArgs = DefaultParse(new[] { "/r:a=b,,,c", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithArguments("b,,,c"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference));
 
             parsedArgs = DefaultParse(new[] { "/r:1=b", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments("1"));
@@ -5193,7 +5193,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new string[] { "/w:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS1900: Warning level must be zero or greater
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
+                Diagnostic(ErrorCode.ERR_BadWarningLevel));
 
             parsedArgs = DefaultParse(new string[] { "/w:5", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5201,7 +5201,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new string[] { "/warn:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS1900: Warning level must be zero or greater
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
+                Diagnostic(ErrorCode.ERR_BadWarningLevel));
 
             parsedArgs = DefaultParse(new string[] { "/warn:5", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5806,7 +5806,8 @@ class A                                                               \
         [Fact]
         public void CscCompile_WithSourceCodeRedirectedViaStandardInput_ProducesLibrary()
         {
-            var name = Guid.NewGuid().ToString() + ".dll";
+            var nameGuid = Guid.NewGuid().ToString();
+            var name = nameGuid + ".dll";
             string tempDir = Temp.CreateDirectory().Path;
             ProcessResult result = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 ProcessUtilities.Run("cmd", $@"/C echo  ^
@@ -5830,8 +5831,15 @@ class A                                                               \
             Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}");
 
             var assemblyName = AssemblyName.GetAssemblyName(Path.Combine(tempDir, name));
-            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                assemblyName.ToString());
+
+            Assert.Equal(nameGuid, assemblyName.Name);
+            Assert.Equal("0.0.0.0", assemblyName.Version.ToString());
+            Assert.Equal(string.Empty, assemblyName.CultureName);
+#if NETCOREAPP
+            Assert.Null(assemblyName.GetPublicKeyToken());
+#else
+            Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
+#endif
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
@@ -9163,7 +9171,7 @@ public class C { }
 
             var comp = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/errorendlocation" });
             var loc = new SourceLocation(tree.GetCompilationUnitRoot().FindToken(6));
-            var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong), loc);
+            var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong, "<name>"), loc);
             var text = comp.DiagnosticFormatter.Format(diag);
 
             string stringStart = "goo(1,7,1,8)";
@@ -10016,7 +10024,7 @@ class C
             void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
-        [Fact]
+        [Fact(Skip = "Additional file comparison is disabled due to https://github.com/dotnet/roslyn/issues/59209")]
         public void Compiler_Updates_Cached_Driver_AdditionalTexts()
         {
             var dir = Temp.CreateDirectory();
@@ -12173,7 +12181,7 @@ class C
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix, "l"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -13700,6 +13708,28 @@ key7 = value7");
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
             Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
+        }
+
+        [Fact]
+        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        public void SourceGenerators_Binary_Additional_File()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var additionalFile = dir.CreateFile("temp.bin").WriteAllBytes(TestResources.NetFX.Minimal.mincorlib);
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/additionalfile:" + additionalFile.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

@@ -403,8 +403,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var originalSpace = _tokenStream.GetOriginalColumn(operation.StartToken);
-            var data = new AnchorData(operation, originalSpace);
+            // If the indentation changes on a line which other code is anchored to, adjust those other lines to reflect
+            // the same change in indentation. Note that we anchor to the first token on a line to account for common
+            // cases like the following code, where the `{` token is anchored to the `(` token of `()`:
+            //
+            //                ↓ this space can be removed, which moves `(` one character to the left
+            // var x = Method( () =>
+            // {
+            // ↑ this `{` anchors to `var` instead of `(`, which prevents it from moving when `(` is moved
+            // });
+            //
+            // The calculation of true anchor token (which is always the first token on a line) is delayed to account
+            // for cases where the original anchor token is moved to a new line during a formatting operation.
+            var anchorToken = _tokenStream.FirstTokenOfBaseTokenLine(operation.AnchorToken);
+            var originalSpace = _tokenStream.GetOriginalColumn(anchorToken);
+            var data = new AnchorData(operation, anchorToken, originalSpace);
 
             _anchorTree.AddIntervalInPlace(data);
 

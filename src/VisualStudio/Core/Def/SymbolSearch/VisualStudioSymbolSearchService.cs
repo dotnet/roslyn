@@ -46,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         // but we want to keep it alive until the VS is closed, so we don't dispose it.
         private ISymbolSearchUpdateEngine _lazyUpdateEngine;
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IPackageInstallerService _installerService;
 
@@ -61,13 +60,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(globalOptions,
+            : base(threadingContext,
+                   globalOptions,
+                   workspace,
                    listenerProvider,
-                   threadingContext,
                    SymbolSearchGlobalOptions.Enabled,
                    ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
-            _workspace = workspace;
             _serviceProvider = serviceProvider;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
         }
@@ -103,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 return _lazyUpdateEngine ??= await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                    _workspace, _logService, cancellationToken).ConfigureAwait(false);
+                    Workspace, _logService, cancellationToken).ConfigureAwait(false);
             }
         }
 

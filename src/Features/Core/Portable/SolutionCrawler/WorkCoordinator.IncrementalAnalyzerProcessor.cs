@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -203,9 +202,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                         }
-                        else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                        else
                         {
-                            await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                            await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -411,10 +410,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
-                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                                // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(workspace), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
-                                                .OrderBy(t => t.analyzer is not DiagnosticIncrementalAnalyzer)
+                                                .OrderBy(t => t.analyzer!.Priority)
                                                 .ToImmutableArray()!;
 
                                 _analyzerMap[workspace] = analyzers;

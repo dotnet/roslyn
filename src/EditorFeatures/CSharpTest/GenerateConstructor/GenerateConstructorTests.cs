@@ -2595,7 +2595,7 @@ enum A
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    private int[] vs;
+    private int[] ints;
     private A a1;
     private bool v1;
     private byte v2;
@@ -2607,9 +2607,9 @@ class MyAttrAttribute : Attribute
     private float v8;
     private string v9;
 
-    public MyAttrAttribute(int[] vs, A a1, bool v1, byte v2, char v3, short v4, int v5, long v6, double v7, float v8, string v9)
+    public MyAttrAttribute(int[] ints, A a1, bool v1, byte v2, char v3, short v4, int v5, long v6, double v7, float v8, string v9)
     {
-        this.vs = vs;
+        this.ints = ints;
         this.a1 = a1;
         this.v1 = v1;
         this.v2 = v2;
@@ -2913,12 +2913,12 @@ abstract class Y
 }",
 @"class C
 {
-    private (int, string) p;
+    private (int, string) value;
     private bool v;
 
-    public C((int, string) p, bool v)
+    public C((int, string) value, bool v)
     {
-        this.p = p;
+        this.value = value;
         this.v = v;
     }
 
@@ -2942,11 +2942,11 @@ abstract class Y
 }",
 @"class C
 {
-    private (int a, string b) p;
+    private (int a, string b) value;
 
-    public C((int a, string b) p)
+    public C((int a, string b) value)
     {
-        this.p = p;
+        this.value = value;
     }
 
     void M()
@@ -2969,11 +2969,11 @@ abstract class Y
 }",
 @"class C
 {
-    private (int a, string) p;
+    private (int a, string) value;
 
-    public C((int a, string) p)
+    public C((int a, string) value)
     {
-        this.p = p;
+        this.value = value;
     }
 
     void M()

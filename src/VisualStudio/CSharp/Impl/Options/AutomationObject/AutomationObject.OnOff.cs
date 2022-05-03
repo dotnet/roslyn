@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -56,10 +57,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
         }
 
+        public int NavigateAsynchronously
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.NavigateAsynchronously); }
+            set { SetBooleanOption(FeatureOnOffOptions.NavigateAsynchronously, value); }
+        }
+
         public int NavigateToDecompiledSources
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources); }
-            set { SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value); }
+            get { return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources); }
+            set { SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, value); }
+        }
+
+        public int AlwaysUseDefaultSymbolServers
+        {
+            get { return GetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers); }
+            set { SetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, value); }
         }
 
         public int AddImportsOnPaste

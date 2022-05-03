@@ -787,6 +787,44 @@ class C
 }");
         }
 
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [|new|] List<int>();
+        
+        // Goo
+        c.Add(1);
+
+        // Bar
+        c.Add(2);
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            // Goo
+            1,
+
+            // Bar
+            2
+        };
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestComplexInitializer2()
         {

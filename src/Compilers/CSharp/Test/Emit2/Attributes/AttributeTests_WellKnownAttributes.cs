@@ -1794,40 +1794,52 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(63, 65),
                 // (76,42): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission6Attribute(object x = SecurityAction.Demand) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(76, 42),
                 // (101,46): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //     public MyPermission8Attribute([Optional][DefaultParameterValueAttribute(null)]SecurityAction x) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute"),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute").WithLocation(101, 46),
                 // (113,46): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //     public MyPermission9Attribute([Optional][DefaultParameterValueAttribute(-1)]SecurityAction x) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute"),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute").WithLocation(113, 46),
                 // (137,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission(SecurityAction.Demand)").WithArguments("x").WithLocation(137, 2),
                 // (140,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission2(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission2").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission2(SecurityAction.Demand)").WithArguments("x").WithLocation(140, 2),
                 // (143,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission3()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission3").WithArguments("x"),
-                // (149,16): error CS1503: Argument 1: cannot convert from '<null>' to 'System.Security.Permissions.SecurityAction'
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission3()").WithArguments("x").WithLocation(143, 2),
+                // (149,16): error CS1503: Argument 1: cannot convert from '<null>' to 'SecurityAction'
                 // [MyPermission4(null)]
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.Security.Permissions.SecurityAction"),
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.Security.Permissions.SecurityAction").WithLocation(149, 16),
+                // (151,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission5(SecurityAction.Demand)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission5(SecurityAction.Demand)").WithLocation(151, 2),
+                // (154,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission6()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission6()").WithLocation(154, 2),
+                // (161,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission8()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission8()").WithLocation(161, 2),
+                // (164,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission9()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission9()").WithLocation(164, 2),
                 // (167,2): error CS1763: 'y' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 // [MyPermission10(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "MyPermission10(SecurityAction.Demand)").WithArguments("y", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "MyPermission10(SecurityAction.Demand)").WithArguments("y", "object").WithLocation(167, 2),
                 // (145,2): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 // [MyPermission3(null)]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission3"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission3").WithLocation(145, 2),
                 // (147,2): error CS7049: Security attribute 'MyPermission4' has an invalid SecurityAction value '0'
                 // [MyPermission4()]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "MyPermission4()").WithArguments("MyPermission4", "0"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "MyPermission4()").WithArguments("MyPermission4", "0").WithLocation(147, 2),
                 // (156,2): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 // [MyPermission6(null)]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6"));
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6").WithLocation(156, 2));
         }
 
         [Fact]

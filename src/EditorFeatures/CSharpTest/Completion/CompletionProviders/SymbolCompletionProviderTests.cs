@@ -2216,6 +2216,69 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersEmptyByDefault()
+        {
+            var markup = @"
+ref struct Test {}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        test.$$
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersHasMethodIfItWasOverriden()
+        {
+            var markup = @"
+ref struct Test
+{
+    public override string ToString() => string.Empty;
+}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        test.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyItemIsAbsentAsync(markup, "GetType");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+            await VerifyItemIsAbsentAsync(markup, "GetHashCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersHasMethodsForNameof()
+        {
+            var markup = @"
+ref struct Test {}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        _ = nameof(test.$$);
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         public async Task AfterStaticLocalFunction_TypeOnly()
         {
@@ -2233,22 +2296,16 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [InlineData("extern")]
         [InlineData("static extern")]
         [InlineData("extern static")]
-        [InlineData("async")]
-        [InlineData("static async")]
-        [InlineData("async static")]
         [InlineData("unsafe")]
         [InlineData("static unsafe")]
         [InlineData("unsafe static")]
-        [InlineData("async unsafe")]
-        [InlineData("unsafe async")]
         [InlineData("unsafe extern")]
         [InlineData("extern unsafe")]
-        [InlineData("extern unsafe async static")]
         public async Task AfterLocalFunction_TypeOnly(string keyword)
         {
             var markup = $@"
@@ -2265,21 +2322,45 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [InlineData("async")]
+        [InlineData("static async")]
+        [InlineData("async static")]
+        [InlineData("async unsafe")]
+        [InlineData("unsafe async")]
+        [InlineData("extern unsafe async static")]
+        public async Task AfterLocalFunction_TypeOnly_Async(string keyword)
+        {
+            var markup = $@"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        {keyword} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         public async Task AfterAsyncLocalFunctionWithTwoAsyncs()
         {
             var markup = @"
 using System;
 class C
 {
-    void M(String parameter)
+    void M(string parameter)
     {
         async async $$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -7189,6 +7270,55 @@ class Program
             await VerifyItemExistsAsync(markup, "Task");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync3()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+    
+    public void M() {}
+}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync4()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "Console");
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterAsync5()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+class Program
+{
+    public async $$
+}
+
+class Test {}";
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "Test");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterAsyncInMethodBody()
         {
@@ -11782,6 +11912,248 @@ unsafe class Test
 ";
             await VerifyItemIsAbsentAsync(source, "X");
             await VerifyItemIsAbsentAsync(source, "Y");
+        }
+
+        [InlineData("m.MyObject?.$$MyValue!!()")]
+        [InlineData("m.MyObject?.$$MyObject!.MyValue!!()")]
+        [InlineData("m.MyObject?.MyObject!.$$MyValue!!()")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(59714, "https://github.com/dotnet/roslyn/issues/59714")]
+        public async Task OptionalExclamationsAfterConditionalAccessShouldBeHandled(string conditionalAccessExpression)
+        {
+            var source = $@"
+class MyClass
+{{
+    public MyClass? MyObject {{ get; set; }}
+    public MyClass? MyValue() => null;
+
+    public static void F()
+    {{
+        var m = new MyClass();
+        {conditionalAccessExpression};
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "MyValue");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableAtTopLevel()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+$$
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableInsideTopLevelFunction()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+    $$
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsNotAvailableInOtherTypes()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+        $$
+    }}
+}}";
+            await VerifyItemIsAbsentAsync(source, "goo");
+            await VerifyItemIsAbsentAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInMethodAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    [Some(nameof(p$$))]
+    void M(int parameter) { }
+}
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterNotAvailableInMethodAttributeNameofWithNoArgument()
+        {
+            var source = @"
+class C
+{
+    [Some(nameof($$))]
+    void M(int parameter) { }
+}
+";
+            // Tracked by https://github.com/dotnet/roslyn/issues/60812
+            await VerifyItemIsAbsentAsync(MakeMarkup(source), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInMethodParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M([Some(nameof(p$$))] int parameter) { }
+}
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLocalFunctionAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Some(nameof(p$$))]
+        void local(int parameter) { }
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLocalFunctionParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        void local([Some(nameof(p$$))] int parameter) { }
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLambdaAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = [Some(nameof(p$$))] void(int parameter) => { };
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLambdaParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = void([Some(nameof(p$$))] int parameter) => { };
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInDelegateAttributeNameof()
+        {
+            var source = @"
+[Some(nameof(p$$))]
+delegate void MyDelegate(int parameter);
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInDelegateParameterAttributeNameof()
+        {
+            var source = @"
+delegate void MyDelegate([Some(nameof(p$$))] int parameter);
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        private static string MakeMarkup(string source, string languageVersion = "Preview")
+        {
+            return $$"""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+        <Document FilePath="Test.cs">
+{{source}}
+        </Document>
+    </Project>
+</Workspace>
+""";
         }
     }
 }

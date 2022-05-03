@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
+            await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
             return result.ToImmutable();
         }
 

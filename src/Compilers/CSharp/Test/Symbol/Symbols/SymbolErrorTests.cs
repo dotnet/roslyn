@@ -1120,19 +1120,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,16): error CS8124: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
@@ -1171,19 +1171,19 @@ class C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",").WithLocation(5, 14),
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(5, 15),
                 // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 15),
@@ -3880,10 +3880,10 @@ namespace N
             comp.VerifyDiagnostics(
                 // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.
                 //     public class C3 : C1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2", "C1"),
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "C1").WithArguments("C2"),
                 // (4,22): error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.
                 //     public interface I3 : I1 { }
-                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2", "I1")
+                Diagnostic(ErrorCode.ERR_ImportedCircularBase, "I3").WithArguments("I2")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -4573,7 +4573,7 @@ public class NormalType
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>"),
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G"),
                 // (14,19): warning CS0169: The field 'NS.S.field' is never used
                 //         global::G field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
@@ -10548,20 +10548,65 @@ class C
     {
         return 0;
     }
+    public static int operator >>>(int c1, int c2) // CS0564
+    {
+        return 0;
+    }
     static void Main()
     {
     }
 }
-";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
-                //     public static int operator <<(C c1, C c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<"),
 
-                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+class C1
+{
+    public static int operator <<(C1 c1, int c2)
+    {
+        return 0;
+    }
+}
+
+class C2
+{
+    public static int operator <<(C2 c1, int? c2)
+    {
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
                 //     public static int operator >>(int c1, int c2) // CS0564
-                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>")
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS8652: The feature 'relaxed shift operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int operator <<(C c1, C c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("relaxed shift operator").WithLocation(4, 32),
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                //     public static int operator >>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(8, 32),
+                // (12,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static int operator >>>(int c1, int c2) // CS0564
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>>").WithLocation(12, 32)
                 );
         }
 
@@ -10957,6 +11002,7 @@ public class C
     public static implicit operator void(C c1) { }
     public static void operator +(C c) { }
     public static void operator >>(C c, int x) { }
+    public static void operator >>>(C c, int x) { }
 }
 ";
             var comp = CreateCompilation(text);
@@ -10967,15 +11013,18 @@ public class C
                 // (5,33): error CS0590: User-defined operators cannot return void
                 //     public static implicit operator void(C c1) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "void"),
-// (5,46): error CS1547: Keyword 'void' cannot be used in this context
-//     public static implicit operator void(C c1) { }
-Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
+                // (5,46): error CS1547: Keyword 'void' cannot be used in this context
+                //     public static implicit operator void(C c1) { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (6,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c) { }
                 Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, "+"),
                 // (73): error CS0590: User-defined operators cannot return void
                 //     public static void operator >>(C c, int x) { }
-                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>")
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>"),
+                // (74): error CS0590: User-defined operators cannot return void
+                //     public static void operator >>>(C c, int x) { }
+                Diagnostic(ErrorCode.ERR_OperatorCantReturnVoid, ">>>")
                 );
         }
 
@@ -12983,10 +13032,12 @@ static class D : B { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
-                // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
+                // (7,29): error CS0714: 'C': static classes cannot implement interfaces
+                //     public static class C : I
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C").WithLocation(7, 29),
+                // (15,25): error CS0714: 'D<V>': static classes cannot implement interfaces
+                //     static class D<V> : IGoo<string, V>
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -15453,7 +15504,7 @@ unsafe struct @s
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,15): error CS1003: Syntax error, '(' expected
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
-                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("(", "bool"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "bool").WithArguments("("),
                 // (8,27): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
                 //         fixed bool _buffer[2]; // error CS1001: Identifier expected        
                 Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
@@ -16564,13 +16615,13 @@ namespace N1
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
                 // (6,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
                 // (7,19): error CS8050: Only auto-implemented properties can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
         }
 

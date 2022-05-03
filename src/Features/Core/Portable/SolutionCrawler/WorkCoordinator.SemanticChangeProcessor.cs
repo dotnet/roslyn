@@ -66,13 +66,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         TaskScheduler.Default);
                 }
 
-                public override Task AsyncProcessorTask
+                protected override void OnPaused()
                 {
-                    get
-                    {
-                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
-                    }
                 }
+
+                public override Task AsyncProcessorTask
+                    => Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _gate.WaitAsync(cancellationToken);
@@ -304,14 +303,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var graph = solution.GetProjectDependencyGraph();
 
-                    if (solution.Options.GetOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly))
-                    {
-                        return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
-                    }
-
-                    // re-analyzing all transitive dependencies is very expensive. by default we will only
-                    // re-analyze direct dependency for now. and consider flipping the default only if we must.
-                    return graph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Concat(projectId);
+                    // Reanalyze direct dependencies only as reanalyzing all transitive dependencies is very expensive.
+                    return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
                 private readonly struct Data
@@ -373,6 +366,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)

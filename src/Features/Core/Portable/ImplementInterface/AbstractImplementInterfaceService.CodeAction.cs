@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private readonly bool _onlyRemaining;
             protected readonly ISymbol ThroughMember;
             protected readonly Document Document;
-            protected readonly ImplementTypeOptions Options;
+            protected readonly ImplementTypeGenerationOptions Options;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
             private readonly string _equivalenceKey;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 Service = service;
                 Document = document;
-                Options = options;
                 State = state;
+                Options = options;
                 Abstractly = abstractly;
                 _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state,
                 ISymbol throughMember)
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
@@ -199,22 +199,24 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, Options.PropertyGenerationBehavior);
+                    compilation, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
                 // matters, so we don't want to much with them.
                 var groupMembers = !isComImport &&
-                    Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                    Options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 return await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution,
-                    classOrStructType,
+                    new CodeGenerationSolutionContext(
+                        result.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: classOrStructDecl.GetLocation(),
+                            autoInsertionLocation: groupMembers,
+                            sortMembers: groupMembers),
+                        Options.FallbackOptions),
+                classOrStructType,
                     memberDefinitions.Concat(extraMembers),
-                    new CodeGenerationContext(
-                        contextLocation: classOrStructDecl.GetLocation(),
-                        autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -311,7 +313,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // See if we need to generate an invisible member.  If we do, then reset the name
                 // back to what then member wants it to be.
-                var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
+                var generateInvisibleMember = ShouldGenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
                 // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     addNew, addUnsafe, propertyGenerationBehavior);
             }
 
-            private bool GenerateInvisibleMember(ISymbol member, string memberName)
+            private bool ShouldGenerateInvisibleMember(ISymbol member, string memberName)
             {
                 if (Service.HasHiddenExplicitImplementation)
                 {
@@ -352,6 +354,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     // If we had a conflict with a member of the same name, then we have to generate
                     // as an invisible member.
                     if (member.Name != memberName)
+                    {
+                        return true;
+                    }
+
+                    // If the member is less accessible than type, for which we are implementing it,
+                    // then only explicit implementation is valid.
+                    if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
                     {
                         return true;
                     }

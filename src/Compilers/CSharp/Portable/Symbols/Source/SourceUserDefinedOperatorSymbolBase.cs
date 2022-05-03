@@ -332,9 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     CheckUserDefinedConversionSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -347,13 +349,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckTrueFalseSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
                     CheckIncrementDecrementSignature(diagnostics);
                     break;
 
                 case WellKnownMemberNames.LeftShiftOperatorName:
                 case WellKnownMemberNames.RightShiftOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftOperatorName:
                     CheckShiftSignature(diagnostics);
                     break;
 
@@ -367,8 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -377,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;
@@ -667,17 +676,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
-            // SPEC: A binary << or >> operator must take two parameters, the first
-            // SPEC: of which must have type T or T? and the second of which must
-            // SPEC: have type int or int?, and can return any type.
+            // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
+            // SPEC: of which must have type T or T?, the second of which can
+            // SPEC: have any type. The operator can return any type.
 
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()) ||
-                this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
-                //         same type as the containing type, and the type of the second 
-                //         operand must be int
+                //         same type as the containing type
                 diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+            }
+            else if (this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            {
+                var location = this.Locations[0];
+                Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRelaxedShiftOperator, diagnostics, location);
             }
 
             if (this.ReturnsVoid)

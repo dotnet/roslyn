@@ -30,38 +30,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Make_local_function_static, nameof(CSharpAnalyzersResources.Make_local_function_static));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
             foreach (var localFunction in localFunctions)
             {
-                editor.ReplaceNode(
-                    localFunction,
-                    (current, generator) => MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier(current, generator));
+                editor.ReplaceNode(localFunction, MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier);
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_local_function_static, createChangedDocument, CSharpAnalyzersResources.Make_local_function_static)
-            {
-            }
         }
     }
 }

@@ -317,6 +317,8 @@ namespace Microsoft.CodeAnalysis
 
         System_ArgumentNullException,
 
+        System_MemoryExtensions,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -625,6 +627,8 @@ namespace Microsoft.CodeAnalysis
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.ArgumentNullException",
+
+            "System.MemoryExtensions",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// Used to determine if a user focusing VS should look at the clipboard for a callstack and automatically
         /// open the tool window with the callstack inserted
         /// </summary>
-        public static readonly Option2<bool> OpenOnFocus = new(FeatureName, "OpenOnFocus", defaultValue: true,
+        public static readonly Option2<bool> OpenOnFocus = new(FeatureName, "OpenOnFocus", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation("StackTraceExplorer.Options.OpenOnFocus"));
     }
 }

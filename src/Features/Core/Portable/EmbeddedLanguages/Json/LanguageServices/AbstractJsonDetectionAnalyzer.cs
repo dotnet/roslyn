@@ -6,7 +6,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.DetectProbableJsonStrings,
-                   JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Options.OptionSet options)
+        public override bool OpenFileOnly(SimplifierOptions? options)
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -49,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
-            if (!option)
+            if (!context.Options.GetIdeOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings)
                 return;
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);

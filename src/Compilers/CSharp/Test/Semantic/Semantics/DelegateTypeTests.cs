@@ -10466,6 +10466,7 @@ class Program
 
             protected override void Accept(SymbolVisitor visitor) => throw new NotImplementedException();
             protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new NotImplementedException();
+            protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new NotImplementedException();
             protected override ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation) => this;
         }
 
@@ -11175,7 +11176,7 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_03()
         {
             var source =
@@ -11199,7 +11200,7 @@ class Program
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_04()
         {
             var source =

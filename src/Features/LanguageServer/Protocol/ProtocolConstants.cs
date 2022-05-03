@@ -13,5 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static ImmutableArray<string> RoslynLspLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic, LanguageNames.FSharp);
 
         public const string RoslynLspLanguagesContract = "RoslynLspLanguages";
+
+        public const string TypeScriptLanguageContract = "TypeScriptLspLanguage";
     }
 }

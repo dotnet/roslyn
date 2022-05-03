@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Classification
     internal readonly record struct ClassificationOptions(
         [property: DataMember(Order = 0)] bool ClassifyReassignedVariables = false,
         [property: DataMember(Order = 1)] bool ColorizeRegexPatterns = true,
-        [property: DataMember(Order = 2)] bool ColorizeJsonPatterns = true)
+        [property: DataMember(Order = 2)] bool ColorizeJsonPatterns = true,
+        [property: DataMember(Order = 3)] bool ForceFrozenPartialSemanticsForCrossProcessOperations = false)
     {
         public ClassificationOptions()
             : this(ClassifyReassignedVariables: false)

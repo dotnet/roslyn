@@ -13,7 +13,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -21,9 +20,11 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
+using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -32,6 +33,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            Contract.ThrowIfTrue(await IsSolutionOpenAsync(cancellationToken));
 
             var solutionPath = CreateTemporaryPath();
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
@@ -100,6 +103,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var project = await GetProjectAsync(projectName, cancellationToken);
             var projectToReference = await GetProjectAsync(projectToReferenceName, cancellationToken);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+        }
+
+        public async Task AddAnalyzerReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
         }
 
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
@@ -199,7 +210,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
-                cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
+                async cancellationToken =>
+                {
+                    try
+                    {
+                        return await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken);
+                    }
+                    catch (NullReferenceException)
+                    {
+                        // 🤮 Workaround for NuGet package restore throwing exceptions
+                        return false;
+                    }
+                },
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
         }
@@ -371,6 +393,75 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out var solutionDirectory, out var solutionFileFullPath, out var userOptionsFile));
 
             return (solutionDirectory, solutionFileFullPath, userOptionsFile);
+        }
+
+        /// <returns>
+        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
+        ///
+        /// <code>
+        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+        /// </code>
+        ///
+        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
+        /// </returns>
+        public async Task<string?> BuildSolutionAsync(bool waitForBuildToFinish, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            buildOutputWindowPane.Clear();
+
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+            if (waitForBuildToFinish)
+            {
+                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc cref="WaitForBuildToFinishAsync(IVsOutputWindowPane, CancellationToken)"/>
+        public async Task<string> WaitForBuildToFinishAsync(CancellationToken cancellationToken)
+        {
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+        }
+
+        /// <returns>
+        /// The summary line for the build, which generally looks something like this:
+        ///
+        /// <code>
+        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+        /// </code>
+        /// </returns>
+        private async Task<string> WaitForBuildToFinishAsync(IVsOutputWindowPane buildOutputWindowPane, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext;
+
+            // Force the error list to update
+            ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
+
+            var textView = (IVsTextView)buildOutputWindowPane;
+            var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+            var lines = wpfTextViewHost.TextView.TextViewLines;
+            if (lines.Count < 1)
+            {
+                return string.Empty;
+            }
+
+            // The build summary line should be second to last in the output window
+            return lines[^2].Extent.GetText();
+        }
+
+        public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var outputWindow = await GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane));
+            return pane;
         }
 
         private static string ConvertLanguageName(string languageName)

@@ -76,7 +76,8 @@ class SomeOtherClass
             await WaitForNavigateAsync(HangMitigatingCancellationToken);
 
             // Assert we are in the right file now
-            Assert.Equal("Class1.cs*", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
+            Assert.Equal($"Class1.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
         }
 

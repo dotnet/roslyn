@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None);
+        }
+
         protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                        forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
                         cancellationToken).ConfigureAwait(false);
 

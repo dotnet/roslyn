@@ -610,6 +610,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
                 var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var requiredCapabilities = EditAndContinueCapabilities.None;
 
                 foreach (var analysis in changedDocumentAnalyses)
                 {
@@ -626,6 +627,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     allEdits.AddRange(analysis.SemanticEdits);
                     allLineEdits.AddRange(analysis.LineEdits);
+                    requiredCapabilities |= analysis.RequiredCapabilities;
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
@@ -644,7 +646,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mergedEdits,
                     allLineEdits.ToImmutable(),
                     addedSymbols,
-                    activeStatementsInChangedDocuments.ToImmutable());
+                    activeStatementsInChangedDocuments.ToImmutable(),
+                    requiredCapabilities);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -974,7 +977,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 updatedMethodTokens,
                                 changedTypeTokens,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates));
+                                exceptionRegionUpdates,
+                                projectChanges.RequiredCapabilities));
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                             emitBaselines.Add((newProject.Id, emitResult.Baseline));

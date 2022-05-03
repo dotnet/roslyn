@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -35,14 +36,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
-#if CODE_STYLE
-        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
-#endif
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
         protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -77,13 +74,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
 
 #if CODE_STYLE
-            var provider = GetSyntaxFormattingService();
-            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken));
+            var provider = GetSyntaxFormatting();
 #else
             var provider = document.Project.Solution.Workspace.Services;
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
-            var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, options, rules, cancellationToken);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
 
             changedRoot = formattedRoot;
 

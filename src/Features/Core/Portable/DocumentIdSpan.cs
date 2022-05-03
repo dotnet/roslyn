@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -13,24 +14,27 @@ namespace Microsoft.CodeAnalysis
     /// pointing at a particular location in a <see cref="Document"/> but do not want to root a potentially
     /// very stale <see cref="Solution"/> snapshot that may keep around a lot of memory in a host.
     /// </summary>
+    [DataContract]
     internal readonly struct DocumentIdSpan
     {
-        private readonly Workspace _workspace;
-        private readonly DocumentId _documentId;
+        [DataMember(Order = 0)]
+        public readonly DocumentId DocumentId;
+        [DataMember(Order = 1)]
         public readonly TextSpan SourceSpan;
 
-        public DocumentIdSpan(DocumentSpan documentSpan)
+        public DocumentIdSpan(DocumentId documentId, TextSpan sourceSpan)
         {
-            _workspace = documentSpan.Document.Project.Solution.Workspace;
-            _documentId = documentSpan.Document.Id;
-            SourceSpan = documentSpan.SourceSpan;
+            DocumentId = documentId;
+            SourceSpan = sourceSpan;
         }
 
-        public async Task<DocumentSpan?> TryRehydrateAsync(CancellationToken cancellationToken)
+        public static implicit operator DocumentIdSpan(DocumentSpan documentSpan)
+            => new(documentSpan.Document.Id, documentSpan.SourceSpan);
+
+        public async Task<DocumentSpan?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-            var document = await solution.GetDocumentAsync(_documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            return document == null ? null : new DocumentSpan(document, SourceSpan);
+            var document = await solution.GetDocumentAsync(this.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            return document == null ? null : new DocumentSpan(document, this.SourceSpan);
         }
     }
 }

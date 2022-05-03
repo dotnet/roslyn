@@ -17,9 +17,29 @@
         <target state="translated">Исправить все "{0}" в "{1}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_0_in_Containing_member">
+        <source>Fix all '{0}' in Containing member</source>
+        <target state="new">Fix all '{0}' in Containing member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Containing_type">
+        <source>Fix all '{0}' in Containing type</source>
+        <target state="new">Fix all '{0}' in Containing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0_in_Solution">
         <source>Fix all '{0}' in Solution</source>
         <target state="translated">Исправить все "{0}" в решении</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_containing_member_for_1">
+        <source>Fix all '{0}' in containing member for '{1}'</source>
+        <target state="new">Fix all '{0}' in containing member for '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_containing_type_for_1">
+        <source>Fix all '{0}' in containing type for '{1}'</source>
+        <target state="new">Fix all '{0}' in containing type for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">

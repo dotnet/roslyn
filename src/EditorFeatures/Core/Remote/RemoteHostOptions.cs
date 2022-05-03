@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     [ExportGlobalOptionProvider, Shared]
     internal sealed class RemoteHostOptions : IOptionProvider
     {
-        private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
         private const string FeatureName = "InternalFeatureOnOffOptions";
 
         // Update primary workspace on OOP every second if VS is not running any global operation (such as build,

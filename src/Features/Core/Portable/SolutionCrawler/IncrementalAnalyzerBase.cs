@@ -46,5 +46,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public virtual Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
             => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public virtual Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public void LogAnalyzerCountSummary()
+        {
+        }
+
+        /// <summary>
+        /// Order all incremental analyzers below DiagnosticIncrementalAnalyzer
+        /// </summary>
+        public int Priority => 1;
     }
 }

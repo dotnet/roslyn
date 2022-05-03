@@ -47,6 +47,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="GoToDefinitionGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
+                <StackPanel>
+                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
                 <StackPanel>
@@ -289,6 +296,9 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                    <CheckBox x:Uid="IncludeGlobalImports"
+                              x:Name="IncludeGlobalImports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

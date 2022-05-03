@@ -8,11 +8,16 @@ using System.Composition;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterface
 {
@@ -46,7 +51,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
                 result.IncludedMembers,
                 result.InterfaceName,
                 result.FileName,
-                (ExtractInterfaceOptionsResult.ExtractLocation)result.Location);
+                (ExtractInterfaceOptionsResult.ExtractLocation)result.Location,
+                CodeActionOptions.DefaultProvider);
         }
     }
 }

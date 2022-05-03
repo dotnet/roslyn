@@ -41,6 +41,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
 
         [Fact]
+        public async Task OnAutoInsert_CommentCharacter_WithComment()
+        {
+            var markup =
+@"class A
+{
+    ///{|type:|} This is an existing comment
+    void M()
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0This is an existing comment
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("/", markup, expected);
+        }
+
+        [Fact]
+        public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace()
+        {
+            var markup =
+@"class A
+{
+    ///{|type:|}This is an existing comment
+    void M()
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0This is an existing comment
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("/", markup, expected);
+        }
+
+        [Fact]
         public async Task OnAutoInsert_CommentCharacter_VB()
         {
             var markup =
@@ -220,7 +268,7 @@ End Class";
         $0
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -242,7 +290,7 @@ End Class";
 		$0
 	}
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4);
+            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -268,7 +316,7 @@ End Class";
         }
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -325,16 +373,23 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool insertSpaces = true, int tabSize = 4, string languageName = LanguageNames.CSharp)
+        private async Task VerifyMarkupAndExpected(
+            string characterTyped,
+            string markup,
+            string expected,
+            bool insertSpaces = true,
+            int tabSize = 4,
+            string languageName = LanguageNames.CSharp,
+            WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             Task<TestLspServer> testLspServerTask;
             if (languageName == LanguageNames.CSharp)
             {
-                testLspServerTask = CreateTestLspServerAsync(markup);
+                testLspServerTask = CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions, serverKind);
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
-                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup);
+                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, CapabilitiesWithVSExtensions, serverKind);
             }
             else
             {

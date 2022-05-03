@@ -5,7 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 

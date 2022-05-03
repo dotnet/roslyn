@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => UpdateDocumentAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    CSharpCodeFixesResources.Place_statement_on_following_line,
+                    c => UpdateDocumentAsync(document, diagnostic, c),
+                    nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -140,13 +143,5 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(
                 async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Place_statement_on_following_line, createChangedDocument, CSharpCodeFixesResources.Place_statement_on_following_line)
-            {
-            }
-        }
     }
 }

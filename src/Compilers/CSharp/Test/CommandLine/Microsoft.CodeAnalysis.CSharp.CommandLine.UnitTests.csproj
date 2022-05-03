@@ -23,7 +23,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" Version="$(BasicReferenceAssembliesNetStandard13Version)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
+    <EmbeddedResource Include="..\..\CommandLine\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />

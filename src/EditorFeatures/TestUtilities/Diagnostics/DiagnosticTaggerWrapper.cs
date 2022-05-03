@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -48,11 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Change the background analysis scope to OpenFiles instead of ActiveFile (default),
             // so that every diagnostic tagger test does not need to mark test files as "active" file.
-            var csKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-            var vbKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic);
-            workspace.SetOptions(workspace.Options
-                .WithChangedOption(csKey, BackgroundAnalysisScope.OpenFiles)
-                .WithChangedOption(vbKey, BackgroundAnalysisScope.OpenFiles));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.OpenFiles);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.OpenFiles);
 
             _workspace = workspace;
 

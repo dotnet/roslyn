@@ -525,16 +525,10 @@ class C
 ";
             var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 9),
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (9,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 9),
-                // (9,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
                 );
@@ -561,22 +555,16 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 9),
                 // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 9),
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (9,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 9),
                 // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 9),
-                // (9,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
                 // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
@@ -606,15 +594,9 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.MakeTypeMissing(SpecialType.System_IDisposable);
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
-                //         using (new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(6, 9),
                 // (6,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
-                // (9,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
-                //         using (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(9, 9),
                 // (9,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
@@ -1850,6 +1832,10 @@ public class C
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
+            // SPEC: In the situation where a type can be implicitly converted to IDisposable and also fits the disposable pattern,
+            // then IDisposable will be preferred.
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/using.md#pattern-based-using
+
             string source = @"
 public class C : System.IAsyncDisposable
 {
@@ -2390,6 +2376,71 @@ class Program
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
+        }
+
+        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        public void MissingIAsyncDisposableInterfaceInPatternDisposal()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+await using (new C()) { }
+
+class C
+{
+    public Task DisposeAsync()
+    {
+        System.Console.Write(""DISPOSED"");
+        return Task.CompletedTask;
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_IAsyncDisposable).TypeKind);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "DISPOSED");
+        }
+
+        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        public void MissingIDisposableInterfaceOnClass()
+        {
+            var source = @"
+using (new C()) { }
+
+class C
+{
+    public void Dispose()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_IDisposable);
+            comp.VerifyDiagnostics(
+                // source(2,8): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using (new C()) { }
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+        public void MissingIDisposableInterfaceOnRefStruct()
+        {
+            var source = @"
+using (new C()) { }
+
+ref struct C
+{
+    public void Dispose()
+    {
+        System.Console.Write(""DISPOSED"");
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_IDisposable);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "DISPOSED");
         }
     }
 }

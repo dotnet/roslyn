@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ParameterHelpers
     {
         public static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder,
+            Binder withTypeParametersBinder,
             Symbol owner,
             BaseParameterListSyntax syntax,
             out SyntaxToken arglistToken,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier)
         {
             return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
-                binder,
+                withTypeParametersBinder,
                 owner,
                 syntax.Parameters,
                 out arglistToken,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<TParameterSymbol> MakeParameters<TParameterSyntax, TParameterSymbol, TOwningSymbol>(
-            Binder binder,
+            Binder withTypeParametersBinder,
             TOwningSymbol owner,
             SeparatedSyntaxList<TParameterSyntax> parametersList,
             out SyntaxToken arglistToken,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);
-                var parameterType = binder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
+                var parameterType = withTypeParametersBinder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
 
                 if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
+                TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default(ImmutableArray<TypeParameterSymbol>);
 
                 Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
-                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                bool allowShadowingNames = withTypeParametersBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                     methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-                binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+                withTypeParametersBinder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
             }
 
             return parameters;
@@ -602,7 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() ? convertedExpression : defaultExpression))
+            else if (!defaultExpression.HasAnyErrors &&
+                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() || convertedExpression is BoundConversion { Conversion.IsUTF8StringLiteral: true } ?
+                    convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);
@@ -624,12 +626,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
             else if (conversion.IsReference &&
-                (parameterType.SpecialType == SpecialType.System_Object || parameterType.Kind == SymbolKind.DynamicType) &&
                 (object)defaultExpression.Type != null &&
                 defaultExpression.Type.SpecialType == SpecialType.System_String ||
                 conversion.IsBoxing)
             {
-                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", etc.
+                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", IEnumerable<char> x = "hello", etc.
                 // error CS1763: '{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null
                 diagnostics.Add(ErrorCode.ERR_NotNullRefDefaultParameter, parameterSyntax.Identifier.GetLocation(),
                     parameterSyntax.Identifier.ValueText, parameterType);

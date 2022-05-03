@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
+        protected abstract void WarmUpCacheInBackground(Document document);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
@@ -45,8 +46,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
 
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
+                // Queue a backgound task to warm up cache and return immediately if this is not the context to trigger this provider.
+                // `ForceExpandedCompletionIndexCreation` and `UpdateImportCompletionCacheInBackground` are both test only options to
+                // make test behavior deterministic.
+                var options = completionContext.CompletionOptions;
+                if (options.UpdateImportCompletionCacheInBackground && !options.ForceExpandedCompletionIndexCreation)
+                    WarmUpCacheInBackground(document);
+
                 return;
             }
 
@@ -117,14 +126,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var importsPlacement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // TODO: fallback options https://github.com/dotnet/roslyn/issues/60786
+            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
             var importNode = CreateImport(document, containingNamespace);
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, importsPlacement, cancellationToken);
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, addImportsOptions, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
-            var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 

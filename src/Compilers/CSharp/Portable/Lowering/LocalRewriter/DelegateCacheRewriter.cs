@@ -42,16 +42,13 @@ internal sealed class DelegateCacheRewriter
 
     internal BoundExpression Rewrite(BoundDelegateCreationExpression boundDelegateCreation)
     {
-        var targetMethod = boundDelegateCreation.MethodOpt;
-        var delegateType = boundDelegateCreation.Type;
-
-        Debug.Assert(targetMethod is { });
+        Debug.Assert(boundDelegateCreation.MethodOpt is { });
 
         var oldSyntax = _factory.Syntax;
         _factory.Syntax = boundDelegateCreation.Syntax;
 
-        var cacheContainer = GetOrAddCacheContainer(delegateType, targetMethod);
-        var cacheField = cacheContainer.GetOrAddCacheField(_factory, delegateType, targetMethod);
+        var cacheContainer = GetOrAddCacheContainer(boundDelegateCreation);
+        var cacheField = cacheContainer.GetOrAddCacheField(_factory, boundDelegateCreation);
 
         var boundCacheField = _factory.Field(receiver: null, cacheField);
         var rewrittenNode = _factory.Coalesce(boundCacheField, _factory.AssignmentExpression(boundCacheField, boundDelegateCreation));
@@ -61,7 +58,7 @@ internal sealed class DelegateCacheRewriter
         return rewrittenNode;
     }
 
-    private DelegateCacheContainer GetOrAddCacheContainer(TypeSymbol delegateType, MethodSymbol targetMethod)
+    private DelegateCacheContainer GetOrAddCacheContainer(BoundDelegateCreationExpression boundDelegateCreation)
     {
         Debug.Assert(_factory.ModuleBuilderOpt is { });
         Debug.Assert(_factory.CurrentFunction is { });
@@ -92,7 +89,7 @@ internal sealed class DelegateCacheRewriter
         //
         // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
 
-        if (!TryGetOwnerFunction(_factory.CurrentFunction, delegateType, targetMethod, out var ownerFunction))
+        if (!TryGetOwnerFunction(_factory.CurrentFunction, boundDelegateCreation, out var ownerFunction))
         {
             var typeCompilationState = _factory.CompilationState;
             container = typeCompilationState.ConcreteDelegateCacheContainer;
@@ -123,8 +120,11 @@ internal sealed class DelegateCacheRewriter
         return container;
     }
 
-    private static bool TryGetOwnerFunction(MethodSymbol currentFunction, TypeSymbol delegateType, MethodSymbol targetMethod, [NotNullWhen(true)] out MethodSymbol? ownerFunction)
+    private static bool TryGetOwnerFunction(MethodSymbol currentFunction, BoundDelegateCreationExpression boundDelegateCreation, [NotNullWhen(true)] out MethodSymbol? ownerFunction)
     {
+        var targetMethod = boundDelegateCreation.MethodOpt;
+        Debug.Assert(targetMethod is { });
+
         if (targetMethod.MethodKind == MethodKind.LocalFunction)
         {
             // Local functions can use type parameters from their enclosing methods!
@@ -162,6 +162,13 @@ internal sealed class DelegateCacheRewriter
         var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
         try
         {
+            if (targetMethod.IsAbstract && boundDelegateCreation.Argument is BoundTypeExpression typeExpression)
+            {
+                FindTypeParameters(typeExpression.Type, usedTypeParameters);
+            }
+
+            var delegateType = boundDelegateCreation.Type;
+
             FindTypeParameters(delegateType, usedTypeParameters);
             FindTypeParameters(targetMethod, usedTypeParameters);
 

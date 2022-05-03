@@ -208,7 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
-                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteInfo);
+                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, isChecked: false, ref useSiteInfo);
+
+                            Debug.Assert(!conversion.IsUserDefined);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
                             if (conversion.Exists)
@@ -364,6 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
             {
+                Debug.Assert(!rewrittenExpr.Type.IsSpanOrReadOnlySpanChar());
+
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {
                     TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
@@ -382,6 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
+                if (value.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+                {
+                    return MakeSpanStringTest(input, value);
+                }
+
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
                 var operatorType = Binder.RelationalOperatorType(comparisonType);
                 Debug.Assert(operatorType != BinaryOperatorKind.Error);
@@ -417,6 +426,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
+            }
+
+            private BoundExpression MakeSpanStringTest(BoundExpression input, ConstantValue value)
+            {
+                var isReadOnlySpan = input.Type.IsReadOnlySpanChar();
+                // Binder.ConvertPatternExpression() has checked for these well-known members.
+                var sequenceEqual =
+                    ((MethodSymbol)_factory.WellKnownMember(isReadOnlySpan
+                        ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
+                        : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T))
+                    .Construct(_factory.SpecialType(SpecialType.System_Char));
+                var asSpan = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
+
+                Debug.Assert(sequenceEqual != null && asSpan != null);
+
+                return _factory.Call(null, sequenceEqual, input, _factory.Call(null, asSpan, _factory.StringLiteral(value)));
             }
 
             /// <summary>
@@ -456,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case 2: null check followed by cast to a base type
                 if (test is BoundDagNonNullTest nonNullTest &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation2 &&
-                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteInfo) is Conversion conv &&
+                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, isChecked: false, ref useSiteInfo) is Conversion conv &&
                     (conv.IsIdentity || conv.Kind == ConversionKind.ImplicitReference || conv.IsBoxing) &&
                     typeEvaluation2.Input == nonNullTest.Input)
                 {

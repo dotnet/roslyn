@@ -4,8 +4,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            if (!options.HighlightRelatedJsonComponentsUnderCursor)
+            if (!options.HighlightingOptions.HighlightRelatedJsonComponentsUnderCursor)
                 return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

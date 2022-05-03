@@ -5,9 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
     [Trait(Traits.Feature, Traits.Features.Organizing)]
     public class CSharpOrganizing : AbstractEditorTest

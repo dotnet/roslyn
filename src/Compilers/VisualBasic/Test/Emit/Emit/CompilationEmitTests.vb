@@ -2776,7 +2776,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2788,7 +2788,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2837,7 +2837,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2849,7 +2849,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                      ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
