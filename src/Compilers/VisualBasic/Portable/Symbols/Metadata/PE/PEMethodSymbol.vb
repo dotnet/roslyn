@@ -1150,7 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
                 Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)

@@ -1275,7 +1275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
             Dim useSiteInfo = CalculateUseSiteInfo()
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
 

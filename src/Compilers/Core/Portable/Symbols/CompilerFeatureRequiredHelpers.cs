@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 
-namespace Microsoft.CodeAnalysis.Symbols;
+namespace Microsoft.CodeAnalysis;
 
 [Flags]
 internal enum CompilerFeatureRequiredFeatures

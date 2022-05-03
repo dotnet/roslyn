@@ -7,7 +7,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
+namespace Microsoft.CodeAnalysis.UnitTests;
 
 public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : CommonTestBase where TCompilation : Compilation
 {
