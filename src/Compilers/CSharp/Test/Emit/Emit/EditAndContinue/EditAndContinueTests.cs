@@ -13170,12 +13170,19 @@ class C
         source: @"
 class C
 {
-    void F() { }
+    void M1() { }
+    void M2(string s) { }
+    void M3(C c) { }
+    void M4(N n) { }
+}
+
+class N
+{
 }",
         validator: g =>
         {
-            g.VerifyTypeDefNames("<Module>", "C");
-            g.VerifyMethodDefNames("F", ".ctor");
+            g.VerifyTypeDefNames("<Module>", "C", "N");
+            g.VerifyMethodDefNames("M1", "M2", "M3", "M4", ".ctor", ".ctor");
             g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
         })
 
@@ -13183,34 +13190,56 @@ class C
         source: @"
 class C
 {
+}
+
+class N
+{
 }",
-        edits: new[] { Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), containingTypeProvider: c => c.GetMember("C")) },
+        edits: new[] {
+            Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), containingTypeProvider: c => c.GetMember("C")),
+            Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), containingTypeProvider: c => c.GetMember("C")),
+            Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M3"), containingTypeProvider: c => c.GetMember("C")),
+            Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M4"), containingTypeProvider: c => c.GetMember("C")),
+        },
         validator: g =>
         {
             g.VerifyTypeDefNames();
-            g.VerifyMethodDefNames("F"); // Deleting F is an update to F
-            g.VerifyEncLog(new[]
+            g.VerifyMethodDefNames("M1", "M2", "M3", "M4");
+            g.VerifyEncLogDefinitions(new[]
             {
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default)
             });
-            g.VerifyEncMap(new[]
+            g.VerifyEncMapDefinitions(new[]
             {
-                Handle(6, TableIndex.TypeRef),
                 Handle(1, TableIndex.MethodDef),
-                Handle(2, TableIndex.AssemblyRef)
+                Handle(2, TableIndex.MethodDef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(1, TableIndex.Param),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param),
             });
 
-            // TODO: This should be throwing MissingMethodException
-            g.VerifyIL("C.F", @"
+            var expectedIL = @"
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldnull
   IL_0001:  throw
 }
-");
+";
+
+            // TODO: This should be throwing MissingMethodException
+            g.VerifyIL("C.M1", expectedIL);
+            g.VerifyIL("C.M2(string)", expectedIL);
+            g.VerifyIL("C.M3(C)", expectedIL);
+            g.VerifyIL("C.M4(N)", expectedIL);
         })
                 .Verify();
         }
