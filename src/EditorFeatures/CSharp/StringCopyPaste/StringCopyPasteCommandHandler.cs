@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var selectionsBeforePaste = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
+            if (subjectBuffer.CurrentSnapshot is not ITextSnapshot2 snapshotBeforePaste)
+                return;
+
             // Always let the real paste go through.  That way we always have a version of the document that doesn't
             // include our changes that we can undo back to.
             nextCommandHandler();
-
-            if (subjectBuffer.CurrentSnapshot is not ITextSnapshot2 snapshotBeforePaste)
-                return;
 
             // If we don't even see any changes from the paste, there's nothing we can do.
             if (snapshotBeforePaste.Version.Changes is null)
