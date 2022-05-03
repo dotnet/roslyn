@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = ImmutableArray.Create(FixAllScope.Document,
             FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember);
 
-#if CODE_STYLE
-        private static readonly CodeActionOptionsProvider s_codeStyleOptionsProvider = new(_ => default);
-#endif
-
         protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
 
         internal sealed override FixAllProvider? GetFixAllProvider()
@@ -35,13 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return FixAllProvider.Create(
                 async (fixAllContext, document, fixAllSpans) =>
                 {
-#if CODE_STYLE
-                    var optionsProvider = s_codeStyleOptionsProvider;
-#else
-                    var optionsProvider = fixAllContext.State.CodeActionOptionsProvider;
-#endif
-
-                    return await this.FixAllAsync(document, fixAllSpans, optionsProvider, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await this.FixAllAsync(document, fixAllSpans, fixAllContext.GetOptionsProvider(), fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
                 SupportedFixAllScopes);
         }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => context.Options;
 #endif
 
-        internal static CodeActionOptionsProvider GetOptionsProvider(this FixAllContext context)
+        internal static CodeActionOptionsProvider GetOptionsProvider(this IFixAllContext context)
 #if CODE_STYLE
             => CodeActionOptions.DefaultProvider;
 #else
