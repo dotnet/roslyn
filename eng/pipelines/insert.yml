@@ -40,6 +40,10 @@ parameters:
   - name: sourceBranch
     type: string
 
+  - name: dropPath
+    type: string
+    default: '(default)'
+
 steps:
   - checkout: none
 
@@ -164,7 +168,7 @@ steps:
         -componentBranchName "$(Template.ComponentBranchName)" `
         -createDraftPR "$(Template.CreateDraftPR)" `
         -defaultValueSentinel "(default)" `
-        -dropPath "(default)" `
+        -dropPath "${{ parameters.dropPath }}" `
         -insertCore "(default)" `
         -insertDevDiv "(default)" `
         -insertionCount "1" `

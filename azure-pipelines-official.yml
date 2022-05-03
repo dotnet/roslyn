@@ -309,6 +309,8 @@ stages:
     pool:
       vmImage: windows-2019
     steps:
+    - download: current
+      artifact: VSSetup
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
@@ -323,6 +325,7 @@ stages:
         sourceBranch: "$(ComponentBranchName)"
         publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
         publishDataAccessToken: "$(System.AccessToken)"
+        dropPath: "$(Pipeline.Workspace)\VSSetup"
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
