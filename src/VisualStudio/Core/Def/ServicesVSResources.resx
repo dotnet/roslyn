@@ -1333,9 +1333,6 @@ Additional information: {1}</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
-  <data name="Visible_documents" xml:space="preserve">
-    <value>Visible documents</value>
-  </data>
   <data name="Show_compiler_errors_and_warnings_for_colon" xml:space="preserve">
     <value>Show compiler errors and warnings for:</value>
   </data>

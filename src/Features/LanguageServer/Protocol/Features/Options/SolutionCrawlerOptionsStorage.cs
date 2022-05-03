@@ -67,6 +67,42 @@ internal static class SolutionCrawlerOptionsStorage
         return GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.FullSolution;
     }
 
+    /// <summary>
+    /// Returns true if the entire solution will be analyzed in the background
+    /// to compute up-to-date diagnostics for the error list.
+    /// Note that the background analysis scope for compiler diagnostics and
+    /// analyzers can be different. If you want to fetch individual values for
+    /// whether or not full solution analysis is enabled for compiler diagnostics
+    /// and analyzers, use the other overload
+    /// <see cref="IsFullSolutionAnalysisEnabled(IGlobalOptionService, string, out bool, out bool)"/>.
+    /// </summary>
+    public static bool IsFullSolutionAnalysisEnabled(
+        this IGlobalOptionService globalOptions,
+        string language)
+        => globalOptions.IsFullSolutionAnalysisEnabled(language, out _, out _);
+
+    /// <summary>
+    /// Returns true if the entire solution will be analyzed in the background
+    /// to compute up-to-date diagnostics for the error list.
+    /// Note that the background analysis scope for compiler diagnostics and
+    /// analyzers can be different. Full analysis is enabled if either
+    /// <paramref name="compilerFullSolutionAnalysisEnabled"/> is true or
+    /// <paramref name="analyzersFullSolutionAnalysisEnabled"/> is true.
+    /// Full analysis is disabled only if both these flags are false.
+    /// If you do not care about the individual full solution analysis values
+    /// for compiler diagnostics and analyzers, use the other overload
+    /// <see cref="IsFullSolutionAnalysisEnabled(IGlobalOptionService, string)"/>.
+    /// </summary>
+    /// <param name="globalOptions">Global options.</param>
+    /// <param name="language">
+    /// Language of the projects in the solution to analyze.
+    /// </param>
+    /// <param name="compilerFullSolutionAnalysisEnabled">
+    /// Indicates if the compiler diagnostics need to be computed for the entire solution.
+    /// </param>
+    /// <param name="analyzersFullSolutionAnalysisEnabled">
+    /// Indicates if analyzer diagnostics need to be computed for the entire solution.
+    /// </param>
     public static bool IsFullSolutionAnalysisEnabled(
         this IGlobalOptionService globalOptions,
         string language,
@@ -78,14 +114,17 @@ internal static class SolutionCrawlerOptionsStorage
         return compilerFullSolutionAnalysisEnabled || analyzersFullSolutionAnalysisEnabled;
     }
 
+    /// <summary>
+    /// Returns true if background analysis is completely disabled for
+    /// both compiler diagnostics and analyzer diagnostics, i.e. the user
+    /// does not want to see squiggles or error list entries for any diagnostics.
+    /// </summary>
     public static bool IsAnalysisDisabled(
         this IGlobalOptionService globalOptions,
-        string language,
-        out bool compilerDiagnosticsDisabled,
-        out bool analyzersDisabled)
+        string language)
     {
-        compilerDiagnosticsDisabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.None;
-        analyzersDisabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.None;
+        var compilerDiagnosticsDisabled = globalOptions.GetOption(CompilerDiagnosticsScopeOption, language) == CompilerDiagnosticsScope.None;
+        var analyzersDisabled = GetBackgroundAnalysisScope(globalOptions, language) == BackgroundAnalysisScope.None;
         return compilerDiagnosticsDisabled && analyzersDisabled;
     }
 }

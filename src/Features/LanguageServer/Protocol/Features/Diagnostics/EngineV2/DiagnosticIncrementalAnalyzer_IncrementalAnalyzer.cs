@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false, out _, out _))
+            if (!GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language))
             {
                 return;
             }
@@ -253,15 +253,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
-            // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
-            if (!documentHadDiagnostics ||
-                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled) &&
-                compilerFullAnalysisEnabled &&
-                analyzersFullAnalysisEnabled)
-            {
-                // this is Perf to reduce raising events unnecessarily.
+            // If there was no diagnostic reported for this document, nothing to clean up
+            // This is done for Perf to reduce raising events unnecessarily.
+            if (!documentHadDiagnostics)
                 return;
-            }
+
+            // If full solution analysis is enabled for both compiler diagnostics and analyzers,
+            // we don't need to clear diagnostics for individual documents on document close/reset.
+            // This is done for Perf to reduce raising events unnecessarily.
+            var _ = GlobalOptions.IsFullSolutionAnalysisEnabled(document.Project.Language, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled);
+            if (compilerFullAnalysisEnabled && analyzersFullAnalysisEnabled)
+                return;
 
             var removeDiagnosticsOnDocumentClose = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
 
@@ -379,11 +381,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _ = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
             if (!compilerFullSolutionAnalysisEnabled)
             {
+                // Full solution analysis is not enabled for compiler diagnostics,
+                // so we remove the compiler analyzer state sets that are from build.
+                // We do so by retaining only those state sets that are
+                // either not for compiler analyzer or those which are for compiler
+                // analyzer, but not from build.
                 stateSets = stateSets.Where(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
             }
 
             if (!analyzersFullSolutionAnalysisEnabled)
             {
+                // Full solution analysis is not enabled for analyzer diagnostics,
+                // so we remove the analyzer state sets that are from build.
+                // We do so by retaining only those state sets that are
+                // either for the special compiler analyzer or those which are for
+                // other analyzers, but not from build.
                 stateSets = stateSets.Where(s => s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
             }
 

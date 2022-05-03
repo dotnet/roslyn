@@ -306,10 +306,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var isAnalysisDisabled = project != null
-                ? _globalOptions.IsAnalysisDisabled(project.Language, out _, out _)
-                : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue == BackgroundAnalysisScope.None &&
-                  SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption.DefaultValue == CompilerDiagnosticsScope.None;
+
+            bool isAnalysisDisabled;
+            if (project != null)
+            {
+                isAnalysisDisabled = _globalOptions.IsAnalysisDisabled(project.Language);
+            }
+            else
+            {
+                isAnalysisDisabled = true;
+                foreach (var language in solution.Projects.Select(p => p.Language).Distinct())
+                {
+                    isAnalysisDisabled = isAnalysisDisabled && _globalOptions.IsAnalysisDisabled(language);
+                }
+            }
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;

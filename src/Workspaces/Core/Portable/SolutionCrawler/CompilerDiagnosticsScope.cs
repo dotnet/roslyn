@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         None = 0,
 
         /// <summary>
-        /// Compiler warnings and errors are computed only for visible documents.
+        /// Compiler warnings and errors are computed for visible documents
+        /// and open documents which had errors/warnings in the prior solution snapshot.
         /// </summary>
         VisibleFiles = 1,
 

@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.None
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files As String =
-            ServicesVSResources.Visible_documents
+            ServicesVSResources.Current_document ' We show "Current document" to users for consistency with term used elsewhere.
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files As String =
             ServicesVSResources.Open_documents

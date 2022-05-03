@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         CompilerDiagnosticsScope.None => false,
 
                         // Compiler diagnostics are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
-                        CompilerDiagnosticsScope.VisibleFiles => isVisibleDocument || isOpenDocument && !previousData.Items.IsEmpty,
+                        CompilerDiagnosticsScope.VisibleFiles => isVisibleDocument || (isOpenDocument && !previousData.Items.IsEmpty),
 
                         // Compiler diagnostics are enabled for all open documents.
                         CompilerDiagnosticsScope.OpenFiles => isOpenDocument,
@@ -181,13 +181,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // PERF: Check whether we want to analyze this project or not.
-                    if (!FullAnalysisEnabled(project, forceAnalyzerRun, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled))
+                    var fullAnalysisEnabled = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled);
+                    if (forceAnalyzerRun)
+                    {
+                        // We are forcing full solution analysis for all diagnostics.
+                        fullAnalysisEnabled = true;
+                        compilerFullAnalysisEnabled = true;
+                        analyzersFullAnalysisEnabled = true;
+                    }
+
+                    if (!fullAnalysisEnabled)
                     {
                         Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
 
                         return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                     }
 
+                    // Reduce the state sets to analyze based on individual full solution analysis values
+                    // for compiler diagnostics and analyzers.
                     if (!compilerFullAnalysisEnabled)
                     {
                         Debug.Assert(analyzersFullAnalysisEnabled);
@@ -493,23 +504,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
-        }
-
-        internal bool FullAnalysisEnabled(
-            Project project,
-            bool forceAnalyzerRun,
-            out bool compilerFullAnalysisEnabled,
-            out bool analyzersFullAnalysisEnabled)
-        {
-            if (forceAnalyzerRun)
-            {
-                // asked to ignore any checks.
-                compilerFullAnalysisEnabled = true;
-                analyzersFullAnalysisEnabled = true;
-                return true;
-            }
-
-            return GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out compilerFullAnalysisEnabled, out analyzersFullAnalysisEnabled);
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

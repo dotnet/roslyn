@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.None;
 
         public static string Option_Compiler_Diagnostics_Scope_Visible_Files
-            => ServicesVSResources.Visible_documents;
+            => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
 
         public static string Option_Compiler_Diagnostics_Scope_Open_Files
             => ServicesVSResources.Open_documents;

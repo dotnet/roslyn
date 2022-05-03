@@ -1507,11 +1507,6 @@
         <target state="translated">Çağrı sitelerinde eklenecek değer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visible_documents">
-        <source>Visible documents</source>
-        <target state="new">Visible documents</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
         <target state="translated">Visual Studio 2017</target>
