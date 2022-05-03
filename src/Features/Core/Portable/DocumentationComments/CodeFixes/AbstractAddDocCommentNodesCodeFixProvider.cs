@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             if (parentMethod != null && TryGetDocCommentNode(parentMethod.GetLeadingTrivia()) != null)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => AddParamTagAsync(context.Document, context.Span, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Add_missing_param_nodes,
+                        c => AddParamTagAsync(context.Document, context.Span, c),
+                        nameof(FeaturesResources.Add_missing_param_nodes)),
                     context.Diagnostics);
             }
         }
@@ -173,14 +175,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             return null;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument, nameof(FeaturesResources.Add_missing_param_nodes))
-            {
-            }
         }
     }
 }

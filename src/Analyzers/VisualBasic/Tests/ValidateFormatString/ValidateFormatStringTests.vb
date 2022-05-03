@@ -316,14 +316,12 @@ Class C
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = New IdeAnalyzerOptions(ReportInvalidPlaceholdersInStringDotFormatCalls:=True)
-
             Await TestDiagnosticInfoAsync(
                 source,
                 diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity:=DiagnosticSeverity.Info,
                 diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder,
-                ideAnalyzerOptions:=options)
+                globalOptions:=[Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -334,8 +332,8 @@ Class C
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = New IdeAnalyzerOptions(ReportInvalidPlaceholdersInStringDotFormatCalls:=False)
-            Await TestDiagnosticMissingAsync(source, New TestParameters(ideAnalyzerOptions:=options))
+            Await TestDiagnosticMissingAsync(source, New TestParameters(globalOptions:=
+                [Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, False)))
         End Function
 #End If
     End Class

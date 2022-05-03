@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                         if (decompiledSourceService != null)
                         {
-                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                            temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, refInfo.metadataReference, refInfo.assemblyLocation, options.GenerationOptions.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (!useDecompiler)
                 {
                     var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetRequiredService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
+                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.GenerationOptions, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We have the content, so write it out to disk

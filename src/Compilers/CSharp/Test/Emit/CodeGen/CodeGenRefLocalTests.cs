@@ -3406,7 +3406,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[
             {
                 // file.cs(6,28): error CS8386: Invalid object creation
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithArguments("?[]").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithLocation(6, 28),
                 // file.cs(6,31): error CS1031: Type expected
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 31)

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         {
             private readonly TService _service;
             private readonly SemanticDocument _document;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             private readonly NamingRule _fieldNamingRule;
             private readonly NamingRule _propertyNamingRule;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
 
-            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule)
+            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule, CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -64,19 +65,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 ParameterToNewFieldMap = ImmutableDictionary<string, string>.Empty;
                 ParameterToNewPropertyMap = ImmutableDictionary<string, string>.Empty;
+                _fallbackOptions = fallbackOptions;
             }
 
             public static async Task<State?> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
+                CodeAndImportGenerationOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
                 var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
                 var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
 
-                var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule);
+                var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule, fallbackOptions);
                 if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
@@ -594,11 +597,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     baseConstructorArguments: isThis ? default : delegatingArguments,
                     thisConstructorArguments: isThis ? delegatingArguments : default);
 
-                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+                var context = new CodeGenerationSolutionContext(
                     document.Project.Solution,
+                    new CodeGenerationContext(Token.GetLocation()),
+                    _fallbackOptions);
+
+                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+                    context,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -639,7 +646,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ImmutableDictionary<string, string>.Empty;
 
                 return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
-                    document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        document.Project.Solution,
+                        new CodeGenerationContext(Token.GetLocation()),
+                        _fallbackOptions),
                     TypeToGenerateIn,
                     provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                         semanticModel,
@@ -653,7 +663,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         preferThrowExpression: false,
                         generateProperties: withProperties,
                         IsContainedInUnsafeType),
-                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
         }

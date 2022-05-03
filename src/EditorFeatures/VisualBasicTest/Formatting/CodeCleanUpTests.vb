@@ -370,7 +370,7 @@ End Class
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    Function(language) options,
+                    options.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()
