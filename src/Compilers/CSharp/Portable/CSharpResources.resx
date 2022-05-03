@@ -7080,13 +7080,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
   <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
-    <value>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</value>
+    <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
   <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
-    <value>Utf8 String Literals</value>
+    <value>UTF-8 string literals</value>
   </data>
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
-    <value>An expression tree may not contain UTF8 string conversion or literal.</value>
+    <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
