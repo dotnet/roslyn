@@ -1082,7 +1082,7 @@ public class C
 {
     public void M(int x, int y, int z, params byte[] b)
     {
-        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ [|65, 66, 67|] /* a4 */);
+        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ [|65, /* x1 */ 66, /* x2 */  67|] /* a4 */);
     }
 }
 ",
@@ -1374,7 +1374,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
-        public async Task TestParamArray18()
+        public async Task TestMultidimensionalArray()
         {
             await new VerifyCS.Test
             {

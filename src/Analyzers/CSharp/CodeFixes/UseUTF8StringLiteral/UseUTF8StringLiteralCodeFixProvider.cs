@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
             // Get our list of bytes from the array elements
             using var _ = PooledStringBuilder.GetInstance(out var builder);
+            builder.Capacity = arrayOp.Initializer.ElementValues.Length;
             if (!UseUTF8StringLiteralDiagnosticAnalyzer.TryConvertToUTF8String(builder, arrayOp.Initializer.ElementValues))
             {
                 // We shouldn't get here, because the code fix shouldn't ask for a string value

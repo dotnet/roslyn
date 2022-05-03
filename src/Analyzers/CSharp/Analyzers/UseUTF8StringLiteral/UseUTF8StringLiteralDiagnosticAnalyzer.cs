@@ -110,8 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 // will have to search up
                 ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Ancestors);
             }
-
-            // Otherwise this is an unsupported case
         }
 
         private void ReportParameterArrayDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ImmutableArray<IOperation> elements, ReportDiagnostic severity, ArrayCreationOperationLocation operationLocation)
@@ -182,23 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             // We only need max 4 elements for a single Rune
             var length = Math.Min(arrayCreationElements.Length - startIndex, 4);
 
-            var array = (Span<byte>)stackalloc byte[length];
+            Span<byte> array = stackalloc byte[length];
             for (var i = 0; i < length; i++)
             {
                 var element = arrayCreationElements[startIndex + i];
 
                 // First basic check is that the array element is actually a byte
-                if (element.ConstantValue.Value is not byte)
+                if (element.ConstantValue.Value is not byte b)
                     return false;
 
-                array[i] = (byte)element.ConstantValue.Value;
+                array[i] = b;
             }
 
             // If we can't decode a rune from the array then it can't be represented as a string
-            if (Rune.DecodeFromUtf8(array, out rune, out bytesConsumed) != System.Buffers.OperationStatus.Done)
-                return false;
-
-            return true;
+            return Rune.DecodeFromUtf8(array, out rune, out bytesConsumed) == System.Buffers.OperationStatus.Done;
         }
     }
 }
