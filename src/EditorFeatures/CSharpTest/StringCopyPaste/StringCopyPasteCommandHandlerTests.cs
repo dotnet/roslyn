@@ -2,21 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-<<<<<<< HEAD
-using System.Composition;
-using System.Data.SqlTypes;
-=======
->>>>>>> stringCopyPaste
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
-using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -71,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup)
                 => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), unknownCopy: copyFileMarkup == null);
 
-<<<<<<< HEAD
             public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
                 => XElement.Parse(($@"
 <Workspace>
@@ -83,17 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         <Document Markup=""SpansOnly"">{copyFileMarkup}</Document>
     </Project>")}
 </Workspace>"));
-=======
-            public static XElement GetWorkspaceXml(string markup)
-                => markup.Contains("<Workspace>")
-                    ? XElement.Parse(markup)
-                    : XElement.Parse($@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{markup}</Document>
-    </Project>
-</Workspace>");
->>>>>>> stringCopyPaste
 
             internal void AssertCodeIs(string expectedCode)
             {
