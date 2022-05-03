@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
@@ -11,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -18,8 +18,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
@@ -56,9 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             internal void AssertCodeIs(string expectedCode)
             {
-                MarkupTestFile.GetPositionAndSpans(expectedCode, out var massaged, out int? caretPosition, out var spans);
+                TestFileMarkupParser.GetPositionAndSpans(
+                    expectedCode, out var massaged, out int? caretPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
-                Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretPosition, TextView.Caret.Position.BufferPosition.Position);
 
                 var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
                 if (virtualSpaces.Key != null)
@@ -134,13 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
                 expectedMarkup = expectedMarkup.Replace("$", NON_TEST_CHARACTER);
 
-                MarkupTestFile.GetPositionAndSpan(expectedMarkup, out expected, out int? cursorPosition, out var caretSpan);
-                Contract.ThrowIfTrue(cursorPosition != null);
+                TestFileMarkupParser.GetSpan(expectedMarkup, out expected, out var caretSpan);
 
                 expected = expected.Replace(NON_TEST_CHARACTER, "$");
 
-                Assert.True(caretSpan.HasValue && caretSpan.Value.IsEmpty);
-                caretPosition = caretSpan!.Value.Start;
+                caretPosition = caretSpan.Start;
             }
 
             private void ValidateAfter(string afterUndoMarkup)
