@@ -39,7 +39,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                 new Line($"{githubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
                 new Line("Create new DevDiv Azure Dev Ops tokens at https://dev.azure.com/devdiv/_usersSettings/tokens (build_execute,code_full,release_execute,packaging scopes are needed)", isComment: true),
                 new Line($"{devdivAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DevDivAzureDevOpsToken, string.Empty, isSecret: true)}"),
-                new Line("Create new DncEng Azure Dev Ops tokens at https://dev.azure.com/devdiv/_usersSettings/tokens (build_execute,code_full,release_execute,packaging scopes are needed)", isComment: true),
+                new Line("Create new DncEng Azure Dev Ops tokens at https://dev.azure.com/dnceng/_usersSettings/tokens (build_execute,code_full,release_execute,packaging scopes are needed)", isComment: true),
                 new Line($"{dncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, isSecret: true)}"),
                 new Line(""),
                 new Line("Set elements above before saving.", isComment: true),
