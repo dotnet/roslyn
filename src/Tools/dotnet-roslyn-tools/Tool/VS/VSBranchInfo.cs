@@ -10,6 +10,8 @@ using Microsoft.RoslynTools.Products;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
+using Microsoft.RoslynTools.Authentication;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace Microsoft.RoslynTools.VS;
 
@@ -21,16 +23,12 @@ internal static class VSBranchInfo
         new Products.Razor()
     };
 
-    public static async Task<int> GetInfoAsync(string branch, string product, bool showArtifacts, ILogger logger)
+    public static async Task<int> GetInfoAsync(string branch, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
     {
         try
         {
-            var client = new SecretClient(
-                vaultUri: new Uri("https://managedlanguages.vault.azure.net"),
-                credential: new DefaultAzureCredential(includeInteractiveCredentials: true));
-
-            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", client, "vslsnap-vso-auth-token");
-            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", client, "vslsnap-build-auth-token");
+            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
+            using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
 
             foreach (var productConfig in AllProducts)
             {
@@ -46,9 +44,13 @@ internal static class VSBranchInfo
                 }
             }
         }
+        catch (VssUnauthorizedException vssEx)
+        {
+            logger.LogError(vssEx, "Authentication error occurred: {Message}. Run `roslyn-tools authenticate` to configure the AzDO authentication tokens.", vssEx.Message);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occurred: {0}", ex.Message);
+            logger.LogError(ex, "Error occurred: {Message}", ex.Message);
         }
 
         return 1;

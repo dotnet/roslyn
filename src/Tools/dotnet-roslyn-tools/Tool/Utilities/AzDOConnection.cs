@@ -25,15 +25,12 @@ internal sealed class AzDOConnection : IDisposable
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
 
-    public AzDOConnection(string azdoUrl, string projectName, SecretClient client, string secretName)
+    public AzDOConnection(string azdoUrl, string projectName, string azdoToken)
     {
         BuildProjectName = projectName;
 
-        var azureDevOpsSecret = client.GetSecret(secretName);
-        var credential = new NetworkCredential("vslsnap", azureDevOpsSecret.Value.Value);
-
-        Connection = new VssConnection(new Uri(azdoUrl), new WindowsCredential(credential));
-        NuGetClient = new HttpClient(new HttpClientHandler { Credentials = credential });
+        Connection = new VssConnection(new Uri(azdoUrl), new VssBasicCredential(string.Empty, azdoToken));
+        NuGetClient = new HttpClient();
 
         GitClient = Connection.GetClient<GitHttpClient>();
         BuildClient = Connection.GetClient<BuildHttpClient>();

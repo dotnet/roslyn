@@ -24,15 +24,15 @@ dotnet tool install -g Microsoft.RoslynTools --prerelease --add-source https://p
 
 `dotnet roslyn-tools` functionality is broken up into subcommands.
 
-
 ```
 Description:
-  The command line tool for performing infrastructure tasks.
+  The command line tool for performing infrastructure tasks. Some commands require that the `authenticate` command be run first.
 
 Usage:
   roslyn-tools [command] [options]
 
 Commands:
+  authenticate                       Stores the AzDO and GitHub tokens required for remote operations.
   pr-finder                          Find merged PRs between two commits
   nuget-prepare                      Prepares packages built from the Roslyn repo for validation.
   nuget-publish <roslyn|roslyn-sdk>  Publishes packages built from a Roslyn repo. [default: roslyn]

@@ -18,7 +18,9 @@ internal class CreateReleaseTagsCommand
     {
         var command = new Command("create-release-tags", "Generates git tags for VS releases in the Roslyn repo.")
         {
-            VerbosityOption
+            VerbosityOption,
+            DevDivAzDOTokenOption,
+            DncEngAzDOTokenOption
         };
         command.Handler = s_defaultHandler;
         return command;
@@ -29,8 +31,9 @@ internal class CreateReleaseTagsCommand
         public async Task<int> InvokeAsync(InvocationContext context)
         {
             var logger = context.SetupLogging();
+            var settings = context.ParseResult.LoadSettings(logger);
 
-            return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(logger);
+            return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(settings, logger);
         }
     }
 }

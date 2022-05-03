@@ -27,7 +27,9 @@ internal class VSBranchInfoCommand
             BranchOption,
             ProductOption,
             ShowArtifacts,
-            VerbosityOption
+            VerbosityOption,
+            DevDivAzDOTokenOption,
+            DncEngAzDOTokenOption
         };
         command.Handler = s_vsBranchInfoCommandHandler;
         return command;
@@ -38,12 +40,13 @@ internal class VSBranchInfoCommand
         public Task<int> InvokeAsync(InvocationContext context)
         {
             var logger = context.SetupLogging();
+            var settings = context.ParseResult.LoadSettings(logger);
 
             var branch = context.ParseResult.GetValueForOption(BranchOption)!;
             var product = context.ParseResult.GetValueForOption(ProductOption)!;
             var showArtifacts = context.ParseResult.WasOptionUsed(ShowArtifacts.Aliases.ToArray());
 
-            return VSBranchInfo.GetInfoAsync(branch, product, showArtifacts, logger);
+            return VSBranchInfo.GetInfoAsync(branch, product, showArtifacts, settings, logger);
         }
     }
 }
