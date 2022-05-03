@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
                 var solutionChangeAction = CodeAction.Create(
                     title,
-                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, CodeCleanupOptions.CreateProvider(context.Options), token),
+                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, context.Options, token),
                     title);
 
                 context.RegisterRefactoring(solutionChangeAction, textSpan);

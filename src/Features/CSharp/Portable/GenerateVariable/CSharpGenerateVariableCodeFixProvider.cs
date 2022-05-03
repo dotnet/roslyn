@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateVariableService>();
-            return service.GenerateVariableAsync(document, node, cancellationToken);
+            return service.GenerateVariableAsync(document, node, fallbackOptions, cancellationToken);
         }
     }
 }

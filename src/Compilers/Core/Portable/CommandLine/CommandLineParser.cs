@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 var kv = SplitWithDoubledSeparatorEscaping(kEqualsV, '=');
                 if (kv.Length != 2)
                 {
-                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap));
                     continue;
                 }
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (from.Length == 0 || to.Length == 0)
                 {
-                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap));
                 }
                 else
                 {

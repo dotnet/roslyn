@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     document,
                     caretPoint.Value.Position,
                     restrictToDeclarations: false,
-                    _globalOptions.GetCodeCleanupOptionsProvider(),
+                    _globalOptions.CreateProvider(),
                     cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
                 // UI thread bound operation to show the change signature dialog.

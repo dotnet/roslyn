@@ -40,9 +40,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
     }
 
+    internal interface AddImportPlacementOptionsProvider
+#if !CODE_STYLE
+        : OptionsProvider<AddImportPlacementOptions>
+#endif
+    {
+    }
+
+#if !CODE_STYLE
     internal static class AddImportPlacementOptionsProviders
     {
-#if !CODE_STYLE
         public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -59,24 +66,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions, fallbackOptions);
         }
 
-        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetAddImportPlacementOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions, cancellationToken).ConfigureAwait(false);
-
-        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetAddImportPlacementOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.AddImportOptions ?? AddImportPlacementOptions.Default, cancellationToken).ConfigureAwait(false);
-#endif
-
-        internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions: false, fallbackOptions: AddImportPlacementOptions.Default);
-#else
-            return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
-#endif
-        }
+        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
+#endif
 
     internal interface IAddImportsService : ILanguageService
     {

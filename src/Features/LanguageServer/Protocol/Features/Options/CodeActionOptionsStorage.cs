@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal static class CodeActionOptionsStorage
     {
+        public static readonly PerLanguageOption2<int> WrappingColumn =
+            new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
+
         internal static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
             => GetCodeActionOptions(globalOptions, languageServices, isBlocking: false);
 
@@ -29,19 +33,32 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ImplementTypeOptions: globalOptions.GetImplementTypeOptions(languageServices.Language),
                 ExtractMethodOptions: globalOptions.GetExtractMethodOptions(languageServices.Language),
                 CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
+                CodeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
-                IsBlocking: isBlocking);
+                IsBlocking: isBlocking,
+                WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language));
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
-        {
-            var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
-            return languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions);
-        }
+            => new CachingCodeActionsOptionsProvider(globalOptions, isBlocking: false);
 
         internal static CodeActionOptionsProvider GetBlockingCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
+            => new CachingCodeActionsOptionsProvider(globalOptions, isBlocking: true);
+
+        private sealed class CachingCodeActionsOptionsProvider : AbstractCodeActionOptionsProvider
         {
-            var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
-            return languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (language, options) => GetBlockingCodeActionOptions(options, languageService), globalOptions);
+            private readonly IGlobalOptionService _globalOptions;
+            private readonly bool _isBlocking;
+
+            private ImmutableDictionary<string, CodeActionOptions> _cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
+
+            public CachingCodeActionsOptionsProvider(IGlobalOptionService globalOptions, bool isBlocking)
+            {
+                _globalOptions = globalOptions;
+                _isBlocking = isBlocking;
+            }
+
+            public override CodeActionOptions GetOptions(HostLanguageServices languageService)
+                => ImmutableInterlocked.GetOrAdd(ref _cache, languageService.Language, (language, options) => GetCodeActionOptions(options, languageService, _isBlocking), _globalOptions);
         }
     }
 }
