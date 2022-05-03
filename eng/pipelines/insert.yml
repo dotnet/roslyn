@@ -143,12 +143,17 @@ steps:
 
     displayName: Set Variables from Input Parameters
     env:
+      BuildUserName: ${{ parameters.buildUserName }}
+      BuildPassword: ${{ parameters.buildPassword }}
+      ComponentUserName: ${{ parameters.componentUserName }}
+      ComponentPassword: ${{ parameters.componentPassword }}
       CreateDraftPR: ${{ parameters.createDraftPR }}
       AutoComplete: ${{ parameters.autoComplete }}
       TitlePrefix: ${{ parameters.titlePrefix }}
       InsertToolset: ${{ parameters.insertToolset }}
       VSBranchName: ${{ parameters.vsBranchName }}
       ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
+      DropPath: ${{ parameters.dropPath }}
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
@@ -157,10 +162,10 @@ steps:
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
-        -userName "${{ parameters.buildUserName }}" `
-        -password "${{ parameters.buildPassword }}" `
-        -componentUserName "${{ parameters.componentUserName }}" `
-        -componentPassword "${{ parameters.componentPassword }}" `
+        -userName "$(Template.BuildUserName)" `
+        -password "$(Template.BuildPassword)" `
+        -componentUserName "$(Template.ComponentUserName)" `
+        -componentPassword "$(Template.ComponentPassword)" `
         -componentAzdoUri "$(Template.ComponentAzdoUri)" `
         -componentProjectName "$(Template.ComponentProjectName)" `
         -componentName "Roslyn" `
@@ -168,7 +173,7 @@ steps:
         -componentBranchName "$(Template.ComponentBranchName)" `
         -createDraftPR "$(Template.CreateDraftPR)" `
         -defaultValueSentinel "(default)" `
-        -dropPath "${{ parameters.dropPath }}" `
+        -dropPath "$(Template.DropPath)" `
         -insertCore "(default)" `
         -insertDevDiv "(default)" `
         -insertionCount "1" `
