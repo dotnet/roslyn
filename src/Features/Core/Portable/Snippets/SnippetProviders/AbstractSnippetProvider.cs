@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             var nodeWithTrivia = node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true),
-                (oldToken, _) => oldToken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
-                    .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
-                    .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
+                (oldtoken, _) => oldtoken.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation)
+                .WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker)
+                .WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker));
 
             return nodeWithTrivia;
         }
