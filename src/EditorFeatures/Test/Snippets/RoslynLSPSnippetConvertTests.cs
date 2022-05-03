@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -36,11 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"if (${1:true})
 {
 } $0";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[..stringSpan.Length]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("true", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -55,11 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"$0 if (${1:true})
 {
 }";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("true", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -74,11 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"if (true)
 {$0
 } ${1:test}";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[..stringSpan.Length]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -93,11 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"${1:test} if (true)
 {$0
 }";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -112,11 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"if (true)
 {
 } ${1:test} $0";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[..stringSpan.Length]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -131,11 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"if (true)
 {
 } $0 ${1:test}";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[..stringSpan.Length]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -150,11 +133,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"${1:test} $0 if (true)
 {
 }";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -169,11 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"$0 ${1:test} if (true)
 {
 }";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString[stringSpan.Start..]);
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -188,11 +165,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"$0 if (true)
 {
 } ${1:test}";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString.Substring(stringSpan.Start, stringSpan.Length));
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
@@ -207,11 +181,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"${1:test} if (true)
 {
 } $0";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString.Substring(stringSpan.Start, stringSpan.Length));
-            var placeholders = dictionary["placeholder"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(new SnippetPlaceholder("test", placeholders)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         #endregion
@@ -230,14 +201,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
 @"for (var ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++)
 {$0
 }";
-            MarkupTestFile.GetPositionAndSpans(markup, out var outString, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> dictionary);
-            var stringSpan = dictionary[""].First();
-            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), outString);
-            var placeholders1 = dictionary["placeholder1"].Select(span => span.Start).ToImmutableArray();
-            var placeholders2 = dictionary["placeholder2"].Select(span => span.Start).ToImmutableArray();
-            return TestAsync(markup, expectedLSPSnippet, cursorPosition, ImmutableArray.Create(
-                new SnippetPlaceholder("i", placeholders1),
-                new SnippetPlaceholder("length", placeholders2)), textChange);
+
+            return TestAsync(markup, expectedLSPSnippet);
         }
 
         #endregion
@@ -245,16 +210,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
         protected static TestWorkspace CreateWorkspaceFromCode(string code)
          => TestWorkspace.CreateCSharp(code);
 
-        private static async Task TestAsync(string markup, string expectedLSPSnippet, int? cursorPosition, ImmutableArray<SnippetPlaceholder> placeholders, TextChange textChange)
+        private static async Task TestAsync(string markup, string output)
         {
+            MarkupTestFile.GetPositionAndSpans(markup, out var text, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> placeholderDictionary);
+            var stringSpan = placeholderDictionary[""].First();
+            var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), text.Substring(stringSpan.Start, stringSpan.Length));
+            var placeholders = GetSnippetPlaceholders(text, placeholderDictionary);
             using var workspace = CreateWorkspaceFromCode(markup);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            if (document is not null)
+            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document!, cursorPosition!.Value, placeholders, textChange).ConfigureAwait(false);
+            AssertEx.EqualOrDiff(output, lspSnippetString);
+        }
+
+        private static ImmutableArray<SnippetPlaceholder> GetSnippetPlaceholders(string text, IDictionary<string, ImmutableArray<TextSpan>> placeholderDictionary)
+        {
+            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
+            foreach (var kvp in placeholderDictionary)
             {
-                var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, cursorPosition!.Value, placeholders, textChange).ConfigureAwait(false);
-                AssertEx.EqualOrDiff(expectedLSPSnippet, lspSnippetString);
+                if (kvp.Key.Length > 0)
+                {
+                    var spans = kvp.Value;
+                    var identifier = text.Substring(spans[0].Start, spans[0].Length);
+                    var placeholders = spans.Select(span => span.Start).ToImmutableArray();
+                    arrayBuilder.Add(new SnippetPlaceholder(identifier, placeholders));
+                }
             }
+
+            return arrayBuilder.AsImmutable();
         }
     }
 }

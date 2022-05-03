@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
@@ -55,8 +56,9 @@ namespace Microsoft.CodeAnalysis.Snippets
                 var expandMethodResult = _expanderMethodInfo!.Invoke(_lspSnippetExpander, new object[] { textEdit, textView, textSnapshot });
                 return expandMethodResult is not null && (bool)expandMethodResult;
             }
-            catch
+            catch (Exception e)
             {
+                FatalError.ReportAndCatch(e);
                 return false;
             }
         }
