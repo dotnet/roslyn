@@ -8750,6 +8750,28 @@ class C
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
         }
 
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForPatternMatching()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var c = M2();
+        if [|(c is object obj)|]
+        {
+        }
+    }
+
+    C M2() => new C();
+}
+";
+
+            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+        }
+
         [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
