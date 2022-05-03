@@ -14,12 +14,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
             IAspNetCoreEmbeddedLanguageClassifier,
             ExportAspNetCoreEmbeddedLanguageClassifierAttribute>
     {
-        protected override bool SupportsLanguage(ExportAspNetCoreEmbeddedLanguageClassifierAttribute exportAttribute, string language)
-        {
-            return exportAttribute.Language == null
-                || exportAttribute.Language.Length == 0
-                || exportAttribute.Language.Contains(language);
-        }
+        protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageClassifierAttribute exportAttribute)
+            => ImmutableArray.Create(exportAttribute.Language);
 
         protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageClassifier> extensions)
         {
