@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {
-    internal struct AspNetCoreEmbeddedLanguageClassificationContext
+    internal readonly struct AspNetCoreEmbeddedLanguageClassificationContext
     {
         private readonly EmbeddedLanguageClassificationContext _context;
 
