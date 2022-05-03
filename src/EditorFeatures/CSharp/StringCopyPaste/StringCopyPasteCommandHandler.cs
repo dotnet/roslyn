@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +20,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
@@ -135,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var pasteWasSuccessful = PasteWasSuccessful(
                 snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
 
+            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             var processor = new UnknownSourcePasteProcessor(
                 snapshotBeforePaste,
                 snapshotAfterPaste,
@@ -143,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 stringExpressionBeforePaste,
                 textView.Options.GetNewLineCharacter(),
                 pasteWasSuccessful);
+
             var textChanges = processor.GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
