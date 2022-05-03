@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Issue a specialized diagnostic for add methods of collection initializers
-            var isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod) &&
-                            symbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName;
+            var isColInit = location.Includes(BinderFlags.CollectionInitializerAddMethod);
+            Debug.Assert(!isColInit || symbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName);
             var errorCode = (message: data.Message, isError: data.IsError, isColInit) switch
             {
                 // dev11 had a bug in this area (i.e. always produce a warning when there's no message) and we have to match it.

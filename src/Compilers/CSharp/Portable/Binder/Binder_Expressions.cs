@@ -4195,7 +4195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.ToImmutable(),
                 arguments.Names.ToImmutableOrNull(),
                 arguments.RefKinds.ToImmutableOrNull(),
-                node.Initializer);
+                node.Initializer,
+                binder: this);
             arguments.Free();
             return result;
         }

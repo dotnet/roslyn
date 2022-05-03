@@ -361,21 +361,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return expr;
 
-            BoundExpression bindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
+            static BoundExpression bindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
             {
                 var syntax = node.Syntax;
+                var binder = node.Binder;
                 switch (type.TypeKind)
                 {
                     case TypeKind.Enum:
                     case TypeKind.Struct:
                     case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
-                        return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
                     case TypeKind.TypeParameter:
-                        return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                        return binder.BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
                     case TypeKind.Delegate:
-                        return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, wasTargetTyped: true, diagnostics);
+                        return binder.BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, wasTargetTyped: true, diagnostics);
                     case TypeKind.Interface:
-                        return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                        return binder.BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
                     case TypeKind.Array:
                     case TypeKind.Class:
                     case TypeKind.Dynamic:
@@ -386,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                         goto case TypeKind.Error;
                     case TypeKind.Error:
-                        return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                        return binder.MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
                     case var v:
                         throw ExceptionUtilities.UnexpectedValue(v);
                 }
@@ -447,13 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
-                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
-                var binder = GetRequiredBinder(oldCase.Syntax);
                 var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
-                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
