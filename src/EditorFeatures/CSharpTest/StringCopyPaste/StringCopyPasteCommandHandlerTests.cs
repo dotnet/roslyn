@@ -128,12 +128,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             private static void GetCodeAndCaretPosition(string expectedMarkup, out string expected, out int caretPosition)
             {
-                expectedMarkup = expectedMarkup.Replace("$", "\uD7FF");
+                // Used so test can contain `$$` (for raw interpolations) without us thinking that it is an actual caret
+                // position
+                const string NON_TEST_CHARACTER = "\uD7FF";
+
+                expectedMarkup = expectedMarkup.Replace("$", NON_TEST_CHARACTER);
 
                 MarkupTestFile.GetPositionAndSpan(expectedMarkup, out expected, out int? cursorPosition, out var caretSpan);
                 Contract.ThrowIfTrue(cursorPosition != null);
 
-                expected = expected.Replace("\uD7FF", "$");
+                expected = expected.Replace(NON_TEST_CHARACTER, "$");
 
                 Assert.True(caretSpan.HasValue && caretSpan.Value.IsEmpty);
                 caretPosition = caretSpan!.Value.Start;
