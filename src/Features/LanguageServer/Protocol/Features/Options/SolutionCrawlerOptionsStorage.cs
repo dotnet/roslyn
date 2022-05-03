@@ -57,6 +57,10 @@ internal static class SolutionCrawlerOptionsStorage
                globalOptions.GetOption(BackgroundAnalysisScopeOption, language);
     }
 
+    /// <summary>
+    /// Returns true if full solution analysis is enabled for the given
+    /// <paramref name="analyzer"/> through options for the given <paramref name="language"/>.
+    /// </summary>
     public static bool IsFullSolutionAnalysisEnabled(this DiagnosticAnalyzer analyzer, IGlobalOptionService globalOptions, string language)
     {
         if (analyzer.IsCompilerAnalyzer())
