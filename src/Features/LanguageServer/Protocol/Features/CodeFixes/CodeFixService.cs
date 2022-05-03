@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap = new();
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider = r => new ProjectCodeFixProvider(r);
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
         private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
@@ -853,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
             foreach (var reference in project.AnalyzerReferences)
             {
-                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
+                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, static reference => new ProjectCodeFixProvider(reference));
                 foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
                     var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
