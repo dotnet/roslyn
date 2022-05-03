@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (info.Severity == DiagnosticSeverity.Error && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == Int32.MaxValue))
+            if (IsHighestPriorityUseSiteError(info))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -1004,6 +1004,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we have a second low-pri error, continue looking for a higher priority one
             return false;
         }
+
+        protected bool IsHighestPriorityUseSiteError(DiagnosticInfo info)
+            => info.Severity == DiagnosticSeverity.Error
+               && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == int.MaxValue);
 
         /// <summary>
         /// Merges given diagnostic and dependencies to the existing result.
@@ -1122,7 +1126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-
         [Flags]
         internal enum AllowedRequiredModifierType
         {
@@ -1195,6 +1198,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+#nullable enable
+        internal void DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref UseSiteInfo<AssemblySymbol> result, System.Reflection.Metadata.EntityHandle handle, CompilerFeatureRequiredFeatures allowedFeatures)
+        {
+            string? disallowedFeature = CompilerFeatureRequiredHelpers.GetUnsupportedCompilerFeature(handle, ((PEModuleSymbol)this.ContainingModule).Module, allowedFeatures);
+            if (disallowedFeature != null)
+            {
+                // '{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.
+                result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCompilerFeature, this, disallowedFeature));
+            }
+        }
+#nullable disable
 
         internal static bool GetUnificationUseSiteDiagnosticRecursive<T>(ref DiagnosticInfo result, ImmutableArray<T> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) where T : TypeSymbol
         {
@@ -1444,6 +1459,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilerFeatureRequiredAttribute))
+            {
+                // This is always disallowed, so we don't bother with a flag.
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.CompilerFeatureRequiredAttribute);
             }
             else
             {

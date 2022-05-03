@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -468,6 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None);
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 

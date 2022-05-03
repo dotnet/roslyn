@@ -1275,8 +1275,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
             Dim useSiteInfo = CalculateUseSiteInfo()
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
+
+                For Each typeParameter In Me.TypeParameters
+                    useSiteInfo = MergeUseSiteInfo(useSiteInfo, typeParameter.GetUseSiteInfo())
+                Next
 
                 ' Check if this type Is marked by RequiredAttribute attribute.
                 ' If so mark the type as bad, because it relies upon semantics that are not understood by the VB compiler.

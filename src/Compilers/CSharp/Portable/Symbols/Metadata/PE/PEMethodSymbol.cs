@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -886,9 +887,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 else
                 {
                     var ownedParams = ImmutableArray.CreateBuilder<TypeParameterSymbol>(gpHandles.Count);
+                    UseSiteInfo<AssemblySymbol> typeParamUseSiteInfo = default;
                     for (int i = 0; i < gpHandles.Count; i++)
                     {
-                        ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]));
+                        var typeParam = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]);
+                        ownedParams.Add(typeParam);
+                        MergeUseSiteInfo(ref typeParamUseSiteInfo, typeParam.GetUseSiteInfo());
+                    }
+
+                    if (typeParamUseSiteInfo.DiagnosticInfo != null)
+                    {
+                        diagnosticInfo = typeParamUseSiteInfo.DiagnosticInfo;
                     }
 
                     return ownedParams.ToImmutable();
@@ -1356,6 +1365,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None);
+
+                if (result.DiagnosticInfo == null || !IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+                {
+                    foreach (var param in Parameters)
+                    {
+                        if (MergeUseSiteInfo(ref result, param.GetUseSiteInfo()))
+                        {
+                            break;
+                        }
+                    }
+                }
 
                 var diagnosticInfo = result.DiagnosticInfo;
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);

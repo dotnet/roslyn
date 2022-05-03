@@ -7130,4 +7130,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
+  </data>
 </root>

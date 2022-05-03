@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -2016,48 +2017,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
                 AssemblySymbol primaryDependency = PrimaryDependency;
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+                GetUseSiteDiagnosticImpl(ref result);
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
             return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
-        protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
+        protected virtual void GetUseSiteDiagnosticImpl(ref UseSiteInfo<AssemblySymbol> result)
         {
-            DiagnosticInfo diagnostic = null;
-
-            if (!MergeUseSiteDiagnostics(ref diagnostic, CalculateUseSiteDiagnostic()))
+            if (MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(CalculateUseSiteDiagnostic())))
             {
-                // Check if this type is marked by RequiredAttribute attribute.
-                // If so mark the type as bad, because it relies upon semantics that are not understood by the C# compiler.
-                if (this.ContainingPEModule.Module.HasRequiredAttributeAttribute(_handle))
+                return;
+            }
+
+            // Check if this type is marked by RequiredAttribute attribute.
+            // If so mark the type as bad, because it relies upon semantics that are not understood by the C# compiler.
+            if (this.ContainingPEModule.Module.HasRequiredAttributeAttribute(_handle))
+            {
+                result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
+                return;
+            }
+            else if (TypeKind == TypeKind.Class && SpecialType != SpecialType.System_Enum)
+            {
+                TypeSymbol @base = GetDeclaredBaseType(null);
+                if (@base?.SpecialType == SpecialType.None && @base.ContainingAssembly?.IsMissing == true)
                 {
-                    diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
-                }
-                else if (TypeKind == TypeKind.Class && SpecialType != SpecialType.System_Enum)
-                {
-                    TypeSymbol @base = GetDeclaredBaseType(null);
-                    if (@base?.SpecialType == SpecialType.None && @base.ContainingAssembly?.IsMissing == true)
+                    var missingType = @base as MissingMetadataTypeSymbol.TopLevel;
+                    if ((object)missingType != null && missingType.Arity == 0)
                     {
-                        var missingType = @base as MissingMetadataTypeSymbol.TopLevel;
-                        if ((object)missingType != null && missingType.Arity == 0)
+                        string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
+                        switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
                         {
-                            string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
-                            switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
-                            {
-                                case SpecialType.System_Enum:
-                                case SpecialType.System_MulticastDelegate:
-                                case SpecialType.System_ValueType:
-                                    // This might be a structure, an enum, or a delegate
-                                    diagnostic = missingType.GetUseSiteInfo().DiagnosticInfo;
-                                    break;
-                            }
+                            case SpecialType.System_Enum:
+                            case SpecialType.System_MulticastDelegate:
+                            case SpecialType.System_ValueType:
+                                // This might be a structure, an enum, or a delegate
+                                if (MergeUseSiteInfo(ref result, missingType.GetUseSiteInfo()))
+                                {
+                                    return;
+                                }
+                                break;
                         }
                     }
                 }
             }
 
-            return diagnostic;
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None);
         }
 
         internal string DefaultMemberName
@@ -2515,21 +2522,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            protected override DiagnosticInfo GetUseSiteDiagnosticImpl()
+            protected override void GetUseSiteDiagnosticImpl(ref UseSiteInfo<AssemblySymbol> result)
             {
-                DiagnosticInfo diagnostic = null;
-
-                if (!MergeUseSiteDiagnostics(ref diagnostic, base.GetUseSiteDiagnosticImpl()))
+                base.GetUseSiteDiagnosticImpl(ref result);
+                if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
                 {
-                    // Verify type parameters for containing types
-                    // match those on the containing types.
-                    if (!MatchesContainingTypeParameters())
+                    return;
+                }
+
+                foreach (var typeParameter in this.TypeParameters)
+                {
+                    if (MergeUseSiteInfo(ref result, typeParameter.GetUseSiteInfo()))
                     {
-                        diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                        return;
                     }
                 }
 
-                return diagnostic;
+                // Verify type parameters for containing types
+                // match those on the containing types.
+                if (!MatchesContainingTypeParameters())
+                {
+                    result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
+                }
             }
 
             /// <summary>

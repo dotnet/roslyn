@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         internal PETypeParameterSymbol(
             PEModuleSymbol moduleSymbol,
@@ -704,6 +706,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+#nullable enable
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        {
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
+            {
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None);
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+            }
+
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
     }
 }

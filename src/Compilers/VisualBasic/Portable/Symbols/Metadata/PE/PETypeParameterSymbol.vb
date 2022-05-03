@@ -39,6 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Private _lazyCachedBoundsUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
+        ''' <summary>
+        ''' First error on the type symbol itself
+        ''' </summary>
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
+
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             definingNamedType As PENamedTypeSymbol,
@@ -303,6 +308,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             EnsureAllConstraintsAreResolved()
             Debug.Assert(_lazyCachedBoundsUseSiteInfo.IsInitialized)
             Return _lazyCachedBoundsUseSiteInfo.ToUseSiteInfo(PrimaryDependency)
+        End Function
+
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
+            End If
+
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         ''' <remarks>

@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -159,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly ushort _ordinal;
 
         private PackedFlags _packedFlags;
+
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
@@ -1067,6 +1070,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return other is NativeIntegerParameterSymbol nps ?
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
+        }
+
+#nullable enable
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        {
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
+            {
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None);
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+            }
+
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
     }
 }

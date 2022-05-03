@@ -63,6 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Private _lazyHiddenAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
+
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
             containingSymbol As PEMethodSymbol,
@@ -655,5 +657,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return DirectCast(_containingSymbol.ContainingModule, PEModuleSymbol).Module
             End Get
         End Property
+
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
+            End If
+
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
+        End Function
     End Class
 End Namespace

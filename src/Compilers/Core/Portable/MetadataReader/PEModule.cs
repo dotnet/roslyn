@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData?> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
+        private static readonly AttributeValueExtractor<StringAndNamedArgBool> s_attributeStringAndNamedArgBoolValueExtractor = CrackStringAndNamedArgBoolBoolInAttributeValue;
 
         internal struct BoolAndStringArrayData
         {
@@ -124,6 +125,22 @@ namespace Microsoft.CodeAnalysis
 
             public readonly bool Sense;
             public readonly string? String;
+        }
+
+        internal struct StringAndNamedArgBool
+        {
+            public StringAndNamedArgBool(string? @string, bool @bool, string? namedArg, bool namedArgIsField)
+            {
+                StringValue = @string;
+                BoolValue = @bool;
+                NamedArgName = namedArg;
+                NamedArgIsField = namedArgIsField;
+            }
+
+            public readonly string? StringValue;
+            public readonly bool BoolValue;
+            public readonly string? NamedArgName;
+            public readonly bool NamedArgIsField;
         }
 #nullable disable
 
@@ -1149,6 +1166,47 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        internal ImmutableArray<string> GetCompilerFeatureRequiredFeatures(EntityHandle token)
+        {
+            List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
+
+            if (infos == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            ArrayBuilder<string> builder = ArrayBuilder<string>.GetInstance();
+
+            foreach (var info in infos)
+            {
+                if (TryExtractStringAndNamedArgBoolFromAttribute(info.Handle, out string? featureName, out bool isOptional, out string? namedArg, out bool isField))
+                {
+                    if (namedArg != "IsOptional" || isField)
+                    {
+                        isOptional = false;
+                    }
+                }
+                else if (TryExtractStringValueFromAttribute(info.Handle, out featureName))
+                {
+                    isOptional = false;
+                }
+                else
+                {
+                    // Bad metadata.
+                    continue;
+                }
+
+                if (featureName is null || isOptional)
+                {
+                    continue;
+                }
+
+                builder.Add(featureName);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
@@ -1694,6 +1752,16 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringArrayValueExtractor);
         }
 
+        private bool TryExtractStringAndNamedArgBoolFromAttribute(CustomAttributeHandle handle, out string? stringValue, out bool boolValue, out string? namedArgName, out bool isField)
+        {
+            var result = TryExtractValueFromAttribute(handle, out var data, s_attributeStringAndNamedArgBoolValueExtractor);
+            stringValue = data.StringValue;
+            boolValue = data.BoolValue;
+            namedArgName = data.NamedArgName;
+            isField = data.NamedArgIsField;
+            return result;
+        }
+
         private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T? value, AttributeValueExtractor<T?> valueExtractor)
         {
             Debug.Assert(!handle.IsNil);
@@ -2113,6 +2181,67 @@ namespace Microsoft.CodeAnalysis
             value = default(ImmutableArray<byte>);
             return false;
         }
+
+        internal static bool CrackStringAndNamedArgBoolBoolInAttributeValue(out StringAndNamedArgBool value, ref BlobReader sig)
+        {
+            // Refer to ECMA-335 II.23.3 for more information about the custom attribute format.
+
+            // String positional argument.
+            if (!CrackStringInAttributeValue(out string? @string, ref sig))
+            {
+                value = default;
+                return false;
+            }
+
+            // Number of named arguments. There are at least 4 bytes remaining: a 2 byte count, followed by the
+            // property or field specifier (1 byte), followed by the type code (1 byte)
+            if (sig.RemainingBytes < 4 || sig.ReadUInt16() != 1)
+            {
+                value = default;
+                return false;
+            }
+
+            // A single byte saying what type of named argument this is (Field or Property)
+            bool isField;
+            switch ((CustomAttributeNamedArgumentKind)sig.ReadByte())
+            {
+                case CustomAttributeNamedArgumentKind.Field:
+                    isField = true;
+                    break;
+
+                case CustomAttributeNamedArgumentKind.Property:
+                    isField = false;
+                    break;
+
+                default:
+                    value = default;
+                    return false;
+            }
+
+            // Single byte named argument type code
+            if (sig.ReadByte() != (byte)SerializationTypeCode.Boolean)
+            {
+                value = default;
+                return false;
+            }
+
+            // Attribute name
+            if (!CrackStringInAttributeValue(out string? namedArg, ref sig))
+            {
+                value = default;
+                return false;
+            }
+
+            // Attribute value
+            if (!CrackBooleanInAttributeValue(out bool namedArgValue, ref sig))
+            {
+                value = default;
+                return false;
+            }
+
+            value = new StringAndNamedArgBool(@string, namedArgValue, namedArg, isField);
+            return true;
+        }
 #nullable disable
 
         internal struct AttributeInfo
@@ -2133,9 +2262,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal List<AttributeInfo> FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
+#nullable enable
+        internal List<AttributeInfo>? FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
         {
-            List<AttributeInfo> result = null;
+            List<AttributeInfo>? result = null;
 
             try
             {
@@ -2159,6 +2289,7 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
+#nullable disable
 
         internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {

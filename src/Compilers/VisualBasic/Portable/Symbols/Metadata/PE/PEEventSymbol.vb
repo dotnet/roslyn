@@ -293,7 +293,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)

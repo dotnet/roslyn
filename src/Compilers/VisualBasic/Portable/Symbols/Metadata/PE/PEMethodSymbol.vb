@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Diagnostics.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -388,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
             End If
 
-            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TYPEKIND.Delegate Then
+            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TypeKind.Delegate Then
                 Return MethodKind.DelegateInvoke
             End If
 
@@ -949,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = methodKind.PropertyGet) OrElse (methodKind = methodKind.PropertySet))
+            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -958,7 +959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = methodKind.EventAdd) OrElse (methodKind = methodKind.EventRemove) OrElse (methodKind = methodKind.EventRaise))
+            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
@@ -1063,9 +1064,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Return ImmutableArray(Of TypeParameterSymbol).Empty
                 Else
                     Dim ownedParams = ImmutableArray.CreateBuilder(Of TypeParameterSymbol)(gpHandles.Count)
+                    Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
                     For i = 0 To gpHandles.Count - 1
-                        ownedParams.Add(New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i)))
+                        Dim typeParam As New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i))
+                        useSiteInfo = MergeUseSiteInfo(useSiteInfo, typeParam.GetUseSiteInfo())
+                        ownedParams.Add(typeParam)
                     Next
+
+                    If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                        errorInfo = useSiteInfo.DiagnosticInfo
+                    End If
 
                     Return ownedParams.ToImmutable()
                 End If
@@ -1142,9 +1150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CodeAnalysis.Symbols.CompilerFeatureRequiredFeatures.None)
                 Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
+                CheckParameterUseSiteInfo(errorInfo)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
@@ -1164,6 +1174,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
                 End If
             End If
+        End Sub
+
+        Private Sub CheckParameterUseSiteInfo(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
+
+            For Each parameter In Parameters
+                info = MergeUseSiteInfo(info, parameter.GetUseSiteInfo())
+            Next
+
+            errorInfo = info.DiagnosticInfo
         End Sub
 
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
