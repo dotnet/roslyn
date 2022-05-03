@@ -997,7 +997,6 @@ private static string Generate(ClassDeclarationSyntax c)
                 sb.Append("\\\"");
             }
             sb.AppendLine(",\");");
-            break;
         }
     }
 

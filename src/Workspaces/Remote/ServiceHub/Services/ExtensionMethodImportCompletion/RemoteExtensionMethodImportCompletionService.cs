@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.Remote
                             .WhereNotNull().ToImmutableArray();
 
                     return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, hideAdvancedMembers, isRemote: true, cancellationToken).ConfigureAwait(false);
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, isRemote: true, cancellationToken).ConfigureAwait(false);
                 }
 
                 return null;
             }, cancellationToken);
         }
 
-        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
-                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetRequiredProject(projectId);
+                ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
             }, cancellationToken);
         }
     }

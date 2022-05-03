@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -54,29 +55,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
-                var options = workspace.Options;
+                var optionSet = workspace.Options;
                 if (changedOptionSet != null)
                 {
                     foreach (var entry in changedOptionSet)
                     {
-                        options = options.WithChangedOption(entry.Key, entry.Value);
+                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value);
                     }
                 }
 
                 var root = await syntaxTree.GetRootAsync();
-                AssertFormat(workspace, expected, root, spans, options, await document.GetTextAsync());
+                var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
+
+                await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), options, await document.GetTextAsync());
 
                 // format with node and transform
-                AssertFormatWithTransformation(workspace, expected, root, spans, options, treeCompare, parseOptions);
+                AssertFormatWithTransformation(workspace.Services, expected, root, spans, options, treeCompare, parseOptions);
             }
         }
 
         protected abstract SyntaxNode ParseCompilation(string text, ParseOptions? parseOptions);
 
-        protected void AssertFormatWithTransformation(
-            Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, bool treeCompare = true, ParseOptions? parseOptions = null)
+        internal void AssertFormatWithTransformation(
+            HostWorkspaceServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
         {
-            var newRootNode = Formatter.Format(root, spans, workspace, optionSet, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, spans, services, options, rules: null, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
@@ -90,10 +93,48 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             }
         }
 
-        protected static void AssertFormat(Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, SourceText sourceText)
+        private static async Task AssertFormatAsync(HostWorkspaceServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
         {
-            var result = Formatter.GetFormattedTextChanges(root, spans, workspace, optionSet);
+            // Verify formatting the input code produces the expected result
+            var result = Formatter.GetFormattedTextChanges(root, spans, services, options);
             AssertResult(expected, sourceText, result);
+
+            // Verify formatting the output code produces itself (formatting is idempotent)
+            var resultText = sourceText.WithChanges(result);
+            if (TryAdjustSpans(sourceText, result, resultText, spans, out var adjustedSpans))
+            {
+                var resultRoot = await root.SyntaxTree.WithChangedText(resultText).GetRootAsync();
+                var idempotentResult = Formatter.GetFormattedTextChanges(resultRoot, adjustedSpans, services, options);
+                AssertResult(expected, resultText, idempotentResult);
+            }
+        }
+
+        private static bool TryAdjustSpans(SourceText inputText, IList<TextChange> changes, SourceText outputText, ImmutableArray<TextSpan> inputSpans, out ImmutableArray<TextSpan> outputSpans)
+        {
+            if (changes.Count == 0)
+            {
+                outputSpans = inputSpans;
+                return true;
+            }
+
+            var outputBuilder = ImmutableArray.CreateBuilder<TextSpan>(inputSpans.Length);
+            for (var i = 0; i < inputSpans.Length; i++)
+            {
+                var span = inputSpans[i];
+                if (span.Start == 0 && span.End == inputText.Length)
+                {
+                    // The input span is the full document
+                    outputBuilder.Add(TextSpan.FromBounds(0, outputText.Length));
+                    continue;
+                }
+
+                // The input span cannot be automatically adjusted
+                outputSpans = default;
+                return false;
+            }
+
+            outputSpans = outputBuilder.MoveToImmutable();
+            return true;
         }
 
         protected static void AssertResult(string expected, SourceText sourceText, IList<TextChange> result)

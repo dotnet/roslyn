@@ -13,15 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, token)
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
         End Function
 
         Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
-            Dim workspace = indenter.Document.Project.Solution.Workspace
-            Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(indenter.OptionSet.GetOption(FormattingOptions.SmartIndent, indenter.Document.Root.Language)), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
-
-            Return New VisualBasicSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root)
+            Dim services = indenter.Document.Project.Solution.Workspace.Services
+            Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            Dim rules = {New SpecialFormattingRule(indenter.Options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
+            Return New VisualBasicSmartTokenFormatter(indenter.Options.FormattingOptions, rules, indenter.Root)
         End Function
 
         Protected Overrides Function GetDesiredIndentationWorker(
@@ -101,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             Dim queryNode = token.GetAncestor(Of QueryClauseSyntax)()
             If queryNode IsNot Nothing Then
-                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.Options.FormattingOptions.IndentationSize)
                 Return indenter.GetIndentationOfToken(queryNode.GetFirstToken(includeZeroWidth:=True), subQuerySpaces)
             End If
 
@@ -272,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             If statement Is Nothing Then
                 If trivia.Kind <> SyntaxKind.None Then
                     Dim triviaLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart)
-                    Return indenter.GetIndentationOfLine(triviaLine, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                    Return indenter.GetIndentationOfLine(triviaLine, indenter.Options.FormattingOptions.IndentationSize)
                 End If
 
                 ' no base line to use to calculate the indentation
@@ -294,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private Shared Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
             If firstLine.LineNumber = secondLine.LineNumber Then
                 ' things are on same line, put the indentation size
-                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.Options.FormattingOptions.IndentationSize)
             End If
 
             ' multiline

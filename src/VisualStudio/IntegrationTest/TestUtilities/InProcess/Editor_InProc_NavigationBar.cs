@@ -8,11 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -24,9 +22,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class Editor_InProc
     {
-        public string? GetSelectedNavBarItem(int comboBoxIndex)
-            => ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
-
         public string[] GetNavBarItems(int comboBoxIndex)
             => ExecuteOnActiveView(v =>
                 GetNavigationBarComboBoxes(v)[comboBoxIndex]
@@ -34,55 +29,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .OfType<object>()
                 .Select(i => i?.ToString() ?? "")
                 .ToArray());
-
-        public int GetNavbarItemIndex(int index, string itemText)
-        {
-            int FindItem(ComboBox comboBox)
-            {
-                for (var i = 0; i < comboBox.Items.Count; i++)
-                {
-                    if (comboBox.Items[i].ToString() == itemText)
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
-            }
-
-            return ExecuteOnActiveView(v => FindItem(GetNavigationBarComboBoxes(v)[index]));
-        }
-
-        public void ExpandNavigationBar(int index)
-        {
-            ExecuteOnActiveView(v =>
-            {
-                var combobox = GetNavigationBarComboBoxes(v)[index];
-                FocusManager.SetFocusedElement(FocusManager.GetFocusScope(combobox), combobox);
-                combobox.IsDropDownOpen = true;
-            });
-        }
-
-        public void SelectNavBarItem(int comboboxIndex, string selection)
-        {
-            var itemIndex = GetNavbarItemIndex(comboboxIndex, selection);
-            if (itemIndex < 0)
-            {
-                throw new ArgumentException($"Could not find {selection} in combobox");
-            }
-
-            ExpandNavigationBar(comboboxIndex);
-            _sendKeys.Send(VirtualKey.Home);
-            for (var i = 0; i < itemIndex; i++)
-            {
-                _sendKeys.Send(VirtualKey.Down);
-            }
-
-            _sendKeys.Send(VirtualKey.Enter);
-        }
-
-        public bool IsNavBarEnabled()
-            => ExecuteOnActiveView(v => GetNavbar(v) != null);
 
         private List<ComboBox> GetNavigationBarComboBoxes(IWpfTextView textView)
         {

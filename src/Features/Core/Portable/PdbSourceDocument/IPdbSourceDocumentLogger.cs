@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     /// </summary>
     internal interface IPdbSourceDocumentLogger
     {
-        Task ClearAsync();
+        void Clear();
         void Log(string message);
     }
 

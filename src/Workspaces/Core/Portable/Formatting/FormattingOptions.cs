@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption<int> IndentationSize { get; } = ((PerLanguageOption<int>)FormattingOptions2.IndentationSize)!;
 
-        /// <inheritdoc cref="FormattingBehaviorOptions.SmartIndent"/>
+        /// <inheritdoc cref="AutoFormattingOptions.IndentStyle"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
-        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = ((PerLanguageOption<IndentStyle>)FormattingBehaviorOptions.SmartIndent)!;
+        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = ((PerLanguageOption<IndentStyle>)AutoFormattingOptions.Metadata.SmartIndent)!;
 
         /// <inheritdoc cref="FormattingOptions2.NewLine"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614

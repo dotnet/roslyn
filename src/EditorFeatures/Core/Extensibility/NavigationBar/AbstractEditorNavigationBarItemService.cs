@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
-            var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
+            var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken).ConfigureAwait(false);
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v));
         }
 
@@ -44,21 +44,21 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(
                 document, item, symbolItem, textVersion, cancellationToken).ConfigureAwait(false);
 
-            // Ensure we're back on the UI thread before either navigating or showing a failure message.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
+            await NavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
         }
 
-        protected void NavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+        protected async Task NavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
+            if (await navigationService.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
             {
-                navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
+                await navigationService.TryNavigateToPositionAsync(
+                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
             }
             else
             {
+                // Ensure we're back on the UI thread before showing a failure message.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }

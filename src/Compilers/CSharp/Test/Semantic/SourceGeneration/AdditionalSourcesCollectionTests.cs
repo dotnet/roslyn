@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        public void Hint_Name_Must_Be_Unique_When_Combining_Soruces()
+        public void Hint_Name_Must_Be_Unique_When_Combining_Sources()
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add("hintName1", SourceText.From("", Encoding.UTF8));

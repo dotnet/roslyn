@@ -11,25 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private BoundBlock? RewriteNullChecking(BoundBlock? block)
-        {
-            if (block is null)
-            {
-                return null;
-            }
-
-            Debug.Assert(_factory.CurrentFunction is not null);
-            var statementList = TryConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
-            if (statementList.IsDefault)
-            {
-                return null;
-            }
-            return _factory.Block(block.Locals, statementList);
-        }
-
-        internal static ImmutableArray<BoundStatement> TryConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters,
-                                                                                         ImmutableArray<BoundStatement> existingStatements,
-                                                                                         SyntheticBoundNodeFactory factory)
+        internal static ImmutableArray<BoundStatement> ConstructNullCheckedStatementList(
+            ImmutableArray<ParameterSymbol> parameters,
+            SyntheticBoundNodeFactory factory)
         {
             ArrayBuilder<BoundStatement>? statementList = null;
             MethodSymbol? throwIfNullMethod = null;
@@ -46,19 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     statementList.Add(constructedIf);
                 }
             }
-            if (statementList is null)
-            {
-                return default;
-            }
 
-            statementList.AddRange(existingStatements);
-            return statementList.ToImmutableAndFree();
+            return statementList?.ToImmutableAndFree() ?? ImmutableArray<BoundStatement>.Empty;
         }
 
         private static BoundStatement ConstructNullCheckHelperCall(ParameterSymbol parameter, ref MethodSymbol? throwIfNullMethod, SyntheticBoundNodeFactory factory)
         {
             if (throwIfNullMethod is null)
             {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;

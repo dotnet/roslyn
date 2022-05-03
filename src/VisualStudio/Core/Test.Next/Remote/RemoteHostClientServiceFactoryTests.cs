@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            globalOptions.SetGlobalOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+            globalOptions.SetGlobalOption(new OptionKey(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), 1);
 
             var checksumUpdater = new SolutionChecksumUpdater(workspace, globalOptions, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();

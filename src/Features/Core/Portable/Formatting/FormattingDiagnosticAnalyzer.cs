@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetAnalyzerOptionSet(tree, cancellationToken);
+            var options = SyntaxFormattingOptions.Create(optionSet, workspaceAnalyzerOptions.Services, tree.Options.Language);
 
-            var options = context.Options.GetAnalyzerOptionSet(tree, cancellationToken);
-            var workspace = workspaceAnalyzerOptions.Services.Workspace;
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspace, Descriptor, options);
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspaceAnalyzerOptions.Services, Descriptor, options);
         }
     }
 }

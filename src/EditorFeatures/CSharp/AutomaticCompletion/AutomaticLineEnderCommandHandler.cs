@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return document;
             }
 
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var changes = Formatter.GetFormattedTextChanges(
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var changes = formatter.GetFormattingResult(
                 root,
                 SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
-                document.Project.Solution.Workspace,
                 options,
-                cancellationToken: cancellationToken);
+                rules: null,
+                cancellationToken).GetTextChanges(cancellationToken);
 
             return document.ApplyTextChanges(changes, cancellationToken);
         }
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //
             // Step 3. Add semicolon if needed
             // e.g. var c = new Bar() => var c = new Bar();
-            if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
+            if (selectedNode is BaseObjectCreationExpressionSyntax objectCreationExpressionNode)
             {
                 var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: false, documentOptions);
                 var newRoot = ReplaceNodeAndFormat(
@@ -619,6 +619,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 TryStatementSyntax tryStatementNode => tryStatementNode.TryKeyword.Span.End,
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
+                CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }

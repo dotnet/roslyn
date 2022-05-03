@@ -75,10 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <c>solutionChanged == true iff changedProject == null</c> and <c>solutionChanged == false iff changedProject
         /// != null</c>. So technically having both values is redundant.  However, i like the clarity of having both.
         /// </remarks>
-        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)> _workQueue;
 
-        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
-            new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion = new();
 
         /// <summary>
         /// Lock used to protect reads and writes of <see cref="_packageSourcesTask"/>.
@@ -105,12 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
-            : base(threadingContext,
-                   workspace,
-                   globalOptions,
+            : base(globalOptions,
+                   listenerProvider,
+                   threadingContext,
                    SymbolSearchGlobalOptions.Enabled,
-                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                   SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;
             _workspace = workspace;
@@ -231,32 +229,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             if (!IsEnabled)
-            {
                 return;
-            }
 
-            // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
-            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
-        }
-
-        protected override void StartWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!this.IsEnabled)
-            {
-                return;
-            }
-
-            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-
-            Contract.ThrowIfNull(_workQueue, "We should only be called after EnableService is called");
 
             // Kick off an initial set of work that will analyze the entire solution.
+            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
             _workQueue.AddWork((solutionChanged: true, changedProject: null));
         }
 
@@ -654,7 +636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
-        private int CompareSplit(string[] split1, string[] split2)
+        private static int CompareSplit(string[] split1, string[] split2)
         {
             ThisCanBeCalledOnAnyThread();
 

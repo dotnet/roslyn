@@ -633,9 +633,10 @@ namespace CSharpSyntaxGenerator
             {
                 WriteLine("switch (kind)");
                 OpenBlock();
-                foreach (var kind in nd.Kinds)
+                var kinds = nd.Kinds.Distinct().ToList();
+                foreach (var kind in kinds)
                 {
-                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == nd.Kinds.Last() ? " break;" : "")}");
+                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                 }
                 WriteLine("default: throw new ArgumentException(nameof(kind));");
                 CloseBlock();
@@ -667,7 +668,7 @@ namespace CSharpSyntaxGenerator
                     {
                         WriteLine($"switch ({pname}.Kind)");
                         OpenBlock();
-                        var kinds = field.Kinds.ToList();
+                        var kinds = field.Kinds.Distinct().ToList();
 
                         //we need to check for Kind=None as well as node == null because that's what the red factory will pass
                         if (IsOptional(field))
@@ -1540,9 +1541,10 @@ namespace CSharpSyntaxGenerator
             {
                 WriteLine("switch (kind)");
                 OpenBlock();
-                foreach (var kind in nd.Kinds)
+                var kinds = nd.Kinds.Distinct().ToList();
+                foreach (var kind in kinds)
                 {
-                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == nd.Kinds.Last() ? " break;" : "")}");
+                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                 }
                 WriteLine("default: throw new ArgumentException(nameof(kind));");
                 CloseBlock();

@@ -31,6 +31,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .ToImmutableArray();
         }
 
+        public void Initialize()
+        {
+            // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
+            // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
+            // could cause assembly loads, which we want to do off the UI thread.
+            foreach (var completionProvider in _completionProviders)
+            {
+                _ = completionProvider.Value;
+            }
+        }
+
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var capabilities = new ServerCapabilities();
@@ -95,6 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             vsServerCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
             vsServerCapabilities.DocumentHighlightProvider = true;
             vsServerCapabilities.ProjectContextProvider = true;
+            vsServerCapabilities.BreakableRangeProvider = true;
 
             // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
             vsServerCapabilities.SupportsDiagnosticRequests = false;

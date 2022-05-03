@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackingTreeViewModel : INotifyPropertyChanged
+    internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged
     {
         private Brush? _highlightBrush;
         public Brush? HighlightBrush

@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -258,7 +258,16 @@ class C
 {
     void M(object o)
     {
-        _ = o is $$
+        _ = o is$$
+    }
+}
+";
+            var expectedBeforeReturn = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is []
     }
 }
 ";
@@ -267,17 +276,17 @@ class C
 {
     void M(object o)
     {
-        _ = o is [
-]
+        _ = o is
+        [
+
+        ]
     }
 }
 ";
             using var session = CreateSession(code);
             CheckStart(session.Session);
-            // Open bracket probably should be moved to new line
-            // Close bracket probably should be aligned with open bracket
-            // Tracked by https://github.com/dotnet/roslyn/issues/57244
-            CheckReturn(session.Session, 0, expected);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expected);
         }
 
         internal static Holder CreateSession(string code)

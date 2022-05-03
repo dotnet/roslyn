@@ -57,8 +57,7 @@ param (
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
-  [switch]$test32,
-  [switch]$test64,
+  [string]$testArch = "x64",
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
@@ -93,8 +92,7 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
-  Write-Host "  -test32                   Run unit tests in the 32-bit runner"
-  Write-Host "  -test64                   Run units tests in the 64-bit runner"
+  Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
@@ -175,11 +173,6 @@ function Process-Arguments() {
     }
   }
 
-  if ($test32 -and $test64) {
-    Write-Host "Cannot combine -test32 and -test64"
-    exit 1
-  }
-
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
@@ -205,8 +198,6 @@ function Process-Arguments() {
   if ($bootstrap) {
     $script:restore = $true
   }
-
-  $script:test32 = -not $test64
 
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
@@ -410,7 +401,7 @@ function TestUsingRunTests() {
       $args += " --include '\.UnitTests'"
     }
 
-    if (-not $test32) {
+    if ($testArch -ne "x86") {
       $args += " --exclude '\.InteractiveHost'"
     }
 
@@ -437,12 +428,7 @@ function TestUsingRunTests() {
     $args += " --collectdumps";
   }
 
-  if ($test64) {
-    $args += " --platform x64"
-  }
-  else {
-    $args += " --platform x86"
-  }
+  $args += " --arch $testArch"
 
   if ($sequential) {
     $args += " --sequential"
@@ -465,6 +451,8 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_CI
     }
 
+    # Note: remember to update TestRunner when using new environment variables
+    # (they need to be transferred over to the Helix machines that run the tests)
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
@@ -579,12 +567,16 @@ function Deploy-VsixViaTool() {
   # Disable IntelliCode line completions to avoid interference with argument completion testing
   &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
 
+  # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
+
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
 
   # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
   # custom handler or fail silently and continue testing.
@@ -727,7 +719,8 @@ try {
   try
   {
     if ($bootstrap) {
-      $bootstrapDir = Make-BootstrapBuild -force32:$test32
+      $force32 = $testArch -eq "x86"
+      $bootstrapDir = Make-BootstrapBuild -force32:$force32
     }
   }
   catch

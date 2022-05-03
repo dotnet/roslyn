@@ -29,12 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
         private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
             => _fixtureHelper.GetOrCreateFixture();
 
-        protected Task TestAsync<TNode>(string text) where TNode : SyntaxNode => TestAsync<TNode>(text, Functions<TNode>.True);
+        protected Task TestAsync<TNode>(string text, bool allowEmptyNodes = false) where TNode : SyntaxNode
+            => TestAsync(text, Functions<TNode>.True, allowEmptyNodes);
 
-        protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        protected async Task TestAsync<TNode>(string text, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             text = GetSelectionAndResultSpans(text, out var selection, out var result);
-            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
 
             Assert.NotNull(resultNode);
             Assert.Equal(result, resultNode.Span);
@@ -58,12 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             Assert.False(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
         }
 
-        protected Task TestMissingAsync<TNode>(string text) where TNode : SyntaxNode => TestMissingAsync<TNode>(text, Functions<TNode>.True);
-        protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        protected Task TestMissingAsync<TNode>(string text, bool allowEmptyNodes = false) where TNode : SyntaxNode
+            => TestMissingAsync(text, Functions<TNode>.True, allowEmptyNodes);
+
+        protected async Task TestMissingAsync<TNode>(string text, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             text = GetSelectionSpan(text, out var selection);
 
-            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate).ConfigureAwait(false);
+            var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
             Assert.Null(resultNode);
         }
 
@@ -98,12 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
             return text;
         }
 
-        private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate) where TNode : SyntaxNode
+        private async Task<TNode> GetNodeForSelectionAsync<TNode>(string text, TextSpan selection, Func<TNode, bool> predicate, bool allowEmptyNodes = false) where TNode : SyntaxNode
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
-            var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, CancellationToken.None).ConfigureAwait(false);
+            var relevantNodes = await document.GetRelevantNodesAsync<TNode>(selection, allowEmptyNodes, CancellationToken.None).ConfigureAwait(false);
 
             return relevantNodes.FirstOrDefault(predicate);
         }

@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1298,7 +1299,8 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1392,7 +1394,8 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1409,6 +1412,49 @@ namespace N
             var symbolInfo = model.GetSymbolInfo(expr);
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void Discard()
+        {
+            var source =
+@"class Program
+{
+    static void F() { }
+    static void F(object o) { }
+    static void Main()
+    {
+        _ = Main;
+        _ = F;
+        _ = () => { };
+        _ = x => x;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = Main;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 9),
+                // (8,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = F;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(8, 9),
+                // (9,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = () => { };
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 9),
+                // (10,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = x => x;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(10, 9)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
@@ -1767,7 +1813,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1946,24 +1993,27 @@ class Program
         public void InvalidTypeArguments()
         {
             var source =
-@"unsafe class Program
+@"using System;
+unsafe class Program
 {
-    static int* F() => throw null;
+    static int* F() { Console.WriteLine(nameof(F)); return (int*)0; }
     static void Main()
     {
-        System.Delegate d;
-        d = F;
-        d = (int x, int* y) => { };
+        var d1 = F;
+        var d2 = (int x, int* y) => { Console.WriteLine((x, (int)y)); };
+        d1.Invoke();
+        d2.Invoke(1, (int*)2);
+        Report(d1);
+        Report(d2);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8917: The delegate type could not be inferred.
-                //         d = F;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 13),
-                // (8,13): error CS8917: The delegate type could not be inferred.
-                //         d = (int x, int* y) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, int* y) => { }").WithLocation(8, 13));
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"F
+(1, 2)
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
         }
 
         [Fact]
@@ -1980,7 +2030,7 @@ class Program
     }
     static Delegate F1<T>()
     {
-        return (T t, ref int p) => { };
+        return (T t, ref int i) => { };
     }
     static Delegate F2<T>()
     {
@@ -2722,7 +2772,7 @@ class Program
         }
 
         [Fact]
-        public void SystemIntPtr_Missing()
+        public void SystemIntPtr_Missing_01()
         {
             var sourceA =
 @"namespace System
@@ -2755,6 +2805,75 @@ class Program
                 // (6,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
                 //         d = (ref int i) => i;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(ref int i) => i").WithArguments("System.IntPtr").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void SystemIntPtr_Missing_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public abstract class Delegate { }
+    public abstract class MulticastDelegate : Delegate { }
+}";
+            var sourceB =
+@"class Program
+{
+    static unsafe void Main()
+    {
+        System.Delegate d;
+        d = (int* p) => p;
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.IntPtr").WithLocation(1, 1),
+                // (6,13): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //         d = (int* p) => p;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int* p) => p").WithArguments("System.IntPtr").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void SystemDelegate_Missing()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+}";
+            var sourceB =
+@"class Program
+{
+    static void F(ref object o) { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = (ref int i) => i;
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.MulticastDelegate").WithLocation(1, 1));
         }
 
         [Fact]
@@ -3222,9 +3341,9 @@ interface IRouteBuilder
 }
 static class AppBuilderExtensions
 {
-    public static IAppBuilder Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+    public static IAppBuilder Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
     {
-        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)"");
+        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)"");
         return app;
     }
 }
@@ -3236,20 +3355,20 @@ static class RouteBuilderExtensions
         return routes;
     }
 }
-struct PathSring
+struct PathString
 {
-    public PathSring(string? path)
+    public PathString(string? path)
     {
         Path = path;
     }
     public string? Path { get; }
-    public static implicit operator PathSring(string? s) => new PathSring(s);
-    public static implicit operator string?(PathSring path) => path.Path;
+    public static implicit operator PathString(string? s) => new PathString(s);
+    public static implicit operator string?(PathString path) => path.Path;
 }";
 
             var expectedOutput =
-@"AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
-AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+@"AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
+AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
 ";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
@@ -5025,7 +5144,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalOperator_01()
+        public void NullCoalescingOperator_01()
         {
             var source =
 @"class Program
@@ -5837,6 +5956,307 @@ class Program
                 // (11,16): error CS0411: The type arguments for method 'Program.F2<T>(T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Report(F2(() => 1.0, (D2<int> d) => { }));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, in T)").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(() => string.Empty, () => new object()));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(() => string.Empty, () => new object()));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`1[System.Object]
+");
+        }
+
+        [Fact]
+        public void TypeInference_Variance_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((string s) => { }, (object o) => { }));
+        Report(F(string () => default, object () => default));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16),
+                // (8,18): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(8, 18),
+                // (8,40): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(8, 40));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 37),
+                // (7,45): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45),
+                // (8,18): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => default").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(T t) { }
+    static T F2<T>() => default;
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+        Report(F(F2<string>, F2<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action`1[System.String]
+System.Func`1[System.Object]
+");
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((out string s) => { s = default; }, (out object o) => { o = default; }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(out T t) { t = default; }
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+
+            // Compile and execute after fixing https://github.com/dotnet/roslyn/issues/55909.
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((ref string x) => { }, (ref object y) => { }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(ref T t) { }
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_08()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+        Report(F(string (ref int i) => default, object (ref int i) => default));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16),
+                // (8,18): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(8, 18),
+                // (8,49): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(8, 49));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_09()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(ref int i, T t) { }
+    static T F2<T>(ref int i) => default;
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+        Report(F(F2<string>, F2<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
+
+            // Compile and execute after fixing https://github.com/dotnet/roslyn/issues/55909.
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
         }
 
         [Fact]
@@ -6958,7 +7378,7 @@ class Program
                 //         var d3 = delegate () { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(10, 18));
 
-            comp = CreateCompilation(new[] { source, s_utils }, options: TestOptions.DebugExe);
+            comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -7350,6 +7770,47 @@ class Program
                 // (6,19): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
                 //         (D x, var y) = (() => string.Empty, () => string.Empty);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedVariables_15()
+        {
+            var source =
+@"class Program
+{
+    static string F1() => string.Empty;
+    static void F2(object o) { }
+    static void M(bool b)
+    {
+        var d1 = b ? () => string.Empty : () => string.Empty;
+        var d2 = b ? F1 : () => string.Empty;
+        var d3 = b ? (object o) => { } : F2;
+        var d4 = b ? F2 : F2;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'lambda expression' and 'lambda expression'
+                //         var d1 = b ? () => string.Empty : () => string.Empty;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? () => string.Empty : () => string.Empty").WithArguments("lambda expression", "lambda expression").WithLocation(7, 18),
+                // (8,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'lambda expression'
+                //         var d2 = b ? F1 : () => string.Empty;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? F1 : () => string.Empty").WithArguments("method group", "lambda expression").WithLocation(8, 18),
+                // (9,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'lambda expression' and 'method group'
+                //         var d3 = b ? (object o) => { } : F2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? (object o) => { } : F2").WithArguments("lambda expression", "method group").WithLocation(9, 18),
+                // (10,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'method group'
+                //         var d4 = b ? F2 : F2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? F2 : F2").WithArguments("method group", "method group").WithLocation(10, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -7869,7 +8330,8 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)
@@ -8060,7 +8522,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8281,7 +8743,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -8356,31 +8818,40 @@ class Program
         public void SynthesizedDelegateTypes_11()
         {
             var source =
-@"class Program
+@"using System;
+class Program
 {
     unsafe static void Main()
     {
-        var d1 = int* () => (int*)42;
-        var d2 = (int* p) => { };
-        var d3 = delegate*<void> () => default;
-        var d4 = (delegate*<void> d) => { };
+        var d1 = int* () => { Console.WriteLine(1); return (int*)42; };
+        var d2 = (int* p) => { Console.WriteLine((int)p); };
+        var d3 = delegate*<void> () => { Console.WriteLine(3); return default; };
+        var d4 = (delegate*<void> d) => { Console.WriteLine((int)d); };
+        d1.Invoke();
+        d2.Invoke((int*)2);
+        d3.Invoke();
+        d4.Invoke((delegate*<void>)4);
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (5,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = int* () => (int*)42;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "int* () => (int*)42").WithLocation(5, 18),
-                // (6,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = (int* p) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int* p) => { }").WithLocation(6, 18),
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var d3 = delegate*<void> () => default;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "delegate*<void> () => default").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d4 = (delegate*<void> d) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(delegate*<void> d) => { }").WithLocation(8, 18));
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"1
+2
+3
+4
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+");
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -8396,19 +8867,21 @@ class Program
         var d1 = (TypedReference x) => { };
         var d2 = (int x, RuntimeArgumentHandle y) => { };
         var d3 = (ArgIterator x) => { };
+        Report(d1);
+        Report(d2);
+        Report(d3);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = (TypedReference x) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(TypedReference x) => { }").WithLocation(6, 18),
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = (int x, RuntimeArgumentHandle y) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, RuntimeArgumentHandle y) => { }").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d3 = (ArgIterator x) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ArgIterator x) => { }").WithLocation(8, 18));
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+");
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -8416,25 +8889,34 @@ class Program
         public void SynthesizedDelegateTypes_13()
         {
             var source =
-@"ref struct S<T> { }
+@"using System;
+ref struct S<T> { }
 class Program
 {
-    static void F1(int x, S<int> y) { }
-    static S<T> F2<T>() => throw null;
+    static void F1(int x, S<int> y) { Console.WriteLine(x); }
+    static S<T> F2<T>() { Console.WriteLine(typeof(T)); return default; }
     static void Main()
     {
         var d1 = F1;
         var d2 = F2<object>;
+        d1.Invoke(0, default);
+        d2.Invoke();
+        Report(d1);
+        Report(d2);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = F1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(8, 18),
-                // (9,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = F2<object>;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2<object>").WithLocation(9, 18));
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 24 }
+            CompileAndVerify(comp, expectedOutput:
+@"0
+System.Object
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -8710,7 +9192,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput: "D");
 
             static void validator(PEAssembly assembly)
@@ -8751,7 +9233,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
 @"<>A{00000001}`2[System.Object,System.Object]
 D2
@@ -8852,6 +9334,703 @@ class B<T>
 ");
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_25()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = A.F1();
+        Delegate d2 = A.F2<int>();
+        Delegate d3 = B<string>.F3();
+        Delegate d4 = A.F2<string>();
+        Delegate d5 = B<int>.F3();
+        d1.DynamicInvoke();
+        d2.DynamicInvoke();
+        d3.DynamicInvoke();
+        d4.DynamicInvoke();
+        d5.DynamicInvoke();
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
+        Report(d5);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class A
+{
+    internal unsafe static Delegate F1() => int* () => { Console.WriteLine(nameof(F1)); return (int*)1; };
+    internal unsafe static Delegate F2<T>() => int* () => { Console.WriteLine((nameof(F2), typeof(T))); return (int*)2; };
+}
+class B<T>
+{
+    internal unsafe static Delegate F3() => int* () => { Console.WriteLine((nameof(F3), typeof(T))); return (int*)3; };
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"F1
+(F2, System.Int32)
+(F3, System.String)
+(F2, System.String)
+(F3, System.Int32)
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_26()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> s = stackalloc int[] { 1, 2, 3 };
+        var d = (Span<int> s) => { Console.WriteLine(s.Length); };
+        d.Invoke(s);
+        Console.WriteLine(d.GetType());
+    }
+}";
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+<>f__AnonymousDelegate0
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_27()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    unsafe static void Main()
+    {
+        object o = null; // 1
+        var d = (int* p) => o;
+        d((int*)42).ToString(); // 2
+    }
+}";
+            // Should report warning 2.
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object o = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 20));
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_28()
+        {
+            var sourceA =
+@"using System;
+class A
+{
+    static void Main()
+    {
+        B.M();
+        C.M();
+    }
+    internal static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            var sourceB =
+@"using System;
+class B
+{
+    internal unsafe static void M()
+    {
+        int* x = (int*)42;
+        var d1 = (int y) => { Console.WriteLine((1, y)); return x; };
+        var d2 = (ref int y) => { Console.WriteLine((2, y)); return x; };
+        var d3 = (out int y) => { Console.WriteLine(3); y = 0; return x; };
+        var d4 = (in int y) => { Console.WriteLine((4, y)); return x; };
+        int i = 42;
+        d1.Invoke(i);
+        d2.Invoke(ref i);
+        d3.Invoke(out i);
+        d4.Invoke(in i);
+        A.Report(d1);
+        A.Report(d2);
+        A.Report(d3);
+        A.Report(d4);
+    }
+}";
+            var sourceC =
+@"using System;
+class C
+{
+    internal unsafe static void M()
+    {
+        int* p = (int*)42;
+        var d1 = (in int i) => { Console.WriteLine((1, i)); return p; };
+        var d2 = (out int i) => { Console.WriteLine(2); i = 0; return p; };
+        var d3 = (ref int i) => { Console.WriteLine((3, i)); return p; };
+        var d4 = (int i) => { Console.WriteLine((4, i)); return p; };
+        int i = 42;
+        d1.Invoke(in i);
+        d2.Invoke(out i);
+        d3.Invoke(ref i);
+        d4.Invoke(i);
+        A.Report(d1);
+        A.Report(d2);
+        A.Report(d3);
+        A.Report(d4);
+    }
+}";
+            CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, 42)
+(2, 42)
+3
+(4, 0)
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+(1, 42)
+2
+(3, 0)
+(4, 0)
+<>f__AnonymousDelegate3
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate0
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_29()
+        {
+            var sourceA =
+@"using System;
+class A
+{
+    static void Main()
+    {
+        B.M();
+        C.M();
+    }
+    internal static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            var sourceB =
+@"class B
+{
+    internal unsafe static void M()
+    {
+        A.Report((int* x, int y) => { });
+        A.Report((short* x, int y) => { });
+        A.Report((int* x, object y) => { });
+    }
+}";
+            var sourceC =
+@"class C
+{
+    internal unsafe static void M()
+    {
+        A.Report((int* x, string y) => { });
+        A.Report((short* x, int y) => { });
+        A.Report((char* x, char y) => { });
+        A.Report((int* x, int y) => { });
+        A.Report((int* x, object y) => { });
+    }
+}";
+            CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate4
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate2
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_30()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = F<string>();
+        Console.WriteLine(d.GetType());
+    }
+    unsafe static Delegate F<T>()
+    {
+        return Local<int>();
+        static Delegate Local<U>() where U : unmanaged
+        {
+            var d = (T t, U* u) => { Console.WriteLine((t, (int)u)); };
+            d.Invoke(default, (U*)42);
+            return d;
+        }
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(, 42)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_31()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(C<string>.F());
+        Report(C<float>.F());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+unsafe class C<T>
+{
+    internal static Func<Delegate> F = () =>
+    {
+        return Local1<int>();
+        static Delegate Local1<U>() where U : unmanaged
+        {
+            return Local2<double>();
+            static Delegate Local2<V>() where V : struct
+            {
+                var d = U* (T t) => { Console.WriteLine((typeof(T), typeof(U))); return (U*)42; };
+                d.Invoke(default);
+                return d;
+            }
+        }
+    };
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@" (System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+(System.Single, System.Int32)
+<>f__AnonymousDelegate0`2[System.Single,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_32()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F);
+        Report(S<char>.P);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+unsafe struct S<T> where T : unmanaged
+{
+    internal static Delegate F = T* () => (T*)1;
+    internal static Delegate P => S<T>* () => (S<T>*)2;
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.Int32]
+<>f__AnonymousDelegate1`1[System.Char]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_33()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(A.F1<int, string>());
+        Report(A.F1<string, int>());
+        Report(A.B<int, string>.F2());
+        Report(A.B<string, int>.F2());
+        Report(S<int>.C.F3<string>());
+        Report(S<string>.C.F3<int>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class A
+{
+    internal unsafe static Delegate F1<T, U>()
+    {
+        var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+        d.Invoke((int*)1, null, default);
+        return d;
+    }
+    internal struct B<T, U>
+    {
+        internal unsafe static Delegate F2()
+        {
+            var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+            d.Invoke((int*)2, null, default);
+            return d;
+        }
+    }
+}
+struct S<U>
+{
+    internal class C
+    {
+        internal unsafe static Delegate F3<T>()
+        {
+            var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+            d.Invoke((int*)3, null, default);
+            return d;
+        }
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String)
+<>f__AnonymousDelegate0`2[System.Int32,System.String]
+(1, System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+(2, System.Int32, System.String)
+<>f__AnonymousDelegate0`2[System.Int32,System.String]
+(2, System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+(3, System.String, System.Int32)
+<>f__AnonymousDelegate1`2[System.Int32,System.String]
+(3, System.Int32, System.String)
+<>f__AnonymousDelegate1`2[System.String,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_34()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(A<int>.B<string>.M1<object>());
+        Report(A<int>.M2());
+        Report(A<int>.M3<string>());
+        Report(A<int>.M4<string, object>());
+        Report(A<string>.B<object>.M1<int>());
+        Report(A<string>.M2());
+        Report(A<string>.M3<object>());
+        Report(A<string>.M4<object, int>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct A<T>
+{
+    internal class B<U>
+    {
+        internal unsafe static Delegate M1<V>()
+        {
+            var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U), typeof(V))); };
+            d.Invoke((int*)1);
+            return d;
+        }
+    }
+    internal unsafe static Delegate M2()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T))); };
+        d.Invoke((int*)2);
+        return d;
+    }
+    internal unsafe static Delegate M3<U>()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); };
+        d.Invoke((int*)3);
+        return d;
+    }
+    internal unsafe static Delegate M4<U, V>()
+    {
+        var d = void (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U), typeof(V))); };
+        d.Invoke((int*)4);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String, System.Object)
+<>f__AnonymousDelegate0
+(2, System.Int32)
+<>f__AnonymousDelegate0
+(3, System.Int32, System.String)
+<>f__AnonymousDelegate0
+(4, System.Int32, System.String, System.Object)
+<>f__AnonymousDelegate0
+(1, System.String, System.Object, System.Int32)
+<>f__AnonymousDelegate0
+(2, System.String)
+<>f__AnonymousDelegate0
+(3, System.String, System.Object)
+<>f__AnonymousDelegate0
+(4, System.String, System.Object, System.Int32)
+<>f__AnonymousDelegate0
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_35()
+        {
+            var sourceA =
+@".class public A`1<T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public static void F1(int32* modopt(class A`1<!T>) i) { ret }
+  .method public static int32* F2<U>(!T modopt(class A`1<!!U>) t) { ldnull throw }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B1<T> : A<T>
+{
+    unsafe public static Delegate F()
+    {
+        return F1;
+    }
+}
+class B2 : A<string>
+{
+    unsafe public static Delegate F<T>()
+    {
+        return F2<T>;
+    }
+}
+class Program
+{
+    unsafe static void Main()
+    {
+        var d1 = B1<double>.F();
+        Report(d1);
+        var d2 = B2.F<double>();
+        Report(d2);
+    }
+    static void Report(Delegate d)
+    {
+        var t = d.GetType();
+        Console.WriteLine(t);
+    }
+}";
+            CompileAndVerify(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.Double]
+<>f__AnonymousDelegate1`1[System.Double]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_36()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F1<string>());
+        Report(S<int>.F2<string>());
+        Report(S<int>.F3<string>());
+        Report(S<int>.F4<string>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct S<T>
+{
+    internal unsafe static Delegate F1<U>()
+    {
+        var d1 = (ref int x) => (ref int y) => { Console.WriteLine((y, typeof(T), typeof(U))); return default(T); };
+        int x = 1;
+        int y = 2;
+        d1.Invoke(ref x).Invoke(ref y);
+        return d1;
+    }
+    internal unsafe static Delegate F2<U>()
+    {
+        var d1 = (ref int x) => (int* y) => { Console.WriteLine(((int)y, typeof(T), typeof(U))); return default(T); };
+        int x = 3;
+        int* y = (int*)4;
+        d1.Invoke(ref x).Invoke(y);
+        return d1;
+    }
+    internal unsafe static Delegate F3<U>()
+    {
+        var d1 = (int* x) => (ref int y) => { Console.WriteLine(((int)x, y, typeof(T), typeof(U))); return default(U); };
+        int* x = (int*)5;
+        int y = 6;
+        d1.Invoke(x).Invoke(ref y);
+        return d1;
+    }
+    internal unsafe static Delegate F4<U>()
+    {
+        var d1 = (int* x) => (int* y) => { Console.WriteLine(((int)x, (int)y, typeof(T), typeof(U))); return default(U); };
+        int* x = (int*)7;
+        int* y = (int*)8;
+        d1.Invoke(x).Invoke(y);
+        return d1;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(2, System.Int32, System.String)
+<>F{00000001}`2[System.Int32,<>F{00000001}`2[System.Int32,System.Int32]]
+(4, System.Int32, System.String)
+<>F{00000001}`2[System.Int32,<>f__AnonymousDelegate0`1[System.Int32]]
+(5, 6, System.Int32, System.String)
+<>f__AnonymousDelegate1`1[System.String]
+(7, 8, System.Int32, System.String)
+<>f__AnonymousDelegate2`1[System.String]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_37()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F1<string>());
+        Report(S<int>.F2<string>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+struct S<T>
+{
+    internal unsafe static Delegate F1<U>()
+    {
+        var d = (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return new { A = default(T) }; };
+        d.Invoke((int*)1);
+        return d;
+    }
+    internal unsafe static Delegate F2<U>()
+    {
+        var d = (int* x) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return new { B = default(U) }; };
+        d.Invoke((int*)2);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String)
+<>f__AnonymousDelegate0`1[System.Int32]
+(2, System.Int32, System.String)
+<>f__AnonymousDelegate1`1[System.String]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Constraints_01()
+        {
+            var source =
+@"using System;
+class A
+{
+    internal void F<T>(T? t) where T : struct
+    {
+        Console.WriteLine((typeof(T), t.HasValue ? t.Value.ToString() : ""<null>""));
+    }
+}
+struct S
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A();
+        Report(M(a, 1));
+        Report(M(a, (short)2));
+        Report(M(a, new S()));
+    }
+    static void Report(Delegate d)
+    {
+        Console.WriteLine(d.GetType());
+    }
+    unsafe static Delegate M<T, U>(T t, U u)
+        where T : A
+        where U : struct
+    {
+        var d = void (int* p, T t, U? u) =>
+        {
+            t.F(u);
+        };
+        d.Invoke((int*)0, t, u);
+        d.Invoke((int*)1, t, default(U?));
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(System.Int32, 1)
+(System.Int32, <null>)
+<>f__AnonymousDelegate0`2[A,System.Int32]
+(System.Int16, 2)
+(System.Int16, <null>)
+<>f__AnonymousDelegate0`2[A,System.Int16]
+(S, S)
+(S, <null>)
+<>f__AnonymousDelegate0`2[A,S]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_Constraints_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(M1(new object(), string.Empty));
+        Report(M1(new object(), 1));
+        Report(M2(2, new object()));
+        Report(M2((short)3, (long)4));
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+    unsafe static Delegate M1<T, U>(T t, U u)
+        where T : class
+        where U : T
+    {
+        var d = void (int* x, T y, U z) => { Console.WriteLine(((int)x, y.GetType(), z.GetType())); };
+        d.Invoke((int*)1, t, u);
+        return d;
+    }
+    unsafe static Delegate M2<T, U>(T t, U u)
+        where T : struct
+    {
+        var d = void (int* x, T y, U z) => { Console.WriteLine(((int)x, y.GetType(), z.GetType())); };
+        d.Invoke((int*)2, t, u);
+        return d;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Object, System.String)
+<>f__AnonymousDelegate0`2[System.Object,System.String]
+(1, System.Object, System.Int32)
+<>f__AnonymousDelegate0`2[System.Object,System.Int32]
+(2, System.Int32, System.Object)
+<>f__AnonymousDelegate0`2[System.Int32,System.Object]
+(2, System.Int16, System.Int64)
+<>f__AnonymousDelegate0`2[System.Int16,System.Int64]
+");
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
@@ -8914,6 +10093,50 @@ class Program
             CompileAndVerify(source, expectedOutput: @"<>F{00000001}`2[System.Int32,System.Int32]");
         }
 
+        [WorkItem(56808, "https://github.com/dotnet/roslyn/issues/56808")]
+        [Fact]
+        public void Invoke_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        var d1 = (ref object obj) => { };
+        object obj = null;
+        var result = d1.BeginInvoke(ref obj, null, null);
+        d1.EndInvoke(result);
+    }
+    unsafe static void M2()
+    {
+        var d2 = (int* p) => p;
+        int* p = (int*)0;
+        var result = d2.BeginInvoke(p, null, null);
+        d2.EndInvoke(result);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
+            comp.VerifyDiagnostics(
+                // (12,25): error CS1061: '<anonymous delegate>' does not contain a definition for 'BeginInvoke' and no accessible extension method 'BeginInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         var result = d1.BeginInvoke(ref obj, null, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BeginInvoke").WithArguments("<anonymous delegate>", "BeginInvoke").WithLocation(12, 25),
+                // (13,12): error CS1061: '<anonymous delegate>' does not contain a definition for 'EndInvoke' and no accessible extension method 'EndInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         d1.EndInvoke(result);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "EndInvoke").WithArguments("<anonymous delegate>", "EndInvoke").WithLocation(13, 12),
+                // (19,25): error CS1061: '<anonymous delegate>' does not contain a definition for 'BeginInvoke' and no accessible extension method 'BeginInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         var result = d2.BeginInvoke(p, null, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BeginInvoke").WithArguments("<anonymous delegate>", "BeginInvoke").WithLocation(19, 25),
+                // (20,12): error CS1061: '<anonymous delegate>' does not contain a definition for 'EndInvoke' and no accessible extension method 'EndInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         d2.EndInvoke(result);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "EndInvoke").WithArguments("<anonymous delegate>", "EndInvoke").WithLocation(20, 12));
+        }
+
         [Fact]
         public void With()
         {
@@ -8936,6 +10159,257 @@ class Program
                 // (8,14): error CS8858: The receiver type '<anonymous delegate>' is not a valid record type and is not a struct type.
                 //         d2 = d2 with { };
                 Diagnostic(ErrorCode.ERR_CannotClone, "d2").WithArguments("<anonymous delegate>").WithLocation(8, 14));
+        }
+
+        [Fact]
+        public void Extension_GetAwaiter_01()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        Type type;
+        type = await Main;
+        Console.WriteLine(type);
+        type = await ((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class Awaiter : INotifyCompletion
+{
+    private Delegate _d;
+    public Awaiter(Delegate d) { _d = d; }
+    public void OnCompleted(Action a) { }
+    public Type GetResult() => _d.GetType();
+    public bool IsCompleted => true;
+}
+static class Extensions
+{
+    public static Awaiter GetAwaiter(this Delegate d) => new Awaiter(d);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS4001: Cannot await 'method group'
+                //         type = await Main;
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await Main").WithArguments("method group").WithLocation(9, 16),
+                // (11,16): error CS4001: Cannot await 'lambda expression'
+                //         type = await ((ref int x) => x);
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await ((ref int x) => x)").WithArguments("lambda expression").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void Extension_GetAwaiter_02()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        Type type;
+        type = await (Delegate)Main;
+        Console.WriteLine(type);
+        type = await (Delegate)((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class Awaiter : INotifyCompletion
+{
+    private Delegate _d;
+    public Awaiter(Delegate d) { _d = d; }
+    public void OnCompleted(Action a) { }
+    public Type GetResult() => _d.GetType();
+    public bool IsCompleted => true;
+}
+static class Extensions
+{
+    public static Awaiter GetAwaiter(this Delegate d) => new Awaiter(d);
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Func`1[System.Threading.Tasks.Task]
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Extension_GetEnumerator_01()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        foreach(var d in Main) Report(d);
+        foreach(var d in (ref int x) => x) Report(d);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static IEnumerator<Delegate> GetEnumerator(this Delegate d)
+    {
+        yield return d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
+                //         foreach(var d in Main) Report(d);
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(7, 26),
+                // (8,26): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
+                //         foreach(var d in (ref int x) => x) Report(d);
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "(ref int x) => x").WithArguments("lambda expression").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void Extension_GetEnumerator_02()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        foreach (var d in (Delegate)Main) Report(d);
+        foreach (var d in (Delegate)((ref int x) => x)) Report(d);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static IEnumerator<Delegate> GetEnumerator(this Delegate d)
+    {
+        yield return d;
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Action
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Extension_Deconstruct_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Type type;
+        string name;
+        (type, name) = Main;
+        Console.WriteLine(type);
+        (type, name) = (ref int x) => x;
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static void Deconstruct(this Delegate d, out Type type, out string name)
+    {
+        type = d.GetType();
+        name = d.Method.Name;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (type, name) = Main;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "Main").WithLocation(8, 24),
+                // (10,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (type, name) = (ref int x) => x;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(ref int x) => x").WithLocation(10, 24));
+        }
+
+        [Fact]
+        public void Extension_Deconstruct_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Type type;
+        string name;
+        (type, name) = (Delegate)Main;
+        Console.WriteLine(type);
+        (type, name) = (Delegate)((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static void Deconstruct(this Delegate d, out Type type, out string name)
+    {
+        type = d.GetType();
+        name = d.Method.Name;
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Action
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void IOperation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = (int x) => x.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var operation = (IVariableDeclaratorOperation)model.GetOperation(syntax)!;
+
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IVariableDeclaratorOperation (Symbol: System.Delegate d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = (int x) ... .ToString()')
+  Initializer:
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int x) = ... .ToString()')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Delegate, IsImplicit) (Syntax: '(int x) => x.ToString()')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+        Operand:
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.String>, IsImplicit) (Syntax: '(int x) => x.ToString()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(int x) => x.ToString()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                    ReturnedValue:
+                      IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
+                        Instance Receiver:
+                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                        Arguments(0)
+",
+            actualText);
+
+            var value = ((IConversionOperation)operation.Initializer!.Value).Operand;
+            Assert.Equal("System.Func<System.Int32, System.String>", value.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -9701,7 +11175,7 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_03()
         {
             var source =
@@ -9725,7 +11199,7 @@ class Program
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_04()
         {
             var source =

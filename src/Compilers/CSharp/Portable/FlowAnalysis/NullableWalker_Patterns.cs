@@ -223,6 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return inputSlot;
                 }
 
+                if (member.Symbol.Kind is not (SymbolKind.Property or SymbolKind.Field))
+                {
+                    return -1;
+                }
+
                 return GetOrCreateSlot(member.Symbol, inputSlot);
             }
         }
@@ -254,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression);
             var expressionState = ResultType;
 
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -514,6 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
+                                        this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
@@ -828,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
@@ -836,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
-                var nodes = node.DecisionDag.TopologicallySortedNodes;
+                var nodes = node.ReachabilityDecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
                 var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
                     BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause, out _);
@@ -984,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitPatternForRewriting(node.Pattern);
             var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
             var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();

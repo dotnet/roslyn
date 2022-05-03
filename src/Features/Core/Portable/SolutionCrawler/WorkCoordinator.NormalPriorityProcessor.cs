@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // Any other high priority documents
-                        foreach (var documentId in _higherPriorityDocumentsNotProcessed.Keys)
+                        foreach (var (documentId, _) in _higherPriorityDocumentsNotProcessed)
                         {
                             yield return documentId;
                         }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
                             {
-                                var textDocument = solution.GetTextDocument(documentId);
+                                var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
 
                                 if (textDocument != null)
                                 {
@@ -407,9 +407,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentOpenAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentOpenAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentOpenAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -432,9 +432,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentCloseAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentCloseAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentCloseAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -485,9 +485,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
 
@@ -497,9 +497,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                                await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }

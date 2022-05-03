@@ -325,9 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             DriverStateTable.Builder builder2 = GetBuilder(driverStateTable, trackIncrementalGeneratorSteps: true);
             builder2.GetLatestStateTableForNode(callbackNode);
 
-            // table persisted in driverStateTable does not have any steps
-            Assert.False(driverStateTable.GetStateTableOrEmpty<int>(callbackNode).HasTrackedSteps);
-
             // table returned from the first instance was compacted by the builder
             Assert.NotNull(passedIn);
             AssertTableEntries(passedIn!, new[] { (1, EntryState.Cached, 0), (2, EntryState.Cached, 1), (3, EntryState.Cached, 2), (5, EntryState.Cached, 0), (6, EntryState.Cached, 1) });
@@ -955,11 +952,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
+                    SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
                     trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
 
-            return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
+            return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }
 
         private class CallbackNode<T> : IIncrementalGeneratorNode<T>

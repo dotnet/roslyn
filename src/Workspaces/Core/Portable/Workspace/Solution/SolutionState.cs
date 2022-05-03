@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
                 _lazyAnalyzers,
-                frozenSourceGeneratedDocument: null);
+                _frozenSourceGeneratedDocumentState);
         }
 
         private BranchId GetBranchId()
@@ -1906,6 +1906,31 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(
                 projectIdToTrackerMap: newTrackerMap,
                 frozenSourceGeneratedDocument: newGeneratedState);
+        }
+
+        /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        public SolutionState WithoutFrozenSourceGeneratedDocuments()
+        {
+            // If there's nothing frozen, there's nothing to do.
+            if (_frozenSourceGeneratedDocumentState == null)
+                return this;
+
+            var projectId = _frozenSourceGeneratedDocumentState.Id.ProjectId;
+
+            // Since we previously froze this document, we should have a CompilationTracker entry for it, and it should be a
+            // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, _dependencyGraph);
+            Contract.ThrowIfFalse(newTrackerMap.TryGetValue(projectId, out var existingTracker));
+            var replacingItemTracker = existingTracker as GeneratedFileReplacingCompilationTracker;
+            Contract.ThrowIfNull(replacingItemTracker);
+            newTrackerMap = newTrackerMap.SetItem(projectId, replacingItemTracker.UnderlyingTracker);
+
+            return this.Branch(
+                projectIdToTrackerMap: newTrackerMap,
+                frozenSourceGeneratedDocument: null);
         }
 
         /// <summary>

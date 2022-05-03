@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
-        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly TaskQueue _taskQueue;
 
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Host
         public BackgroundCompiler(Workspace workspace)
         {
             _workspace = workspace;
-            _documentTrackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
@@ -101,12 +99,11 @@ namespace Microsoft.CodeAnalysis.Host
                 CancelBuild(releasePreviousCompilations: false);
 
                 var allOpenProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
-                var activeProject = _documentTrackingService.TryGetActiveDocument()?.ProjectId;
 
                 // don't even get started if there is nothing to do
                 if (allOpenProjects.Count > 0)
                 {
-                    _ = BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject);
+                    _ = BuildCompilationsAsync(solution, initialProject, allOpenProjects);
                 }
             }
         }
@@ -127,13 +124,12 @@ namespace Microsoft.CodeAnalysis.Host
         private Task BuildCompilationsAsync(
             Solution solution,
             ProjectId? initialProject,
-            ISet<ProjectId> allOpenProjects,
-            ProjectId? activeProject)
+            ISet<ProjectId> allOpenProjects)
         {
             var cancellationToken = _cancellationSource.Token;
             return _taskQueue.ScheduleTask(
                 "BackgroundCompiler.BuildCompilationsAsync",
-                () => BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject, cancellationToken),
+                () => BuildCompilationsAsync(solution, initialProject, allOpenProjects, cancellationToken),
                 cancellationToken);
         }
 
@@ -141,7 +137,6 @@ namespace Microsoft.CodeAnalysis.Host
             Solution solution,
             ProjectId? initialProject,
             ISet<ProjectId> projectsToBuild,
-            ProjectId? activeProject,
             CancellationToken cancellationToken)
         {
             var allProjectIds = new List<ProjectId>();
@@ -154,22 +149,12 @@ namespace Microsoft.CodeAnalysis.Host
 
             var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
 
-            // Skip performing any background compilation for projects where user has explicitly
-            // set the background analysis scope to only analyze active files.
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
                 .Select(async p =>
                 {
                     if (p is null)
                         return null;
-
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile
-                        && p.Id != activeProject)
-                    {
-                        // For open files with Active File analysis scope, only build the compilation if the project is
-                        // active.
-                        return null;
-                    }
 
                     return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 })

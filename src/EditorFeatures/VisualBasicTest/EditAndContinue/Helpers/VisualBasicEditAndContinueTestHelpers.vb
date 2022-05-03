@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
@@ -38,16 +37,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
                 Return SyntaxComparer.TopLevel
             End Get
         End Property
-
-        Public Overrides Function FindNode(root As SyntaxNode, span As TextSpan) As SyntaxNode
-            Dim result = root.FindToken(span.Start).Parent
-            While result.Span <> span
-                result = result.Parent
-                Assert.NotNull(result)
-            End While
-
-            Return result
-        End Function
 
         Public Overrides Function GetDeclarators(method As ISymbol) As ImmutableArray(Of SyntaxNode)
             Assert.True(TypeOf method Is IMethodSymbol, "Only methods should have a syntax map.")

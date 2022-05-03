@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
@@ -4646,9 +4648,8 @@ class Class
             Throw New System.NotImplementedException()
         End Set
     End Property
-end class", parameters:=New TestParameters(options:=[Option](
-    ImplementTypeOptions.Metadata.PropertyGenerationBehavior,
-    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
+end class", parameters:=New TestParameters(codeActionOptions:=New CodeActionOptions(
+            implementTypeOptions:=New ImplementTypeOptions(PropertyGenerationBehavior:=ImplementTypePropertyGenerationBehavior.PreferAutoProperties))))
         End Function
     End Class
 End Namespace

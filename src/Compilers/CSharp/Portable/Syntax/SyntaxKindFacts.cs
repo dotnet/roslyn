@@ -181,12 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
                 case SyntaxKind.XmlTextLiteralNewLineToken:
                 case SyntaxKind.XmlEntityLiteralToken:
-                    //case SyntaxKind.Unknown:
                     return true;
                 default:
                     return false;
@@ -201,12 +202,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken:
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
                 case SyntaxKind.UnderscoreToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
                     return true;
                 default:
                     return false;
@@ -530,25 +536,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static SyntaxKind GetLiteralExpression(SyntaxKind token)
         {
-            switch (token)
+            return token switch
             {
-                case SyntaxKind.StringLiteralToken:
-                    return SyntaxKind.StringLiteralExpression;
-                case SyntaxKind.CharacterLiteralToken:
-                    return SyntaxKind.CharacterLiteralExpression;
-                case SyntaxKind.NumericLiteralToken:
-                    return SyntaxKind.NumericLiteralExpression;
-                case SyntaxKind.NullKeyword:
-                    return SyntaxKind.NullLiteralExpression;
-                case SyntaxKind.TrueKeyword:
-                    return SyntaxKind.TrueLiteralExpression;
-                case SyntaxKind.FalseKeyword:
-                    return SyntaxKind.FalseLiteralExpression;
-                case SyntaxKind.ArgListKeyword:
-                    return SyntaxKind.ArgListExpression;
-                default:
-                    return SyntaxKind.None;
-            }
+                SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
+                SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
+                SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,
+                SyntaxKind.TrueKeyword => SyntaxKind.TrueLiteralExpression,
+                SyntaxKind.FalseKeyword => SyntaxKind.FalseLiteralExpression,
+                SyntaxKind.ArgListKeyword => SyntaxKind.ArgListExpression,
+                _ => SyntaxKind.None,
+            };
         }
 
         public static bool IsInstanceExpression(SyntaxKind token)

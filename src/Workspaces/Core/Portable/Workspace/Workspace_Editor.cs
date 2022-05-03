@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -415,32 +416,40 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(
-            SourceGeneratedDocumentIdentity documentIdentity,
-            SourceTextContainer textContainer)
+            SourceTextContainer textContainer,
+            SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentIdentity.DocumentId;
+                var documentId = document.Identity.DocumentId;
                 CheckDocumentIsClosed(documentId);
                 AddToOpenDocumentMap(documentId);
 
                 _documentToAssociatedBufferMap.Add(documentId, textContainer);
-                _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
+                _openSourceGeneratedDocumentIdentities.Add(documentId, document.Identity);
 
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
+
+                // Fire and forget that the workspace is changing.
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
+                _ = RaiseDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
             }
 
             this.RegisterText(textContainer);
         }
 
-        internal void OnSourceGeneratedDocumentClosed(DocumentId documentId)
+        internal void OnSourceGeneratedDocumentClosed(SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckDocumentIsOpen(documentId);
+                CheckDocumentIsOpen(document.Id);
 
-                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
-                ClearOpenDocument(documentId);
+                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(document.Id));
+                ClearOpenDocument(document.Id);
+
+                // Fire and forget that the workspace is changing.
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
+                _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
             }
         }
 

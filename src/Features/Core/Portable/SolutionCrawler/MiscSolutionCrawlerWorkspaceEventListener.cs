@@ -6,23 +6,30 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.MiscellaneousFiles), Shared]
-    internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
+    internal sealed class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MiscSolutionCrawlerWorkspaceEventListener()
+        public MiscSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            // misc workspace will enable syntax errors and semantic errors for script files for
-            // all participating projects in the workspace
-            DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                // misc workspace will enable syntax errors and semantic errors for script files for
+                // all participating projects in the workspace
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
+            }
         }
 
         public void StopListening(Workspace workspace)

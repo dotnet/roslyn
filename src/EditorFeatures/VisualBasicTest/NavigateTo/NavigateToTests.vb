@@ -1050,6 +1050,21 @@ End Class
                     Await _aggregator.GetItemsAsync("Outer"))
             End Using
         End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")>
+        Public Async Function FindMethodWithTuple(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
+    Public Sub Method(
+        t1 as (x as integer, y as Dictionary(of integer, string)),
+        t2 as (b as boolean, c as global.System.Int32) )
+    End Sub
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Method")).Single()
+                VerifyNavigateToResultItem(item, "Method", "[|Method|]((x as integer, y as Dictionary(of integer, string)), (b as boolean, c as global.System.Int32))", PatternMatchKind.Exact, NavigateToItemKind.Method,
+                                           Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
+        End Function
     End Class
 End Namespace
 #Enable Warning BC40000 ' MatchKind is obsolete

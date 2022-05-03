@@ -13,25 +13,23 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal sealed class AnchorIndentationOperation
     {
-        internal AnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan)
+        internal AnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken endToken, TextSpan textSpan)
         {
             Contract.ThrowIfTrue(anchorToken.RawKind == 0);
             Contract.ThrowIfTrue(textSpan.Start < 0 || textSpan.Length < 0);
 
-            Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
             this.AnchorToken = anchorToken;
             this.TextSpan = textSpan;
 
-            this.StartToken = startToken;
             this.EndToken = endToken;
         }
 
         public SyntaxToken AnchorToken { get; }
         public TextSpan TextSpan { get; }
 
-        public SyntaxToken StartToken { get; }
+        public SyntaxToken StartToken => AnchorToken;
         public SyntaxToken EndToken { get; }
     }
 }

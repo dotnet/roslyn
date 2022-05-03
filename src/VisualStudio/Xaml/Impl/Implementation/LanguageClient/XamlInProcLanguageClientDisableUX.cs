@@ -37,21 +37,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public XamlInProcLanguageClientDisableUX(
             XamlRequestDispatcherFactory xamlDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
-
-        /// <summary>
-        /// Gets the name of the language client (displayed in yellow bars).
-        /// </summary>
-        public override string Name => "XAML Language Server Client for LiveShare and Codespaces";
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -68,5 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// Failures are catastrophic as liveshare guests will not have language features without this server.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.XamlLspServerDisableUX;
     }
 }

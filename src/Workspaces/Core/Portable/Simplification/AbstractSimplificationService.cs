@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         where TStatementSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
     {
-        private ImmutableArray<AbstractReducer> _reducers;
+        protected static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
+        protected static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
+
+        private readonly ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
             => _reducers = reducers;
@@ -327,21 +330,5 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         protected abstract void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken);
-    }
-
-    internal struct NodeOrTokenToReduce
-    {
-        public readonly SyntaxNodeOrToken NodeOrToken;
-        public readonly bool SimplifyAllDescendants;
-        public readonly SyntaxNodeOrToken OriginalNodeOrToken;
-        public readonly bool CanBeSpeculated;
-
-        public NodeOrTokenToReduce(SyntaxNodeOrToken nodeOrToken, bool simplifyAllDescendants, SyntaxNodeOrToken originalNodeOrToken, bool canBeSpeculated = true)
-        {
-            this.NodeOrToken = nodeOrToken;
-            this.SimplifyAllDescendants = simplifyAllDescendants;
-            this.OriginalNodeOrToken = originalNodeOrToken;
-            this.CanBeSpeculated = canBeSpeculated;
-        }
     }
 }

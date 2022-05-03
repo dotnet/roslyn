@@ -7,45 +7,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    public static class LightBulbHelper
+    internal static class LightBulbHelper
     {
-        public static async Task<bool> WaitForLightBulbSessionAsync(ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
+        public static async Task<bool> WaitForLightBulbSessionAsync(TestServices testServices, ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
         {
-            var startTime = DateTimeOffset.Now;
-
-            var active = await Helper.RetryAsync(async cancellationToken =>
-            {
-                if (broker.IsLightBulbSessionActive(view))
-                {
-                    return true;
-                }
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    throw new InvalidOperationException("Expected a light bulb session to appear.");
-                }
-
-                // checking whether there is any suggested action is async up to editor layer and our waiter doesn't track up to that point.
-                // so here, we have no other way than sleep (with timeout) to see LB is available.
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-
-                return broker.IsLightBulbSessionActive(view);
-            }, TimeSpan.FromMilliseconds(1), cancellationToken);
-
+            await testServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+            var active = broker.IsLightBulbSessionActive(view);
             if (!active)
                 return false;
 
-            await WaitForItemsAsync(broker, view, cancellationToken);
+            await WaitForItemsAsync(testServices, broker, view, cancellationToken);
             return true;
         }
 
-        public static async Task<IEnumerable<SuggestedActionSet>> WaitForItemsAsync(ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<SuggestedActionSet>> WaitForItemsAsync(TestServices testServices, ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                var items = await TryWaitForItemsAsync(testServices, broker, view, cancellationToken);
+                if (items is not null)
+                    return items;
+
+                // The session was dismissed unexpectedly. The editor might show it again.
+                await testServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+            }
+        }
+
+        private static async Task<IEnumerable<SuggestedActionSet>?> TryWaitForItemsAsync(TestServices testServices, ILightBulbBroker broker, IWpfTextView view, CancellationToken cancellationToken)
         {
             var activeSession = broker.GetSession(view);
             if (activeSession == null)
@@ -66,8 +61,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
+                    tcs.TrySetCanceled();
                 else
-                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
+                    tcs.TrySetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
                 asyncSession.SuggestedActionsUpdated -= handler;
             };
@@ -84,7 +81,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // that we hear about the results.
             asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
 
-            return await tcs.Task.WithCancellation(cancellationToken);
+            try
+            {
+                return await tcs.Task.WithCancellation(cancellationToken);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                var version = await testServices.Shell.GetVersionAsync(cancellationToken);
+                if (Version.Parse("17.2.32210.308") >= version)
+                {
+                    // Unexpected cancellation can occur when the editor dismisses the light bulb without request
+                    return null;
+                }
+
+                throw new OperationCanceledException($"IDE version '{version}' unexpectedly dismissed the light bulb.");
+            }
         }
     }
 }

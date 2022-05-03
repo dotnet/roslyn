@@ -1850,7 +1850,8 @@ class Program
 ";
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact]

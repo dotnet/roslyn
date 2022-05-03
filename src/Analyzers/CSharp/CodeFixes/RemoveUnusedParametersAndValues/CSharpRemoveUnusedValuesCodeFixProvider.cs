@@ -8,13 +8,16 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
@@ -30,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         public CSharpRemoveUnusedValuesCodeFixProvider()
         {
         }
+
+#if CODE_STYLE
+        protected override ISyntaxFormattingService GetSyntaxFormattingService()
+            => CSharpSyntaxFormattingService.Instance;
+#endif
 
         protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);
@@ -74,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
                 && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
-                && ((CSharpParseOptions)parent.SyntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+                && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
                     .AddRange(newNameNode.GetLeadingTrivia())

@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private readonly bool _forceIndentation;
             private readonly int _indentation;
             private readonly int _indentationDelta;
-            private readonly AnalyzerConfigOptions _options;
+            private readonly SyntaxFormattingOptions _options;
 
             public DocumentationCommentExteriorCommentRewriter(
                 bool forceIndentation,
                 int indentation,
                 int indentationDelta,
-                AnalyzerConfigOptions options,
+                SyntaxFormattingOptions options,
                 bool visitStructuredTrivia = true)
                 : base(visitIntoStructuredTrivia: visitStructuredTrivia)
             {
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                 _forceIndentation,
                                                 _indentation,
                                                 _indentationDelta,
-                                                _options.GetOption(FormattingOptions2.UseTabs),
-                                                _options.GetOption(FormattingOptions2.TabSize));
+                                                _options.UseTabs,
+                                                _options.TabSize);
 
                         if (triviaText == newTriviaText)
                         {

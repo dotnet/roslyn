@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             MeExpressionSyntax,
             MemberAccessExpressionSyntax)
 
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
-        End Function
-
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function

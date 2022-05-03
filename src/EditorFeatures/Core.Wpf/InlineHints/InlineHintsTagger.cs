@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -156,9 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         if (_cache[i].tagSpan is not { } hintTagSpan)
                         {
-                            var parameterHintUITag = InlineHintsTag.Create(
+                            var hintUITag = InlineHintsTag.Create(
                                     _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
-                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
+
+                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
                             _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
                         }
 

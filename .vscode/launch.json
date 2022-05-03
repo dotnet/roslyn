@@ -10,9 +10,9 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/netcoreapp3.1/BuildValidator.dll",
+      "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/net6.0/BuildValidator.dll",
       "args": [
-        "--assembliesPath", "./artifacts/obj/csc/Debug/netcoreapp3.1",
+        "--assembliesPath", "./artifacts/obj/csc/Debug/net6.0",
         "--referencesPath", "./artifacts/bin",
         "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref",
         "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Ref",
@@ -29,8 +29,8 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/netcoreapp3.1/RunTests.dll",
-      "args": ["--tfm", "netcoreapp3.1", "--sequential", "--html"],
+      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net6.0/RunTests.dll",
+      "args": ["--tfm", "net6.0", "--sequential", "--html"],
       "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
       "stopAtEntry": false,
       "console": "internalConsole"
@@ -41,7 +41,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll",
+      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net6.0/PrepareTests.dll",
       "args": [
         "--source", "${workspaceFolder}",
         "--destination", "${workspaceFolder}/artifacts/testPayload"

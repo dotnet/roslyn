@@ -211,5 +211,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataMemberAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
     }
 }

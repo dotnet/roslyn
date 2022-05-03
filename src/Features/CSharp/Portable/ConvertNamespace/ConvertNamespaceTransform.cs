@@ -208,6 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             // Copy leading trivia from the close brace to the end of the file scoped namespace (which means after all of the members)
             fileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
 
+            // If the previous namespace declaration had no trailing trivia and the last member only has a newline, then assume the user
+            // doesn't want that newline any more.
+            if (!namespaceDeclaration.HasTrailingTrivia &&
+                namespaceDeclaration.CloseBraceToken.GetPreviousToken() is var lastMemberToken &&
+                lastMemberToken.TrailingTrivia is [{ RawKind: (int)SyntaxKind.EndOfLineTrivia }])
+            {
+                fileScopedNamespace = fileScopedNamespace.WithoutTrailingTrivia();
+            }
+
             return fileScopedNamespace;
         }
 

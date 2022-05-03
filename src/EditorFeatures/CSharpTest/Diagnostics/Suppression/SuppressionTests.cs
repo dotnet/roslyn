@@ -467,7 +467,8 @@ class Class
                     var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                    var allFixes = (await fixService.GetFixesAsync(document, span, cancellationToken: CancellationToken.None))
+                    var options = CodeActionOptions.Default;
+                    var allFixes = (await fixService.GetFixesAsync(document, span, options, CancellationToken.None))
                         .SelectMany(fixCollection => fixCollection.Fixes);
 
                     var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();

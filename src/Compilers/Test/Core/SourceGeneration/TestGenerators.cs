@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -94,6 +95,12 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
 
+        internal class BinaryText : InMemoryAdditionalText
+        {
+            public BinaryText(string path) : base(path, string.Empty) { }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default) => throw new InvalidDataException("Binary content not supported");
+        }
     }
 
     internal sealed class PipelineCallbackGenerator : IIncrementalGenerator

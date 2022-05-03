@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     ref _lazyExcerptService,
                     static documentServiceProvider =>
                     {
-                        var razorExcerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                        return razorExcerptService is not null ? new RazorDocumentExcerptServiceWrapper(razorExcerptService) : null;
+                        var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
+                        return (impl != null) ? new RazorDocumentExcerptServiceWrapper(impl) : null;
                     },
                     _innerDocumentServiceProvider);
 

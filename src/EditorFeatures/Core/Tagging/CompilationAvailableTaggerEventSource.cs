@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -16,7 +16,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-
     /// <summary>
     /// Tagger event that fires once the compilation is available in the remote OOP process for a particular project.
     /// Used to trigger things such as:
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// <item>recomputation of inheritance margin items due to frozen-partial compilations being used.</item>
     /// </list>
     /// </summary>
-    internal class CompilationAvailableTaggerEventSource : ITaggerEventSource
+    internal sealed class CompilationAvailableTaggerEventSource : ITaggerEventSource
     {
         private readonly ITextBuffer _subjectBuffer;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 else
                 {
                     // if we can't get the client, just compute the compilation locally and fire the event once we have it.
-                    await ComputeCompilationInCurrentProcessAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                    await CompilationAvailableHelpers.ComputeCompilationInCurrentProcessAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 }
 
                 // now that we know we have an full compilation, retrigger the tagger so it can show accurate results with the 
@@ -123,9 +122,5 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }, cancellationToken);
             task.CompletesAsyncOperation(token);
         }
-
-        // this method is super basic.  but it ensures that the remote impl and the local impl always agree.
-        public static Task ComputeCompilationInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
-            => project.GetCompilationAsync(cancellationToken);
     }
 }

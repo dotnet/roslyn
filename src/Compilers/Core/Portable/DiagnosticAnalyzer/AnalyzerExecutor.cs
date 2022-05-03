@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
-            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
+            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer, analyzerName)).Trim();
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
@@ -1647,21 +1647,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
         }
 
-        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer)
+        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer, string analyzerName)
         {
             var diagnosticIds = ImmutableSortedSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
             try
             {
                 foreach (var diagnostic in analyzer.SupportedDiagnostics)
                 {
-                    diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    // If a null diagnostic is returned, we would have already reported that to the user earlier; we can just skip this.
+                    if (diagnostic != null)
+                    {
+                        diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    }
                 }
             }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+            catch (Exception ex)
             {
-                // Intentionally empty
+                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, ex.CreateDiagnosticDescription());
             }
 
             if (diagnosticIds.IsEmpty)

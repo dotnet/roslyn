@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var parseOptions = syntaxTree.Options;
+            var languageVersion = syntaxTree.Options.LanguageVersion();
 
             return ConvertPropertyToMembers(
-                documentOptions, parseOptions,
+                documentOptions, languageVersion,
                 SyntaxGenerator.GetGenerator(document), property,
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         private static ImmutableArray<SyntaxNode> ConvertPropertyToMembers(
             DocumentOptionSet documentOptions,
-            ParseOptions parseOptions,
+            LanguageVersion languageVersion,
             SyntaxGenerator generator,
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
-                    documentOptions, parseOptions,
+                    documentOptions, languageVersion,
                     generator, propertyDeclaration, propertyBackingField,
                     getMethod, desiredGetMethodName,
                     cancellationToken: cancellationToken));
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (setMethod != null)
             {
                 result.Add(GetSetMethod(
-                    documentOptions, parseOptions,
+                    documentOptions, languageVersion,
                     generator, propertyDeclaration, propertyBackingField,
                     setMethod, desiredSetMethodName,
                     cancellationToken: cancellationToken));
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         private static SyntaxNode GetSetMethod(
             DocumentOptionSet documentOptions,
-            ParseOptions parseOptions,
+            LanguageVersion languageVersion,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol? propertyBackingField,
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
-                documentOptions, parseOptions, methodDeclaration,
+                documentOptions, languageVersion, methodDeclaration,
                 createReturnStatementForExpression: false);
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         private static SyntaxNode GetGetMethod(
             DocumentOptionSet documentOptions,
-            ParseOptions parseOptions,
+            LanguageVersion languageVersion,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol? propertyBackingField,
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToReturnsRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
-                documentOptions, parseOptions, methodDeclaration,
+                documentOptions, languageVersion, methodDeclaration,
                 createReturnStatementForExpression: true);
         }
 
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
-            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
             MethodDeclarationSyntax methodDeclaration, bool createReturnStatementForExpression)
         {
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
             if (methodDeclaration.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
-                        methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        methodDeclaration.Kind(), languageVersion, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)

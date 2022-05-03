@@ -105,6 +105,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard20" Version="$(BasicReferenceAssembliesNetStandard20Version)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net50" Version="$(BasicReferenceAssembliesNet50Version)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
+    <PackageReference Include="Microsoft.ILVerification" Version="$(MicrosoftILVerificationVersion)" />
   </ItemGroup>
 
   <Import Project="Generated.targets" />

@@ -186,19 +186,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)
         {
-            var constant1Syntax = (ExpressionSyntax)result.Op1.Syntax;
+            Contract.ThrowIfNull(result.Op2);
 
             // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
             // s[constant1..(constant2-constant1)]
             var constant1 = GetInt32Value(result.Op1);
-
-            Contract.ThrowIfNull(result.Op2);
             var constant2 = GetInt32Value(result.Op2);
 
-            var endExpr = (ExpressionSyntax)generator.LiteralExpression(constant2 - constant1);
             return RangeExpression(
-                constant1Syntax,
-                IndexExpression(endExpr));
+                // If we're starting the range operation from 0, then we can just leave off the start of
+                // the range. i.e. `..end`
+                constant1 == 0 ? null : (ExpressionSyntax)result.Op1.Syntax,
+                IndexExpression((ExpressionSyntax)generator.LiteralExpression(constant2 - constant1)));
         }
 
         private static int GetInt32Value(IOperation operation)

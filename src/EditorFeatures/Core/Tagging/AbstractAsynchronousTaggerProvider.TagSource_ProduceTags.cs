@@ -12,9 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -299,8 +297,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var spansTagged = context._spansTagged;
 
                 var spansToInvalidateByBuffer = spansTagged.ToLookup(
-                    keySelector: span => span.SnapshotSpan.Snapshot.TextBuffer,
-                    elementSelector: span => span.SnapshotSpan);
+                    keySelector: span => span.Snapshot.TextBuffer,
+                    elementSelector: span => span);
 
                 // Walk through each relevant buffer and decide what the interval tree should be
                 // for that buffer.  In general this will work by keeping around old tags that

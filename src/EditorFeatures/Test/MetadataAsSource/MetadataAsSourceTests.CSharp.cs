@@ -55,7 +55,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -101,16 +101,12 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
 {{
-    public int Property
-    {{
-        get;
-        set;
-    }}
+    public int Property {{ get; init; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -147,7 +143,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -205,7 +201,7 @@ namespace System
 }}",
                     false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // System.ValueTuple.dll
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Collections;
@@ -428,7 +424,7 @@ public class [|C|]
 }}",
                     false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -447,6 +443,117 @@ public class [|C|]
                 };
 
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            }
+
+            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [WorkItem(44566, "https://github.com/dotnet/roslyn/issues/44566")]
+            public async Task TestRecordType(bool signaturesOnly)
+            {
+                var metadataSource = "public record R;";
+                var symbolName = "R";
+
+                var expected = signaturesOnly switch
+                {
+                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+#nullable enable
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+public record [|R|] : IEquatable<R>
+{{
+    public R();
+    [CompilerGenerated]
+    protected R(R original);
+
+    protected virtual Type EqualityContract {{ get; }}
+
+    [CompilerGenerated]
+    public virtual R <Clone>$();
+    [CompilerGenerated]
+    public override bool Equals(object? obj);
+    [CompilerGenerated]
+    public virtual bool Equals(R? other);
+    [CompilerGenerated]
+    public override int GetHashCode();
+    [CompilerGenerated]
+    public override string ToString();
+    [CompilerGenerated]
+    protected virtual bool PrintMembers(StringBuilder builder);
+
+    [CompilerGenerated]
+    public static bool operator ==(R? left, R? right);
+    [CompilerGenerated]
+    public static bool operator !=(R? left, R? right);
+}}",
+                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
+#endregion
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+public record [|R|]
+{{
+    [CompilerGenerated]
+    public override string ToString()
+    {{
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.Append(""R"");
+        stringBuilder.Append("" {{ "");
+        if (PrintMembers(stringBuilder))
+        {{
+            stringBuilder.Append(' ');
+        }}
+
+        stringBuilder.Append('}}');
+        return stringBuilder.ToString();
+    }}
+
+    [CompilerGenerated]
+    protected virtual bool PrintMembers(StringBuilder builder)
+    {{
+        return false;
+    }}
+
+    [CompilerGenerated]
+    public override int GetHashCode()
+    {{
+        return EqualityComparer<Type>.Default.GetHashCode(EqualityContract);
+    }}
+
+    [CompilerGenerated]
+    public virtual bool Equals(R? other)
+    {{
+        return (object)this == other || ((object)other != null && EqualityContract == other!.EqualityContract);
+    }}
+
+    [CompilerGenerated]
+    protected R(R original)
+    {{
+    }}
+
+    public R()
+    {{
+    }}
+}}
+#if false // {CSharpEditorResources.Decompilation_log}
+{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+------------------
+{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+#endif",
+                };
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
             }
         }
     }

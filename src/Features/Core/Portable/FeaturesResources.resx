@@ -2890,11 +2890,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</value>
   </data>
-  <data name="Making_a_method_an_iterator_requires_restarting_the_application" xml:space="preserve">
-    <value>Making a method an iterator requires restarting the application.</value>
+  <data name="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Making a method an iterator requires restarting the application because is not supported by the runtime.</value>
   </data>
-  <data name="Making_a_method_asynchronous_requires_restarting_the_application" xml:space="preserve">
-    <value>Making a method asynchronous requires restarting the application.</value>
+  <data name="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Making a method asynchronous requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</value>
@@ -3021,5 +3021,194 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
     <value>Symbol found in assembly path '{0}'</value>
+  </data>
+  <data name="Invalid_number" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="Unterminated_comment" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="Unterminated_string" xml:space="preserve">
+    <value>Unterminated string</value>
+  </data>
+  <data name="_0_expected" xml:space="preserve">
+    <value>'{0}' expected</value>
+  </data>
+  <data name="_0_unexpected" xml:space="preserve">
+    <value>'{0}' unexpected</value>
+  </data>
+  <data name="Invalid_escape_sequence" xml:space="preserve">
+    <value>Invalid escape sequence</value>
+  </data>
+  <data name="Error_parsing_comment" xml:space="preserve">
+    <value>Error parsing comment</value>
+  </data>
+  <data name="Syntax_error" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="Invalid_property_name" xml:space="preserve">
+    <value>Invalid property name</value>
+  </data>
+  <data name="Missing_property_value" xml:space="preserve">
+    <value>Missing property value</value>
+  </data>
+  <data name="Nested_properties_not_allowed" xml:space="preserve">
+    <value>Nested properties not allowed</value>
+  </data>
+  <data name="Name_expected" xml:space="preserve">
+    <value>Name expected</value>
+  </data>
+  <data name="Invalid_constructor_name" xml:space="preserve">
+    <value>Invalid constructor name</value>
+  </data>
+  <data name="Comments_not_allowed" xml:space="preserve">
+    <value>Comments not allowed</value>
+  </data>
+  <data name="Constructors_not_allowed" xml:space="preserve">
+    <value>Constructors not allowed</value>
+  </data>
+  <data name="Illegal_string_character" xml:space="preserve">
+    <value>Illegal string character</value>
+  </data>
+  <data name="Illegal_whitespace_character" xml:space="preserve">
+    <value>Illegal whitespace character</value>
+  </data>
+  <data name="Only_properties_allowed_in_an_object" xml:space="preserve">
+    <value>Only properties allowed in an object</value>
+  </data>
+  <data name="Properties_not_allowed_in_an_array" xml:space="preserve">
+    <value>Properties not allowed in an array</value>
+  </data>
+  <data name="Property_name_must_be_a_string" xml:space="preserve">
+    <value>Property name must be a string</value>
+  </data>
+  <data name="Property_name_must_be_followed_by_a_colon" xml:space="preserve">
+    <value>Property name must be followed by a ':'</value>
+  </data>
+  <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
+    <value>Strings must start with " not '</value>
+  </data>
+  <data name="Trailing_comma_not_allowed" xml:space="preserve">
+    <value>Trailing comma not allowed</value>
+  </data>
+  <data name="Value_required" xml:space="preserve">
+    <value>Value required</value>
+  </data>
+  <data name="_0_literal_not_allowed" xml:space="preserve">
+    <value>'{0}' literal not allowed</value>
+  </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="Enable_all_JSON_editor_features" xml:space="preserve">
+    <value>Enable all JSON editor features</value>
+  </data>
+  <data name="Invalid_regex_pattern" xml:space="preserve">
+    <value>Invalid regex pattern</value>
+  </data>
+  <data name="Invalid_JSON_pattern" xml:space="preserve">
+    <value>Invalid JSON pattern</value>
+  </data>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
+  </data>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
+  </data>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
+  </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
+  <data name="Apply_auto_property_preferences" xml:space="preserve">
+    <value>Apply auto property preferences</value>
+  </data>
+  <data name="Apply_blank_line_preferences_experimental" xml:space="preserve">
+    <value>Apply blank line preferences (experimental)</value>
+  </data>
+  <data name="Apply_coalesce_expression_preferences" xml:space="preserve">
+    <value>Apply coalesce expression preferences</value>
+  </data>
+  <data name="Apply_compound_assignment_preferences" xml:space="preserve">
+    <value>Apply compound assignment preferences</value>
+  </data>
+  <data name="Apply_inferred_anonymous_type_member_names_preferences" xml:space="preserve">
+    <value>Apply inferred anonymous type member names preferences</value>
+  </data>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
+  </data>
+  <data name="Apply_namespace_matches_folder_preferences" xml:space="preserve">
+    <value>Apply namespace matches folder preferences</value>
+  </data>
+  <data name="Apply_null_checking_preferences" xml:space="preserve">
+    <value>Apply null checking preferences</value>
+  </data>
+  <data name="Apply_null_propagation_preferences" xml:space="preserve">
+    <value>Apply null propagation preferences</value>
+  </data>
+  <data name="Apply_object_initializer_preferences" xml:space="preserve">
+    <value>Apply object initializer preferences</value>
+  </data>
+  <data name="Apply_simplify_boolean_expression_preferences" xml:space="preserve">
+    <value>Apply simplify boolean expression preferences</value>
+  </data>
+  <data name="Apply_string_interpolation_preferences" xml:space="preserve">
+    <value>Apply string interpolation preferences</value>
+  </data>
+  <data name="Apply_tuple_name_preferences" xml:space="preserve">
+    <value>Apply tuple name preferences</value>
+  </data>
+  <data name="Remove_unused_suppressions" xml:space="preserve">
+    <value>Remove unused suppressions</value>
+  </data>
+  <data name="Apply_parentheses_preferences" xml:space="preserve">
+    <value>Apply parentheses preferences</value>
+  </data>
+  <data name="Apply_statement_after_block_preferences_experimental" xml:space="preserve">
+    <value>Apply statement after block preferences (experimental)</value>
+  </data>
+  <data name="Apply_unused_value_preferences" xml:space="preserve">
+    <value>Apply unused value preferences</value>
+  </data>
+  <data name="Remove_unused_parameters" xml:space="preserve">
+    <value>Remove unused parameters</value>
+  </data>
+  <data name="Apply_conditional_expression_preferences" xml:space="preserve">
+    <value>Apply conditional expression preferences</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply using directive placement preferences</value>
+  </data>
+  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary Imports or usings</value>
+  </data>
+  <data name="Sort_Imports_or_usings" xml:space="preserve">
+    <value>Sort Imports or usings</value>
   </data>
 </root>

@@ -50,22 +50,25 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         public bool SupportsIndexingInitializer(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
+            => options.LanguageVersion() >= LanguageVersion.CSharp6;
 
         public bool SupportsThrowExpression(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7;
 
         public bool SupportsRecord(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
         public bool SupportsRecordStruct(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
+            => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
         public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
+
+        public bool SupportsConstantInterpolatedStrings(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
                     (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -310,6 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
+        public bool IsPredefinedType(SyntaxNode? node)
+            => node is PredefinedTypeSyntax predefinedType && IsPredefinedType(predefinedType.Keyword);
+
+        public bool IsPredefinedType(SyntaxNode? node, PredefinedType type)
+            => node is PredefinedTypeSyntax predefinedType && IsPredefinedType(predefinedType.Keyword, type);
+
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {
             type = GetPredefinedType(token);
@@ -464,13 +473,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
                     return true;
                 default:
                     return false;
@@ -591,18 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
             => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
 
-        public SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position)
+        public SyntaxNode? GetContainingTypeDeclaration(SyntaxNode root, int position)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
-            if (position < 0 || position > root.Span.End)
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
             return root
                 .FindToken(position)
                 .GetAncestors<SyntaxNode>()
@@ -655,6 +659,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
+        public bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression)
+        {
+            if (node is InitializerExpressionSyntax
+                {
+                    Parent: BaseObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax
+                })
+            {
+                creationExpression = node.Parent;
+                return true;
+            }
+
+            creationExpression = null;
+            return false;
+        }
+
         public bool IsElementAccessExpression(SyntaxNode? node)
             => node.IsKind(SyntaxKind.ElementAccessExpression);
 
@@ -665,11 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsIndexerMemberCRef(SyntaxNode? node)
             => node.IsKind(SyntaxKind.IndexerMemberCref);
 
-        public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
+        public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
         {
-            Contract.ThrowIfNull(root, "root");
-            Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
-
             var end = root.FullSpan.End;
             if (end == 0)
             {
@@ -1191,6 +1207,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttributeArgumentList(SyntaxNode argumentList)
+            => ((AttributeArgumentListSyntax)argumentList).Arguments;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1346,12 +1365,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
-        public bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
+        public bool IsIsTypeExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsExpression);
 
-        [return: NotNullIfNotNull("node")]
-        public SyntaxNode? WalkDownParentheses(SyntaxNode? node)
-            => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
+        public bool IsIsNotTypeExpression([NotNullWhen(true)] SyntaxNode? node)
+            => false;
 
         public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
@@ -1462,6 +1480,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsPatternExpression);
 
+        public void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type)
+        {
+            var isPatternExpression = (BinaryExpressionSyntax)node;
+            expression = isPatternExpression.Left;
+            type = isPatternExpression.Right;
+        }
+
         public void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right)
         {
             var isPatternExpression = (IsPatternExpressionSyntax)node;
@@ -1505,7 +1530,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool SupportsNotPattern(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
+            => options.LanguageVersion() >= LanguageVersion.CSharp9;
+
+        // C# only supports the pattern form, not the expression form.
+        public bool SupportsIsNotTypeExpression(ParseOptions options)
+            => false;
 
         public bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.AndPattern);
@@ -1587,9 +1616,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
 
+        public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
+
+        public bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ImplicitElementAccessSyntax };
+
+        public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);
+
+        public bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression);
+
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+        {
+            var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;
+            argumentList = objectCreationExpression.ArgumentList;
+            initializer = objectCreationExpression.Initializer;
+        }
 
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
@@ -1647,6 +1695,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             members = namespaceDeclaration.Members;
         }
 
+        public void GetPartsOfNamedMemberInitializer(SyntaxNode node, out SyntaxNode identifier, out SyntaxNode expression)
+        {
+            var assignment = (AssignmentExpressionSyntax)node;
+            identifier = assignment.Left;
+            expression = assignment.Right;
+        }
+
         public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
@@ -1688,6 +1743,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
+
+        public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;
+
+        public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
 
         #endregion
     }

@@ -29,12 +29,19 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Nerdbank.Streams" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="StreamJsonRpc" PkgDefEntry="BindingRedirect" />
+
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" PkgDefEntry="CodeBase" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" PkgDefEntry="CodeBase" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" PkgDefEntry="CodeBase" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -55,6 +62,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
@@ -62,6 +70,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />
   </ItemGroup>
   <!--
     Workaround to make Roslyn work on Dev15. Deploys System.ValueTuple 4.0.3.0 and binding redirects to override System.ValueTuple 4.0.1.0 in PrivateAssemblies.

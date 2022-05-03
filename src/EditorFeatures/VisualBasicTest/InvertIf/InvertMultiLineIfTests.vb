@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             Return New VisualBasicInvertMultiLineIfCodeRefactoringProvider()
         End Function
 
-        Public Async Function TestFixOneAsync(initial As String, expected As String) As Task
-            Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected))
+        Public Async Function TestFixOneAsync(initial As String, expected As String, Optional parseOptions As ParseOptions = Nothing) As Task
+            Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected), parseOptions:=parseOptions)
         End Function
 
         Public Shared Function CreateTreeText(initial As String) As String
@@ -732,6 +732,66 @@ end class",
     end sub
 
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        Public Async Function TestMultiLineTypeOfIs_VB12() As Task
+            Await TestFixOneAsync(
+"
+        [||]If TypeOf a Is String Then
+            aMethod()
+        Else
+            bMethod()
+        End If
+",
+"
+        If Not (TypeOf a Is String) Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        Public Async Function TestMultiLineTypeOfIs_VB14() As Task
+            Await TestFixOneAsync(
+"
+        [||]If TypeOf a Is String Then
+            aMethod()
+        Else
+            bMethod()
+        End If
+",
+"
+        If TypeOf a IsNot String Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        Public Async Function TestMultiLineTypeOfIsNot() As Task
+            Await TestFixOneAsync(
+"
+        [||]If TypeOf a IsNot String Then
+            aMethod()
+        Else
+            bMethod()
+        End If
+",
+"
+        If TypeOf a Is String Then
+            bMethod()
+        Else
+            aMethod()
+        End If
+")
         End Function
     End Class
 End Namespace

@@ -4,11 +4,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <!-- The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub targeting .Net Core -->
+    <!--
+    The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
+    -->
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->

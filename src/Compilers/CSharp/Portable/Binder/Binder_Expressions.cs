@@ -1917,15 +1917,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics)
+        private bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics)
         {
-            if (symbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            if (symbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
+                ContainingMember() is not SynthesizedSimpleProgramEntryPointSymbol)
             {
-                if (!SyntaxFacts.IsTopLevelStatement(node.Ancestors(ascendOutOfTrivia: false).OfType<GlobalStatementSyntax>().FirstOrDefault()))
-                {
-                    Error(diagnostics, ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, node, node);
-                    return true;
-                }
+                Error(diagnostics, ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, node, node);
+                return true;
             }
 
             return false;
@@ -5894,6 +5892,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = GetSpecialType(specialType, diagnostics, node);
             }
 
+            if (node.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+                MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node, node.Location);
+
             return new BoundLiteral(node, cv, type);
         }
 
@@ -8753,10 +8754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (!typeArguments.All(t => isValidTypeArgument(t.Type)))
+            if (!typeArguments.All(t => t.HasType))
             {
-                // https://github.com/dotnet/roslyn/issues/55217: Support parameter
-                // and return types that are not valid generic type arguments.
+                // Invalid parameter or return type.
                 return null;
             }
 
@@ -8796,13 +8796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
             return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);
-
-            static bool isValidTypeArgument(TypeSymbol? type)
-            {
-                return type is { } &&
-                    !type.IsPointerOrFunctionPointer() &&
-                    !type.IsRestrictedType();
-            }
 
             static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
             {

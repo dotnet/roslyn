@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Tagging;
+using Microsoft.CodeAnalysis.Editor.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -83,32 +84,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             var document = documentSnapshotSpan.Document;
             if (document == null)
-            {
                 return;
-            }
 
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
-            {
                 return;
-            }
-
-            LineSeparatorTag tag;
-            lock (_lineSeperatorTagGate)
-            {
-                tag = _lineSeparatorTag;
-            }
 
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
             {
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                 var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
+                if (lineSeparatorService == null)
+                    return;
+
                 var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var span in lineSeparatorSpans)
+                if (lineSeparatorSpans.Length == 0)
+                    return;
+
+                LineSeparatorTag tag;
+                lock (_lineSeperatorTagGate)
                 {
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
+                    tag = _lineSeparatorTag;
                 }
+
+                foreach (var span in lineSeparatorSpans)
+                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
             }
         }
     }

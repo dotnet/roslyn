@@ -75,19 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation? GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            try
-            {
-                return GetOperationCore(node, cancellationToken);
-            }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return null;
+            return GetOperationCore(node, cancellationToken);
         }
 
         protected abstract IOperation? GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
@@ -875,7 +863,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract void ComputeDeclarationsInNode(SyntaxNode node, ISymbol associatedSymbol, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
+        /// <summary>
+        /// Gets a filter that determines whether or not a given syntax node and its descendants should be analyzed for the given
+        /// declared node and declared symbol. We have scenarios where certain syntax nodes declare multiple symbols,
+        /// for example record declarations, and we want to avoid duplicate syntax node callbacks for such nodes.
+        /// Note that the predicate returned by this method filters out both the node and all its descendants from analysis.
+        /// If you wish to skip analysis just for a specific node, but not its descendants, then add the required logic in
+        /// <see cref="ShouldSkipSyntaxNodeAnalysis(SyntaxNode, ISymbol)"/>.
+        /// </summary>
         internal virtual Func<SyntaxNode, bool>? GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol) => null;
+
+        /// <summary>
+        /// Determines if the given syntax node with the given containing symbol should be analyzed or not.
+        /// Note that only the given syntax node will be filtered out from analysis, this API will be invoked separately
+        /// for each of its descendants. If you wish to skip analysis of the node and all its descendants, then add the required
+        /// logic to <see cref="GetSyntaxNodesToAnalyzeFilter(SyntaxNode, ISymbol)"/>.
+        /// </summary>
+        internal virtual bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol) => false;
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.

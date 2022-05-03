@@ -71,8 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007" or "RemoveUnnecessaryImportsFixable"
-                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+                    or "IDE1007"
+                    or "RemoveUnnecessaryImportsFixable"
+                    or "RE0001"
+                    or "JSON001"
+                    or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
                 return;
@@ -429,6 +432,12 @@ dotnet_diagnostic.IDE0170.severity = %value%
 # IDE0180
 dotnet_diagnostic.IDE0180.severity = %value%
 
+# IDE0190
+dotnet_diagnostic.IDE0190.severity = %value%
+
+# IDE0200
+dotnet_diagnostic.IDE0200.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -446,6 +455,12 @@ dotnet_diagnostic.IDE2004.severity = %value%
 
 # RE0001
 dotnet_diagnostic.RE0001.severity = %value%
+
+# JSON001
+dotnet_diagnostic.JSON001.severity = %value%
+
+# JSON002
+dotnet_diagnostic.JSON002.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -604,6 +619,12 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # RE0001
 dotnet_diagnostic.RE0001.severity = %value%
+
+# JSON001
+dotnet_diagnostic.JSON001.severity = %value%
+
+# JSON002
+dotnet_diagnostic.JSON002.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -1010,6 +1031,12 @@ csharp_style_prefer_extended_property_pattern = true
 # IDE0180, PreferTupleSwap
 csharp_style_prefer_tuple_swap = true
 
+# IDE0190, PreferParameterNullChecking
+csharp_style_prefer_parameter_null_checking = true
+
+# IDE0200, PreferMethodGroupConversion
+csharp_style_prefer_method_group_conversion = true
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1035,6 +1062,12 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 
 # RE0001
+No editorconfig based code style option
+
+# JSON001
+No editorconfig based code style option
+
+# JSON002
 No editorconfig based code style option
 ";
 
@@ -1235,6 +1268,12 @@ dotnet_style_allow_multiple_blank_lines_experimental = true
 dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # RE0001
+No editorconfig based code style option
+
+# JSON001
+No editorconfig based code style option
+
+# JSON002
 No editorconfig based code style option
 ";
 

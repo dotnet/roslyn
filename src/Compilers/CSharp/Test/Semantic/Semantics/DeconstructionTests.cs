@@ -6445,5 +6445,91 @@ class C2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "(i, c) = new C2()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 1)
                 );
         }
+
+        [Fact, WorkItem(58472, "https://github.com/dotnet/roslyn/issues/58472")]
+        public void DeconstructionIntoImplicitIndexers()
+        {
+            var source = @"
+var x = new int[1];
+C.M(x);
+
+var y = new int[1];
+C.M2(y);
+
+System.Console.Write((x[^1], y[^1]));
+
+class C
+{
+    public static void M<T>(T[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+
+    public static void M2(int[] a)
+    {
+        (a[0], a[^1]) = (default, default);
+    }
+}
+";
+
+            var comp = CreateCompilationWithIndex(source);
+            // No IndexOutOfRangeException thrown
+            var verifier = CompileAndVerify(comp, expectedOutput: "(0, 0)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>(T[])", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  initobj    ""T""
+  IL_0012:  ldloc.2
+  IL_0013:  stelem     ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  initobj    ""T""
+  IL_0022:  ldloc.2
+  IL_0023:  stelem     ""T""
+  IL_0028:  ret
+}
+");
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  dup
+  IL_000a:  ldlen
+  IL_000b:  conv.i4
+  IL_000c:  ldc.i4.1
+  IL_000d:  sub
+  IL_000e:  ldelema    ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  stind.i4
+  IL_0016:  ldc.i4.0
+  IL_0017:  stind.i4
+  IL_0018:  ret
+}
+");
+        }
     }
 }

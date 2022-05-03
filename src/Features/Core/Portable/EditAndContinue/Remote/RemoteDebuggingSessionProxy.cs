@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
+                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
                 syntaxError = null;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
 
             // report emit/apply diagnostics:
-            diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData);
+            diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
 
             return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
         }

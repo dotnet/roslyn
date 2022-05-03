@@ -3,19 +3,20 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockStreamingFindUsagesPresenter
         Implements IStreamingFindUsagesPresenter
 
-        Public ReadOnly Context As New SimpleFindUsagesContext()
+        Public ReadOnly Context As SimpleFindUsagesContext
         Private ReadOnly _action As Action
 
-        Public Sub New(action As Action)
+        Public Sub New(globalOptions As IGlobalOptionService, action As Action)
             _action = action
+            Context = New SimpleFindUsagesContext(globalOptions)
         End Sub
 
         Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll

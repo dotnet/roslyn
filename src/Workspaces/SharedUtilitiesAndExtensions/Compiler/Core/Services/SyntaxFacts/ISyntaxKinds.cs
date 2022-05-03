@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int AwaitKeyword { get; }
         int AsyncKeyword { get; }
+        int DelegateKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
@@ -52,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int CharacterLiteralToken { get; }
         int StringLiteralToken { get; }
+        int? SingleLineRawStringLiteralToken { get; }
+        int? MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -97,11 +100,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region expressions
 
         int AnonymousObjectCreationExpression { get; }
+        int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitArrayCreationExpression { get; }
         int? ImplicitObjectCreationExpression { get; }
+        int? IndexExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
@@ -110,6 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
+        int? RangeExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -137,6 +144,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int? RecordDeclaration { get; }
+        int? RecordStructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }

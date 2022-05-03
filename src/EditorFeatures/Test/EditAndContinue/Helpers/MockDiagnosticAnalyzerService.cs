@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,11 +19,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public readonly List<DocumentId> DocumentsToReanalyze = new();
 
+        public MockDiagnosticAnalyzerService(IGlobalOptionService globalOptions)
+        {
+            GlobalOptions = globalOptions;
+        }
+
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
             => DocumentsToReanalyze.AddRange(documentIds);
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();
+
+        public IGlobalOptionService GlobalOptions { get; }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
             => throw new NotImplementedException();

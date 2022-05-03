@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Public Sub New()
             ShowImportCompletionItemsOptionValue = True
-            IsExpandedCompletion = True
+            ForceExpandedCompletionIndexCreation = True
         End Sub
 
         Friend Overrides Function GetCompletionProviderType() As Type

@@ -20,10 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
 
             public InterpolatedStringSplitter(
-                Document document, int position,
-                SyntaxNode root, SourceText sourceText,
+                Document document,
+                int position,
+                SyntaxNode root,
+                SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
+                bool useTabs,
+                int tabSize,
+                FormattingOptions.IndentStyle indentStyle,
                 CancellationToken cancellationToken)
                 : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
             {
@@ -32,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
-            // Don't offer on $@"" strings.  They support newlines directly in their content.
+            // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
             protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                => _interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {

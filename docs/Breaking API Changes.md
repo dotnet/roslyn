@@ -53,3 +53,14 @@ PR: https://github.com/dotnet/roslyn/pull/11536
 
 The constructors of Microsoft.CodeAnalysis.Completion and Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders are now internal.
 Roslyn does not support implementing completion for arbitrary languages.
+
+# Version 4.2.0
+
+### Can no longer inherit from QuickInfoService
+
+The constructors of Microsoft.CodeAnalysis.QuickInfoService are now internal.
+Roslyn does not support implementing completion for arbitrary languages.
+
+### `Microsoft.CodeAnalysis.CodeStyle.NotificationOption` is now immutable
+
+All property setters now throw an exception.

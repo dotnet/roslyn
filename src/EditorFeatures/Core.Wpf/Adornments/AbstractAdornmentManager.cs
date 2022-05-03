@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.
     /// </summary>
-    internal abstract class AbstractAdornmentManager<T> where T : GraphicsTag
+    internal abstract class AbstractAdornmentManager<T> where T : BrushTag
     {
         private readonly object _invalidatedSpansLock = new();
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
         }
 
-        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan, out SnapshotPoint mappedPoint)
+        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan, out SnapshotPoint mappedPoint)
         {
             mappedPoint = default;
             var point = GetMappedPoint(snapshotSpan, mappingTagSpan);
@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             return true;
         }
 
-        protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan)
         {
-            var point = mappingTagSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+            var point = mappingTagSpan.Span.End.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
             if (point == null)
             {
                 return null;

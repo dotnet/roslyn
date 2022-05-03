@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -6503,7 +6504,7 @@ class Program
         [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
         {
-            const string InitialWorkspace = @"
+            var initialWorkspace = @"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -6529,8 +6530,8 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestMissingAsync(InitialWorkspace, new TestParameters(
-                options: Option(CompletionOptions.Metadata.HideAdvancedMembers, true),
+            await TestMissingAsync(initialWorkspace, new TestParameters(
+                codeActionOptions: CodeActionOptions.Default with { HideAdvancedMembers = true },
                 testHost: testHost));
         }
     }

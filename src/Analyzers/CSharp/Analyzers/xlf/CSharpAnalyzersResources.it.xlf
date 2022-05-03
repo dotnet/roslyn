@@ -67,6 +67,11 @@
         <target state="translated">Dichiarazione di variabile inline</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="translated">L'espressione lambda può essere rimossa</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Direttiva using in posizione errata</target>
@@ -122,6 +127,11 @@
         <target state="translated">Rimuovi gli operatori di eliminazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="translated">Rimuovi espressione lambda non necessaria</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">Rimuovi l'operatore di eliminazione non necessario</target>
@@ -135,6 +145,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Semplifica l'espressione 'default'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_delegate_invocation">
+        <source>Simplify delegate invocation</source>
+        <target state="translated">Semplifica la chiamata del delegato</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
@@ -247,9 +262,19 @@
         <target state="translated">Usa operatore di indice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_is_not_null_check">
+        <source>Use 'is not null' check</source>
+        <target state="translated">Usa il controllo 'is not Null'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">Usa controllo 'is null'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_is_object_check">
+        <source>Use 'is object' check</source>
+        <target state="translated">Usa il controllo 'is object'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -261,6 +286,11 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Usa 'new(...)'</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="translated">Usa il controllo dei parametri Null</target>
+        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

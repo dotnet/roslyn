@@ -20,7 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        ' The test uses double.ToString which has precision differences between English and non-English cultures
+        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -356,7 +357,8 @@ False
             CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        ' The test uses double.ToString which has precision differences between English and non-English cultures
+        <ConditionalFact(GetType(WindowsDesktopOnly), GetType(IsEnglishLocal), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =
@@ -1499,7 +1501,7 @@ End Module
         Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
             numChildren += 1
             Assert.NotNull(iop)
-            For Each child in iop.Children
+            For Each child In iop.ChildOperations
                 EnumerateChildren(child, numChildren)
             Next
         End Sub

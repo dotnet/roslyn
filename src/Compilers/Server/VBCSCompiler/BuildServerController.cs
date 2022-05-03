@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
 
-        internal int RunShutdown(string pipeName, CancellationToken cancellationToken = default) =>
-            RunShutdownAsync(pipeName, waitForProcess: true, cancellationToken).GetAwaiter().GetResult();
+        internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
+            RunShutdownAsync(pipeName, waitForProcess: true, timeoutOverride, cancellationToken).GetAwaiter().GetResult();
 
-        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess, CancellationToken cancellationToken = default)
+        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
         {
             var success = await BuildServerConnection.RunServerShutdownRequestAsync(
                 pipeName,
-                timeoutOverride: null,
+                timeoutOverride,
                 waitForProcess: waitForProcess,
                 _logger,
                 cancellationToken).ConfigureAwait(false);

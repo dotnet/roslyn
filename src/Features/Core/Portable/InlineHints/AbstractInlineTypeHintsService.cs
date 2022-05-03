@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
     {
-        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
+        protected static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
@@ -38,10 +38,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = InlineTypeHintsOptions.From(document.Project);
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
             var enabledForTypes = options.EnabledForTypes;
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (hintOpt == null)
                     continue;
 
-                var (type, span, prefix, suffix) = hintOpt.Value;
+                var (type, span, textChange, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 finalParts.AddRange(prefix);
@@ -85,9 +83,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     continue;
 
                 finalParts.AddRange(suffix);
+                var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, finalParts.ToTaggedText(),
+                    span, taggedText, textChange,
                     InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
