@@ -26,7 +26,7 @@
                     </StackPanel>
                     <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}"/>
                     <StackPanel>
-                        <ComboBox x:Name="Option_Show_compiler_errors_and_warnings_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}">
+                        <ComboBox x:Name="Show_compiler_errors_and_warnings_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}">
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None_Tag}" />
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Visible_Files}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Visible_Files_Tag}" />
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Open_Files}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Open_Files_Tag}" />
