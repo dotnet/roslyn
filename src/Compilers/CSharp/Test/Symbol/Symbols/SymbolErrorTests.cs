@@ -2126,13 +2126,8 @@ class B : A
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
                 // (9,37): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37),
-                // (9,41): error CS0513: 'B.R.get' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("B.R.get", "B").WithLocation(9, 41),
-                // (9,46): error CS0513: 'B.R.set' is abstract but it is contained in non-abstract type 'B'
-                //     internal static abstract object R { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("B.R.set", "B").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 37)
+                );
         }
 
         [Fact]
@@ -2171,7 +2166,10 @@ abstract class B : A
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(8, 47),
                 // (9,50): error CS0112: A static member cannot be marked as 'abstract'
                 //     internal static abstract event System.Action R;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50)
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("abstract").WithLocation(9, 50),
+                // (9,50): warning CS0067: The event 'B.R' is never used
+                //     internal static abstract event System.Action R;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "R").WithArguments("B.R").WithLocation(9, 50)
                 );
         }
 

@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
             {
-                if (method.IsAbstract)
+                if (method.IsAbstract || method.IsVirtual)
                 {
                     Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
 
