@@ -23,7 +23,4 @@ internal static class CodeCleanupOptionsStorage
             FormattingOptions: globalOptions.GetSyntaxFormattingOptions(languageServices),
             SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
             AddImportOptions: AddImportPlacementOptions.Default);
-
-    public static CodeCleanupOptionsProvider GetCodeCleanupOptionsProvider(this IGlobalOptionService globalOptions)
-        => new((language, cancellationToken) => ValueTaskFactory.FromResult(globalOptions.GetCodeCleanupOptions(language)));
 }

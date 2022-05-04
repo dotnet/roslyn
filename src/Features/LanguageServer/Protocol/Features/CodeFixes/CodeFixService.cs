@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -43,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
         // Shared by project fixers and workspace fixers.
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap = new();
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider = r => new ProjectCodeFixProvider(r);
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
         private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
@@ -657,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
                 fixAllState = new FixAllState(
-                    fixAllProviderInfo.FixAllProvider,
+                    (FixAllProvider)fixAllProviderInfo.FixAllProvider,
                     fixesSpan,
                     document,
                     document.Project,
@@ -850,19 +849,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
-            foreach (var reference in project.AnalyzerReferences)
+            var codeFixProviders = ProjectCodeFixProvider.GetExtensions(project);
+            foreach (var fixer in codeFixProviders)
             {
-                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
+                var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
+                foreach (var id in fixableIds)
                 {
-                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
-                    foreach (var id in fixableIds)
-                    {
-                        if (string.IsNullOrWhiteSpace(id))
-                            continue;
+                    if (string.IsNullOrWhiteSpace(id))
+                        continue;
 
-                        builder.MultiAdd(id, fixer);
-                    }
+                    builder.MultiAdd(id, fixer);
                 }
             }
 

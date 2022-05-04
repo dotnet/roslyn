@@ -30,19 +30,22 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly TextSpan _textSpan;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateOverridesWithDialogCodeAction(
                 GenerateOverridesCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers)
+                ImmutableArray<ISymbol> viableMembers,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _containingType = containingType;
                 _viableMembers = viableMembers;
                 _textSpan = textSpan;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string Title => FeaturesResources.Generate_overrides;
@@ -81,12 +84,14 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 var members = await Task.WhenAll(memberTasks).ConfigureAwait(false);
 
                 var newDocument = await CodeGenerator.AddMemberDeclarationsAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            afterThisLocation: afterThisLocation,
+                            contextLocation: syntaxTree.GetLocation(_textSpan)),
+                        _fallbackOptions),
                     _containingType,
                     members,
-                    new CodeGenerationContext(
-                        afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan)),
                     cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[]

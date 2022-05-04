@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
         // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap;
+        private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IAsynchronousOperationListener Listener { get; }
         public IGlobalOptionService GlobalOptions { get; }
 
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
         [ImportingConstructor]
@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
 
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-            _eventMap = new EventMap();
 
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 

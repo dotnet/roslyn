@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 documentWithInvalidFolders,
                 new DocumentRenameOptions(),
 #if !CODE_STYLE
-                CodeCleanupOptions.CreateProvider(options),
+                options,
 #endif
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,

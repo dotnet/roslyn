@@ -117,6 +117,11 @@
         <target state="translated">Применить настройки для оператора using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_utf8_string_literal_preferences">
+        <source>Apply UTF-8 string literal preferences</source>
+        <target state="new">Apply UTF-8 string literal preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
         <target state="translated">Применить настройки для \"var\"</target>
@@ -157,11 +162,6 @@
         <target state="translated">Преобразовать в необработанную строку</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_raw_string_no_indent">
-        <source>Convert to raw string (no indent)</source>
-        <target state="translated">Преобразовать в необработанную строку (без отступа)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Преобразовать в обычную строку</target>
@@ -185,6 +185,11 @@
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">Включить типы ссылок, допускающие значение NULL, в проекте</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Global_using_directives">
+        <source>Global 'using' directives</source>
+        <target state="new">Global 'using' directives</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -756,6 +761,14 @@
         <source>Introduce 'using' statement</source>
         <target state="translated">Добавить инструкцию 'using'</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="without_leading_whitespace_may_change_semantics">
+        <source>... without leading whitespace (may change semantics)</source>
+        <target state="new">... without leading whitespace (may change semantics)</target>
+        <note>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>

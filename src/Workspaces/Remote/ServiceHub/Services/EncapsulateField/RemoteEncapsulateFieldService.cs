@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,29 +35,10 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-#if TODO // Replace the below specialization with a call to a generic impl once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
-        private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new((language, cancellationToken) => GetClientOptionsAsync<CodeCleanupOptions, IRemoteEncapsulateFieldService.ICallback>(_callback, callbackId, language, cancellationToken));
-#else
-        private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-        {
-            return new((language, cancellationToken) => GetClientOptionsAsync(_callback, callbackId, language, cancellationToken));
-
-            static async ValueTask<CodeCleanupOptions> GetClientOptionsAsync(
-                RemoteCallback<IRemoteEncapsulateFieldService.ICallback> callback,
-                RemoteServiceCallbackId callbackId,
-                HostLanguageServices languageServices,
-                CancellationToken cancellationToken)
-            {
-                var cache = ImmutableDictionary<string, AsyncLazy<CodeCleanupOptions>>.Empty;
-                var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<CodeCleanupOptions>(GetRemoteOptions, cacheResult: true));
-                return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                Task<CodeCleanupOptions> GetRemoteOptions(CancellationToken cancellationToken)
-                    => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
-            }
-        }
-#endif
+        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
+        private CleanCodeGenerationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
+            => new ClientCleanCodeGenerationOptionsProvider(
+                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
             Checksum solutionChecksum,

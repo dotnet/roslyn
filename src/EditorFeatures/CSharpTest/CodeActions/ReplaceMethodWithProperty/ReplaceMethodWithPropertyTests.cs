@@ -2490,5 +2490,75 @@ class C
     </Project>
 </Workspace>");
         }
+
+        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task AllowIfNestedNullableIsSame()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> [||]GetNames()
+    {
+        return this.names.Where(n => n is object);
+    }
+}",
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public IEnumerable<string?> Names { get => this.names.Where(n => n is object); set => this.names = value; }
+}", index: 1);
+        }
+
+        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestGetSetWithGeneric()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> someTask;
+
+    public void SetSomeTask(Task<string> t)
+    {
+        this.someTask = t;
+    }
+
+    public Task<string> [||]GetSomeTask()
+    {
+        return this.someTask;
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> someTask;
+
+    public Task<string> SomeTask { get => this.someTask; set => this.someTask = value; }
+}", index: 1);
+        }
     }
 }

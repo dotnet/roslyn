@@ -12,7 +12,6 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
         <StackPanel Margin="0,0,3,0">
-
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
@@ -47,6 +46,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
@@ -54,6 +54,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="ImportDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
                 <StackPanel>
@@ -75,6 +76,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_imports_on_paste}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="QuickActionsBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
                 <StackPanel>
@@ -82,6 +84,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -91,6 +94,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightKeywords}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="OutliningGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}">
                 <StackPanel>
@@ -108,6 +112,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="FadingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
                 <StackPanel>
@@ -115,6 +120,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>
@@ -124,6 +130,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="CommentsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
@@ -133,7 +140,7 @@
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
                 </StackPanel>
             </GroupBox>
-
+            
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
@@ -287,6 +294,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Name="InheritanceMarginGroupbox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
@@ -296,6 +304,9 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                    <CheckBox x:Uid="IncludeGlobalImports"
+                              x:Name="IncludeGlobalImports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

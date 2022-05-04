@@ -6,15 +6,18 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteRenamerService : BrokeredServiceBase, IRemoteRenamerService
+    internal sealed partial class RemoteRenamerService : BrokeredServiceBase, IRemoteRenamerService
     {
         internal sealed class Factory : FactoryBase<IRemoteRenamerService, IRemoteRenamerService.ICallback>
         {
@@ -30,29 +33,11 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-#if TODO // Replace the below specialization with a call to a generic impl once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
+        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
         private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new((language, cancellationToken) => GetClientOptionsAsync<CodeCleanupOptions, IRemoteRenamerService.ICallback>(_callback, callbackId, language, cancellationToken));
-#else
-        private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-        {
-            return new((language, cancellationToken) => GetClientOptionsAsync(_callback, callbackId, language, cancellationToken));
+            => new ClientCodeCleanupOptionsProvider(
+                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
-            static async ValueTask<CodeCleanupOptions> GetClientOptionsAsync(
-                RemoteCallback<IRemoteRenamerService.ICallback> callback,
-                RemoteServiceCallbackId callbackId,
-                HostLanguageServices languageServices,
-                CancellationToken cancellationToken)
-            {
-                var cache = ImmutableDictionary<string, AsyncLazy<CodeCleanupOptions>>.Empty;
-                var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<CodeCleanupOptions>(GetRemoteOptions, cacheResult: true));
-                return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                Task<CodeCleanupOptions> GetRemoteOptions(CancellationToken cancellationToken)
-                    => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
-            }
-        }
-#endif
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,

@@ -1648,6 +1648,9 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
+  <data name="Include_global_imports" xml:space="preserve">
+    <value>Include global imports</value>
+  </data>
   <data name="Inheritance_Margin" xml:space="preserve">
     <value>Inheritance Margin</value>
   </data>
@@ -1928,6 +1931,9 @@ Additional information: {1}</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
   </data>
+  <data name="Fix_text_pasted_into_string_literals_experimental" xml:space="preserve">
+    <value>Fix text pasted into string literals (experimental)</value>
+  </data>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>
   </data>
@@ -1939,5 +1945,12 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_top_level_statements" xml:space="preserve">
     <value>Prefer top-level statements</value>
+  </data>
+  <data name="_0_1" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Used to show a symbol name, followed by the project name it came from</comment>
+  </data>
+  <data name="Prefer_UTF8_string_literals" xml:space="preserve">
+    <value>Prefer UTF-8 string literals</value>
   </data>
 </root>
