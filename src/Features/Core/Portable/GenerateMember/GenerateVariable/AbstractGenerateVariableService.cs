@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
 
                 await AddLocalCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+                await AddParameterCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
 
                 if (actions.Count > 1)
                 {
@@ -199,21 +199,34 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         private static async Task AddParameterCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CancellationToken cancellationToken)
         {
             if (state.CanGenerateParameter())
             {
                 // Don't generate parameters with a `_` prefix unless that's what the user really wants as their naming style.
                 if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                        document, state, SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
+                        document.Document, state, SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
 
-                result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
+                int? parameterIndex = null;
+                var containigMethod = state.ContainingMethod;
+
+                if (containigMethod.IsAsync && containigMethod.Parameters.Length > 0)
+                {
+                    var lastParameterIsCancellationToken = containigMethod.Parameters.LastOrDefault()!.Type.Equals(document.SemanticModel.Compilation.CancellationTokenType());
+
+                    if (lastParameterIsCancellationToken)
+                    {
+                        parameterIndex = containigMethod.Parameters.Length - 1;
+                    }
+                }
+
+                result.Add(new GenerateParameterCodeAction(document.Document, state, includeOverridesAndImplementations: false, parameterIndex));
 
                 if (AddParameterService.HasCascadingDeclarations(state.ContainingMethod))
-                    result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
+                    result.Add(new GenerateParameterCodeAction(document.Document, state, includeOverridesAndImplementations: true, parameterIndex));
             }
         }
 
