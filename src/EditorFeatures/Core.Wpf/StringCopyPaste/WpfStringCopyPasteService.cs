@@ -73,9 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
             return false;
         }
 
-        [DllImport("user32.dll")]
-        private static extern uint GetClipboardSequenceNumber();
-
+        /// <summary>
+        /// Wraps an underlying <see cref="IDataObject"/>, forwarding all calls to it unless the request is about our
+        /// special <see cref="RoslynCopyPasteSequenceNumber"/> data that we've added ourselves.
+        /// </summary>
         private class DataObjectWrapper : IDataObject
         {
             private readonly IDataObject _dataObject;
