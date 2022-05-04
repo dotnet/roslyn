@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             DocumentAfterPaste = documentAfterPaste;
 
             StringExpressionBeforePaste = stringExpressionBeforePaste;
-            StringExpressionBeforePasteInfo = GetStringInfo(TextBeforePaste, stringExpressionBeforePaste);
+            StringExpressionBeforePasteInfo = StringInfo.GetStringInfo(TextBeforePaste, stringExpressionBeforePaste);
             TextContentsSpansAfterPaste = StringExpressionBeforePasteInfo.ContentSpans.SelectAsArray(MapSpanForward);
 
             Contract.ThrowIfTrue(StringExpressionBeforePasteInfo.ContentSpans.IsEmpty);

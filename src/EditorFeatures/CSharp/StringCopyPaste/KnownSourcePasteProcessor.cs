@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private string WrapChangeWithOriginalQuotes(string pastedText)
         {
             var textCopiedFrom = _snapshotCopiedFrom.AsText();
-            var stringExpressionCopiedFromInfo = GetStringInfo(textCopiedFrom, _stringExpressionCopiedFrom);
+            var stringExpressionCopiedFromInfo = StringInfo.GetStringInfo(textCopiedFrom, _stringExpressionCopiedFrom);
 
             var startQuote = textCopiedFrom.ToString(stringExpressionCopiedFromInfo.StartDelimiterSpan);
             var endQuote = textCopiedFrom.ToString(stringExpressionCopiedFromInfo.EndDelimiterSpan);
