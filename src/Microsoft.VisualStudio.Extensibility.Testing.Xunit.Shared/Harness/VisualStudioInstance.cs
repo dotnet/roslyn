@@ -42,7 +42,7 @@ namespace Xunit.Harness
                 var debuggerHostDte = GetDebuggerHostDte();
                 int targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
-                localProcess?.Attach2("Managed");
+                localProcess?.Attach2(VSConstants.DebugEnginesGuids.ManagedOnly_string);
             }
 
             StartRemoteIntegrationService(dte);

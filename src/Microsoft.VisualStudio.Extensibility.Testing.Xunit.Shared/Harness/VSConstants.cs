@@ -22,5 +22,11 @@ namespace Xunit.Harness
         {
             Exit = 229,
         }
+
+        public static class DebugEnginesGuids
+        {
+            /// <summary>The guid of the Debugger Engine for Managed code.</summary>
+            public const string ManagedOnly_string = "{449EC4CC-30D2-4032-9256-EE18EB41B62B}";
+        }
     }
 }
