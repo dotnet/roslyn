@@ -123,10 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
         /// </summary>
         protected TextSpan MapSpanForward(TextSpan span)
-        {
-            var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
-        }
+            => MapSpan(span, SnapshotBeforePaste, SnapshotAfterPaste);
 
         /// <summary>
         /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
