@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
 
                 int? parameterIndex = null;
-                var containigMethod = state.ContainingMethod;
+                var containingMethod = state.ContainingMethod;
 
                 if (containigMethod.IsAsync && containigMethod.Parameters.Length > 0)
                 {
