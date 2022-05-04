@@ -9727,7 +9727,7 @@ $@"class Program
 
         [WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateParameterInAsycMethodBeforeCancellationToken_OneParameter()
+        public async Task TestGenerateParameterBeforeCancellationToken_OneParameter()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Threading;
@@ -9754,7 +9754,7 @@ class C
 
         [WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateParameterInAsycMethodBeforeCancellationToken_SeveralParameters()
+        public async Task TestGenerateParameterBeforeCancellationToken_SeveralParameters()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Threading;
@@ -9773,33 +9773,6 @@ using System.Threading.Tasks;
 class C
 {
     public async Task M(string someParameter, System.TimeSpan time, CancellationToken cancellationToken)
-    {
-        await Task.Delay(time);
-    }
-}", index: 4);
-        }
-
-        [WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateParameterNotBeforeCancellationTokenIfMethodIsNotAsync()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Threading;
-using System.Threading.Tasks;
-
-class C
-{
-    public Task M(CancellationToken cancellationToken)
-    {
-        await Task.Delay([|time|]);
-    }
-}",
-@"using System.Threading;
-using System.Threading.Tasks;
-
-class C
-{
-    public Task M(CancellationToken cancellationToken, System.TimeSpan time)
     {
         await Task.Delay(time);
     }
