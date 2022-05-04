@@ -2990,5 +2990,71 @@ count:=5)
     End Sub
 End Namespace")
         End Function
+
+        <WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateParameterInAsycFunctionBeforeCancellationToken_OneParameter() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(token As CancellationToken) As Task
+        Await Task.Delay([|time|])
+    End Function
+End Class",
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(time As System.TimeSpan, token As CancellationToken) As Task
+        Await Task.Delay(time)
+    End Function
+End Class", index:=4)
+        End Function
+
+        <WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateParameterInAsycFunctionBeforeCancellationToken_SeveralParameters() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(someParameter As String, token As CancellationToken) As Task
+        Await Task.Delay([|time|])
+    End Function
+End Class",
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(someParameter As String, time As System.TimeSpan, token As CancellationToken) As Task
+        Await Task.Delay(time)
+    End Function
+End Class", index:=4)
+        End Function
+
+        <WorkItem(60842, "https://github.com/dotnet/roslyn/issues/60842")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateParameterNotBeforeCancellationTokenIfFunctionIsNotAsync() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Function Test(token As CancellationToken) As Task
+        Await Task.Delay([|time|])
+    End Function
+End Class",
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Function Test(token As CancellationToken, time As System.TimeSpan) As Task
+        Await Task.Delay(time)
+    End Function
+End Class", index:=4)
+        End Function
     End Class
 End Namespace
