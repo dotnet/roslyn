@@ -24,7 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
     internal class KnownSourcePasteProcessor : AbstractPasteProcessor
     {
+        /// <summary>
+        /// The original string expression in some document that we were cut/copying text from.
+        /// </summary>
         private readonly ExpressionSyntax _stringExpressionCopiedFrom;
+
+        /// <summary>
+        /// The text snapshot of the document the original text was cut/copied from.
+        /// </summary>
         private readonly ITextSnapshot _snapshotCopiedFrom;
 
         public KnownSourcePasteProcessor(
