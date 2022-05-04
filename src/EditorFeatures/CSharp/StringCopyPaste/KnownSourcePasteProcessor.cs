@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// The text snapshot of the document the original text was cut/copied from.
         /// </summary>
         private readonly ITextSnapshot _snapshotCopiedFrom;
+        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
 
         public KnownSourcePasteProcessor(
             string newLine,
@@ -49,11 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             ExpressionSyntax stringExpressionCopiedFrom,
-            ITextSnapshot snapshotCopiedFrom)
+            ITextSnapshot snapshotCopiedFrom,
+            ITextBufferFactoryService3 textBufferFactoryService)
             : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
             _snapshotCopiedFrom = snapshotCopiedFrom;
+            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Smart Pasting into raw string not supported yet.  
             if (IsAnyRawStringExpression(StringExpressionBeforePaste))
                 // return default;
-                return GetEditsForRawString();
+                return GetEditsForRawString(cancellationToken);
 
             return GetEditsForNonRawString();
         }
@@ -246,6 +249,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
         }
 
+#if false
+
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
             // Can't really figure anything out if the raw string is in error.
@@ -272,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then any quotes to your starting delimiter
             if (quotesToAdd != null)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.First().Start, 0), quotesToAdd));
 
             if (IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste))
                 AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(edits);
@@ -281,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
             foreach (var change in Changes)
             {
@@ -295,19 +300,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 var modifiedText = TransformValueToDestinationKind(parsedChange);
                 edits.Add(new TextChange(change.OldSpan.ToTextSpan(), modifiedText));
             }
-
-
-            if (IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste))
-            {
-
-            }
-            else
-            {
-                // If we pasted into a single-line raw literal we may have to make it multiline if it starts/ends with a
-                // quote, or contains a newline.
-
-            }
-
 
             return edits.ToImmutable();
         }
@@ -325,25 +317,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // A newline and the indentation to start with.
             if (mustBeMultiLine)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + indentationWhitespace));
 
 
 
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
             if (mustBeMultiLine && !LastPastedLineAddedNewLine())
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + indentationWhitespace));
         }
 
         private void AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(ArrayBuilder<TextChange> edits)
         {
             throw new NotImplementedException();
         }
-
-#if false
+#endif
 
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
+
+            // Can't really figure anything out if the raw string is in error.
+            if (NodeOrTokenContainsError(StringExpressionBeforePaste))
+                return default;
+
+            // If all we're going to do is insert whitespace, then don't make any adjustments to the text. We don't want
+            // to end up inserting nothing and having the user very confused why their paste did nothing.
+            if (AllWhitespace(SnapshotBeforePaste.Version.Changes))
+                return default;
+
             // Determine the basic updates to the pasted pieces we need to make to properly unescape the pieces for a
             // raw string.
 
@@ -354,34 +355,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //
             var internalContentChanges = GetRawStringContentChanges(cancellationToken);
             var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(SnapshotBeforePaste.TextImage, SnapshotBeforePaste.ContentType);
-            var clonedSnapshotBeforePaste = clonedBuffer.CurrentSnapshot;
+            var clonedSnapshotBeforeFakePaste = clonedBuffer.CurrentSnapshot;
             var edit = clonedBuffer.CreateEdit();
             foreach (var change in internalContentChanges)
                 edit.Replace(change.Span.ToSpan(), change.NewText);
             edit.Apply();
-            var clonedSnapshotAfterPaste = clonedBuffer.CurrentSnapshot;
 
-            var quotesToAdd = GetQuotesToAddToRawString();
+            var clonedSnapshotAfterFakePaste = clonedBuffer.CurrentSnapshot;
+            var clonedTextAfterFakePaste = clonedSnapshotAfterFakePaste.AsText();
+            var contentSpansAfterFakePaste = this.StringExpressionBeforePasteInfo.ContentSpans.SelectAsArray(
+                ts => ts.Map.ToSnapshotSpan(clonedSnapshotBeforeFakePaste).)
+
+            var quotesToAdd = GetQuotesToAddToRawString(clonedTextAfterPaste);
             var dollarSignsToAdd = GetDollarSignsToAddToRawString();
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
             // First, add any extra dollar signs needed.
             if (dollarSignsToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
 
             // Then any quotes to your starting delimiter
             if (quotesToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
-            editsToMake.AddRange(internalContentChanges);
+            edits.AddRange(internalContentChanges);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
-            return editsToMake.ToImmutable();
+            return edits.ToImmutable();
         }
 
         private string GetDollarSignsToAddToRawString()

@@ -123,24 +123,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
         /// </summary>
         protected TextSpan MapSpanForward(TextSpan span)
+            => MapSpanForward(span, SnapshotBeforePaste, SnapshotAfterPaste);
         {
             var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
         }
 
-        /// <inheritdoc cref="GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
-        protected string? GetQuotesToAddToRawString()
-            => GetQuotesToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
-
-        /// <inheritdoc cref="GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
-        protected string? GetDollarSignsToAddToRawString()
-            => GetDollarSignsToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
-
         /// <summary>
         /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
         /// add to the start and end to keep things parsing properly.
         /// </summary>
-        private string? GetQuotesToAddToRawString(
+        protected string? GetQuotesToAddToRawString(
             SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
         {
             Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
@@ -155,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// Given an initial raw string literal, and the changes made to it by the paste, determines how many dollar
         /// signs to add to the start to keep things parsing properly.
         /// </summary>
-        private string? GetDollarSignsToAddToRawString(
+        protected string? GetDollarSignsToAddToRawString(
             SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
         {
             Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));

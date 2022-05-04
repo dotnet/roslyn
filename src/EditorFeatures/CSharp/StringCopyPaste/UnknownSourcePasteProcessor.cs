@@ -139,14 +139,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-            {
-                var end = StringExpressionBeforePasteInfo.EndDelimiterSpan.End;
-                end = SkipU8Suffix(TextBeforePaste, end);
-                edits.Add(new TextChange(new TextSpan(end, 0), quotesToAdd));
-            }
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
             return edits.ToImmutable();
         }
+
+        /// <inheritdoc cref="GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
+        private string? GetQuotesToAddToRawString()
+            => GetQuotesToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
+
+        /// <inheritdoc cref="GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
+        private string? GetDollarSignsToAddToRawString()
+            => GetDollarSignsToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
 
         // Pasting with single line case.
 

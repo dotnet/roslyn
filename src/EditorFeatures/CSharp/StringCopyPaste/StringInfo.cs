@@ -40,6 +40,11 @@ internal readonly struct StringInfo
     public readonly TextSpan EndDelimiterSpan;
 
     /// <summary>
+    /// The span of the ending delimiter quotes (not including a suffix like <c>u8</c>)
+    /// </summary>
+    public readonly TextSpan EndDelimiterSpanWithoutSuffix;
+
+    /// <summary>
     /// Spans of text-content within the string.  These represent the spans where text can go within a string
     /// literal/interpolation.  Note that these spans may be empty.  For example, this happens for cases like the empty
     /// string <c>""</c>, or between interpolation holes like <c>$"x{a}{b}y"</c>. These spans can be examined to
@@ -60,6 +65,7 @@ internal readonly struct StringInfo
         int delimiterDollarCount,
         TextSpan startDelimiterSpan,
         TextSpan endDelimiterSpan,
+        TextSpan endDelimiterSpanWithoutSuffix,
         ImmutableArray<TextSpan> contentSpans,
         ImmutableArray<TextSpan> withoutIndentationContentSpans)
     {
@@ -67,6 +73,7 @@ internal readonly struct StringInfo
         DelimiterDollarCount = delimiterDollarCount;
         StartDelimiterSpan = startDelimiterSpan;
         EndDelimiterSpan = endDelimiterSpan;
+        EndDelimiterSpanWithoutSuffix = endDelimiterSpanWithoutSuffix;
         ContentSpans = contentSpans;
         WithoutIndentationContentSpans = withoutIndentationContentSpans;
     }
@@ -100,9 +107,8 @@ internal readonly struct StringInfo
             start++;
         var delimiterQuoteCount = start - literal.SpanStart;
 
-        var end = literal.Span.End;
-
-        end = SkipU8Suffix(text, end);
+        var end = SkipU8Suffix(text, literal.Span.End);
+        var endBeforeU8Suffix = end;
         while (end > start && text[end - 1] == '"')
             end--;
 
@@ -116,6 +122,7 @@ internal readonly struct StringInfo
                 delimiterQuoteCount, delimiterDollarCount: 0,
                 startDelimiterSpan: TextSpan.FromBounds(literal.SpanStart, start),
                 endDelimiterSpan: TextSpan.FromBounds(end, literal.Span.End),
+                endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(end, endBeforeU8Suffix),
                 contentSpans,
                 withoutIndentationContentSpans: contentSpans);
         }
@@ -183,6 +190,7 @@ internal readonly struct StringInfo
                 delimiterDollarCount: 0,
                 TextSpan.FromBounds(literal.SpanStart, rawStart),
                 TextSpan.FromBounds(rawEnd, literal.Span.End),
+                TextSpan.FromBounds(rawEnd, endBeforeU8Suffix),
                 contentSpans: ImmutableArray.Create(TextSpan.FromBounds(start, end)),
                 withoutIndentationContentSpans: withoutIndentationBuilder.ToImmutable());
         }
@@ -203,9 +211,8 @@ internal readonly struct StringInfo
             start++;
         var delimiterQuoteCount = start - position;
 
-        var end = literal.Span.End;
-
-        end = SkipU8Suffix(text, end);
+        var end = SkipU8Suffix(text, literal.Span.End);
+        var endBeforeU8Suffix = end;
         if (end > start && text[end - 1] == '"')
             end--;
 
@@ -216,6 +223,7 @@ internal readonly struct StringInfo
             delimiterDollarCount: 0,
             startDelimiterSpan: TextSpan.FromBounds(literal.SpanStart, start),
             endDelimiterSpan: TextSpan.FromBounds(end, literal.Span.End),
+            endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(end, endBeforeU8Suffix),
             contentSpans,
             contentSpans);
     }

@@ -230,7 +230,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                                 snapshotBeforePaste, snapshotAfterPaste,
                                 documentBeforePaste, documentAfterPaste,
                                 stringExpressionBeforePaste, stringExpressionCopiedFrom,
-                                _lastSelectedSpans[0].Snapshot);
+                                _lastSelectedSpans[0].Snapshot,
+                                _textBufferFactoryService);
                             return knownProcessor.GetEdits(cancellationToken);
                         }
                     }
