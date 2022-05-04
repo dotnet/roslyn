@@ -12,6 +12,7 @@ using System.Threading;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Metalama.Backstage.Diagnostics;
@@ -40,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
         private readonly string? _tempDirectory;
-        
+
         // <Metalama>
         static CSharpCompiler()
         {
             // Debugger.Launch();
-            
+
             // Ensure that our Metalama.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
             // is a reference assembly.
             MetalamaInitializer.Initialize();
@@ -58,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
         }
-        
-        
+
+
         // <Metalama>
         protected abstract bool IsLongRunningProcess { get; }
         // </Metalama>
@@ -392,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OrderedSet<string> embeddedFiles,
             DiagnosticBag diagnostics)
         {
-            foreach (Syntax.LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
+            foreach (LineDirectiveTriviaSyntax directive in tree.GetRoot().GetDirectives(
                 d => d.IsActive && !d.HasErrors && d.Kind() == SyntaxKind.LineDirectiveTrivia))
             {
                 var path = (string?)directive.File.Value;
@@ -454,7 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string? GetDotNetSdkDirectory(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                "build_property.NETCoreSdkBundledVersionsProps", out var propsFilePath))
+                "build_property.NETCoreSdkBundledVersionsProps", out var propsFilePath)
+                || string.IsNullOrEmpty(propsFilePath))
             {
                 return null;
             }
@@ -473,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var serviceProviderBuilder = new ServiceProviderBuilder();
-            
+
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
             if (this.RequiresMetalamaLicensingServices)

@@ -26,55 +26,19 @@ namespace Metalama.Compiler
         public MetalamaCompilerApplicationInfo(bool isLongRunningProcess, bool ignoreUnattendedProcess)
         {
             _ignoreUnattendedProcess = ignoreUnattendedProcess;
-            var metadataAttributes =
-                typeof(MetalamaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute),
-                    inherit: false);
 
-            string? version = null;
-            bool? isPrerelease = null;
-            DateTime? buildDate = null;
+            var reader = AssemblyMetadataReader.GetInstance(typeof(MetalamaCompilerApplicationInfo).Assembly);
 
-            bool AllMetadataFound() => version != null && isPrerelease != null && buildDate != null;
-
-            foreach (var metadataAttributeObject in metadataAttributes)
-            {
-                var metadataAttribute = (AssemblyMetadataAttribute)metadataAttributeObject;
-
-                switch (metadataAttribute.Key)
-                {
-                    case "MetalamaCompilerVersion":
-                        if (!string.IsNullOrEmpty(metadataAttribute.Value))
-                        {
-                            version = metadataAttribute.Value;
-                            isPrerelease = version.Contains('-');
-                        }
-
-                        break;
-
-                    case "MetalamaCompilerBuildDate":
-                        if (!string.IsNullOrEmpty(metadataAttribute.Value))
-                        {
-                            buildDate = DateTime.Parse(metadataAttribute.Value, CultureInfo.InvariantCulture);
-                        }
-
-                        break;
-                }
-
-                if (AllMetadataFound())
-                {
-                    break;
-                }
-            }
-
-            if (!AllMetadataFound())
+            if (!reader.TryGetValue("MetalamaCompilerVersion", out var version)
+                || !reader.TryGetValue("MetalamaCompilerBuildDate", out var buildDate))
             {
                 throw new InvalidOperationException(
                     $"{nameof(MetalamaCompilerApplicationInfo)} has failed to find some of the required assembly metadata.");
             }
 
-            this.Version = version!;
-            this.IsPrerelease = isPrerelease!.Value;
-            this.BuildDate = buildDate!.Value;
+            this.Version = version;
+            this.IsPrerelease = version.Contains("-");
+            this.BuildDate = DateTime.Parse(buildDate, CultureInfo.InvariantCulture);
             this.IsLongRunningProcess = isLongRunningProcess;
         }
 
