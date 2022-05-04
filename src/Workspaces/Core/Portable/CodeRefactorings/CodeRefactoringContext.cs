@@ -34,9 +34,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal readonly CodeActionOptionsProvider Options;
 
+        /// <summary>
+        /// TypeScript specific.
+        /// </summary>
+        private readonly bool _isBlocking;
+
         [Obsolete]
         bool ITypeScriptCodeRefactoringContext.IsBlocking
-            => Options.GetOptions(Document.Project.LanguageServices).IsBlocking;
+            => _isBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, isBlocking: false, cancellationToken)
         { }
 
         /// <summary>
@@ -59,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
             CodeActionOptionsProvider options,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`
@@ -67,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
             Options = options;
+            _isBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
 

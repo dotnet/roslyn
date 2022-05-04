@@ -56,9 +56,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </remarks>
         internal readonly CodeActionOptionsProvider Options;
 
+        /// <summary>
+        /// TypeScript specific.
+        /// </summary>
+        private readonly bool _isBlocking;
+
         [Obsolete]
         bool ITypeScriptCodeFixContext.IsBlocking
-            => Options.GetOptions(Document.Project.LanguageServices).IsBlocking;
+            => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -88,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    VerifyDiagnosticsArgument(diagnostics, span),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
                    CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
@@ -113,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    ImmutableArray.Create(diagnostic),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
                    CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
@@ -123,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CodeActionOptionsProvider options,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
@@ -132,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
             Options = options;
+            _isBlocking = isBlocking;
             _cancellationToken = cancellationToken;
         }
 
