@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     using static StringCopyPasteHelpers;
     using static SyntaxFactory;
 
+    /// <summary>
+    /// Implementation of <see cref="AbstractPasteProcessor"/> used when we know the original string literal expression
+    /// we were copying text out of.  Because we know the original literal expression, we can determine what the
+    /// characters being pasted meant in the original context and we can attempt to preserve that as closely as
+    /// possible.
+    /// </summary>
     internal class KnownSourcePasteProcessor : AbstractPasteProcessor
     {
         /// <summary>
