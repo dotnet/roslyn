@@ -147,7 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.Last().End, 0), quotesToAdd));
+            {
+                var end = StringExpressionBeforePasteInfo.EndDelimiterSpan.End;
+                end = SkipU8Suffix(TextBeforePaste, end);
+                editsToMake.Add(new TextChange(new TextSpan(end, 0), quotesToAdd));
+            }
 
             return editsToMake.ToImmutable();
         }
