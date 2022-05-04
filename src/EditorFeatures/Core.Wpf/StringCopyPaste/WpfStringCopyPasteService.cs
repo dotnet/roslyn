@@ -26,19 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
         public bool TrySetClipboardSequenceNumber(int sequenceNumber)
         {
-            var dataObject = Clipboard.GetDataObject();
-            if (dataObject != null && dataObject.GetDataPresent(typeof(string)))
+            try
             {
-                var data = dataObject.GetData(DataFormats.UnicodeText) as string ??
-                           dataObject.GetData(DataFormats.Text) as string;
-                if (data != null)
+                var dataObject = Clipboard.GetDataObject();
+                if (dataObject != null && dataObject.GetDataPresent(typeof(string)))
                 {
-                    // Ok, there's viable text on the clipboard.  Try to create a new dataobject, copy everything from
-                    // the current data object to it, and add roslyn's data.
-                    var copy = new DataObjectWrapper(dataObject, sequenceNumber);
-                    Clipboard.SetDataObject(copy);
-                    return true;
+                    var data = dataObject.GetData(DataFormats.UnicodeText) as string ??
+                               dataObject.GetData(DataFormats.Text) as string;
+                    if (data != null)
+                    {
+                        // Ok, there's viable text on the clipboard.  Try to create a new dataobject, copy everything from
+                        // the current data object to it, and add roslyn's data.
+                        var copy = new DataObjectWrapper(dataObject, sequenceNumber);
+                        Clipboard.SetDataObject(copy);
+                        return true;
+                    }
                 }
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
             }
 
             return false;
