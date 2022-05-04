@@ -51,9 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
             // deal with things like indentation and potentially adding newlines to make things legal.
-            return IsAnyRawStringExpression(StringExpressionBeforePaste)
-                ? GetEditsForRawString(cancellationToken)
-                : GetEditsForNonRawString();
+
+            // Smart Pasting into raw string not supported yet.  
+            if (IsAnyRawStringExpression(StringExpressionBeforePaste))
+                return default;
+
+            return GetEditsForNonRawString();
         }
 
         private ImmutableArray<TextChange> GetEditsForNonRawString()
@@ -237,6 +240,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
         }
 
+#if false
+
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
             // Determine the basic updates to the pasted pieces we need to make to properly unescape the pieces for a
@@ -293,5 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             throw new NotImplementedException();
         }
+
+#endif
     }
 }
