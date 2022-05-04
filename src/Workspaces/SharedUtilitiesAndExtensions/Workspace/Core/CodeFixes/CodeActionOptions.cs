@@ -156,10 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => context.Options;
 #endif
 
-#if CODE_STYLE
-        internal static CodeActionOptionsProvider GetOptionsProvider(this FixAllContext context)
-            => CodeActionOptions.DefaultProvider;
-#else
+#if !CODE_STYLE
         internal static CodeActionOptionsProvider GetOptionsProvider(this IFixAllContext context)
             => context.State.CodeActionOptionsProvider;
 #endif
