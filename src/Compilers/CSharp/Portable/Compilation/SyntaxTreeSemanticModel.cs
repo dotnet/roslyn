@@ -1268,13 +1268,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
+#nullable enable
+        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel? containingModel)
         {
             AliasSymbol aliasOpt;
             var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
 
             // For attributes where a nameof could introduce some type parameters, we need to track the attribute target
-            Symbol attributeTarget = getAttributeTarget(attribute.Parent.Parent);
+            Symbol? attributeTarget = getAttributeTarget(attribute.Parent?.Parent);
 
             return AttributeSemanticModel.Create(
                 this,
@@ -1285,28 +1286,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
                 containingModel?.GetRemappedSymbols());
 
-            Symbol getAttributeTarget(SyntaxNode targetSyntax)
+            Symbol? getAttributeTarget(SyntaxNode? targetSyntax)
             {
                 return targetSyntax switch
                 {
                     BaseMethodDeclarationSyntax methodDeclaration => GetDeclaredMemberSymbol(methodDeclaration),
                     LocalFunctionStatementSyntax localFunction => GetMemberModel(localFunction)?.GetDeclaredLocalFunction(localFunction),
                     ParameterSyntax parameterSyntax => ((Symbols.PublicModel.ParameterSymbol)GetDeclaredSymbol(parameterSyntax)).UnderlyingSymbol,
-                    TypeParameterSyntax typeParameterSyntax => ((Symbols.PublicModel.TypeParameterSymbol)GetDeclaredSymbol(typeParameterSyntax)).UnderlyingSymbol,
+                    TypeParameterSyntax typeParameterSyntax => ((Symbols.PublicModel.TypeParameterSymbol?)GetDeclaredSymbol(typeParameterSyntax))?.UnderlyingSymbol,
                     IndexerDeclarationSyntax indexerSyntax => ((Symbols.PublicModel.PropertySymbol)GetDeclaredSymbol(indexerSyntax)).UnderlyingSymbol,
-                    AccessorDeclarationSyntax accessorSyntax => ((Symbols.PublicModel.MethodSymbol)GetDeclaredSymbol(accessorSyntax)).UnderlyingSymbol,
-                    AnonymousFunctionExpressionSyntax anonymousFunction => ((Symbols.PublicModel.Symbol)GetSymbolInfo(anonymousFunction).Symbol).UnderlyingSymbol,
+                    AccessorDeclarationSyntax accessorSyntax => ((Symbols.PublicModel.MethodSymbol?)GetDeclaredSymbol(accessorSyntax))?.UnderlyingSymbol,
+                    AnonymousFunctionExpressionSyntax anonymousFunction => ((Symbols.PublicModel.Symbol?)GetSymbolInfo(anonymousFunction).Symbol)?.UnderlyingSymbol,
                     DelegateDeclarationSyntax delegateSyntax => ((Symbols.PublicModel.NamedTypeSymbol)GetDeclaredSymbol(delegateSyntax)).UnderlyingSymbol,
                     _ => null
                 };
             }
         }
 
-        private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
+        private FieldSymbol? GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
         {
             var declaredSymbol = GetDeclaredSymbol(variableDecl);
 
-            if ((object)declaredSymbol != null)
+            if ((object?)declaredSymbol != null)
             {
                 switch (variableDecl.Parent.Parent.Kind())
                 {
@@ -1320,6 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+#nullable disable
 
         private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, EqualsValueClauseSyntax initializer)
         {
