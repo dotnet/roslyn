@@ -146,8 +146,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             var startPosition = textChange.Span.Start;
             var endPosition = textChange.Span.Start + textChangeText.Length;
 
-            startPosition = Math.Min(startPosition, placeholders.Min(placeholder => placeholder.PlaceHolderPositions.Min()));
-            endPosition = Math.Max(endPosition, placeholders.Max(placeholder => placeholder.PlaceHolderPositions.Max()));
+            if (placeholders.Length > 0)
+            {
+                startPosition = Math.Min(startPosition, placeholders.Min(placeholder => placeholder.PlaceHolderPositions.Min()));
+                endPosition = Math.Max(endPosition, placeholders.Max(placeholder => placeholder.PlaceHolderPositions.Max()));
+            }
+                
             startPosition = Math.Min(startPosition, caretPosition);
             endPosition = Math.Max(endPosition, caretPosition);
 
