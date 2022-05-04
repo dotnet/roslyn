@@ -101,14 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return textChanges.ToImmutableAndClear();
         }
 
-        /// <inheritdoc cref="AbstractPasteProcessor.GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
-        private string? GetQuotesToAddToRawString()
-            => GetQuotesToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
-
-        /// <inheritdoc cref="AbstractPasteProcessor.GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
-        private string? GetDollarSignsToAddToRawString()
-            => GetDollarSignsToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
-
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
             // Can't really figure anything out if the raw string is in error.
@@ -128,34 +120,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var quotesToAdd = _pasteWasSuccessful ? null : GetQuotesToAddToRawString();
             var dollarSignsToAdd = _pasteWasSuccessful ? null : GetDollarSignsToAddToRawString();
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
             // First, add any extra dollar signs needed.
             if (dollarSignsToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
 
             // Then any quotes to your starting delimiter
             if (quotesToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
 
             if (IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste))
-                AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(editsToMake);
+                AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(edits);
             else
-                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
+                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(edits, cancellationToken);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
 
-            return editsToMake.ToImmutable();
+            return edits.ToImmutable();
         }
 
         // Pasting with single line case.
 
         private void AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(
-            ArrayBuilder<TextChange> editsToMake,
+            ArrayBuilder<TextChange> edits,
             CancellationToken cancellationToken)
         {
             // When pasting into a single-line raw literal we will keep it a single line if we can.  If the content
@@ -170,9 +162,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
-            // Then a newline and the indentation to start with.
+            // A newline and the indentation to start with.
             if (mustBeMultiLine)
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
 
             SourceText? textOfCurrentChange = null;
             var commonIndentationPrefix = GetCommonIndentationPrefix(Changes) ?? "";
@@ -210,13 +202,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         buffer.Append(indentationWhitespace);
                 }
 
-                editsToMake.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
+                edits.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
 
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
             if (mustBeMultiLine && !LastPastedLineAddedNewLine())
-                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
 
             return;
 
@@ -231,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         // Pasting into multi line case.
 
         private void AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(
-            ArrayBuilder<TextChange> editsToMake)
+            ArrayBuilder<TextChange> edits)
         {
             var endLine = TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.Span.End);
 
@@ -334,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     }
                 }
 
-                editsToMake.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
+                edits.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
         }
     }
