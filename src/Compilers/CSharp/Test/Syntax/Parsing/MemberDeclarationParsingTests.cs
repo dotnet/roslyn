@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "required ").WithArguments("static abstract members in interfaces").WithLocation(1, 17),
                 // (1,26): error CS1003: Syntax error, '.' expected
                 // static implicit required operator C(S s) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 26)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26)
                 );
             N(SyntaxKind.ConversionOperatorDeclaration);
             {

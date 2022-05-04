@@ -155,7 +155,7 @@ class C2 : I2
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(4, 30),
             // (4,30): error CS1003: Syntax error, ',' expected
             //     required void M(required int i)
-            Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(4, 30),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(4, 30),
             // (8,14): error CS0106: The modifier 'required' is not valid for this item
             //     required C1() { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "C1").WithArguments("required").WithLocation(8, 14),
