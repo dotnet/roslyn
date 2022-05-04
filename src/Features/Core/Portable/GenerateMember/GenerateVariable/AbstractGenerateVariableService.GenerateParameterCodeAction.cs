@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _includeOverridesAndImplementations;
-            private readonly int? _parameterIndex;
+            private readonly int _parameterIndex;
 
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int? parameterIndex)
+            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
             {
                 _document = document;
                 _state = state;

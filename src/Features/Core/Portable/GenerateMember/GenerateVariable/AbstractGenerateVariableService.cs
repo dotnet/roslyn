@@ -210,18 +210,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return;
                 }
 
-                int? parameterIndex = null;
                 var containingMethod = state.ContainingMethod;
+                var parameterIndex = containingMethod.Parameters.Length;
 
                 if (containingMethod.Parameters.Length > 0)
                 {
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var lastParameterIsCancellationToken = containingMethod.Parameters.Last().Type.Equals(semanticModel.Compilation.CancellationTokenType());
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var lastParameterIsCancellationToken = Equals(containingMethod.Parameters.Last().Type, compilation.CancellationTokenType());
 
                     if (lastParameterIsCancellationToken)
-                    {
-                        parameterIndex = containingMethod.Parameters.Length - 1;
-                    }
+                        parameterIndex--;
                 }
 
                 result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false, parameterIndex));
