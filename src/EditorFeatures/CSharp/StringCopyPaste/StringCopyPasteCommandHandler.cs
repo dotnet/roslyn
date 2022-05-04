@@ -341,38 +341,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return 1;
             }
         }
-
-        private bool PastedTextEqualsLastCopiedText(INormalizedTextChangeCollection pastedChanges)
-        {
-            // If we have no history of any copied text, then there's nothing in the past we can compare to.
-            if (_lastSelectedSpans == null)
-                return false;
-
-            var copiedSpans = _lastSelectedSpans;
-
-            // If we don't have any actual changes to compare, we can't consider these the same.
-            if (copiedSpans.Count == 0 || pastedChanges.Count == 0)
-                return false;
-
-            // Both the copied and pasted data is normalized.  So we should be able to compare counts to see
-            // if they look the same.
-            if (copiedSpans.Count != pastedChanges.Count)
-                return false;
-
-            // Validate each copied span from the source matches what was pasted into the destination.
-            for (int i = 0, n = copiedSpans.Count; i < n; i++)
-            {
-                var copiedSpan = copiedSpans[i];
-                var pastedChange = pastedChanges[i];
-
-                if (copiedSpan.Length != pastedChange.NewLength)
-                    return false;
-
-                if (copiedSpan.GetText() != pastedChange.NewText)
-                    return false;
-            }
-
-            return true;
-        }
     }
 }
