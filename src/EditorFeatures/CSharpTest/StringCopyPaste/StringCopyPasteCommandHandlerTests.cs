@@ -27,23 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
         {
-            //[ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
-            //[PartNotDiscoverable]
-            //private class MockStringCopyPasteService : IStringCopyPasteService
-            //{
-            //    [ImportingConstructor]
-            //    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            //    public MockStringCopyPasteService()
-            //    {
-            //    }
-
-            //    public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
-            //    {
-            //        sequenceNumber = 0;
-            //        return true;
-            //    }
-            //}
-
             private static readonly TestComposition s_compositionWithUnknownCopy =
                 EditorTestCompositions.EditorFeaturesWpf
                     .AddParts(typeof(StringCopyPasteCommandHandler));
