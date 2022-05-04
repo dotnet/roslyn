@@ -96,10 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Interpolated string
                 // Verbatim string
                 // Verbatim interpolated string
-                // Raw single line string
-                // Raw multi line string
-                // Raw interpolated line string
-                // Raw interpolated multi-line string.
                 var pastingIntoVerbatimString = IsVerbatimStringExpression(StringExpressionBeforePaste);
 
                 return (parsedChange, StringExpressionBeforePaste) switch
