@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 return true;
             }
 
-            // If the user wants to collapse usings or #regions then we need to compute
-            // synchronously, but only if there are usings or #regions in the file. To
+            // If the user wants to collapse imports or #regions then we need to compute
+            // synchronously, but only if there are imports or #regions in the file. To
             // save some work, we'll look for both in a single pass.
             var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
             var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
@@ -104,47 +104,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
 
             return false;
+        }
 
-            static bool ContainsRegionOrImport(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseUsings, string language)
+        // Internal for testing
+        internal static bool ContainsRegionOrImport(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseImports, string language)
+        {
+            foreach (var line in textSnapshot.Lines)
             {
-                foreach (var line in textSnapshot.Lines)
+                if (collapseRegions && StartsWithRegionTag(line))
                 {
-                    if (collapseRegions && StartsWithRegionTag(line))
-                    {
-                        return true;
-                    }
-                    else if (collapseUsings && IsImport(line, language))
-                    {
-                        return true;
-                    }
+                    return true;
+                }
+                else if (collapseImports && IsImport(line, language))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+            static bool StartsWithRegionTag(ITextSnapshotLine line)
+            {
+                var start = line.GetFirstNonWhitespacePosition();
+                return start != null && line.StartsWith(start.Value, RegionDirective, ignoreCase: true);
+            }
+
+            static bool IsImport(ITextSnapshotLine line, string language)
+            {
+                var start = line.GetFirstNonWhitespacePosition();
+                if (start is null)
+                    return false;
+
+                // For VB we only need to find "Imports" at the start of a line
+                if (language == LanguageNames.VisualBasic)
+                {
+                    return line.StartsWith(start.Value, ImportsStatement, ignoreCase: true);
                 }
 
-                return false;
+                // For the purposes of collapsing, extern aliases are grouped with usings
+                if (line.StartsWith(start.Value, ExternDeclaration, ignoreCase: false))
+                    return true;
 
-                static bool StartsWithRegionTag(ITextSnapshotLine line)
-                {
-                    var start = line.GetFirstNonWhitespacePosition();
-                    return start != null && line.StartsWith(start.Value, RegionDirective, ignoreCase: true);
-                }
-
-                static bool IsImport(ITextSnapshotLine line, string language)
-                {
-                    var start = line.GetFirstNonWhitespacePosition();
-                    if (start is null)
-                        return false;
-
-                    // For VB we only need to find "Imports" at the start of a line
-                    if (language == LanguageNames.VisualBasic)
-                    {
-                        return line.StartsWith(start.Value, ImportsStatement, ignoreCase: false);
-                    }
-
-                    // For the purposes of collapsing, extern aliases are grouped with usings
-                    if (line.StartsWith(start.Value, ExternDeclaration, ignoreCase: false))
-                        return true;
-
-                    return line.StartsWith(start.Value, UsingDirective, ignoreCase: false);
-                }
+                return line.StartsWith(start.Value, UsingDirective, ignoreCase: false);
             }
         }
 
