@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), [Shared]>
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
-        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax, VisualBasicCodeGenerationPreferences)
+        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax, VisualBasicCodeGenerationContextInfo)
 
         Private Const Underscore As String = "_"
 
@@ -34,9 +34,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
-        Friend Overrides Function GetNewAccessors(preferences As VisualBasicCodeGenerationPreferences, propertyNode As SyntaxNode,
-            fieldName As String, generator As SyntaxGenerator) _
-            As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
+        Friend Overrides Function GetNewAccessors(
+            info As VisualBasicCodeGenerationContextInfo,
+            propertyNode As SyntaxNode,
+            fieldName As String,
+            generator As SyntaxGenerator) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
             Dim returnStatement = New SyntaxList(Of StatementSyntax)(DirectCast(generator.ReturnStatement(
                 generator.IdentifierName(fieldName)), StatementSyntax))
@@ -80,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return DirectCast(propertyNode, PropertyStatementSyntax).Initializer?.Value
         End Function
 
-        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(preferences As VisualBasicCodeGenerationPreferences, propertyNode As SyntaxNode) As SyntaxNode
+        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(info As VisualBasicCodeGenerationContextInfo, propertyNode As SyntaxNode) As SyntaxNode
             Return propertyNode
         End Function
 

@@ -214,14 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             return true;
         }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 
     // Stub classes needed only for exporting purposes.

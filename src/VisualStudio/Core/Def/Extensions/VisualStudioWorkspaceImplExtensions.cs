@@ -19,15 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         // We're mucking around creating native objects.  They need to live around as long as the 
         // hierarchy we're getting them for.  To do this, we attach them to the hierarchy with a
         // conditional weak table.
-        private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle =
-            new();
-
-        private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>.CreateValueCallback s_createValue =
-            _ => new Dictionary<uint, IImageHandle>();
+        private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle = new();
 
         private static bool TryGetImageListAndIndex(this IVsHierarchy hierarchy, IVsImageService2 imageService, uint itemId, out IntPtr imageList, out ushort index)
         {
-            var itemIdToImageHandle = s_hierarchyToItemIdToImageHandle.GetValue(hierarchy, s_createValue);
+            var itemIdToImageHandle = s_hierarchyToItemIdToImageHandle.GetValue(hierarchy, static _ => new Dictionary<uint, IImageHandle>());
 
             // Get the actual image moniker that the vs hierarchy is using to in solution explorer.
             var imageMoniker = imageService.GetImageMonikerForHierarchyItem(hierarchy, itemId, (int)__VSHIERARCHYIMAGEASPECT.HIA_Icon);

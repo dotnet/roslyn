@@ -43,7 +43,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpBlockFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpFileBannerFactsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpHeaderFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpMoveDeclarationNearReferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CSharpSemanticFactsServiceFactory.cs" />

@@ -3,22 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
-    internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
+    internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
-        private static readonly ImmutableHashSet<string> s_emptyAliasedNames = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-
         /// <summary>
         /// This set contains the full names of types that have equivalent predefined names in the language.
         /// </summary>
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// This is used so we can easily tell if we should try to simplify some identifier to an
         /// alias when we encounter it.
         /// </summary>
-        private readonly ImmutableHashSet<string> _aliasedNames;
+        private readonly PooledHashSet<string> _aliasedNames;
 
         public bool HasDiagnostics => _diagnostics?.Count > 0;
 
@@ -82,14 +82,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _cancellationToken = cancellationToken;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            _aliasedNames = GetAliasedNames(root as CompilationUnitSyntax);
+            _aliasedNames = PooledHashSet<string>.GetInstance();
+            AddAliasedNames((CompilationUnitSyntax)root);
         }
 
-        private static ImmutableHashSet<string> GetAliasedNames(CompilationUnitSyntax? compilationUnit)
+        public void Dispose()
         {
-            var aliasedNames = s_emptyAliasedNames;
-            if (compilationUnit is null)
-                return aliasedNames;
+            _aliasedNames.Free();
+        }
+
+        private void AddAliasedNames(CompilationUnitSyntax compilationUnit)
+        {
+            // Using `position: 0` gets all the global aliases defined in other files pulled in here.
+            var scopes = _semanticModel.GetImportScopes(position: 0, _cancellationToken);
+            foreach (var scope in scopes)
+            {
+                foreach (var alias in scope.Aliases)
+                {
+                    var name = alias.Target.Name;
+                    if (!string.IsNullOrEmpty(name))
+                        _aliasedNames.Add(name);
+                }
+            }
 
             foreach (var usingDirective in compilationUnit.Usings)
                 AddAliasedName(usingDirective);
@@ -100,20 +114,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     AddAliasedNames(namespaceDeclaration);
             }
 
-            return aliasedNames;
+            return;
 
             void AddAliasedName(UsingDirectiveSyntax usingDirective)
             {
-                if (usingDirective.Alias is object)
+                if (usingDirective.Alias is not null &&
+                    usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
                 {
-                    if (usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
-                    {
-                        var identifierAlias = identifierName.Identifier.ValueText;
-                        if (!RoslynString.IsNullOrEmpty(identifierAlias))
-                        {
-                            aliasedNames = aliasedNames.Add(identifierAlias);
-                        }
-                    }
+                    var identifierAlias = identifierName.Identifier.ValueText;
+                    if (!string.IsNullOrEmpty(identifierAlias))
+                        _aliasedNames.Add(identifierAlias);
                 }
             }
 

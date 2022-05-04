@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract class CodeFixProvider : SyntaxEditorBasedCodeFixProvider
         {
-            public readonly TCodeStyleProvider _codeStyleProvider;
+            public readonly TCodeStyleProvider _codeStyleProvider = new();
 
             protected CodeFixProvider()
             {
-                _codeStyleProvider = new TCodeStyleProvider();
                 FixableDiagnosticIds = ImmutableArray.Create(_codeStyleProvider._descriptorId);
             }
 

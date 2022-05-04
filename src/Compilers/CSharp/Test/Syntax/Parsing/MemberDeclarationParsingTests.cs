@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
                     // C operator > >>(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(", ">").WithLocation(1, 14),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
                     // (1,14): error CS1001: Identifier expected
                     // C operator > >>(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
@@ -500,10 +500,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
                     // (1,27): error CS1003: Syntax error, ',' expected
                     // C operator > >>(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
                     // (1,30): error CS1003: Syntax error, ',' expected
                     // C operator > >>(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
                     // (1,31): error CS1001: Identifier expected
                     // C operator > >>(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
                     // (1,15): error CS1003: Syntax error, '(' expected
                     // C operator >> >(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(", ">").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 15),
                     // (1,15): error CS1001: Identifier expected
                     // C operator >> >(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 15),
@@ -583,10 +583,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
                     // (1,27): error CS1003: Syntax error, ',' expected
                     // C operator >> >(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
                     // (1,30): error CS1003: Syntax error, ',' expected
                     // C operator >> >(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
                     // (1,31): error CS1001: Identifier expected
                     // C operator >> >(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
                     // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(", ">=").WithLocation(1, 14),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(").WithLocation(1, 14),
                     // (1,14): error CS1001: Identifier expected
                     // C operator >>>=(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 14),
@@ -666,10 +666,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
                     // (1,27): error CS1003: Syntax error, ',' expected
                     // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
                     // (1,30): error CS1003: Syntax error, ',' expected
                     // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 30),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
                     // (1,31): error CS1001: Identifier expected
                     // C operator >>>=(C x, C y) => x;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
@@ -791,10 +791,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
                     // (1,35): error CS1003: Syntax error, ',' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 35),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 35),
                     // (1,41): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 41)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 41)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -842,10 +842,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
                     // (1,36): error CS1003: Syntax error, ',' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 36),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 36),
                     // (1,42): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 42)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 42)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
                     // (1,33): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace. Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 33)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 33)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
                     // (1,34): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace. Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 34)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 34)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "required ").WithArguments("static abstract members in interfaces").WithLocation(1, 17),
                 // (1,26): error CS1003: Syntax error, '.' expected
                 // static implicit required operator C(S s) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 26)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26)
                 );
             N(SyntaxKind.ConversionOperatorDeclaration);
             {
@@ -1907,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
@@ -1988,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
@@ -2066,7 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 16)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2141,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2617,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
@@ -2702,7 +2702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
@@ -2784,7 +2784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 16)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -3484,7 +3484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 9)
@@ -3564,7 +3564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 9)
@@ -3641,7 +3641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 9)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 9)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -3715,7 +3715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 7)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4184,7 +4184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 9)
@@ -4268,7 +4268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 9)
@@ -4349,7 +4349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 9)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 9)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4427,7 +4427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 7)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5203,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,1): error CS1003: Syntax error, 'explicit' expected
                 // N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit", "").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit").WithLocation(1, 1)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5277,7 +5277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,1): error CS1003: Syntax error, 'explicit' expected
                 // operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit", "operator").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit").WithLocation(1, 1)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5328,7 +5328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5402,7 +5402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5834,10 +5834,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".", "int").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".").WithLocation(1, 14),
                 // (1,14): error CS1003: Syntax error, 'operator' expected
                 // implicit N.I int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator", "int").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5915,7 +5915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,15): error CS1003: Syntax error, 'operator' expected
                 // explicit N.I. int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator", "int").WithLocation(1, 15)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 15)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5993,7 +5993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -6071,7 +6071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -6582,10 +6582,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I T(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,12): error CS1003: Syntax error, '.' expected
                     // explicit I T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(".", "").WithLocation(1, 12),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(".").WithLocation(1, 12),
                     // (1,12): error CS1003: Syntax error, 'operator' expected
                     // explicit I T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator", "").WithLocation(1, 12)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator").WithLocation(1, 12)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -6639,7 +6639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.T(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,12): error CS1003: Syntax error, 'operator' expected
                     // explicit I.T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator", "").WithLocation(1, 12)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator").WithLocation(1, 12)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -6852,10 +6852,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.T1 T2(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,15): error CS1003: Syntax error, '.' expected
                     // explicit I.T1 T2(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments(".", "").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments(".").WithLocation(1, 15),
                     // (1,15): error CS1003: Syntax error, 'operator' expected
                     // explicit I.T1 T2(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments("operator", "").WithLocation(1, 15)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments("operator").WithLocation(1, 15)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -6969,7 +6969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 29),
                     // (1,30): error CS1003: Syntax error, '(' expected
                     // explicit I.operator (int x, );
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(1, 30),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(1, 30),
                     // (1,30): error CS1026: ) expected
                     // explicit I.operator (int x, );
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 30)
@@ -7027,7 +7027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.operator (int x, int y);", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,35): error CS1003: Syntax error, '(' expected
                     // explicit I.operator (int x, int y);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(1, 35),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(1, 35),
                     // (1,35): error CS1026: ) expected
                     // explicit I.operator (int x, int y);
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 35)
@@ -7135,7 +7135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 21),
                     // (1,28): error CS1003: Syntax error, ',' expected
                     // explicit I.operator (int x int y);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(1, 28)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 28)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -7258,7 +7258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var error = new[] {
                 // (2,9): error CS1003: Syntax error, 'operator' expected
                 // explicit
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator", "").WithLocation(2, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(2, 9),
                 // (2,9): error CS1001: Identifier expected
                 // explicit
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 9)

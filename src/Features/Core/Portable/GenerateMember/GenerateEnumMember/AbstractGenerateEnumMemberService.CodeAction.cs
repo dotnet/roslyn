@@ -19,13 +19,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
         {
             private readonly Document _document;
             private readonly State _state;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateEnumMemberCodeAction(
                 Document document,
-                State state)
+                State state,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -39,7 +42,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     : null;
 
                 var result = await codeGenerator.AddFieldAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: _state.IdentifierToken.GetLocation()),
+                        _fallbackOptions),
                     _state.TypeToGenerateIn,
                     CodeGenerationSymbolFactory.CreateFieldSymbol(
                         attributes: default,
@@ -49,9 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                         name: _state.IdentifierToken.ValueText,
                         hasConstantValue: value != null,
                         constantValue: value),
-                    new CodeGenerationContext(contextLocation: _state.IdentifierToken.GetLocation()),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

@@ -6,6 +6,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     var result = await extractInterfaceService.ExtractInterfaceAsync(
                         document,
                         caretPoint.Value.Position,
-                        _globalOptions.GetCodeCleanupOptionsProvider(),
+                        _globalOptions.CreateProvider(),
                         (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
                         CancellationToken.None).ConfigureAwait(false);
 

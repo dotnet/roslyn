@@ -92,43 +92,33 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static SyntaxFormattingOptions GetDefault(HostLanguageServices languageServices)
             => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
 
-        public static ValueTask<SyntaxFormattingOptions> GetDefaultAsync(HostLanguageServices languageServices, CancellationToken _)
-            => ValueTaskFactory.FromResult(GetDefault(languageServices));
-
-        public static SyntaxFormattingOptionsProvider CreateProvider(CodeActionOptionsProvider options)
-            => new((languageServices, _) => ValueTaskFactory.FromResult(options(languageServices).CleanupOptions?.FormattingOptions ?? GetDefault(languageServices)));
-
-        public static SyntaxFormattingOptionsProvider CreateProvider(CodeCleanupOptionsProvider options)
-            => new(async (languageServices, cancellationToken) => (await options(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions);
-
-        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, SyntaxFormattingOptions? fallbackOptions, string language)
+        public static SyntaxFormattingOptions Create(OptionSet options, SyntaxFormattingOptions? fallbackOptions, HostLanguageServices languageServices)
         {
-            var formattingService = services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
+            var formattingService = languageServices.GetRequiredService<ISyntaxFormattingService>();
+            var configOptions = options.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
             return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
         }
 #endif
     }
 
+    internal interface SyntaxFormattingOptionsProvider
 #if !CODE_STYLE
-    internal delegate ValueTask<SyntaxFormattingOptions> SyntaxFormattingOptionsProvider(HostLanguageServices languageServices, CancellationToken cancellationToken);
+        : OptionsProvider<SyntaxFormattingOptions>
+#endif
+    {
+    }
 
+#if !CODE_STYLE
     internal static class SyntaxFormattingOptionsProviders
     {
         public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return SyntaxFormattingOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
+            return SyntaxFormattingOptions.Create(documentOptions, fallbackOptions, document.Project.LanguageServices);
         }
 
         public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSyntaxFormattingOptionsAsync(document, await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-
-        public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => GetSyntaxFormattingOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.FormattingOptions, cancellationToken);
-
-        public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSyntaxFormattingOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions, cancellationToken).ConfigureAwait(false);
+            => await GetSyntaxFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 #endif
 }
