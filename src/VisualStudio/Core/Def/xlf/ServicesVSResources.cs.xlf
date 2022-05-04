@@ -447,6 +447,11 @@
         <target state="translated">Dokončit</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="new">Fix text pasted into string literals (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">Pro členy mimo rozhraní</target>

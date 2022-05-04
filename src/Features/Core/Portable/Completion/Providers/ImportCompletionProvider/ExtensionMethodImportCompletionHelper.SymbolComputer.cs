@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // This dictionary is used as cache among all projects and PE references. 
             // The key is the receiver type as in the extension method declaration (symbol retrived from originating compilation).
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
-            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes = new();
 
             public SymbolComputer(
                 Document document,
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
                 _receiverTypeNames = AddComplexTypes(receiverTypeNames);
                 _cacheService = GetCacheService(document.Project);
-                _checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
             }
 
             public static async Task<SymbolComputer> CreateAsync(

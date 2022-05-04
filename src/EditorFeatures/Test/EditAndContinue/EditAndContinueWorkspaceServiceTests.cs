@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
         private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
-        private readonly List<string> _telemetryLog;
+        private readonly List<string> _telemetryLog = new();
         private int _telemetryId;
 
         private readonly MockManagedEditAndContinueDebuggerService _debuggerService;
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public EditAndContinueWorkspaceServiceTests()
         {
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
-            _telemetryLog = new List<string>();
 
             _debuggerService = new MockManagedEditAndContinueDebuggerService()
             {
