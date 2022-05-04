@@ -1600,7 +1600,6 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
-            IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
                 builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(_solutionServices, tracker.ProjectState));
@@ -1615,19 +1614,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
-                // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
-                // If the information is not available, do not compute it.
-                var forwardDependencies = dependencyGraph.TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-                if (forwardDependencies is object && !forwardDependencies.Contains(changedProjectId))
-                {
-                    return true;
-                }
-
-                // Compute the set of all projects that depend on 'projectId'. This information answers the same
-                // question as the previous check, but involves at most one transitive computation within the
-                // dependency graph.
-                dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
-                return !dependencies.Contains(id);
+                return !dependencyGraph.DoesProjectTransitivelyDependOnProject(id, changedProjectId);
             }
         }
 
@@ -1835,6 +1822,13 @@ namespace Microsoft.CodeAnalysis
             return project.SupportsCompilation
                 ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
                 : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+        }
+
+        public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
+                : new(ImmutableArray<Diagnostic>.Empty);
         }
 
         /// <summary>

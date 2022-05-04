@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly Accessibility? _desiredAccessibility;
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
-
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
             private bool? _addNullCheckOptionValue;
 
             internal ImmutableArray<ISymbol> ViableMembers { get; }
@@ -35,11 +36,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             public GenerateConstructorWithDialogCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document, TextSpan textSpan,
+                Document document,
+                TextSpan textSpan,
                 INamedTypeSymbol containingType,
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions)
+                ImmutableArray<PickMembersOption> pickMembersOptions,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 _desiredAccessibility = desiredAccessibility;
                 ViableMembers = viableMembers;
                 PickMembersOptions = pickMembersOptions;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
+                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
                         return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                     }
 
@@ -109,8 +113,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 else
                 {
                     var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
+                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
+                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
 
                     return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 }

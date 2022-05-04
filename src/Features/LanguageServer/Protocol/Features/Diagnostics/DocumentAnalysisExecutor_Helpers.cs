@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance)
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
             {
                 return true;
             }

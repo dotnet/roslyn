@@ -51,15 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddFieldTo(
             CompilationUnitSyntax destination,
             IFieldSymbol field,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateFieldDeclaration(field, options, cancellationToken);
+            var declaration = GenerateFieldDeclaration(field, info, cancellationToken);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
-            var members = Insert(destination.Members, declaration, options, availableIndices,
+            var members = Insert(destination.Members, declaration, info, availableIndices,
                 after: m => LastField(m, declaration), before: FirstMember);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -67,24 +67,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddFieldTo(
             TypeDeclarationSyntax destination,
             IFieldSymbol field,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var declaration = GenerateFieldDeclaration(field, options, cancellationToken);
+            var declaration = GenerateFieldDeclaration(field, info, cancellationToken);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
-            var members = Insert(destination.Members, declaration, options, availableIndices,
+            var members = Insert(destination.Members, declaration, info, availableIndices,
                 after: m => LastField(m, declaration), before: FirstMember);
 
             return AddMembersTo(destination, members, cancellationToken);
         }
 
         public static FieldDeclarationSyntax GenerateFieldDeclaration(
-            IFieldSymbol field, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
+            IFieldSymbol field, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<FieldDeclarationSyntax>(field, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<FieldDeclarationSyntax>(field, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
@@ -95,15 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : GenerateEqualsValue(field);
 
             var fieldDeclaration = SyntaxFactory.FieldDeclaration(
-                AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
-                GenerateModifiers(field, options),
+                AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), info),
+                GenerateModifiers(field, info),
                 SyntaxFactory.VariableDeclaration(
                     field.Type.GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));
         }
 
         private static EqualsValueClauseSyntax? GenerateEqualsValue(IFieldSymbol field)
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationContextInfo info)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, options, Accessibility.Private);
+            AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
             if (field.IsConst)
             {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword));

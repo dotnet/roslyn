@@ -1461,7 +1461,7 @@ next:;
                 if (data == null || data.GuidString == null)
                 {
                     int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.ComImportAttribute);
-                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location, this.Name);
+                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location);
                 }
 
                 if (this.TypeKind == TypeKind.Class)

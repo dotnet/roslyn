@@ -348,6 +348,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
             ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
 
+        Public ReadOnly Property Include_global_imports As String =
+            ServicesVSResources.Include_global_imports
+
         Public ReadOnly Property Inheritance_Margin As String =
             ServicesVSResources.Inheritance_Margin
 

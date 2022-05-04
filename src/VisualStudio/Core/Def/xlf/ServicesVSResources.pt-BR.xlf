@@ -502,6 +502,11 @@
         <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="new">Include global imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
         <target state="translated">Índice</target>
@@ -1008,8 +1013,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="translated">Cole um rastreamento de pilha válido para exibir e navegar pelos valores</target>
+        <source>Paste a stack trace to view and navigate its values.</source>
+        <target state="needs-review-translation">Cole um rastreamento de pilha válido para exibir e navegar pelos valores</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1025,6 +1030,11 @@
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
         <target state="translated">Prefira 'System.HashCode' em 'GetHashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1666,6 +1676,11 @@
         <source>Not a valid value</source>
         <target state="translated">O valor não é válido</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="new">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
       </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>

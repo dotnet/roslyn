@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
@@ -26,9 +27,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
     <UseExportProvider>
     Public Class InheritanceMarginViewModelTests
 
-        Private Shared s_defaultMargin As Thickness = New Thickness(4, 1, 4, 1)
+        Private Shared ReadOnly s_defaultMargin As Thickness = New Thickness(4, 1, 4, 1)
 
-        Private Shared s_indentMargin As Thickness = New Thickness(22, 1, 4, 1)
+        Private Shared ReadOnly s_indentMargin As Thickness = New Thickness(22, 1, 4, 1)
 
         Private Structure GlyphViewModelData
             Public ReadOnly Property ImageMoniker As ImageMoniker
@@ -85,7 +86,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
 
                 ' For these tests, we need to be on UI thread, so don't call ConfigureAwait(False)
                 Dim root = Await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(True)
-                Dim inheritanceItems = Await service.GetInheritanceMemberItemsAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(True)
+                Dim inheritanceItems = Await service.GetInheritanceMemberItemsAsync(
+                    document, root.FullSpan, includeGlobalImports:=True, cancellationToken).ConfigureAwait(True)
 
                 Dim acutalLineToTagDictionary = inheritanceItems.GroupBy(Function(item) item.LineNumber) _
                     .ToDictionary(Function(grouping) grouping.Key,
@@ -272,21 +274,21 @@ public class Bar2 : Bar1 {}
 public class Bar3 : Bar2 {}"
 
             Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
-            Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+            Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
             Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
 
             Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
-                New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
-                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
-                        Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
-                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+                New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
+                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
+                        Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
+                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
             Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
-            Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
-                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
-                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing))
+            Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
+                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing))
 
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(

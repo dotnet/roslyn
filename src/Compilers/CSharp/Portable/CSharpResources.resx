@@ -1704,7 +1704,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>One of the parameters of a binary operator must be the containing type</value>
   </data>
   <data name="ERR_BadShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
     <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
@@ -6446,7 +6446,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use '{0}' as a calling convention modifier.</value>
   </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
-    <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
+    <value>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
@@ -6926,7 +6926,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>
   </data>
   <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</value>
   </data>
   <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
     <value>A static abstract interface member can be accessed only on a type parameter.</value>
@@ -7080,12 +7080,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
   <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
-    <value>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</value>
+    <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
   <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
-    <value>Utf8 String Literals</value>
+    <value>UTF-8 string literals</value>
   </data>
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
-    <value>An expression tree may not contain UTF8 string conversion or literal.</value>
+    <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
+  </data>
+  <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
+    <value>unsigned right shift</value>
+  </data>
+  <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
+    <value>relaxed shift operator</value>
   </data>
 </root>

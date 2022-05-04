@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static void GetNameAndInnermostNamespace(
             INamespaceSymbol @namespace,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             out string name,
             out INamespaceSymbol innermostNamespace)
         {
-            if (options.Context.GenerateMembers && options.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
+            if (info.Context.GenerateMembers && info.Context.MergeNestedNamespaces && @namespace.Name != string.Empty)
             {
                 var names = new List<string>();
                 names.Add(@namespace.Name);
@@ -178,12 +178,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return node.WithLeadingTrivia(leadingTrivia);
         }
 
-        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
+        public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo info)
             where T : SyntaxNode
         {
             Contract.ThrowIfNull(attribute);
 
-            return options.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
+            return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null ?
                 attribute.ApplicationSyntaxReference.GetSyntax() as T :
                 null;
         }
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static int GetInsertionIndex<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             IComparer<TDeclaration> comparerWithoutNameCheck,
             IComparer<TDeclaration> comparerWithNameCheck,
@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
             // Try to strictly obey the after option by inserting immediately after the member containing the location
-            if (options.Context.AfterThisLocation != null)
+            if (info.Context.AfterThisLocation != null)
             {
-                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.Context.AfterThisLocation.SourceSpan.Start);
+                var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
                 if (afterMember != null)
                 {
                     var index = declarationList.IndexOf(afterMember);
@@ -217,9 +217,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // Try to strictly obey the before option by inserting immediately before the member containing the location
-            if (options.Context.BeforeThisLocation != null)
+            if (info.Context.BeforeThisLocation != null)
             {
-                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.Context.BeforeThisLocation.SourceSpan.End);
+                var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
                 if (beforeMember != null)
                 {
                     var index = declarationList.IndexOf(beforeMember);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            if (options.Context.AutoInsertionLocation)
+            if (info.Context.AutoInsertionLocation)
             {
                 if (declarationList.IsEmpty())
                 {
