@@ -135,6 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     hasErrors |= !bindDisposable(fromExpression: false, out patternDisposeInfo, out awaitableTypeOpt);
                 }
+
+                if (isUsingDeclaration
+                    && ((LocalDeclarationStatementSyntax)syntax).IsConst
+                    && !declarationTypeOpt.CanBeConst())
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadConstType, syntax, declarationTypeOpt);
+                    hasErrors = true;
+                }
             }
 
             BoundAwaitableInfo? awaitOpt = null;

@@ -773,17 +773,108 @@ class C
     static void Main()
     {
         using public readonly var x = (IDisposable)null;
+        using static var y = (IDisposable)null;
+        using private volatile var z = (IDisposable)null;
+
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (7,15): error CS0106: The modifier 'public' is not valid for this item
-                //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
-                // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
-                //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
+            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+                .VerifyEmitDiagnostics(
+                    // (7,15): error CS0106: The modifier 'public' is not valid for this item
+                    //         using public readonly var x = (IDisposable)null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
+                    // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
+                    //         using public readonly var x = (IDisposable)null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22),
+                    // (8,15): error CS0106: The modifier 'static' is not valid for this item
+                    //         using static var y = (IDisposable)null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(8, 15),
+                    // (9,15): error CS0106: The modifier 'private' is not valid for this item
+                    //         using private volatile var z = (IDisposable)null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "private").WithArguments("private").WithLocation(9, 15),
+                    // (9,23): error CS0106: The modifier 'volatile' is not valid for this item
+                    //         using private volatile var z = (IDisposable)null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(9, 23)
                 );
         }
+
+        [Fact]
+        [WorkItem(42362, "https://github.com/dotnet/roslyn/issues/42362")]
+        public void UsingDeclarationWithConstModifier()
+        {
+            var source = @"
+class Program
+{
+    static System.IDisposable F() => null;
+
+    static void Main()
+    {
+        using const System.IDisposable o = F();
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8)
+                .VerifyEmitDiagnostics(
+                    // (8,44): error CS0133: The expression being assigned to 'o' must be constant
+                    //         using const System.IDisposable o = F();
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, "F()").WithArguments("o").WithLocation(8, 44)
+                 );
+        }
+
+        [Fact]
+        [WorkItem(42362, "https://github.com/dotnet/roslyn/issues/42362")]
+        public void UsingDeclarationWithConstModifierAndConstValue()
+        {
+            var source = @"
+#pragma warning disable CS0219
+class Program
+{
+    const System.IDisposable x = null;
+
+    static void Main()
+    {
+        using const System.IDisposable o = null;
+
+        using var y = x;
+        using const var z = x;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe)
+                .VerifyEmitDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "");
+        }
+
+        [Fact]
+        [WorkItem(42362, "https://github.com/dotnet/roslyn/issues/42362")]
+        public void UsingDeclarationWithConstRefStruct()
+        {
+            var source = @"
+#pragma warning disable CS0219
+
+ref struct S { public void Dispose(){} }
+
+class Program
+{
+    static void Main()
+    {
+        const S s = default;
+        const S s2 = new S();
+
+        using const S s3 = new S();
+        using const S s4 = default;
+
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe)
+                .VerifyEmitDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "");
+        }
+
+
     }
 }

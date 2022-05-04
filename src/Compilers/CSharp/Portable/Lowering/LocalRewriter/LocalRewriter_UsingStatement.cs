@@ -229,7 +229,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundLocal.ConstantValue == ConstantValue.Null)
             {
                 //localSymbol will be declared by an enclosing block
-                return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryBlock);
+
+                if (rewrittenDeclaration is null)
+                {
+                    // when the local declaration is constant, we end up with a null rewrittenDeclaration
+                    // (as it will be emitted at the use site rather than being declared here). As such
+                    // we can just emit the try block without any declaration.
+                    return BoundBlock.SynthesizedNoLocals(usingSyntax, tryBlock);
+                }
+                else
+                {
+                    return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryBlock);
+                }
             }
 
             if (localType.IsDynamic())
