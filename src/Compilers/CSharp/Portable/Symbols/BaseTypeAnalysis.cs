@@ -92,12 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
+                    if (member.IsStatic)
+                    {
+                        continue;
+                    }
+
                     FieldSymbol field;
-                    if (member is SourcePropertySymbolBase { IsStatic: false, FieldKeywordBackingField: { } fieldKeywordField })
+                    if (member is SourcePropertySymbolBase { FieldKeywordBackingField: { } fieldKeywordField })
                     {
                         field = fieldKeywordField;
                     }
-                    else if (member.Kind == SymbolKind.Field && !member.IsStatic)
+                    else if (member.Kind == SymbolKind.Field)
                     {
                         field = (FieldSymbol)member;
                     }
@@ -106,7 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    Debug.Assert(!field.IsStatic);
                     var fieldType = field.NonPointerType();
                     if (fieldType is null || fieldType.TypeKind != TypeKind.Struct)
                     {
