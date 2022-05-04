@@ -4,8 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,19 +27,17 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
             try
             {
                 var dataObject = Clipboard.GetDataObject();
-                if (dataObject != null && dataObject.GetDataPresent(typeof(string)))
+
+                var copy = new DataObject(RoslynCopyPasteSequenceNumber, sequenceNumber);
+
+                foreach (var format in dataObject.GetFormats())
                 {
-                    var data = dataObject.GetData(DataFormats.UnicodeText) as string ??
-                               dataObject.GetData(DataFormats.Text) as string;
-                    if (data != null)
-                    {
-                        // Ok, there's viable text on the clipboard.  Try to create a new dataobject, copy everything from
-                        // the current data object to it, and add roslyn's data.
-                        var copy = new DataObjectWrapper(dataObject, sequenceNumber);
-                        Clipboard.SetDataObject(copy);
-                        return true;
-                    }
+                    if (dataObject.GetDataPresent(format))
+                        copy.SetData(format, dataObject.GetData(format));
                 }
+
+                Clipboard.SetDataObject(copy);
+                return true;
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
@@ -71,97 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
             sequenceNumber = 0;
             return false;
-        }
-
-        /// <summary>
-        /// Wraps an underlying <see cref="IDataObject"/>, forwarding all calls to it unless the request is about our
-        /// special <see cref="RoslynCopyPasteSequenceNumber"/> data that we've added ourselves.
-        /// </summary>
-        private class DataObjectWrapper : IDataObject
-        {
-            private readonly IDataObject _dataObject;
-            private int _roslynSequenceNumber;
-
-            public DataObjectWrapper(IDataObject dataObject, int roslynSequenceNumber)
-            {
-                _dataObject = dataObject;
-                _roslynSequenceNumber = roslynSequenceNumber;
-            }
-
-            public object GetData(string format)
-            {
-                return format == RoslynCopyPasteSequenceNumber
-                    ? _roslynSequenceNumber
-                    : _dataObject.GetData(format);
-            }
-
-            public object GetData(Type format)
-            {
-                return _dataObject.GetData(format);
-            }
-
-            public object GetData(string format, bool autoConvert)
-            {
-                return format == RoslynCopyPasteSequenceNumber
-                    ? _roslynSequenceNumber
-                    : _dataObject.GetData(format, autoConvert);
-            }
-
-            public bool GetDataPresent(string format)
-            {
-                return format == RoslynCopyPasteSequenceNumber || _dataObject.GetDataPresent(format);
-            }
-
-            public bool GetDataPresent(Type format)
-            {
-                return _dataObject.GetDataPresent(format);
-            }
-
-            public bool GetDataPresent(string format, bool autoConvert)
-            {
-                return format == RoslynCopyPasteSequenceNumber || _dataObject.GetDataPresent(format, autoConvert);
-            }
-
-            public string[] GetFormats()
-            {
-                var result = _dataObject.GetFormats().ToList();
-                result.Add(RoslynCopyPasteSequenceNumber);
-                return result.ToArray();
-            }
-
-            public string[] GetFormats(bool autoConvert)
-            {
-                var result = _dataObject.GetFormats(autoConvert).ToList();
-                result.Add(RoslynCopyPasteSequenceNumber);
-                return result.ToArray();
-
-            }
-
-            public void SetData(object data)
-            {
-                _dataObject.SetData(data);
-            }
-
-            public void SetData(string format, object data)
-            {
-                if (format == RoslynCopyPasteSequenceNumber)
-                    _roslynSequenceNumber = data is int v ? v : FailureValue;
-                else
-                    _dataObject.SetData(format, data);
-            }
-
-            public void SetData(Type format, object data)
-            {
-                _dataObject.SetData(format, data);
-            }
-
-            public void SetData(string format, object data, bool autoConvert)
-            {
-                if (format == RoslynCopyPasteSequenceNumber)
-                    _roslynSequenceNumber = data is int v ? v : FailureValue;
-                else
-                    _dataObject.SetData(format, data, autoConvert);
-            }
         }
     }
 }
