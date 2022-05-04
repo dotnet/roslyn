@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
     internal class KnownSourcePasteProcessor : AbstractPasteProcessor
     {
-        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
         private readonly ExpressionSyntax _stringExpressionCopiedFrom;
         private readonly ITextSnapshot _snapshotCopiedFrom;
 
@@ -37,13 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             ExpressionSyntax stringExpressionCopiedFrom,
-            ITextSnapshot snapshotCopiedFrom,
-            ITextBufferFactoryService3 textBufferFactoryService)
+            ITextSnapshot snapshotCopiedFrom)
             : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
             _snapshotCopiedFrom = snapshotCopiedFrom;
-            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
