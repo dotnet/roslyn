@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             nextCommandHandler();
 
             if (snapshotBeforePaste is null)
-                return; KnownSourcePasteProcessor
+                return;
 
             // If we don't even see any changes from the paste, there's nothing we can do.
             if (snapshotBeforePaste.Version.Changes is null)
@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(string newLine, IndentationOptions indentationOptions, CancellationToken cancellationToken)
             {
+                // See if we can determine the information about the code the user copied from.
                 var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
                 if (service != null &&
                     _lastSelectedSpans?.Count > 0 &&
