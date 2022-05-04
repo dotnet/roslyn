@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         internal readonly CodeActionOptionsProvider Options;
 
         /// <summary>
-        /// TypeScript specific.
+        /// TypeScript specific. https://github.com/dotnet/roslyn/issues/61122
         /// </summary>
         private readonly bool _isBlocking;
 
