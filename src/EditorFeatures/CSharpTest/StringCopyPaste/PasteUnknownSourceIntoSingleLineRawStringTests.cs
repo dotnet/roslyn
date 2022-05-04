@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """""" [||]""""""",
 @"var x = """"""""
      """"""
-    ""[||]""""""",
+    [||]""""""""",
                 afterUndo:
 @"var x = """""" """"""[||]""""""");
         }
@@ -617,7 +617,7 @@ def[||]""""""");
 @"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""""
     """"""
-    ""[||]""""""",
+    [||]""""""""",
                 afterUndo:
 @"var x = """"""""""""[||]""""""");
         }
