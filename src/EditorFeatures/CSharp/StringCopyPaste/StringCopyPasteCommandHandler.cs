@@ -316,10 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
-            var contentSpans = GetTextContentSpans(
-                snapshot.AsText(), stringExpression,
-                out _, out _, out _, out _);
-
+            var contentSpans = StringInfo.GetStringInfo(snapshot.AsText(), stringExpression).ContentSpans;
             foreach (var snapshotSpan in spans)
             {
                 var startIndex = contentSpans.BinarySearch(snapshotSpan.Span.Start, FindIndex);

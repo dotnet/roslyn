@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then any quotes to your starting delimiter
             if (quotesToAdd != null)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
 
@@ -139,7 +139,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+            {
+                var end = StringExpressionBeforePasteInfo.EndDelimiterSpan.End;
+                end = SkipU8Suffix(TextBeforePaste, end);
+                edits.Add(new TextChange(new TextSpan(end, 0), quotesToAdd));
+            }
 
             return edits.ToImmutable();
         }
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // A newline and the indentation to start with.
             if (mustBeMultiLine)
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + indentationWhitespace));
 
             SourceText? textOfCurrentChange = null;
             var commonIndentationPrefix = GetCommonIndentationPrefix(Changes) ?? "";
@@ -208,14 +212,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
             if (mustBeMultiLine && !LastPastedLineAddedNewLine())
-                edits.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + indentationWhitespace));
 
             return;
 
             bool LastPastedLineAddedNewLine()
             {
                 return textOfCurrentChange != null &&
-                    Changes.Last().OldEnd == TextContentsSpansBeforePaste.Last().End &&
+                    Changes.Last().OldEnd == StringExpressionBeforePasteInfo.ContentSpans.Last().End &&
                       HasNewLine(textOfCurrentChange.Lines.Last());
             }
         }
