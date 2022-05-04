@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     {
         private readonly ITableManager _tableManager;
         private readonly IWpfTableControlProvider _tableControlProvider;
-        private readonly UnusedReferencesDataSource _dataSource;
+        private readonly UnusedReferencesDataSource _dataSource = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             _tableManager = tableMangerProvider.GetTableManager(UnusedReferencesDataSource.Name);
             _tableControlProvider = tableControlProvider;
 
-            _dataSource = new UnusedReferencesDataSource();
             _tableManager.AddSource(_dataSource, UnusedReferencesColumnDefinitions.ColumnNames);
         }
 

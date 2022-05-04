@@ -1931,6 +1931,9 @@ Additional information: {1}</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating</value>
   </data>
+  <data name="Fix_text_pasted_into_string_literals_experimental" xml:space="preserve">
+    <value>Fix text pasted into string literals (experimental)</value>
+  </data>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>
   </data>

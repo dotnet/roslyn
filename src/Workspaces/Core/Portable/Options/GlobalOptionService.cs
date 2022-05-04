@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
-        private readonly HashSet<string> _forceComputedLanguages;
+        private readonly HashSet<string> _forceComputedLanguages = new();
 
         // access is interlocked
         private ImmutableArray<Workspace> _registeredWorkspaces;
@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Options
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
             _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
-            _forceComputedLanguages = new HashSet<string>();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
