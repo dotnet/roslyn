@@ -402,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             interfaceLocations.Free();
 
             diagnostics.Add(Locations[0], useSiteInfo);
+
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
         }
 
