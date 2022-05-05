@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return edits.ToImmutable();
         }
 
-        /// <inheritdoc cref="GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
+        /// <inheritdoc cref="AbstractPasteProcessor.GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
         private string? GetQuotesToAddToRawString()
             => GetQuotesToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
 
-        /// <inheritdoc cref="GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
+        /// <inheritdoc cref="AbstractPasteProcessor.GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
         private string? GetDollarSignsToAddToRawString()
             => GetDollarSignsToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
 
