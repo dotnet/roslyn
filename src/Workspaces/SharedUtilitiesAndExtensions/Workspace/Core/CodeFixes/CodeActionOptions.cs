@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         [DataMember(Order = 3)] public CodeCleanupOptions? CleanupOptions { get; init; }
         [DataMember(Order = 4)] public CodeGenerationOptions? CodeGenerationOptions { get; init; }
         [DataMember(Order = 5)] public bool HideAdvancedMembers { get; init; }
-        [DataMember(Order = 6)] public bool IsBlocking { get; init; }
         [DataMember(Order = 7)] public int WrappingColumn { get; init; }
 
         /// <summary>
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CodeCleanupOptions? CleanupOptions = null,
             CodeGenerationOptions? CodeGenerationOptions = null,
             bool HideAdvancedMembers = false,
-            bool IsBlocking = false,
             int WrappingColumn = DefaultWrappingColumn)
         {
             this.SearchOptions = SearchOptions ?? SymbolSearchOptions.Default;
@@ -69,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             this.CleanupOptions = CleanupOptions;
             this.CodeGenerationOptions = CodeGenerationOptions;
             this.HideAdvancedMembers = HideAdvancedMembers;
-            this.IsBlocking = IsBlocking;
             this.WrappingColumn = WrappingColumn;
         }
 

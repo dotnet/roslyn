@@ -242,6 +242,16 @@
         <target state="translated">Analiza kodu zakończyła się przed zakończeniem dla rozwiązania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_on_file_open">
+        <source>Collapse metadata implementations on file open</source>
+        <target state="new">Collapse metadata implementations on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Wskazówki kolorów</target>
@@ -445,6 +455,11 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Zakończ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="new">Fix text pasted into string literals (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
