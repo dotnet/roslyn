@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
 
             // It was invoked.  Remove the invocation, and also change the name if necessary.
-            replace(editor, invocation, nameNode, newName);
+            replace(editor, invocation, nameNode, newName.WithTriviaFrom(invocation));
         }
 
         private static bool IsInvocationName(IdentifierNameSyntax nameNode, ExpressionSyntax invocationExpression)
