@@ -510,10 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup when oldNodeOpt is { Type: { TypeKind: TypeKind.FunctionPointer } funcPtrType }:
                     {
                         var mg = (BoundMethodGroup)rewrittenOperand;
-                        Debug.Assert(oldNodeOpt.SymbolOpt is { });
-                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt,
-                                                            constrainedToTypeOpt: oldNodeOpt.SymbolOpt.IsStatic &&
-                                                                                  (oldNodeOpt.SymbolOpt.IsAbstract || oldNodeOpt.SymbolOpt.IsVirtual) ? mg.ReceiverOpt?.Type : null,
+                        MethodSymbol? symbolOpt = oldNodeOpt.SymbolOpt;
+                        Debug.Assert(symbolOpt is { });
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, symbolOpt,
+                                                            constrainedToTypeOpt: symbolOpt.IsStatic &&
+                                                                                  (symbolOpt.IsAbstract || symbolOpt.IsVirtual) ? mg.ReceiverOpt?.Type : null,
                                                             type: funcPtrType, hasErrors: false);
                     }
 
