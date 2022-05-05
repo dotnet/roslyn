@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object?)declaredSymbol != null)
             {
-                switch (variableDecl.Parent.Parent.Kind())
+                switch (variableDecl.Parent?.Parent?.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
                         return declaredSymbol.GetSymbol<FieldSymbol>();
