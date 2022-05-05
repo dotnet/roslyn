@@ -159,13 +159,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                     workspace,
                     view,
                     workspace.GetService<IEditorOperationsFactoryService>());
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+                var actual = view.TextSnapshot.GetText();
+                Assert.Equal(expectedCode, actual);
 
                 var endCaretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == endCaretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
+                var actualWithCaret = actual.Insert(endCaretPosition, "$$");
+
+                Assert.Equal(expectedMarkup, actualWithCaret);
             }
         }
     }

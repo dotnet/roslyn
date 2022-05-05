@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     [UseExportProvider]
     public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
     {
+        protected static readonly string ICSharpCodeDecompilerVersion = "7.1.0.6543";
+
         public virtual Task InitializeAsync()
         {
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(TestMetadata.ResourcesNet461.mscorlib));

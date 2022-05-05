@@ -7,6 +7,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -34,7 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (workspace.CanOpenDocuments)
             {
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, _documentId, _position, cancellationToken);
+                var threadingService = workspace.Services.GetService<IWorkspaceThreadingServiceProvider>();
+
+                threadingService.Service.Run(
+                    () => navigationService.TryNavigateToPositionAsync(workspace, _documentId, _position, cancellationToken));
             }
         }
     }

@@ -130,10 +130,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<(int[], bool isFinalized)> ComputeSemanticTokensDataAsync(
+        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -146,13 +147,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
-            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
-            document = frozenDocument;
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
-                document, textSpan, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -160,12 +159,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
-            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
+            return ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex);
         }
 
         private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
             Document document,
             TextSpan textSpan,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
                 // Therefore, we set both optional parameters to false.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
 
                 // The spans returned to us may include some empty spans, which we don't care about.
                 var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty);
@@ -195,8 +195,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
             else
             {
-                var options = ClassificationOptions.From(document.Project);
                 await classificationService.AddSemanticClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(
                     document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }
 
@@ -269,8 +270,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
                     }
 
-                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
-                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    // Omit 0-length spans created in this fashion.
+                    if (textSpan.Value.Length > 0)
+                    {
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    }
 
                     // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
                     // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim

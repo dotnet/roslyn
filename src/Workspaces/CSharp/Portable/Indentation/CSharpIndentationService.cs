@@ -39,20 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
-            IOptionService optionService,
-            OptionSet optionSet,
+            IndentationOptions options,
             out SyntaxToken token)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
             token = default;
-            if (!optionSet.GetOption(FormattingBehaviorOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            if (!options.AutoFormattingOptions.FormatOnReturn)
             {
                 return false;
             }
 
-            if (optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) != FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 return false;
             }
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet.AsAnalyzerConfigOptions(optionService, LanguageNames.CSharp));
+            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options.FormattingOptions);
             if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter

@@ -11,6 +11,7 @@
     <!-- Automatically generate the necessary assembly binding redirects -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <LangVersion>9</LangVersion>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
   <ItemGroup>

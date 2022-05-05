@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -38,6 +39,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
+
+        public TextSpan? GetFullSpan()
+            => IsNode ? Node.GetFullSpan() : _token.GetFullSpan();
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode? node)
             => new(node);

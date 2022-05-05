@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isPreProcessorExpressionContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
+            bool isGlobalStatementContext,
             bool isAnyExpressionContext,
             bool isAttributeNameContext,
             bool isEnumTypeMemberAccessContext,
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
+            this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsAnyExpressionContext = isAnyExpressionContext;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsRightOfNameSeparator { get; }
         public bool IsStatementContext { get; }
+        public bool IsGlobalStatementContext { get; }
         public bool IsAnyExpressionContext { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }

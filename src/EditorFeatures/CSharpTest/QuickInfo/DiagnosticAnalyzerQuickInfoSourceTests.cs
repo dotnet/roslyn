@@ -193,8 +193,7 @@ namespace T
         {
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
-            var options = SymbolDescriptionOptions.From(document.Project);
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None));
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None));
             return info;
         }
 

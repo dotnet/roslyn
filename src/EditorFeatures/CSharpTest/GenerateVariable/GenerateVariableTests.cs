@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -73,6 +71,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         goo;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleLowercaseIdentifierAllOptionsOffered()
+        {
+            await TestExactActionSetOfferedAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|goo|];
+    }
+}",
+new[]
+{
+    string.Format(FeaturesResources.Generate_field_0, "goo"),
+    string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
+    string.Format(FeaturesResources.Generate_property_0, "goo"),
+    string.Format(FeaturesResources.Generate_local_0, "goo"),
+    string.Format(FeaturesResources.Generate_parameter_0, "goo"),
+});
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestUnderscorePrefixAllOptionsOffered()
+        {
+            await TestExactActionSetOfferedAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|_goo|];
+    }
+}",
+new[]
+{
+    string.Format(FeaturesResources.Generate_field_0, "_goo"),
+    string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -7308,7 +7345,7 @@ public class Test
     {
         get
         {
-            return [|_field|];
+            return [|goo|];
         }
     }
 }",
@@ -7320,11 +7357,11 @@ public class Test
     {
         get
         {
-            return _field;
+            return goo;
         }
     }
 
-    public static int _field { get; private set; }
+    public static int goo { get; private set; }
 }",
 index: PropertyIndex);
         }
@@ -7342,7 +7379,7 @@ public class Test
     {
         get
         {
-            return [|_field|];
+            return [|goo|];
         }
     }
 }",
@@ -7354,8 +7391,8 @@ public class Test
     {
         get
         {
-            int _field = 0;
-            return _field;
+            int goo = 0;
+            return goo;
         }
     }
 }",

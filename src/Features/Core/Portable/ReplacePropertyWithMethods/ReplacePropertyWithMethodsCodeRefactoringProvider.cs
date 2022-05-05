@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         {
             var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace.Services);
             var service = originalDocument.GetRequiredLanguageService<IReplacePropertyWithMethodsService>();
 
             await ReplaceReferencesAsync(
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, updatedSolution.Workspace);
+            var editor = new SyntaxEditor(root, updatedSolution.Workspace.Services);
 
             // First replace all the properties with the appropriate getters/setters.
             foreach (var (property, declaration) in currentDefinitions)

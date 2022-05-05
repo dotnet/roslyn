@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             bool isNullChecked)
         {
-            RoslynDebug.Assert(type.HasType);
-            RoslynDebug.Assert(name != null);
-            RoslynDebug.Assert(ordinal >= 0);
+            Debug.Assert(type.HasType);
+            Debug.Assert(name != null);
+            Debug.Assert(ordinal >= 0);
 
             _container = container;
             _type = type;

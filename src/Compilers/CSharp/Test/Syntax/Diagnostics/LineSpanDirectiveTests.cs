@@ -508,7 +508,7 @@ class Page
         }
 
         [Fact]
-        public void Diagnostics()
+        public void Diagnostics_01()
         {
             var source =
 @"class Program
@@ -534,6 +534,53 @@ class Page
                 // (8,9): error CS0103: The name 'B' does not exist in the current context
                 //         B();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void Diagnostics_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#line (100, 1) - (100, ) 1 ""a.txt""
+        A();
+#line (200, 1) - (200, 100) 2 ""b.txt""
+        B();
+#line (300, 1) - (300, 100) x ""c.txt""
+        C();
+    }
+}".NormalizeLineEndings();
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,24): error CS8938: The #line directive value is missing or out of range
+                // #line (100, 1) - (100, ) 1 "a.txt"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ")").WithLocation(5, 24),
+                // (6,9): error CS0103: The name 'A' does not exist in the current context
+                //         A();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 9),
+                // (10,9): error CS0103: The name 'C' does not exist in the current context
+                //         C();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(10, 9),
+                // b.txt(200,8): error CS0103: The name 'B' does not exist in the current context
+                //         B();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(200, 8),
+                // b.txt(201,29): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (300, 1) - (300, 100) x "c.txt"
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "x").WithLocation(201, 29));
+
+            var tree = comp.SyntaxTrees[0];
+            var actualLineMappings = GetLineMappings(tree);
+            var expectedLineMappings = new[]
+            {
+                "(0,0)-(3,7) -> : (0,0)-(3,7)",
+                "(5,0)-(5,14) -> : (5,0)-(5,14)",
+                "(7,0)-(7,14),1 -> b.txt: (199,0)-(199,100)",
+                "(9,0)-(11,1) -> : (9,0)-(11,1)"
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
         }
 
         [Fact]

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxToken firstToken,
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,

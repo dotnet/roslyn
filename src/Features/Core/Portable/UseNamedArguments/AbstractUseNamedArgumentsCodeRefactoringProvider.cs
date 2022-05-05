@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
-                var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                // We allow empty nodes here to find VB implicit arguments.
+                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, allowEmptyNodes: true, cancellationToken).ConfigureAwait(false);
+                var argument = potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;

@@ -8,7 +8,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -26,6 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Protected Overrides Function SupportsRecords(options As ParseOptions) As Boolean
+            Return False
+        End Function
 
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
@@ -64,8 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                 elseBlock:=Nothing)
         End Function
 
-        Protected Overrides Function TryAddNullCheckToParameterDeclaration(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Document
-            Return Nothing
+        Protected Overrides Function TryAddNullCheckToParameterDeclarationAsync(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Return Task.FromResult(Of Document)(Nothing)
         End Function
     End Class
 End Namespace

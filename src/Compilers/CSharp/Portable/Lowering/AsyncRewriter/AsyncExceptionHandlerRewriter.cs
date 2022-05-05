@@ -582,25 +582,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // store pending exception 
-                // as the first expression in a filter
-                var sourceOpt = node.ExceptionSourceOpt;
+                // as the first expression in a filter prologue
                 var rewrittenPrologue = (BoundStatementList)this.Visit(filterPrologueOpt);
+
+                var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                var sourceOpt = node.ExceptionSourceOpt;
+                prologueBuilder.Add(_F.ExpressionStatement(storePending));
+                if (sourceOpt is not null)
+                {
+                    prologueBuilder.Add(_F.ExpressionStatement(AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame)));
+                }
+
+                if (rewrittenPrologue != null)
+                {
+                    prologueBuilder.Add(rewrittenPrologue);
+                }
+                var newPrologue = _F.StatementList(prologueBuilder.ToImmutableAndFree());
+
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
-                var newFilter = sourceOpt == null ?
-                                _F.MakeSequence(
-                                    storePending,
-                                    rewrittenFilter) :
-                                _F.MakeSequence(
-                                    storePending,
-                                    AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame),
-                                    rewrittenFilter);
 
                 catchAndPend = node.Update(
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
-                    exceptionFilterPrologueOpt: rewrittenPrologue,
-                    exceptionFilterOpt: newFilter,
+                    exceptionFilterPrologueOpt: newPrologue,
+                    exceptionFilterOpt: rewrittenFilter,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),
                         setPendingCatchNum),

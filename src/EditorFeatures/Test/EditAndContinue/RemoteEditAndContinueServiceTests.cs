@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService();
+            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {
@@ -208,7 +208,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     updatedTypes: ImmutableArray.Create(0x02000001),
                     sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
                     activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1)));
+                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                    requiredCapabilities: EditAndContinueCapabilities.Baseline));
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 

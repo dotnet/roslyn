@@ -35,7 +35,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=netstandard1.3</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=netstandard2.0</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj">

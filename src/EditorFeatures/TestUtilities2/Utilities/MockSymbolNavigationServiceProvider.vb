@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public TryNavigateToSymbolProvidedSymbol As ISymbol
             Public TryNavigateToSymbolProvidedProject As Project
-            Public TryNavigateToSymbolProvidedOptions As OptionSet
+            Public TryNavigateToSymbolProvidedOptions As NavigationOptions
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
             Public TrySymbolNavigationNotifyProvidedProject As Project
@@ -45,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public NavigationLineNumberReturnValue As Integer
             Public NavigationCharOffsetReturnValue As Integer
 
-            Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+            Public Function TryNavigateToSymbolAsync(symbol As ISymbol, project As Project, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TryNavigateToSymbolAsync
                 Me.TryNavigateToSymbolProvidedSymbol = symbol
                 Me.TryNavigateToSymbolProvidedProject = project
                 Me.TryNavigateToSymbolProvidedOptions = options
-                Return True
+                Return SpecializedTasks.True
             End Function
 
             Public Function TrySymbolNavigationNotifyAsync(

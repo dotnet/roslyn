@@ -3322,15 +3322,30 @@ class C { int Y => 1; }
             }
         }
 
-        [Fact]
-        public async Task ActiveStatements_ForeignDocument()
+        [Theory]
+        [CombinatorialData]
+        public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
             var composition = FeaturesTestCompositions.Features.AddParts(typeof(DummyLanguageService));
 
             using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
 
-            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
-            var document = project.AddDocument("test", SourceText.From("dummy1"));
+            var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : DummyLanguageService.LanguageName);
+            var filePath = withPath ? Path.Combine(TempRoot.Root, "test") : null;
+
+            var documentInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id, "test"),
+                name: "test",
+                folders: Array.Empty<string>(),
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("dummy1"), VersionStamp.Create(), filePath)),
+                filePath: filePath,
+                isGenerated: false,
+                designTimeOnly: designTimeOnly,
+                documentServiceProvider: null);
+
+            var document = project.Solution.AddDocument(documentInfo).GetDocument(documentInfo.Id);
+
             solution = document.Project.Solution;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3349,6 +3364,12 @@ class C { int Y => 1; }
             Assert.Empty(currentSpans);
 
             var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+            Assert.Empty(baseSpans.Single());
+
+            // update solution:
+            solution = solution.WithDocumentText(document.Id, SourceText.From("dummy2"));
+
+            baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
             Assert.Empty(baseSpans.Single());
         }
 
@@ -3784,8 +3805,8 @@ class C
 
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);
@@ -3805,8 +3826,8 @@ class C
             // the regions remain unchanged
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             // EnC update F v3 -> v4
@@ -3841,7 +3862,7 @@ class C
             // Stale active statement region is gone.
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);
@@ -3966,8 +3987,8 @@ class C
 
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
+                $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) => (3,41)-(3,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) => (9,14)-(9,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);

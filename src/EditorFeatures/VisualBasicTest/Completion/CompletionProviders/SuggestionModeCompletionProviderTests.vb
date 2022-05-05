@@ -375,11 +375,12 @@ End Class</a>
                 workspaceFixture.GetWorkspace(ExportProvider)
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
 
-                Dim options = CompletionOptions.From(document1.Project.Solution.Options, document1.Project.Language)
+                Dim options As CompletionOptions
 
                 If useDebuggerOptions Then
-                    options.FilterOutOfScopeLocals = False
-                    options.ShowXmlDocCommentCompletion = False
+                    options = New CompletionOptions(FilterOutOfScopeLocals:=False, ShowXmlDocCommentCompletion:=False)
+                Else
+                    options = CompletionOptions.Default
                 End If
 
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)

@@ -29,6 +29,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
@@ -55,6 +56,7 @@
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="AnalyzerRunner" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <!-- BEGIN MONODEVELOP
     These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
     binary insertions and are exempted from the ExternalAccess adapter assembly policies.
@@ -114,10 +116,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FormattingCodeFixHelper.cs" Link="Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Debugging\SourceHashAlgorithms.cs" Link="Debugging\SourceHashAlgorithms.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeCleanup\readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FeaturesResources.resx" GenerateSource="true" />
@@ -127,10 +133,14 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />

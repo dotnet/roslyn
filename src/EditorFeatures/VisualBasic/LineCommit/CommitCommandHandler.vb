@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not _globalOptions.GetOption(FormattingBehaviorOptions.FormatOnPaste, LanguageNames.VisualBasic) Then
+                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If

@@ -7,8 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -84,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(diagnostic.DocumentId);
-            if (document is null)
+            var project = workspace.CurrentSolution.GetProject(diagnostic.DocumentId.ProjectId);
+            if (project is null)
             {
                 return null;
             }
 
-            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
+            var locationOption = GlobalOptions.GetOption(InlineDiagnosticsOptions.Location, project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService,
                 _classificationTypeRegistryService, locationOption, navigateService);

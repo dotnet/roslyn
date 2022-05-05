@@ -10,9 +10,10 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     using static EmbeddedSyntaxHelpers;
 
@@ -33,35 +34,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         public RegexSyntaxClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
+            SyntaxTokenKinds = _info.AllStringLiteralKinds;
         }
 
         public override void AddClassifications(
             SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_info.StringLiteralTokenKind != token.RawKind)
-            {
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
-            }
 
             if (!options.ColorizeRegexPatterns)
-            {
                 return;
-            }
 
-            // Do some quick syntactic checks before doing any complex work.
-            if (!RegexPatternDetector.IsPossiblyPatternToken(token, _info.SyntaxFacts))
-            {
-                return;
-            }
-
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
-            {
                 return;
-            }
 
             var visitor = s_visitorPool.Allocate();
             try

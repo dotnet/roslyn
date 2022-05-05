@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public const string DefaultParameterName = "p";
-        private const string DefaultBuiltInParameterName = "v";
+        public const string DefaultParameterName = "value";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -314,13 +313,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
-                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
-                case INamedTypeSymbol n: return ContainsAnonymousType(n);
-                default: return false;
-            }
+                IArrayTypeSymbol a => ContainsAnonymousType(a.ElementType),
+                IPointerTypeSymbol p => ContainsAnonymousType(p.PointedAtType),
+                INamedTypeSymbol n => ContainsAnonymousType(n),
+                _ => false,
+            };
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
@@ -363,11 +362,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
-            }
-
-            if (type.IsSpecialType() || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                return DefaultBuiltInParameterName;
             }
 
             var shortName = type.GetShortName();
@@ -552,9 +546,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: if the element type of the first is
             // SPEC: more specific than the element type of the second.
 
-            if (t1 is IArrayTypeSymbol)
+            if (t1 is IArrayTypeSymbol arr1)
             {
-                var arr1 = (IArrayTypeSymbol)t1;
                 var arr2 = (IArrayTypeSymbol)t2;
 
                 // We should not have gotten here unless there were identity conversions

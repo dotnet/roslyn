@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return userFunction(input, token);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, token))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
@@ -44,34 +42,30 @@ namespace Microsoft.CodeAnalysis
             return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArray();
         }
 
-        internal static Action<TInput> WrapUserAction<TInput>(this Action<TInput> userAction)
+        internal static Action<TInput, CancellationToken> WrapUserAction<TInput>(this Action<TInput> userAction)
         {
-            return input =>
+            return (input, token) =>
             {
                 try
                 {
                     userAction(input);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }
             };
         }
 
-        internal static Action<TInput1, TInput2> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userAction)
+        internal static Action<TInput1, TInput2, CancellationToken> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userAction)
         {
-            return (input1, input2) =>
+            return (input1, input2, token) =>
             {
                 try
                 {
                     userAction(input1, input2);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, token))
                 {
                     throw new UserFunctionException(e);
                 }

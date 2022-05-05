@@ -54,10 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
+        public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
+            => CSharpSyntaxFormattingOptions.Create(options);
+
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
-            => new CSharpFormatEngine(node, options, formattingRules, token1, token2).Format(cancellationToken);
+        protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
+            => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
     }
 }

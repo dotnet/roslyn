@@ -28,12 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
-        private SyntaxTree Parse6(string text)
+        private SyntaxTree Parse(string text, LanguageVersion languageVersion)
         {
-            var options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
+            var options = new CSharpParseOptions(languageVersion: languageVersion);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
+
+        private SyntaxTree Parse6(string text)
+            => Parse(text, LanguageVersion.CSharp6);
+
+        private SyntaxTree ParsePreview(string text)
+            => Parse(text, LanguageVersion.Preview);
 
         [Fact]
         public void TestChangeClassNameWithNonMatchingMethod()
@@ -49,6 +55,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
                             SyntaxKind.IdentifierToken);
+        }
+
+        [Fact]
+        public void TestExclamationExclamation()
+        {
+            var text = @"#nullable enable
+
+public class C {
+    public void M(string? x  !!) { // no error.
+    }
+}";
+            var oldTree = this.ParsePreview(text);
+            var newTree = oldTree.WithReplaceFirst("?", "");
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.MethodDeclaration,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter,
+                            SyntaxKind.PredefinedType,
+                            SyntaxKind.StringKeyword);
         }
 
         [Fact]

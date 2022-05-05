@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
-                var convertedType = argumentExpression == null ? null : semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
+                var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
                 if (convertedType == null)
                 {
                     builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));

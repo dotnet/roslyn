@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
@@ -23,10 +22,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), roles);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
         }
 
-        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static Task<CompletionList> GetCompletionsAsync(
            this CompletionService completionService,
            Document document,
            int caretPosition,
@@ -34,7 +33,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
            ImmutableHashSet<string>? roles,
            OmniSharpCompletionOptions options,
            CancellationToken cancellationToken)
-           => completionService.GetCompletionsInternalAsync(document, caretPosition, options.ToCompletionOptions(), trigger, roles, cancellationToken);
+        {
+            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
+        }
+
+        public static Task<CompletionDescription?> GetDescriptionAsync(
+           this CompletionService completionService,
+           Document document,
+           CompletionItem item,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetDescriptionAsync(document, item, options.ToCompletionOptions(), SymbolDescriptionOptions.Default, cancellationToken);
+        }
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
     }

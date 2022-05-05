@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_memoryMappedInfo != null)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))

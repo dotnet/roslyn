@@ -494,6 +494,13 @@ namespace Microsoft.CodeAnalysis
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
+        internal async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
+        {
+            var optionService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var documentOptions = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return documentOptions.AsAnalyzerConfigOptions(optionService, Project.Language);
+        }
+
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
@@ -535,8 +542,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // Really no idea where this is going, so bail
-                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
-                return Task.FromResult(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer));
+                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
             }
         }
     }

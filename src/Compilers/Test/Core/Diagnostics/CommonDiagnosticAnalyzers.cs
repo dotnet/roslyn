@@ -785,6 +785,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Location _invalidLocation;
             private readonly ActionKind _actionKind;
+            private readonly bool _testInvalidAdditionalLocation;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -805,17 +806,20 @@ namespace Microsoft.CodeAnalysis
                 SyntaxTree
             }
 
-            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind)
+            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind, bool testInvalidAdditionalLocation)
             {
                 _invalidLocation = treeInAnotherCompilation.GetRoot().GetLocation();
                 _actionKind = actionKind;
+                _testInvalidAdditionalLocation = testInvalidAdditionalLocation;
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, ActionKind actionKindBeingRun)
             {
                 if (_actionKind == actionKindBeingRun)
                 {
-                    var diagnostic = Diagnostic.Create(Descriptor, _invalidLocation);
+                    var diagnostic = _testInvalidAdditionalLocation ?
+                        Diagnostic.Create(Descriptor, Location.None, additionalLocations: new[] { _invalidLocation }) :
+                        Diagnostic.Create(Descriptor, _invalidLocation);
                     addDiagnostic(diagnostic);
                 }
             }

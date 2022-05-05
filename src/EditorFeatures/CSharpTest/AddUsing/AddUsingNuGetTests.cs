@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -35,9 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 
         protected override void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
-                .WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true)));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp), true);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp), true);
         }
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(

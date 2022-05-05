@@ -5,12 +5,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
-namespace Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteStackTraceExplorerService : BrokeredServiceBase, IRemoteStackTraceExplorerService
     {

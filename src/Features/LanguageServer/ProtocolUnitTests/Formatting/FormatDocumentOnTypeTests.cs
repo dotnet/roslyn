@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
                 CreateDocumentOnTypeFormattingParams(
-                    characterTyped, locationTyped, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                    characterTyped, locationTyped, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(

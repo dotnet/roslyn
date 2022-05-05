@@ -81,6 +81,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsRemovableBitwiseEnumNegation(cast, semanticModel, cancellationToken))
                 return true;
 
+            // Special case for converting a method group to object. The compiler issues a warning if the cast is removed:
+            // warning CS8974: Converting method group 'ToString' to non-delegate type 'object'. Did you intend to invoke the method?
+            var castExpressionOperation = semanticModel.GetOperation(cast.Expression, cancellationToken);
+            if (castExpressionOperation is
+                {
+                    Kind: OperationKind.MethodReference,
+                    Parent.Kind: OperationKind.DelegateCreation,
+                    Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
         }
 
@@ -211,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             return false;
         }
+
         private static bool IsDelegateCreationCastSafeToRemove(
             ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
             SemanticModel originalSemanticModel, IDelegateCreationOperation originalDelegateCreationOperation,
@@ -228,9 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenExpression.WalkDownParentheses(), cancellationToken);
             if (rewrittenOperation is not (IAnonymousFunctionOperation or IMethodReferenceOperation))
-            {
                 return false;
-            }
 
             if (rewrittenOperation.Parent is not IDelegateCreationOperation rewrittenDelegateCreationOperation)
                 return false;
@@ -264,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Explicit conversions are conversions that cannot be proven to always succeed, conversions
             // that are known to possibly lose information.  As such, we need to preserve this as it 
             // has necessary runtime behavior that must be kept.
-            if (IsExplicitCastThatMustBePreserved(castNode, originalConversion))
+            if (IsExplicitCastThatMustBePreserved(originalSemanticModel, castNode, originalConversion, cancellationToken))
                 return false;
 
             // we are starting with code like `(X)expr` and converting to just `expr`. Post rewrite we need
@@ -335,12 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
+                originalParentConversion.GetConversion().IsImplicit)
             {
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -636,8 +660,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
-                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }
@@ -733,7 +758,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 ? conversion.Operand
                 : value;
 
-        private static bool IsExplicitCastThatMustBePreserved(ExpressionSyntax castNode, Conversion conversion)
+        private static bool IsExplicitCastThatMustBePreserved(
+            SemanticModel semanticModel,
+            ExpressionSyntax castOrAsNode,
+            Conversion conversion,
+            CancellationToken cancellationToken)
         {
             if (!conversion.IsExplicit)
                 return false;
@@ -753,15 +782,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Note: this does not apply for `as byte?`.  This is an explicit as-cast that can produce null values and
             // so it should be maintained.
-            if (conversion.IsNullable && castNode is CastExpressionSyntax)
+            if (conversion.IsNullable && castOrAsNode is CastExpressionSyntax castExpression)
             {
-                var parent = castNode.WalkUpParentheses();
+                var parent = castOrAsNode.WalkUpParentheses();
                 if (parent.Parent is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    if ((conditionalExpression.WhenTrue == parent && conditionalExpression.WhenFalse.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression) ||
-                        (conditionalExpression.WhenFalse == parent && conditionalExpression.WhenTrue.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression))
-                    {
+                    // If we have `(T?)expr == null` or `null == (T?)expr` then we can potentially remove this cast as
+                    // the lang will implicitly create such a cast with an appropriate type and null.
+                    var (castSide, otherSide) = conditionalExpression.WhenTrue == parent
+                        ? (conditionalExpression.WhenTrue, conditionalExpression.WhenFalse)
+                        : (conditionalExpression.WhenFalse, conditionalExpression.WhenTrue);
+
+                    if (otherSide.WalkDownParentheses().Kind() == SyntaxKind.NullLiteralExpression)
                         return false;
+
+                    // if we have `(T?)TExpr == nullableTExpr` then we can also remove this cast as the language will
+                    // insert the same nullable widening cast implicitly.
+                    //
+                    // If we have `(T?)TExpr == TExpr` then we can potentially remove this cast if the caller determines
+                    // that there is an outer contextual cast to `T?` higher up.
+                    var castSideType = semanticModel.GetTypeInfo(castSide, cancellationToken).Type;
+                    var castedExpressionType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type;
+
+                    if (castSideType.IsNullable(out var underlyingType) && Equals(underlyingType, castedExpressionType))
+                    {
+                        var otherSideType = semanticModel.GetTypeInfo(otherSide, cancellationToken).Type;
+                        if (Equals(castSideType, otherSideType) || Equals(underlyingType, otherSideType))
+                            return false;
                     }
                 }
             }
@@ -1248,8 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Removing a cast may cause a conditional-expression conversion to come into existence.  This is
             // fine as long as we're in C# 9 or above.
-            var languageVersion = ((CSharpCompilation)originalSemanticModel.Compilation).LanguageVersion;
-            if (languageVersion < LanguageVersion.CSharp9 &&
+            if (originalSemanticModel.Compilation.LanguageVersion() < LanguageVersion.CSharp9 &&
                 IntroducedConditionalExpressionConversion(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             {
                 return default;

@@ -38,7 +38,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        {
+            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+        }
+
+        async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
+            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
@@ -62,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
             if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
             {
-                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken);
             }
             else
             {

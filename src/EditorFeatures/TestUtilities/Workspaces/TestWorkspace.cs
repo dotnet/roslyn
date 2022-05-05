@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AdditionalDocuments { get; }
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
+        internal IGlobalOptionService GlobalOptions { get; }
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+            this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
             {
@@ -671,14 +673,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            // Fetching the open SourceTextContanier implicitly opens the document.
-            GetTestDocument(documentId).GetOpenTextContainer();
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
         }
 
         public override void CloseDocument(DocumentId documentId)
         {
             var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
             this.OnDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public void OpenSourceGeneratedDocument(DocumentId documentId)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestDocument(documentId);
+            Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public async Task CloseSourceGeneratedDocumentAsync(DocumentId documentId)
+        {
+            var testDocument = this.GetTestDocument(documentId);
+            Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            var document = await CurrentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None);
+            Contract.ThrowIfNull(document);
+            OnSourceGeneratedDocumentClosed(document);
         }
 
         public void ChangeDocument(DocumentId documentId, SourceText text)

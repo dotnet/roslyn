@@ -11,13 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public abstract ImmutableArray<ICodeCleanupProvider> GetDefaultProviders();
         protected abstract ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root);
 
-        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
             {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
@@ -64,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    document, annotatedDocument,
+                    document, annotatedDocument, options,
                     r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
                     codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, r => ImmutableArray.Create(r.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, r => ImmutableArray.Create(r.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, n => ImmutableArray.Create(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, n => ImmutableArray.Create(n.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
@@ -105,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot,
+                    root, annotatedRoot, options,
                     r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
-                    workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                    services, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -454,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> IterateAllCodeCleanupProvidersAsync(
             Document originalDocument,
             Document annotatedDocument,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
@@ -492,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                     using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
-                        currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, cancellationToken).ConfigureAwait(false);
+                        currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
                     }
 
 #if DEBUG
@@ -534,8 +536,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
+            SyntaxFormattingOptions options,
             Func<SyntaxNode, ImmutableArray<TextSpan>> spanGetter,
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
@@ -568,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                     using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
-                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, workspace, cancellationToken).ConfigureAwait(false);
+                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, options, services, cancellationToken).ConfigureAwait(false);
                     }
                 }
 

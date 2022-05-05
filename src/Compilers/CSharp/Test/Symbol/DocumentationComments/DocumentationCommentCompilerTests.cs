@@ -6930,5 +6930,406 @@ $@"<?xml version=""1.0""?>
 </doc>";
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_01()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.</param>
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+        </member>
+        <member name=""P:Rec.Value"">
+            <summary>Parameter of the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_02()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Rec"" -->
+        <!-- Badly formed XML comment ignored for member ""M:Rec.#ctor(System.String)"" -->
+        <!-- Badly formed XML comment ignored for member ""P:Rec.Value"" -->
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_03()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Value"">Parameter of the record.</param>
+/// <param name=""Value"">Also the value of the record.</param>
+record Rec(string Value);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'Value'
+                // /// <param name="Value">Also the value of the record.</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""Value""").WithArguments("Value").WithLocation(4, 12),
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'Value'
+                // /// <param name="Value">Also the value of the record.</param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""Value""").WithArguments("Value").WithLocation(4, 12),
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+            <param name=""Value"">Also the value of the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Value"">Parameter of the record.</param>
+            <param name=""Value"">Also the value of the record.</param>
+        </member>
+        <member name=""P:Rec.Value"">
+            <summary>Parameter of the record.</summary>
+            <summary>Also the value of the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_04()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item1"">First item in the record.</param>
+/// <param name=""Item2"">Second item in the record.</param>
+record Rec(string Item1, object Item2);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                //     public static class IsExternalInit
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25)
+);
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item1"">First item in the record.</param>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String,System.Object)"">
+            <summary>The record.</summary>
+            <param name=""Item1"">First item in the record.</param>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""P:Rec.Item1"">
+            <summary>First item in the record.</summary>
+        </member>
+        <member name=""P:Rec.Item2"">
+            <summary>Second item in the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_05()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item2"">Second item in the record.</param>
+record Rec(string Item1, object Item2);
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,19): warning CS1573: Parameter 'Item1' has no matching param tag in the XML comment for 'Rec.Rec(string, object)' (but other parameters do)
+                    // record Rec(string Item1, object Item2);
+                    Diagnostic(ErrorCode.WRN_MissingParamTag, "Item1").WithArguments("Item1", "Rec.Rec(string, object)").WithLocation(4, 19),
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String,System.Object)"">
+            <summary>The record.</summary>
+            <param name=""Item2"">Second item in the record.</param>
+        </member>
+        <member name=""P:Rec.Item2"">
+            <summary>Second item in the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_06()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item"">Item within the record.</param>
+record Rec(string Item)
+{
+    public string Item { get; init; } = Item;
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_07()
+        {
+            var source = @"
+/// <summary>The record.</summary>
+/// <param name=""Item"">Item within the record.</param1>
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Rec"" -->
+        <!-- Badly formed XML comment ignored for member ""M:Rec.#ctor(System.String)"" -->
+        <!-- Badly formed XML comment ignored for member ""P:Rec.Item"" -->
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_08()
+        {
+            var source = @"
+/**
+ * <summary>The record.</summary>
+ * <param name=""Item"">Item within the record.</param>
+ * <remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_09()
+        {
+            var source = @"
+/**
+ *<summary>The record.</summary>
+ *<param name=""Item"">Item within the record.</param>
+ *<remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+            <summary>The record.</summary>
+            <param name=""Item"">Item within the record.</param>
+            <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(52663, "https://github.com/dotnet/roslyn/issues/52663")]
+        public void PositionalRecord_10()
+        {
+            var source = @"
+/**
+   <summary>The record.</summary>
+   <param name=""Item"">Item within the record.</param>
+   <remarks>The remarks.</remarks>
+ */
+record Rec(string Item)
+{
+}
+";
+            var comp = CreateCompilationUtil(new[] { source, IsExternalInitTypeDefinition });
+            var actual = GetDocumentationCommentText(comp,
+                    // (4,25): warning CS1591: Missing XML comment for publicly visible type or member 'IsExternalInit'
+                    //     public static class IsExternalInit
+                    Diagnostic(ErrorCode.WRN_MissingXMLComment, "IsExternalInit").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 25));
+
+            // Ideally, the 'P:Rec.Item' summary would have exactly the same leading indentation as the param comment it was derived from.
+            // However, it doesn't seem essential for this to match in all cases.
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:Rec"">
+               <summary>The record.</summary>
+               <param name=""Item"">Item within the record.</param>
+               <remarks>The remarks.</remarks>
+        </member>
+        <member name=""M:Rec.#ctor(System.String)"">
+               <summary>The record.</summary>
+               <param name=""Item"">Item within the record.</param>
+               <remarks>The remarks.</remarks>
+        </member>
+        <member name=""P:Rec.Item"">
+            <summary>Item within the record.</summary>
+        </member>
+    </members>
+</doc>";
+            AssertEx.Equal(expected, actual);
+        }
     }
 }

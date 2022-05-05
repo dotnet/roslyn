@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public readonly bool IsPreProcessorKeywordContext;
 
-        public readonly bool IsGlobalStatementContext;
-
         public readonly bool IsNonAttributeExpressionContext;
         public readonly bool IsConstantExpressionContext;
 
@@ -113,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             : base(document, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext, isPreProcessorExpressionContext,
-                   isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
-                   isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
+                   isRightOfDotOrArrowOrColonColon, isStatementContext, isGlobalStatementContext,
+                   isAnyExpressionContext, isAttributeNameContext, isEnumTypeMemberAccessContext,
+                   isNameOfContext, isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
                    isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
                    cancellationToken)
         {
@@ -123,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
             this.IsInNonUserCode = isInNonUserCode;
             this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
-            this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;

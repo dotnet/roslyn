@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -48,10 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             }
         }
 
-        bool IAssemblyResolver.IsGacAssembly(IAssemblyReference reference)
+        public Task<PEFile> ResolveAsync(IAssemblyReference name)
         {
-            // This method is not called by the decompiler
-            throw new NotSupportedException();
+            return Task.FromResult(Resolve(name));
+        }
+
+        public Task<PEFile> ResolveModuleAsync(PEFile mainModule, string moduleName)
+        {
+            return Task.FromResult(ResolveModule(mainModule, moduleName));
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Could be non-static if instance data is accessed")]

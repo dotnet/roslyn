@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
         protected override TestComposition Composition => base.Composition
-            .AddParts(typeof(MutatingRequestHandlerProvider))
-            .AddParts(typeof(NonMutatingRequestHandlerProvider))
-            .AddParts(typeof(FailingRequestHandlerProvider))
-            .AddParts(typeof(FailingMutatingRequestHandlerProvider))
-            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider))
-            .AddParts(typeof(LongRunningNonMutatingRequestHandlerProvider));
+            .AddParts(typeof(MutatingRequestHandler))
+            .AddParts(typeof(NonMutatingRequestHandler))
+            .AddParts(typeof(FailingRequestHandler))
+            .AddParts(typeof(FailingMutatingRequestHandler))
+            .AddParts(typeof(NonLSPSolutionRequestHandler))
+            .AddParts(typeof(LongRunningNonMutatingRequestHandler));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => waitables[0]);
 
             // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
-            await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => waitables[0]);
 
             // The failed request returns to the client before the shutdown completes.
             // Wait for the queue to finish handling the failed request and shutdown.
@@ -246,15 +246,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                     Text = "// hi there"
                 }
             };
-            await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
         }
 
-        private static async Task<Solution> GetLSPSolution(TestLspServer testLspServer, string methodName)
+        private static async Task<Solution?> GetLSPSolution(TestLspServer testLspServer, string methodName)
         {
             var request = new TestRequest(methodName);
-            var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, CancellationToken.None);
             Contract.ThrowIfNull(response);
-            return response.Solution;
+            if (response.ContextHasSolution)
+            {
+                var solution = testLspServer.GetManager().TryGetHostLspSolution();
+                Contract.ThrowIfNull(solution);
+                return solution;
+            }
+
+            return null;
         }
 
         private static async Task<TestResponse[]> TestAsync(TestLspServer testLspServer, TestRequest[] requests)
@@ -273,11 +280,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
         private static List<Task<TestResponse?>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests, CancellationToken cancellationToken = default)
         {
-            var clientCapabilities = new LSP.ClientCapabilities();
-
             var waitables = new List<Task<TestResponse?>>();
             foreach (var request in requests)
-                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, cancellationToken));
+                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, cancellationToken));
 
             return waitables;
         }

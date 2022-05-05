@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, allowDecompilation: true);
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.Default);
             }
 
             public async Task<MetadataAsSourceFile> GenerateSourceAsync(string? symbolMetadataName = null, Project? project = null, bool signaturesOnly = true)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, allowDecompilation: true);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.Default);
 
                 return result;
             }

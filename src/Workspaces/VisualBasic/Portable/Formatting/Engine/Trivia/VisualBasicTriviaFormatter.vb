@@ -54,8 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
-                Dim text = Me.Context.Options.GetOption(FormattingOptions2.NewLine)
-                _newLine = SyntaxFactory.EndOfLine(text)
+                _newLine = SyntaxFactory.EndOfLine(Context.Options.NewLine)
             End If
 
             Return _newLine
@@ -285,9 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 forceIndentation:=True,
                 indentation:=indentation,
                 indentationDelta:=0,
-                useTab:=Me.Options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=Me.Options.GetOption(FormattingOptions2.TabSize),
-                newLine:=Me.Options.GetOption(FormattingOptions2.NewLine))
+                useTab:=Options.UseTabs,
+                tabSize:=Options.TabSize,
+                newLine:=Options.NewLine)
 
             If text = singlelineDocComments Then
                 Return trivia

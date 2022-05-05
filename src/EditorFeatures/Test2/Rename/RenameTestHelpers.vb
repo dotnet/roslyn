@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
             Dim sessionInfo = GetSessionInfo(workspace)
 
-            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan).Session, InlineRenameSession)
+            Return DirectCast(renameService.StartInlineSession(sessionInfo.document, sessionInfo.textSpan, CancellationToken.None).Session, InlineRenameSession)
         End Function
 
         Public Sub AssertTokenRenamable(workspace As TestWorkspace)

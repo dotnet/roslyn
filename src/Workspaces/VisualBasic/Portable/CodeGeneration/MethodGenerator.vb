@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     WithImplementsClause(implementsClauseOpt).
                     WithHandlesClause(handlesClauseOpt)
 
-            Dim hasNoBody = Not options.GenerateMethodBodies OrElse
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies OrElse
                             method.IsAbstract OrElse
                             destination = CodeGenerationDestination.InterfaceType
 

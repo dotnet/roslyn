@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return False
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim statement As RaiseEventStatementSyntax = Nothing
             If TryGetRaiseEventStatement(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, statement) AndAlso
                 currentSpan.Start = statement.Name.SpanStart Then

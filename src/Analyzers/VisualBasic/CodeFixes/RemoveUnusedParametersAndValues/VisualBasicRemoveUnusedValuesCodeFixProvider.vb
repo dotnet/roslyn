@@ -6,8 +6,10 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
@@ -22,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+#If CODE_STYLE Then
+        Protected Overrides Function GetSyntaxFormattingService() As ISyntaxFormattingService
+            Return VisualBasicSyntaxFormattingService.Instance
+        End Function
+#End If
 
         Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.

@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private IDisposable Tag(string name, params AttributeInfo[] attributes)
             => new AutoTag(this, name, attributes);
 
-        private AttributeInfo BinaryOperatorAttribute(BinaryOperatorKind kind)
+        private static AttributeInfo BinaryOperatorAttribute(BinaryOperatorKind kind)
         {
             if (kind == BinaryOperatorKind.None)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(BinaryOperatorAttributeName, GetBinaryOperatorKindText(kind));
         }
 
-        private AttributeInfo FullNameAttribute(string name)
+        private static AttributeInfo FullNameAttribute(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(FullNameAttributeName, name);
         }
 
-        private AttributeInfo ImplicitAttribute(bool? @implicit)
+        private static AttributeInfo ImplicitAttribute(bool? @implicit)
         {
             if (@implicit == null)
             {
@@ -193,10 +193,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(ImplicitAttributeName, @implicit.Value ? "yes" : "no");
         }
 
-        private AttributeInfo LineNumberAttribute(int lineNumber)
+        private static AttributeInfo LineNumberAttribute(int lineNumber)
             => new AttributeInfo(LineAttributeName, lineNumber.ToString());
 
-        private AttributeInfo NameAttribute(string name)
+        private static AttributeInfo NameAttribute(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -206,10 +206,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(NameAttributeName, name);
         }
 
-        private AttributeInfo RankAttribute(int rank)
+        private static AttributeInfo RankAttribute(int rank)
             => new AttributeInfo(RankAttributeName, rank.ToString());
 
-        private AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
+        private static AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
             => specialCastKind switch
             {
                 SpecialCastKind.DirectCast => new AttributeInfo(DirectCastAttributeName, "yes"),
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
                 _ => AttributeInfo.Empty,
             };
 
-        private AttributeInfo TypeAttribute(string typeName)
+        private static AttributeInfo TypeAttribute(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName))
             {
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(TypeAttributeName, typeName);
         }
 
-        private AttributeInfo VariableKindAttribute(VariableKind kind)
+        private static AttributeInfo VariableKindAttribute(VariableKind kind)
         {
             if (kind == VariableKind.None)
             {

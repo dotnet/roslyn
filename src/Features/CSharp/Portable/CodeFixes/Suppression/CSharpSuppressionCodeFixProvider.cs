@@ -10,12 +10,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -31,27 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
         }
 
-        protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+        protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var restoreKeyword = SyntaxFactory.Token(SyntaxKind.RestoreKeyword);
-            return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine);
+            return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
         }
 
         protected override SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(
-            Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+            Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var disableKeyword = SyntaxFactory.Token(SyntaxKind.DisableKeyword);
-            return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine);
+            return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
         }
 
         private static SyntaxTriviaList CreatePragmaDirectiveTrivia(
-            SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
+            SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
         {
             var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
             var id = SyntaxFactory.IdentifierName(diagnosticId);
             var ids = new SeparatedSyntaxList<ExpressionSyntax>().Add(id);
             var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
-            pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective);
+            pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
             var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective);
             var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
@@ -98,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            Workspace workspace,
-            Compilation compilation,
+            HostWorkspaceServices services,
+            SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken)
         {
