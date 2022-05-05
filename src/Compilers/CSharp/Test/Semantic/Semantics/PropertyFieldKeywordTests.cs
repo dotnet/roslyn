@@ -152,9 +152,6 @@ public class Derived4 : Base
                 // (10,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
                 //     public override int P1 { get { _ = field; return field; } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(10, 25),
-                // (10,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
-                //     public override int P1 { get { _ = field; return field; } }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(10, 25), // PROTOTYPE(semi-auto-props): Get rid of the extra diagnostic.
                 // (11,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
                 //     public override int P2 { get => field; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(11, 25),
