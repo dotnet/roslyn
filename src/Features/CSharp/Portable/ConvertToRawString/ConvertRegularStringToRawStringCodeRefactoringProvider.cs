@@ -8,8 +8,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
     using static ConvertToRawStringHelpers;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
-    internal class ConvertRegularStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+    internal partial class ConvertRegularStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
         private enum ConvertToRawKind
         {
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                         priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.SingleLine, options, c),
-                        s_kindToEquivalenceKeyMap.GetValueOrDefault(ConvertToRawKind.SingleLine)!),
+                        s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine]),
                     token.Span);
             }
             else
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                         priority,
                         CSharpFeaturesResources.Convert_to_raw_string,
                         c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, options, c),
-                        s_kindToEquivalenceKeyMap.GetValueOrDefault(ConvertToRawKind.MultiLineIndented)!),
+                        s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented]),
                     token.Span);
 
                 if (convertParams.CanBeMultiLineWithoutLeadingWhiteSpaces)
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
                             priority,
                             CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
                             c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, c),
-                            s_kindToEquivalenceKeyMap.GetValueOrDefault(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)!),
+                            s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace]),
                         token.Span);
                 }
             }
@@ -173,20 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             return true;
         }
 
-        private readonly struct CanConvertParams
-        {
-            public CanConvertParams(VirtualCharSequence characters, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
-            {
-                Characters = characters;
-                CanBeSingleLine = canBeSingleLine;
-                CanBeMultiLineWithoutLeadingWhiteSpaces = canBeMultiLineWithoutLeadingWhiteSpaces;
-            }
-
-            public VirtualCharSequence Characters { get; }
-            public bool CanBeSingleLine { get; }
-            public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; }
-        }
-
         private static bool HasLeadingWhitespace(VirtualCharSequence characters)
         {
             var index = 0;
@@ -217,7 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             string? equivalenceKey,
             CancellationToken cancellationToken)
         {
+            // Get the kind to be fixed from the equivalenceKey for the FixAll operation
             Debug.Assert(equivalenceKey != null);
+            var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
 
             var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var tokenReplacementMap);
@@ -225,14 +210,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             foreach (var fixSpan in fixAllSpans)
             {
                 var node = editor.OriginalRoot.FindNode(fixSpan);
-                foreach (var stringLiteral in node.DescendantTokens(descendIntoTrivia: true).Where(token => token.Kind() == SyntaxKind.StringLiteralToken))
+                foreach (var stringLiteral in node.DescendantTokens().Where(token => token.Kind() == SyntaxKind.StringLiteralToken))
                 {
                     // Ensure we can convert the string literal
                     if (!CanConvertStringLiteral(stringLiteral, out var canConvertParams))
                         continue;
-
-                    // Get the kind to be fixed from the equivalenceKey for the FixAll operation
-                    var kind = s_kindToEquivalenceKeyMap.GetKeyOrDefault(equivalenceKey);
 
                     // Ensure we have a matching kind to fix for this literal
                     var hasMatchingKind = kind switch
