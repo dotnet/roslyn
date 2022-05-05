@@ -4,21 +4,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition.Hosting;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [Shared]
-    [Export(typeof(RequestDispatcherFactory))]
-    internal sealed class RequestDispatcherFactory : AbstractRequestDispatcherFactory
+    [ExportRoslynLspServiceFactory(typeof(RequestDispatcher))]
+    internal class RequestDispatcherFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RequestDispatcherFactory([ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
-            : base(requestHandlerProviders)
+        public RequestDispatcherFactory()
         {
+        }
+
+        public virtual ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            return new RequestDispatcher(lspServices);
         }
     }
 }

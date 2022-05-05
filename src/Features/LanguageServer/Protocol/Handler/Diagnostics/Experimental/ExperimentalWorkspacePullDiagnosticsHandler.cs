@@ -4,18 +4,46 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
 using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>;
+
+[ExportRoslynLspServiceFactory(typeof(ExperimentalWorkspacePullDiagnosticsHandler)), Shared]
+internal class ExperimentalWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
+{
+    private readonly IDiagnosticService _diagnosticService;
+    private readonly IDiagnosticAnalyzerService _analyzerService;
+    private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+    private readonly IGlobalOptionService _globalOptions;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ExperimentalWorkspacePullDiagnosticHandlerFactory(
+        IDiagnosticService diagnosticService,
+        IDiagnosticAnalyzerService analyzerService,
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IGlobalOptionService globalOptions)
+    {
+        _diagnosticService = diagnosticService;
+        _analyzerService = analyzerService;
+        _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+        _globalOptions = globalOptions;
+    }
+
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new ExperimentalWorkspacePullDiagnosticsHandler(_diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+}
 
 [Method(ExperimentalMethods.WorkspaceDiagnostic)]
 internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
@@ -25,8 +53,9 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     public ExperimentalWorkspacePullDiagnosticsHandler(
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-        : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IGlobalOptionService globalOptions)
+        : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
         _analyzerService = analyzerService;
     }

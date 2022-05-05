@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal class LspWorkspaceManager : IDocumentChangeTracker
+internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
@@ -86,6 +88,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker
         _requestTelemetryLogger = requestTelemetryLogger;
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+
     }
 
     #region Implementation of IDocumentChangeTracker
@@ -197,7 +200,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
-        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri]) : null;
+        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
         return miscDocument;
     }
 

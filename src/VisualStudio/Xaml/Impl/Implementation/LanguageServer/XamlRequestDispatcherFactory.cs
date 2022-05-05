@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
     /// <summary>
     /// Implements the Language Server Protocol for XAML
     /// </summary>
-    [Export(typeof(XamlRequestDispatcherFactory)), Shared]
-    internal sealed class XamlRequestDispatcherFactory : AbstractRequestDispatcherFactory
+    [ExportLspServiceFactory(typeof(RequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
+    internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
     {
         private readonly XamlProjectService _projectService;
         private readonly IXamlLanguageServerFeedbackService? _feedbackService;
@@ -31,18 +31,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestDispatcherFactory(
-            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
-            : base(requestHandlerProviders)
         {
             _projectService = projectService;
             _feedbackService = feedbackService;
         }
 
-        public override RequestDispatcher CreateRequestDispatcher(WellKnownLspServerKinds serverKind)
+        public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, serverKind);
+            return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
         }
 
         private class XamlRequestDispatcher : RequestDispatcher
@@ -52,9 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
             public XamlRequestDispatcher(
                 XamlProjectService projectService,
-                ImmutableArray<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
-                IXamlLanguageServerFeedbackService? feedbackService,
-                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, serverKind)
+                LspServices services,
+                IXamlLanguageServerFeedbackService? feedbackService) : base(services)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
@@ -91,10 +88,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-    internal class ExportXamlLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+    [ExportLspServiceFactory(typeof(LspWorkspaceManager), StringConstants.XamlLspLanguagesContract), Shared]
+    internal class XamlLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
     {
-        public ExportXamlLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(StringConstants.XamlLspLanguagesContract, first, handlerTypes)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public XamlLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : base(lspWorkspaceRegistrationService)
+        {
+        }
+    }
+
+    [ExportLspServiceFactory(typeof(RequestTelemetryLogger), StringConstants.XamlLspLanguagesContract), Shared]
+    internal class XamlRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public XamlRequestTelemetryLoggerFactory()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportStatelessXamlLspServiceAttribute : ExportStatelessLspServiceAttribute
+    {
+        public ExportStatelessXamlLspServiceAttribute(Type handlerType) : base(handlerType, StringConstants.XamlLspLanguagesContract, WellKnownLspServerKinds.XamlLspServer)
+        {
+        }
+    }
+
+    [Export, Shared]
+    internal class XamlLspServiceProvider : AbstractLspServiceProvider
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public XamlLspServiceProvider(
+            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
+            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories) : base(lspServices, lspServiceFactories)
         {
         }
     }

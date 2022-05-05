@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,6 +20,25 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    [ExportRoslynLspServiceFactory(typeof(CompletionResolveHandler))]
+    internal sealed class CompletionResolveHandlerFactory : ILspServiceFactory
+    {
+        private readonly IGlobalOptionService _globalOptions;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionResolveHandlerFactory(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
+        }
+
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
+            return new CompletionResolveHandler(_globalOptions, completionListCache);
+        }
+    }
+
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// 
@@ -49,6 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)
             {
