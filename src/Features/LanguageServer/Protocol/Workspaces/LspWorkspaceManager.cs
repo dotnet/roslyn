@@ -43,15 +43,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
-internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
+internal class LspWorkspaceManager : IDocumentChangeTracker
 {
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
-    /// When this solution comes from a fork operation we store the workspace version it was forked from.
+    /// 
+    /// The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP text applied on top.
+    /// It is null when LSP reuses the workspace solution (the LSP text matches the contents of the workspace).
     /// 
     /// Access to this is gauranteed to be serial by the <see cref="RequestExecutionQueue"/>
     /// </summary>
-    private readonly Dictionary<Workspace, (int? ForkedFromVersion, Solution Solution)> _cachedLspSolutions = new();
+    private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = new();
 
     /// <summary>
     /// Stores the current source text for each URI that is being tracked by LSP.
@@ -86,15 +88,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
-    public void Dispose()
-    {
-        _cachedLspSolutions.Clear();
-    }
-
     #region Implementation of IDocumentChangeTracker
 
     /// <summary>
     /// Called by the <see cref="DidOpenHandler"/> when a document is opened in LSP.
+    /// 
+    /// <see cref="DidOpenHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
     /// </summary>
     public void StartTracking(Uri uri, SourceText documentText)
     {
@@ -108,6 +107,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
     /// <summary>
     /// Called by the <see cref="DidCloseHandler"/> when a document is closed in LSP.
+    /// 
+    /// <see cref="DidCloseHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
     /// </summary>
     public void StopTracking(Uri uri)
     {
@@ -124,6 +125,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
     /// <summary>
     /// Called by the <see cref="DidChangeHandler"/> when a document's text is updated in LSP.
+    /// 
+    /// <see cref="DidChangeHandler.MutatesSolutionState"/> is true which means this runs serially in the <see cref="RequestExecutionQueue"/>
     /// </summary>
     public void UpdateTrackedDocument(Uri uri, SourceText newSourceText)
     {
@@ -144,6 +147,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// <summary>
     /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>.
     /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace diagnostics.
+    /// 
+    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
     public async Task<Solution?> TryGetHostLspSolutionAsync(CancellationToken cancellationToken)
     {
@@ -158,6 +163,8 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
+    /// 
+    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
     public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
@@ -208,6 +215,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         using var _ = ArrayBuilder<(Solution, bool)>.GetInstance(out var solutions);
         foreach (var workspace in registeredWorkspaces)
         {
+            // Retrieve the workspace's current view of the world at the time the request comes in.
+            // If this is changing underneath, it is either the job of the LSP client to poll us (diagnostics) or we send refresh notifications (semantic tokens) to the client
+            // letting them know that our workspace has changed and they need to re-query us.
             var workspaceCurrentSolution = workspace.CurrentSolution;
             var lspSolution = await GetLspSolutionForWorkspaceAsync(workspaceCurrentSolution, cancellationToken).ConfigureAwait(false);
             solutions.Add(lspSolution);
@@ -235,7 +245,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             //   We propogate the IsForked value back up so that we only report telemetry on forking if the forked solution is actually requested.
 
             // Step 1: Check if nothing has changed and we already verified that the workspace text matches our LSP text.
-            if (_cachedLspSolutions.TryGetValue(workspaceCurrentSolution.Workspace, out var cachedSolution) && cachedSolution.Solution == workspaceCurrentSolution)
+            if (_cachedLspSolutions.TryGetValue(workspaceCurrentSolution.Workspace, out var cachedSolution) && cachedSolution.solution == workspaceCurrentSolution)
             {
                 return (workspaceCurrentSolution, IsForked: false);
             }
@@ -245,14 +255,14 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
             if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
-                _cachedLspSolutions[workspaceCurrentSolution.Workspace] = (ForkedFromVersion: null, workspaceCurrentSolution);
+                _cachedLspSolutions[workspaceCurrentSolution.Workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
                 return (workspaceCurrentSolution, IsForked: false);
             }
 
             // Step 3: See if we can reuse a previously forked solution.
-            if (cachedSolution != default && cachedSolution.ForkedFromVersion == workspaceCurrentSolution.WorkspaceVersion)
+            if (cachedSolution != default && cachedSolution.forkedFromVersion == workspaceCurrentSolution.WorkspaceVersion)
             {
-                return (cachedSolution.Solution, IsForked: true);
+                return (cachedSolution.solution, IsForked: true);
             }
 
             // Step 4: Fork a new solution from the workspace with the LSP text applied.
