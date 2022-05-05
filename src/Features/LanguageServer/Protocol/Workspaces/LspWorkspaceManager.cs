@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -144,10 +145,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// Returns the LSP solution associated with the workspace with the specified <see cref="_hostWorkspaceKind"/>.
     /// This is the solution used for LSP requests that pertain to the entire workspace, for example code search or workspace diagnostics.
     /// </summary>
-    public Solution? TryGetHostLspSolution()
+    public async Task<Solution?> TryGetHostLspSolutionAsync(CancellationToken cancellationToken)
     {
         // Ensure we have the latest lsp solutions
-        var updatedSolutions = GetLspSolutions();
+        var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         var (hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.Workspace.Kind == _hostWorkspaceKind);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
@@ -158,12 +159,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// <summary>
     /// Returns a document with the LSP tracked text forked from the appropriate workspace solution.
     /// </summary>
-    public Document? GetLspDocument(TextDocumentIdentifier textDocumentIdentifier)
+    public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.Uri;
 
         // Get the LSP view of all the workspace solutions.
-        var lspSolutions = GetLspSolutions();
+        var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
         foreach (var (lspSolution, isForked) in lspSolutions)
@@ -196,7 +197,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// <summary>
     /// Gets the LSP view of all the registered workspaces' current solutions.
     /// </summary>
-    private ImmutableArray<(Solution Solution, bool IsForked)> GetLspSolutions()
+    private async Task<ImmutableArray<(Solution Solution, bool IsForked)>> GetLspSolutionsAsync(CancellationToken cancellationToken)
     {
         // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
@@ -208,13 +209,13 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         foreach (var workspace in registeredWorkspaces)
         {
             var workspaceCurrentSolution = workspace.CurrentSolution;
-            var lspSolution = GetLspSolutionForWorkspace(workspaceCurrentSolution);
+            var lspSolution = await GetLspSolutionForWorkspaceAsync(workspaceCurrentSolution, cancellationToken).ConfigureAwait(false);
             solutions.Add(lspSolution);
         }
 
         return solutions.ToImmutable();
 
-        (Solution Solution, bool IsForked) GetLspSolutionForWorkspace(Solution workspaceCurrentSolution)
+        async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(Solution workspaceCurrentSolution, CancellationToken cancellationToken)
         {
             // At a high level these are the steps we take to compute what the desired LSP solution should be.
             //
@@ -241,7 +242,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
 
             // Step 2: Check to see if the LSP text matches the workspace text.
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
-            if (DoesAllTextMatchWorkspaceSolution(documentsInWorkspace))
+            if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
                 _cachedLspSolutions[workspaceCurrentSolution.Workspace] = (ForkedFromVersion: null, workspaceCurrentSolution);
@@ -270,11 +271,11 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     /// <summary>
     /// Given a set of documents from the workspace current solution, verify that the LSP text is the same as the document contents.
     /// </summary>
-    private bool DoesAllTextMatchWorkspaceSolution(ImmutableDictionary<Uri, ImmutableArray<Document>> documentsInWorkspace)
+    private async Task<bool> DoesAllTextMatchWorkspaceSolutionAsync(ImmutableDictionary<Uri, ImmutableArray<Document>> documentsInWorkspace, CancellationToken cancellationToken)
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
-            var isTextEquivalent = AreChecksumsEqual(documentsForUri.First(), _trackedDocuments[uriInWorkspace]);
+            var isTextEquivalent = await AreChecksumsEqualAsync(documentsForUri.First(), _trackedDocuments[uriInWorkspace], cancellationToken).ConfigureAwait(false);
 
             if (!isTextEquivalent)
             {
@@ -286,9 +287,9 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
         return true;
     }
 
-    private static bool AreChecksumsEqual(Document document, SourceText lspText)
+    private static async Task<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
     {
-        var documentText = document.GetTextSynchronously(CancellationToken.None);
+        var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var documentTextChecksum = documentText.GetChecksum();
         var lspTextChecksum = lspText.GetChecksum();
         return lspTextChecksum.SequenceEqual(documentTextChecksum);

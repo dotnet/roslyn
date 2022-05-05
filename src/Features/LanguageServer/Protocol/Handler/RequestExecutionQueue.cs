@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                         // Restore our activity id so that logging/tracking works across asynchronous calls.
                         Trace.CorrelationManager.ActivityId = work.ActivityId;
-                        var context = CreateRequestContext(work);
+                        var context = await CreateRequestContextAsync(work, cancellationToken).ConfigureAwait(false);
 
                         if (work.MutatesSolutionState)
                         {
@@ -257,13 +257,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Shutdown();
         }
 
-        private RequestContext? CreateRequestContext(IQueueItem queueItem)
+        private Task<RequestContext?> CreateRequestContextAsync(IQueueItem queueItem, CancellationToken cancellationToken)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_lspWorkspaceManager
                 : new NonMutatingDocumentChangeTracker();
 
-            return RequestContext.Create(
+            return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
                 _serverKind,
@@ -274,7 +274,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 trackerToUse,
                 _supportedLanguages,
                 _globalOptions,
-                queueCancellationToken: this.CancellationToken);
+                queueCancellationToken: this.CancellationToken,
+                requestCancellationToken: cancellationToken);
         }
     }
 }

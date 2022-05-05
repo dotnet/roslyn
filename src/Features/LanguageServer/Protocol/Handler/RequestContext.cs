@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             QueueCancellationToken = queueCancellationToken;
         }
 
-        public static RequestContext? Create(
+        public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
             WellKnownLspServerKinds serverKind,
@@ -105,7 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
             IGlobalOptionService globalOptions,
-            CancellationToken queueCancellationToken)
+            CancellationToken queueCancellationToken,
+            CancellationToken requestCancellationToken)
         {
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
@@ -128,12 +130,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // text content in the document change tracker.
 
             Document? document = null;
-            var workspaceSolution = lspWorkspaceManager.TryGetHostLspSolution();
+            var workspaceSolution = await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument);
+                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
                 if (document != null)
                     workspaceSolution = document.Project.Solution;
             }
