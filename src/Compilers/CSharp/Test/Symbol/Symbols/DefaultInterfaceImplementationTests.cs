@@ -49002,7 +49002,7 @@ class Test1 : I3
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true)  ? "I3.M1" : null,
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "I3.M1" : null,
                              verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
