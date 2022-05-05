@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
-            addCircularStructDiagnostics(compilation.GlobalNamespace);
+            addCircularStructDiagnostics(compilation.SourceModule.GlobalNamespace);
             methodCompiler.WaitForWorkers();
             diagnostics.AddRange(compilation.CircularStructDiagnostics);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);

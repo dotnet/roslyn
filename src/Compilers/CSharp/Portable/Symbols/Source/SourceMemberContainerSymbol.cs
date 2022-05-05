@@ -2136,8 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            DeclaringCompilation.AddUsedAssemblies(diagnostics.DependenciesBag);
-                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
