@@ -373,18 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var newName = nameNode;
             if (nameChanged)
             {
-                if (invocation == null)
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithTriviaFrom(nameToken));
-                }
-                else
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithLeadingTrivia(nameToken.LeadingTrivia)
-                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
-                }
+                newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName));
             }
+
+            newName = newName.WithTriviaFrom(invocation is null ? nameToken.Parent : invocation);
 
             var invocationExpression = invocation?.Expression;
             if (!IsInvocationName(nameNode, invocationExpression))
@@ -396,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
 
             // It was invoked.  Remove the invocation, and also change the name if necessary.
-            replace(editor, invocation, nameNode, newName.WithTriviaFrom(invocation));
+            replace(editor, invocation, nameNode, newName);
         }
 
         private static bool IsInvocationName(IdentifierNameSyntax nameNode, ExpressionSyntax invocationExpression)

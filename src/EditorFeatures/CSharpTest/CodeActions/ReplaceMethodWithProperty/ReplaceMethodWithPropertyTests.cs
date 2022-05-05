@@ -2618,5 +2618,55 @@ class C
     }
 }");
         }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/Value;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/{|Conflict:Value|};
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = Value/*test*/;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = {|Conflict:Value|}/*test*/;
+    }
+}");
+        }
     }
 }
