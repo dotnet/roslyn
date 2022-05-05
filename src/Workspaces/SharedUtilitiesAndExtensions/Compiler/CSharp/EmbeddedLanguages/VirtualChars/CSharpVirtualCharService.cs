@@ -85,14 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                         SyntaxKind.InterpolatedVerbatimStringStartToken
                             => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
                         SyntaxKind.InterpolatedSingleLineRawStringStartToken
-                            // Format clauses must be single line
-                            => isFormatClause
-                                ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString,
-                                    isFirstChunk: token.Parent == interpolatedString.Contents.First(),
-                                    isLastChunk: token.Parent == interpolatedString.Contents.Last()),
+                            => TryConvertSingleLineRawStringToVirtualChars(token),
                         SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            // Format clauses must be single line
+                            // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
                                 ? TryConvertSingleLineRawStringToVirtualChars(token)
                                 : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString,

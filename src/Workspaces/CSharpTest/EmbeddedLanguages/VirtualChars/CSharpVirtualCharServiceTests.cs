@@ -422,5 +422,45 @@ bar
             => Test(@"""""""  
     goo
     """"""", @"['g',[11,12]]['o',[12,13]]['o',[13,14]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString1()
+            => Test(@"$""""""goo""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString2()
+            => Test(@"$""""""goo{0}""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString3()
+            => Test(@"$""""""{0}goo""""""", @"['g',[7,8]]['o',[8,9]]['o',[9,10]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString4()
+            => Test(@"$""""""{0}goo{1}""""""", @"['g',[7,8]]['o',[8,9]]['o',[9,10]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString5()
+            => Test(@"$""""""goo{0}{1}""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString6()
+            => Test(@"$""""""{0}{1}goo""""""", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString7()
+            => Test(@"$""""""goo{0}bar{1}""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]['b',[10,11]]['a',[11,12]]['r',[12,13]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString8()
+            => Test(@"$""""""{0}goo{1}bar""""""", @"['g',[7,8]]['o',[8,9]]['o',[9,10]]['b',[13,14]]['a',[14,15]]['r',[15,16]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString9()
+            => Test(@"$""""""goo{0}{1}bar""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]['b',[13,14]]['a',[14,15]]['r',[15,16]]");
+
+        [Fact]
+        public void TestSingleLineInterpolatedRawString10()
+            => Test(@"$""""""goo{0}bar{1}baz""""""", @"['g',[4,5]]['o',[5,6]]['o',[6,7]]['b',[10,11]]['a',[11,12]]['r',[12,13]]['b',[16,17]]['a',[17,18]]['z',[18,19]]");
     }
 }
