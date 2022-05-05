@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
-        private NormalizedSnapshotSpanCollection? _lastSelectedSpans;
-        private int? _lastClipboardSequenceNumber;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StringCopyPasteCommandHandler(

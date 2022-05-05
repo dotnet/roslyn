@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
     [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
     internal class WpfStringCopyPasteService : IStringCopyPasteService
     {
-        private const string RoslynCopyPasteSequenceNumber = nameof(RoslynCopyPasteSequenceNumber);
-        private const int FailureValue = -1;
+        private const string RoslynFormat = nameof(RoslynFormat);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,13 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
         {
         }
 
-        public bool TrySetClipboardSequenceNumber(int sequenceNumber)
+        private static string GetFormat(string key)
+            => $"{RoslynFormat}-{key}";
+
+        public bool TrySetClipboardData(string key, string data)
         {
             try
             {
                 var dataObject = Clipboard.GetDataObject();
 
-                var copy = new DataObject(RoslynCopyPasteSequenceNumber, sequenceNumber);
+                var copy = new DataObject(GetFormat(key), data);
 
                 foreach (var format in dataObject.GetFormats())
                 {
@@ -46,27 +48,22 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
             return false;
         }
 
-        public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
+        public string? TryGetClipboardData(string key)
         {
             try
             {
                 var dataObject = Clipboard.GetDataObject();
-                if (dataObject.GetDataPresent(RoslynCopyPasteSequenceNumber))
+                var format = GetFormat(key);
+                if (dataObject.GetDataPresent(format))
                 {
-                    var value = dataObject.GetData(RoslynCopyPasteSequenceNumber);
-                    if (value is int intVal && intVal != FailureValue)
-                    {
-                        sequenceNumber = intVal;
-                        return true;
-                    }
+                    return dataObject.GetData(format) as string;
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
             }
 
-            sequenceNumber = 0;
-            return false;
+            return null;
         }
     }
 }

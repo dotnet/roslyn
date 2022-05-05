@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 {
     internal interface IStringCopyPasteService : IWorkspaceService
     {
-        bool TrySetClipboardSequenceNumber(int sequenceNumber);
-        bool TryGetClipboardSequenceNumber(out int sequenceNumber);
+        bool TrySetClipboardData(string key, string data);
+        string? TryGetClipboardData(string key);
     }
 
     [ExportWorkspaceService(typeof(IStringCopyPasteService)), Shared]
@@ -29,13 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
         // had been validly associated with latest clipboard operation and had not been affected by things outside our
         // awareness.
 
-        public bool TrySetClipboardSequenceNumber(int sequenceNumber)
+        public bool TrySetClipboardData(string key, string data)
             => false;
 
-        public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
-        {
-            sequenceNumber = 0;
-            return false;
-        }
+        public string? TryGetClipboardData(string key)
+            => null;
     }
 }
