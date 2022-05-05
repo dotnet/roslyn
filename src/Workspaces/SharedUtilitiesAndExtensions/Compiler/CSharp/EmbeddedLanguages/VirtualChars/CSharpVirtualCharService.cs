@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
@@ -28,22 +29,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
-            // C# preprocessor directives can contain string literals.  However, these string
-            // literals do not behave like normal literals.  Because they are used for paths (i.e.
-            // in a #line directive), the language does not do any escaping within them.  i.e. if
-            // you have a \ it's just a \   Note that this is not a verbatim string.  You can't put
-            // a double quote in it either, and you cannot have newlines and whatnot.
+            // C# preprocessor directives can contain string literals.  However, these string literals do not behave
+            // like normal literals.  Because they are used for paths (i.e. in a #line directive), the language does not
+            // do any escaping within them.  i.e. if you have a \ it's just a \   Note that this is not a verbatim
+            // string.  You can't put a double quote in it either, and you cannot have newlines and whatnot.
             //
-            // We technically could convert this trivially to an array of virtual chars.  After all,
-            // there would just be a 1:1 correspondance with the literal contents and the chars
-            // returned.  However, we don't even both returning anything here.  That's because
-            // there's no useful features we can offer here.  Because there are no escape characters
-            // we won't classify any escape characters.  And there is no way that these strings would
-            // be Regex/Json snippets.  So it's easier to just bail out and return nothing.
+            // We technically could convert this trivially to an array of virtual chars.  After all, there would just be
+            // a 1:1 correspondence with the literal contents and the chars returned.  However, we don't even both
+            // returning anything here.  That's because there's no useful features we can offer here.  Because there are
+            // no escape characters we won't classify any escape characters.  And there is no way that these strings
+            // would be Regex/Json snippets.  So it's easier to just bail out and return nothing.
             if (IsInDirective(token.Parent))
                 return default;
 
             Debug.Assert(!token.ContainsDiagnostics);
+
             if (token.Kind() == SyntaxKind.StringLiteralToken)
             {
                 return token.IsVerbatimStringLiteral()
@@ -51,11 +51,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
             }
 
+            if (token.Kind() == SyntaxKind.UTF8StringLiteralToken)
+            {
+                return token.IsVerbatimStringLiteral()
+                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
+                    : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
+            }
+
             if (token.Kind() == SyntaxKind.CharacterLiteralToken)
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
+                                SyntaxKind.MultiLineRawStringLiteralToken or
+                                SyntaxKind.UTF8SingleLineRawStringLiteralToken or
+                                SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            {
                 return TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: true);
+            }
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -111,7 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             if (skipDelimiterQuotes)
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
-                Contract.ThrowIfFalse(tokenText[^1] == '"');
+
+                if (tokenText.Length >= 2 && tokenText[endIndexExclusive - 1] == '8' && tokenText[endIndexExclusive - 2] is 'u' or 'U')
+                    endIndexExclusive -= 2;
 
                 while (tokenText[startIndexInclusive] == '"')
                 {
@@ -138,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return default;
             }
 
-            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
+            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter, StringComparison.OrdinalIgnoreCase))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
