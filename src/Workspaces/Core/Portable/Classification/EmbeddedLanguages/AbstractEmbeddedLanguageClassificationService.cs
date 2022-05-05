@@ -77,23 +77,11 @@ namespace Microsoft.CodeAnalysis.Classification
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
 
-            if (syntaxKinds.SingleLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.SingleLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.SingleLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.SingleLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.MultiLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.UTF8StringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.UTF8StringLiteralToken.Value);
-
-            if (syntaxKinds.UTF8SingleLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.UTF8SingleLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.UTF8MultiLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.UTF8MultiLineRawStringLiteralToken.Value);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
