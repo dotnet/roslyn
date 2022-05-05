@@ -223,10 +223,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if ((parameter.HasExplicitDefaultValue
                             || Equals(parameter.Type, compilation.CancellationTokenType())
                             || parameter.IsParams
-                            || parameter.IsRefOrOut())
+                            || parameter.RefKind is RefKind.Out)
                             && !(containingMethod.IsExtensionMethod && i == 0))
                         {
                             parameterIndex--;
+                        }
+                        else
+                        {
+                            break;
                         }
                     }
                 }

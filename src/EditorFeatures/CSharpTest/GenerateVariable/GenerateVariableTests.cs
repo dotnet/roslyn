@@ -9908,5 +9908,57 @@ public static class TestClass
     }
 }", index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeAssortmentOfExceptions()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, out int x, params bool[] z)
+    {
+        return [|test|];
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, int test, out int x, params bool[] z)
+    {
+        return test;
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeMultipleExceptions_BetweenOutParams()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(out int x, int y, out int z, params double[] x)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(out int x, int y, System.TimeSpan time, out int z, params double[] x)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
     }
 }
