@@ -275,11 +275,13 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, IDisposable
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
-            var isTextEquivalent = await AreChecksumsEqualAsync(documentsForUri.First(), _trackedDocuments[uriInWorkspace], cancellationToken).ConfigureAwait(false);
+            // We're comparing text, so we can take any of the linked documents.
+            var firstDocument = documentsForUri.First();
+            var isTextEquivalent = await AreChecksumsEqualAsync(firstDocument, _trackedDocuments[uriInWorkspace], cancellationToken).ConfigureAwait(false);
 
             if (!isTextEquivalent)
             {
-                _logger.TraceWarning($"Text for {uriInWorkspace} did not match text in workspace's current solution");
+                _logger.TraceWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.Workspace.Kind} current solution");
                 return false;
             }
         }
