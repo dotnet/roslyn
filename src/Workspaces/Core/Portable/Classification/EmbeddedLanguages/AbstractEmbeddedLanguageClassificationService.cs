@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Classification
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
 
-            if (syntaxKinds.SingleLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.SingleLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.MultiLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
