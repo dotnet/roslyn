@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -62,13 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             if (token.Kind() == SyntaxKind.CharacterLiteralToken)
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (IsAnyRawStringLiteralToken(token))
-                return TryConvertRawStringToVirtualChars(token);
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+                return TryConvertSingleLineRawStringToVirtualChars(token);
+
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), isFirstChunk: true, isLastChunk: true);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
                 var parent = token.GetRequiredParent();
-                if (parent is InterpolationFormatClauseSyntax)
+                var isFormatClause = parent is InterpolationFormatClauseSyntax;
+                if (isFormatClause)
                     parent = parent.GetRequiredParent();
 
                 if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
@@ -79,8 +84,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                             => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
                         SyntaxKind.InterpolatedVerbatimStringStartToken
                             => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            => TryConvertRawStringToVirtualChars(token),
+                        SyntaxKind.InterpolatedSingleLineRawStringStartToken
+                            // Format clauses must be single line
+                            => isFormatClause
+                                ? TryConvertSingleLineRawStringToVirtualChars(token)
+                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString,
+                                    isFirstChunk: token.Parent == interpolatedString.Contents.First(),
+                                    isLastChunk: token.Parent == interpolatedString.Contents.Last()),
+                        SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                            // Format clauses must be single line
+                            => isFormatClause
+                                ? TryConvertSingleLineRawStringToVirtualChars(token)
+                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString,
+                                    isFirstChunk: token.Parent == interpolatedString.Contents.First(),
+                                    isLastChunk: token.Parent == interpolatedString.Contents.Last()),
                         _ => default,
                     };
                 }
@@ -88,12 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             return default;
         }
-
-        private static bool IsAnyRawStringLiteralToken(SyntaxToken token)
-            => token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
-                               SyntaxKind.MultiLineRawStringLiteralToken or
-                               SyntaxKind.UTF8SingleLineRawStringLiteralToken or
-                               SyntaxKind.UTF8MultiLineRawStringLiteralToken;
 
         private static bool IsInDirective(SyntaxNode? node)
         {
@@ -111,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private static VirtualCharSequence TryConvertRawStringToVirtualChars(SyntaxToken token)
+        private static VirtualCharSequence TryConvertSingleLineRawStringToVirtualChars(SyntaxToken token)
         {
             var tokenText = token.Text;
             var offset = token.SpanStart;
@@ -121,15 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            if (IsAnyRawStringLiteralToken(token))
+            if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+            {
+                Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
+                endIndexExclusive -= "u8".Length;
+            }
+
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
-
-                if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                {
-                    Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
-                    endIndexExclusive -= "u8".Length;
-                }
 
                 while (tokenText[startIndexInclusive] == '"')
                 {
@@ -140,72 +151,50 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
             }
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
-            {
-                for (var index = startIndexInclusive; index < endIndexExclusive;)
-                    index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
-            }
-            else
-            {
-                var sourceText = SourceText.From(tokenText);
-
-                // safe to index because we know the multiline literal is well formed.
-                var lastLine = sourceText.Lines[^1];
-                var indentationLength = lastLine.GetFirstNonWhitespaceOffset() ?? 0;
-
-                for (var lineNumber = 1; lineNumber < sourceText.Lines.Count - 1; lineNumber++)
-                {
-                    var currentLine = sourceText.Lines[lineNumber];
-                    var lineSpan = currentLine.Span;
-                    var isLastLine = lineNumber == sourceText.Lines.Count - 2;
-
-                    var start = lineSpan.Length > indentationLength
-                        ? lineSpan.Start + indentationLength
-                        : lineSpan.End;
-
-                    var end = isLastLine ? currentLine.End : currentLine.EndIncludingLineBreak;
-
-                    for (var i = start; i < end; )
-                        i += ConvertTextAtIndexToRune(sourceText, i, result, offset);
-                }
-
-#if false
-
-                while (CSharp.SyntaxFacts.IsWhitespace(tokenText[startIndexInclusive]))
-                    startIndexInclusive++;
-
-                Contract.ThrowIfFalse(CSharp.SyntaxFacts.IsNewLine(tokenText[startIndexInclusive]));
-
-                // indexing at +1 is safe because we only get here if the raw literal is well formed, which means it has
-                // to have at least two new lines in it.
-                if (tokenText[startIndexInclusive] is '\r' && tokenText[startIndexInclusive + 1] is '\n')
-                    startIndexInclusive += 2;
-                else
-                    startIndexInclusive++;
-
-                var beforeEndDelimeterPosition = endIndexExclusive;
-                while (CSharp.SyntaxFacts.IsWhitespace(tokenText[endIndexExclusive - 1]))
-                    endIndexExclusive--;
-
-                Contract.ThrowIfFalse(CSharp.SyntaxFacts.IsNewLine(tokenText[endIndexExclusive - 1]));
-
-                var indentationToSkip = beforeEndDelimeterPosition - endIndexExclusive;
-
-                if (tokenText[endIndexExclusive - 1] is '\n' && tokenText[endIndexExclusive - 2] is '\r')
-                    endIndexExclusive -= 2;
-                else
-                    endIndexExclusive--;
-
-                var index = startIndexInclusive;
-                while (index < endIndexExclusive)
-                {
-                    // first, skip the leading whitespace on a line.
-                    index += indentationToSkip;
-                }
-#endif
-            }
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
+                index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+        }
+
+        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
+            SyntaxToken token, ExpressionSyntax parentExpression, bool isFirstChunk, bool isLastChunk)
+        {
+            if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return default;
+
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+
+            var parentSourceText = parentExpression.SyntaxTree.GetText();
+            var indentationLength = parentSourceText.Lines.GetLineFromPosition(parentExpression.Span.End).GetFirstNonWhitespaceOffset() ?? 0;
+
+            var sourceText = SourceText.From(token.Text);
+
+            // If we're on the very first chunk of the multi-line raw string, then we want to start on line 1 so we skip
+            // the space and newline that follow the initial `"""`.
+            var startLineInclusive = isFirstChunk ? 1 : 0;
+
+            // Similarly, if we're on the very last chunk of hte multi-line string, then we don't want to include the
+            // line contents for the line that has the final `    """` on it.
+            var lastLineExclusive = isLastChunk ? sourceText.Lines.Count - 1 : sourceText.Lines.Count;
+
+            for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
+            {
+                var currentLine = sourceText.Lines[lineNumber];
+                var lineSpan = currentLine.Span;
+
+                var lineStart = lineSpan.Length > indentationLength
+                    ? lineSpan.Start + indentationLength
+                    : lineSpan.End;
+
+                // The last line of the last chunk does not include the final newline on the line.
+                var lineEnd = isLastChunk && lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
+
+                for (var i = lineStart; i < lineEnd;)
+                    i += ConvertTextAtIndexToRune(sourceText, i, result, token.SpanStart);
+            }
+
+            return VirtualCharSequence.Create(result.ToImmutable());
         }
 
         private static VirtualCharSequence TryConvertStringToVirtualChars(
