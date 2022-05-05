@@ -9778,5 +9778,83 @@ class C
     }
 }", index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter_MultipleParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(int value, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(int value, System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeOptionalParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(bool someParameter = true)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, bool someParameter = true)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
     }
 }

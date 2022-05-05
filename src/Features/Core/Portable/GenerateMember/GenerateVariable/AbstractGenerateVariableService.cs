@@ -216,10 +216,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 if (containingMethod.Parameters.Length > 0)
                 {
                     var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var lastParameterIsCancellationToken = Equals(containingMethod.Parameters.Last().Type, compilation.CancellationTokenType());
 
-                    if (lastParameterIsCancellationToken)
-                        parameterIndex--;
+                    for (var i = containingMethod.Parameters.Length - 1; i >= 0; i--)
+                    {
+                        var parameter = containingMethod.Parameters[i];
+                        if (parameter.HasExplicitDefaultValue || Equals(parameter.Type, compilation.CancellationTokenType()))
+                        {
+                            parameterIndex--;
+                        }
+                    }
                 }
 
                 result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false, parameterIndex));
