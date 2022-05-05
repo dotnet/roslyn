@@ -71,7 +71,7 @@ internal sealed class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
     // In addition, we also map Compiler created DictionaryAnalyzerConfigOptions to StructuredAnalyzerConfigOptions for analyzers that are invoked
     // from command line build.
 
-    private static readonly ConditionalWeakTable<object, StructuredAnalyzerConfigOptions> s_codeStyleStructuredOptions = new();
+    private static readonly ConditionalWeakTable<AnalyzerConfigOptions, StructuredAnalyzerConfigOptions> s_codeStyleStructuredOptions = new();
     private static readonly object s_codeStyleStructuredOptionsLock = new();
 
     private static bool TryGetCorrespondingCodeStyleInstance(AnalyzerConfigOptions configOptions, [NotNullWhen(true)] out StructuredAnalyzerConfigOptions? options)
