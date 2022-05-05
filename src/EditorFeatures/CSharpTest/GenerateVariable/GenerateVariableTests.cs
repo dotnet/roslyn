@@ -9856,5 +9856,31 @@ class C
     }
 }", index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeParamsParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(params double[] x)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, params double[] x)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
     }
 }

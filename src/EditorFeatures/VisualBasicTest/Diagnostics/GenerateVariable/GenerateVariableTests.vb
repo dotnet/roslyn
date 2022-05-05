@@ -3097,5 +3097,26 @@ Class Test
     End Function
 End Class", index:=4)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateParameterBeforeParamsParameter() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(ByVal ParamArray args() As Double) As Task
+        Await Task.Delay([|time|])
+    End Function
+End Class",
+"Imports System.Threading
+Imports System.Threading.Tasks
+
+Class Test
+    Private Async Function Test(time As System.TimeSpan, ByVal ParamArray args() As Double) As Task
+        Await Task.Delay(time)
+    End Function
+End Class", index:=4)
+        End Function
     End Class
 End Namespace
