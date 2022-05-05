@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions) :
                 CodeActionOptions.DefaultProvider;
 
-            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, isBlocking: false, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider)) : null;
             actions.Free();
