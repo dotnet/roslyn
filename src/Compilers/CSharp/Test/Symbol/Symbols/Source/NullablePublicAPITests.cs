@@ -5058,5 +5058,96 @@ public class C
             model = comp.GetSemanticModel(tree);
             AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
         }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_01()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_02()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public object? M(object? obj) => false;
+
+    public static void M1(C? c)
+    {
+        object? x = ""a"";
+        if (c?.M(x = null) == x)
+        {
+            x.ToString(); // 1
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRight = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRight).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void CondAccessLeft_NonConstantRight_FlowState_03()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public bool M(object? obj) => false;
+
+    public static void M1(C? c, object? x)
+    {
+        if (c?.M(x = ""a"") == c!.M(x))
+        {
+            x.ToString();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
+            Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
+        }
     }
 }

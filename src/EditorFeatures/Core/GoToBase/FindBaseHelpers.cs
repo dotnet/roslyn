@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 return ValueTaskFactory.FromResult(result);
             }
 
-            if (symbol.Kind == SymbolKind.Property ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Event)
+            if (symbol.Kind is SymbolKind.Property or
+                SymbolKind.Method or
+                SymbolKind.Event)
             {
                 return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
             }

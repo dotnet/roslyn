@@ -153,6 +153,24 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
+#nullable enable
+        protected HashSet<string>? GetPaths(string simpleName)
+        {
+            _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
+            return paths;
+        }
+
+        /// <summary>
+        /// When overridden in a derived class, allows substituting an assembly path after we've
+        /// identified the context to load an assembly in, but before the assembly is actually
+        /// loaded from disk.
+        /// </summary>
+        protected virtual string GetPathToLoad(string fullPath)
+        {
+            return fullPath;
+        }
+#nullable disable
+
         public Assembly Load(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))

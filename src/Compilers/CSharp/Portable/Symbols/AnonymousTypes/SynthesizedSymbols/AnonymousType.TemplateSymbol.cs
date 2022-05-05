@@ -209,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+            internal override bool IsInterpolatedStringHandlerType => false;
+
             internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
                 get { return GetTypeParametersAsTypeArguments(); }
@@ -511,6 +513,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal override bool HasPossibleWellKnownCloneMethod() => false;
+
+            internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+            {
+                return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+            }
         }
     }
 }

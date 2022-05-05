@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool InExpressionTree => (Flags & BinderFlags.InExpressionTree) == BinderFlags.InExpressionTree;
+
         /// <summary>
         /// True if this is the top-level binder for a local function or lambda
         /// (including implicit lambdas from query expressions).

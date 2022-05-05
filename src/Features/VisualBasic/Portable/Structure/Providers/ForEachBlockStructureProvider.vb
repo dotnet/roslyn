@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class ForEachBlockStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of ForEachBlockSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As ForEachBlockSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As ForEachBlockSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

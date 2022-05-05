@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             => ch == ')';
 
         public override Boolean IsTriggerCharacter(Char ch)
-            => ch == '(' || ch == ',';
+            => ch is '(' or ',';
 
         protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {

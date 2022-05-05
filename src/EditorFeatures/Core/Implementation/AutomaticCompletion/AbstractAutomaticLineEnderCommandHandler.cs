@@ -157,33 +157,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             // find last token on the line
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, line.End);
+            var token = root.FindTokenOnLeftOfPosition(line.End);
             if (token.RawKind == 0)
-            {
                 return null;
-            }
 
             // bug # 16770
             // don't do anything if token is multiline token such as verbatim string
             if (line.End < token.Span.End)
-            {
                 return null;
-            }
 
             // if there is only whitespace, token doesn't need to be on same line
             if (string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(token.Span.End, line.End))))
-            {
                 return line.End;
-            }
 
             // if token is on different line than caret but caret line is empty, we insert ending point at the end of the line
             if (text.Lines.IndexOf(token.Span.End) != text.Lines.IndexOf(line.End))
-            {
                 return string.IsNullOrWhiteSpace(line.GetText()) ? (int?)line.End : null;
-            }
 
             return token.Span.End;
         }

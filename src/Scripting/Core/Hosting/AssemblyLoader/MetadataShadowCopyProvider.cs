@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private MetadataShadowCopy GetMetadataShadowCopyNoCheck(string fullPath, MetadataImageKind kind)
         {
-            if (kind < MetadataImageKind.Assembly || kind > MetadataImageKind.Module)
+            if (kind is < MetadataImageKind.Assembly or > MetadataImageKind.Module)
             {
                 throw new ArgumentOutOfRangeException(nameof(kind));
             }

@@ -79,17 +79,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var current = token.Parent;
             for (; current != null; current = current.Parent)
             {
-                if (current is MemberDeclarationSyntax ||
-                    current is SimpleLambdaExpressionSyntax ||
-                    current is ParenthesizedLambdaExpressionSyntax ||
-                    current is AnonymousMethodExpressionSyntax ||
-                    current is LocalFunctionStatementSyntax)
+                if (current is MemberDeclarationSyntax or
+                    SimpleLambdaExpressionSyntax or
+                    ParenthesizedLambdaExpressionSyntax or
+                    AnonymousMethodExpressionSyntax or
+                    LocalFunctionStatementSyntax)
                 {
                     break;
                 }
             }
 
-            if (current == null || current is MemberDeclarationSyntax)
+            if (current is null or MemberDeclarationSyntax)
             {
                 return false;
             }

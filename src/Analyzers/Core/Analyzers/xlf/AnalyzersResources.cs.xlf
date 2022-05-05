@@ -87,11 +87,6 @@
         <target state="translated">Převést na podmíněný výraz</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Převést na řazenou kolekci členů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">Hodnota výrazu se nikdy nepoužívá.</target>

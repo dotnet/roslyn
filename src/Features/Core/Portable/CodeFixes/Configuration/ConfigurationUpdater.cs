@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             // We need to generate a new header such as '[*.cs]' or '[*.vb]':
             //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only [*.cs] or [*.vb].
             //      - For the remainder, generate [*.{cs,vb}]
-            if (_language == LanguageNames.CSharp || _language == LanguageNames.VisualBasic)
+            if (_language is LanguageNames.CSharp or LanguageNames.VisualBasic)
             {
                 // Insert a newline if not already present
                 var lines = result.Lines;

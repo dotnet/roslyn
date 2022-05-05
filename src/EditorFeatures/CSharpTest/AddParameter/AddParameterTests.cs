@@ -2849,5 +2849,59 @@ namespace r
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecord()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecordStruct()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record struct R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record struct R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
     }
 }

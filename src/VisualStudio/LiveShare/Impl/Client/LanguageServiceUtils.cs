@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return true;
             }
+
             try
             {
                 t = ((JObject)json).ToObject<T>();

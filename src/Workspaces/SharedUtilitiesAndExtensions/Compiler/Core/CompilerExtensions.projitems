@@ -39,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTaskFactory.cs" Link="InternalUtilities\ValueTaskFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\VoidResult.cs" Link="InternalUtilities\VoidResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\YieldAwaitableExtensions.cs" Link="InternalUtilities\YieldAwaitableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
@@ -174,6 +175,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeActionRequestPriority.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AccessibilityModifiersRequired.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AddImportPlacement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleHelpers.cs" />
@@ -181,6 +183,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CodeStyleOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\EditorConfigSeverityStrings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ExpressionBodyPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NamespaceDeclarationPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
@@ -205,6 +208,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\IHeaderFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
@@ -355,10 +360,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ForEachSymbols.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractDocumentationCommentService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractSyntaxFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\AbstractFileBannerFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\AbstractHeaderFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ExternalSourceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\IAccessibilityFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\IDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ISemanticFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\IFileBannerFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\IFileBannerFactsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\IHeaderFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ISyntaxKinds.cs" />
@@ -453,7 +463,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedRecoverableValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeaklyCachedValueSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ValuesSources\WeakValueSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\VoidResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\WeakEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -509,5 +518,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
   </ItemGroup>
 </Project>

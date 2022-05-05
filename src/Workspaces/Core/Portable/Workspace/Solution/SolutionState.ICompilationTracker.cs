@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,23 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         private interface ICompilationTracker
         {
-            /// <summary>
-            /// Returns true if this tracker currently either points to a compilation, has an in-progress
-            /// compilation being computed, or has a skeleton reference.  Note: this is simply a weak
-            /// statement about the tracker at this exact moment in time.  Immediately after this returns
-            /// the tracker might change and may no longer have a final compilation (for example, if the
-            /// retainer let go of it) or might not have an in-progress compilation (for example, if the
-            /// background compiler finished with it).
-            /// 
-            /// Because of the above limitations, this should only be used by clients as a weak form of
-            /// information about the tracker.  For example, a client may see that a tracker has no
-            /// compilation and may choose to throw it away knowing that it could be reconstructed at a
-            /// later point if necessary.
-            /// </summary>
-            bool HasCompilation { get; }
             ProjectState ProjectState { get; }
-
-            ICompilationTracker Clone();
 
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
@@ -47,9 +29,7 @@ namespace Microsoft.CodeAnalysis
             /// any of the references of the <see cref="Compilation.References"/>.
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
-            bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken);
-            bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken);
-            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, bool clone = false, CancellationToken cancellationToken = default);
+            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
             ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
@@ -64,7 +44,6 @@ namespace Microsoft.CodeAnalysis
             Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken);
             CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken);
-            IEnumerable<SyntaxTree>? GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken);
             Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken);
             bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
             SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId);

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public GlobalOperationAwareIdleProcessor(
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
-            int backOffTimeSpanInMs,
+            TimeSpan backOffTimeSpan,
             CancellationToken shutdownToken)
-            : base(listener, backOffTimeSpanInMs, shutdownToken)
+            : base(listener, backOffTimeSpan, shutdownToken)
         {
             _globalOperation = null;
             _globalOperationTask = Task.CompletedTask;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,9 +61,9 @@ namespace Microsoft.CodeAnalysis.InvertIf
         private InvertIfStyle GetInvertIfStyle(
             TIfStatementSyntax ifNode,
             SemanticModel semanticModel,
-            out SyntaxNode subsequentSingleExitPointOpt)
+            out SyntaxNode? subsequentSingleExitPoint)
         {
-            subsequentSingleExitPointOpt = null;
+            subsequentSingleExitPoint = null;
 
             if (!IsElseless(ifNode))
             {
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             AnalyzeSubsequentControlFlow(
                 semanticModel, subsequentStatementRanges,
                 out var subsequentEndPointIsReachable,
-                out subsequentSingleExitPointOpt);
+                out subsequentSingleExitPoint);
 
             if (subsequentEndPointIsReachable)
             {
@@ -173,7 +171,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             }
             else if (ifBodyEndPointIsReachable)
             {
-                if (subsequentSingleExitPointOpt != null &&
+                if (subsequentSingleExitPoint != null &&
                     SingleSubsequentStatement(subsequentStatementRanges))
                 {
                     // (5) if-body end-point is reachable but the next statement is a only jump-statement.
@@ -248,18 +246,18 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPointOpt);
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPoint);
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             return document.WithSyntaxRoot(
                 GetRootWithInvertIfStatement(
                     sourceText,
                     root,
                     ifNode,
                     invertIfStyle,
-                    subsequentSingleExitPointOpt,
+                    subsequentSingleExitPoint,
                     negatedExpression: generator.Negate(
                         generator.SyntaxGeneratorInternal,
                         GetCondition(ifNode),
@@ -271,10 +269,10 @@ namespace Microsoft.CodeAnalysis.InvertIf
             SemanticModel semanticModel,
             ImmutableArray<StatementRange> subsequentStatementRanges,
             out bool subsequentEndPointIsReachable,
-            out SyntaxNode subsequentSingleExitPointOpt)
+            out SyntaxNode? subsequentSingleExitPoint)
         {
             subsequentEndPointIsReachable = true;
-            subsequentSingleExitPointOpt = null;
+            subsequentSingleExitPoint = null;
 
             foreach (var statementRange in subsequentStatementRanges)
             {
@@ -282,7 +280,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     semanticModel,
                     statementRange,
                     out subsequentEndPointIsReachable,
-                    out subsequentSingleExitPointOpt);
+                    out subsequentSingleExitPoint);
 
                 if (!subsequentEndPointIsReachable)
                 {
@@ -295,14 +293,14 @@ namespace Microsoft.CodeAnalysis.InvertIf
             SemanticModel semanticModel,
             StatementRange statementRange,
             out bool endPointIsReachable,
-            out SyntaxNode singleExitPointOpt)
+            out SyntaxNode? singleExitPoint)
         {
             var flow = semanticModel.AnalyzeControlFlow(
                 statementRange.FirstStatement,
                 statementRange.LastStatement);
 
             endPointIsReachable = flow.EndPointIsReachable;
-            singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
+            singleExitPoint = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
         }
 
         private static bool SubsequentStatementsAreInTheSameBlock(
@@ -381,7 +379,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         protected abstract string GetTitle();
 
         protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode node);
-        protected abstract TStatementSyntax GetNextStatement(TStatementSyntax node);
+        protected abstract TStatementSyntax? GetNextStatement(TStatementSyntax node);
 
         protected abstract TStatementSyntax GetJumpStatement(int rawKind);
         protected abstract int GetJumpStatementRawKind(SyntaxNode node);
@@ -413,7 +411,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             SyntaxNode condition,
             TEmbeddedStatement trueStatement,
-            TEmbeddedStatement falseStatementOpt = default);
+            TEmbeddedStatement? falseStatement = default);
 
         protected abstract SyntaxNode WithStatements(
             SyntaxNode node,
@@ -424,7 +422,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             SyntaxNode root,
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
-            SyntaxNode subsequentSingleExitPointOpt,
+            SyntaxNode? subsequentSingleExitPoint,
             SyntaxNode negatedExpression)
         {
             switch (invertIfStyle)
@@ -435,8 +433,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
                             text,
                             ifNode: ifNode,
                             condition: negatedExpression,
-                            trueStatement: GetElseBody(ifNode),
-                            falseStatementOpt: GetIfBody(ifNode));
+                            trueStatement: GetElseBody(ifNode)!,
+                            falseStatement: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -448,7 +446,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: GetEmptyEmbeddedStatement(),
-                            falseStatementOpt: GetIfBody(ifNode));
+                            falseStatement: GetIfBody(ifNode));
 
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
@@ -466,7 +464,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements:
                     {
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
@@ -490,7 +488,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement:
                     {
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
@@ -515,14 +513,14 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:
                     {
-                        Debug.Assert(subsequentSingleExitPointOpt is TStatementSyntax);
+                        Debug.Assert(subsequentSingleExitPoint is TStatementSyntax);
 
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
                         var ifBody = GetIfBody(ifNode);
-                        var newIfBody = (TStatementSyntax)subsequentSingleExitPointOpt;
+                        var newIfBody = (TStatementSyntax)subsequentSingleExitPoint;
 
                         var updatedIf = UpdateIf(
                             text,
@@ -542,7 +540,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody:
                     {
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
@@ -565,7 +563,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_WithElseClause:
                     {
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
@@ -579,7 +577,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                             ifNode: ifNode,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(statementsAfterIf, ifBody),
-                            falseStatementOpt: ifBody);
+                            falseStatement: ifBody);
 
                         var updatedParent = WithStatements(
                             currentParent,
@@ -596,7 +594,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

@@ -51,6 +51,7 @@ End NameSpace"
                                              If symbol IsNot Nothing Then
                                                  Return c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation)
                                              End If
+
                                              Return c
                                          End Function)
                 doc = doc.WithSyntaxRoot(root)

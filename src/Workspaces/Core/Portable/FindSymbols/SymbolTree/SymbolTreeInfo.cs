@@ -11,9 +11,10 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -329,13 +330,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
 
         private static Task<SpellChecker> GetSpellCheckerAsync(
-            Workspace workspace, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
+            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database, string filePath, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(workspace, solutionKey, checksum, filePath, sortedNodes));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(services, solutionKey, checksum, database, filePath, sortedNodes));
         }
 
         private static Task<SpellChecker> CreateSpellCheckerAsync(
@@ -476,11 +477,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             Debug.Assert(_inheritanceMap.Keys.Count == other._inheritanceMap.Keys.Count);
-            var orderedKeys1 = this._inheritanceMap.Keys.Order().ToList();
+            var orderedKeys1 = _inheritanceMap.Keys.Order().ToList();
 
             for (var i = 0; i < orderedKeys1.Count; i++)
             {
-                var values1 = this._inheritanceMap[i];
+                var values1 = _inheritanceMap[i];
                 var values2 = other._inheritanceMap[i];
 
                 Debug.Assert(values1.Length == values2.Length);
@@ -492,14 +493,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            Workspace workspace, SolutionKey solutionKey, Checksum checksum,
+            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
-                workspace, solutionKey, checksum, filePath, sortedNodes);
+                services, solutionKey, checksum, database, filePath, sortedNodes);
 
             return new SymbolTreeInfo(
                 checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);

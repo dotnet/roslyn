@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
                                     SyntaxFactory.TypePattern(((DeclarationPatternSyntax)current).Type)
                                                  .WithAdditionalAnnotations(Formatter.Annotation));
                         }
+
                         break;
                     case RecursivePatternSyntax recursivePattern:
                         editor.ReplaceNode(

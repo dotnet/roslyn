@@ -49,9 +49,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
         {
-            var engine = new FindLiteralsSearchEngine(
-                solution, progress, value, cancellationToken);
-            return engine.FindReferencesAsync();
+            var engine = new FindLiteralsSearchEngine(solution, progress, value);
+            return engine.FindReferencesAsync(cancellationToken);
         }
     }
 }

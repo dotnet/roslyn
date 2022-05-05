@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
@@ -47,20 +46,21 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-                declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>());
+                declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>()!);
             }
 
-            await MakeFieldReadonlyAsync(document, editor, declarators).ConfigureAwait(false);
+            await MakeFieldReadonlyAsync(document, editor, declarators, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task MakeFieldReadonlyAsync(Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators)
+        private async Task MakeFieldReadonlyAsync(
+            Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators, CancellationToken cancellationToken)
         {
-            var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>());
+            var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>()!);
 
             foreach (var fieldDeclarators in declaratorsByField)
             {
@@ -74,12 +74,13 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
                 else
                 {
-                    var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
+                    var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var generator = editor.Generator;
 
                     foreach (var declarator in declarationDeclarators.Reverse())
                     {
-                        var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declarator);
+                        var symbol = (IFieldSymbol?)model.GetDeclaredSymbol(declarator, cancellationToken);
+                        Contract.ThrowIfNull(symbol);
                         var modifiers = generator.GetModifiers(fieldDeclarators.Key);
 
                         var newDeclaration = generator.FieldDeclaration(symbol.Name,
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument)
+                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument, nameof(AnalyzersResources.Add_readonly_modifier))
             {
             }
         }

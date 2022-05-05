@@ -58,7 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
-                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
@@ -70,7 +69,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         mockVisualStudioWorkspace,
                         mockServiceProvider,
                         threadingContext,
-                        notificationService,
                         listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)

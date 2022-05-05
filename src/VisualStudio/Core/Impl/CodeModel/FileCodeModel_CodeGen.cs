@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var semanticModel = GetSemanticModel();
 
             var baseArray = GetValidArray(bases, allowMultipleElements: false);
-            Debug.Assert(baseArray.Length == 0 || baseArray.Length == 1);
+            Debug.Assert(baseArray.Length is 0 or 1);
 
             var baseTypeSymbol = baseArray.Length == 1
                 ? (INamedTypeSymbol)CodeModelService.GetTypeSymbol(baseArray[0], semanticModel, containerNodePosition)
@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeVariable AddEnumMember(SyntaxNode containerNode, string name, object value, object position)
         {
-            if (value != null && !(value is string))
+            if (value is not null and not string)
             {
                 throw Exceptions.ThrowEInvalidArg();
             }
@@ -293,8 +293,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             SyntaxNode newMember;
 
-            if (kind == EnvDTE.vsCMFunction.vsCMFunctionSub ||
-                kind == EnvDTE.vsCMFunction.vsCMFunctionFunction)
+            if (kind is EnvDTE.vsCMFunction.vsCMFunctionSub or
+                EnvDTE.vsCMFunction.vsCMFunctionFunction)
             {
                 var containerNodePosition = containerNode.SpanStart;
                 var semanticModel = GetSemanticModel();

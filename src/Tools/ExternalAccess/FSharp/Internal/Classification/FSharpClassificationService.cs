@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             result.AddRange(list);
         }
 
-        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             using var _ = s_listPool.GetPooledObject(out var list);
             await _service.AddSemanticClassificationsAsync(document, textSpan, list, cancellationToken).ConfigureAwait(false);

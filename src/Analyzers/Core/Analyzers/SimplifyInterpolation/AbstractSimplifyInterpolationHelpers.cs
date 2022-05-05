@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 HasNonImplicitInstance(invocation))
             {
                 var targetName = invocation.TargetMethod.Name;
-                if (targetName == nameof(string.PadLeft) || targetName == nameof(string.PadRight))
+                if (targetName is nameof(string.PadLeft) or nameof(string.PadRight))
                 {
                     var argCount = invocation.Arguments.Length;
-                    if (argCount == 1 || argCount == 2)
+                    if (argCount is 1 or 2)
                     {
                         if (argCount == 1 ||
                             IsSpaceChar(invocation.Arguments[1]))

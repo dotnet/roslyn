@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
+    /// <summary>
+    /// Some basic concepts:
+    /// - Basic blocks are sequences of statements/operations with no branching. The only branching
+    ///   allowed is at the end of the basic block.
+    /// - Regions group blocks together and represent the lifetime of locals and captures, loosely similar to scopes in C#.
+    ///   There are different kinds of regions, <see cref="ControlFlowRegionKind"/>.
+    /// - <see cref="ControlFlowGraphBuilder.SpillEvalStack"/> converts values on the stack into captures.
+    /// - Error scenarios from initial binding need to be handled.
+    /// </summary>
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
         private readonly Compilation _compilation;
@@ -6342,8 +6352,8 @@ oneMoreTime:
                     IOperation? rewrittenFormatString;
                     if (interpolation.FormatString != null)
                     {
-                        Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
-                        rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult: null);
+                        Debug.Assert(interpolation.FormatString is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                        rewrittenFormatString = VisitRequired(interpolation.FormatString, argument: null);
                     }
                     else
                     {
@@ -6357,8 +6367,8 @@ oneMoreTime:
                 else
                 {
                     var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
-                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult: null);
+                    Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                    var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
                     rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
                 }
 
@@ -7130,24 +7140,189 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? argument)
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? captureIdForResult)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitWith(IWithOperation operation, int? argument)
+        public override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
         {
+            if (operation.Type!.IsAnonymousType)
+            {
+                return handleAnonymousTypeWithExpression((WithOperation)operation, captureIdForResult);
+            }
+
             EvalStackFrame frame = PushStackFrame();
             // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
             IOperation visitedInstance = VisitRequired(operation.Operand);
-
-            IOperation cloned = operation.CloneMethod is null
-                ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
-                : new InvocationOperation(operation.CloneMethod, visitedInstance,
-                    isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
-                    semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
+            IOperation cloned;
+            if (operation.Type.IsValueType)
+            {
+                cloned = visitedInstance;
+            }
+            else
+            {
+                cloned = operation.CloneMethod is null
+                    ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
+                    : new InvocationOperation(operation.CloneMethod, visitedInstance,
+                        isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
+            }
 
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, cloned));
+
+            // For `old with { Property = ... }` we're going to do the same as `new { Property = ..., OtherProperty = old.OtherProperty }`
+            IOperation handleAnonymousTypeWithExpression(WithOperation operation, int? captureIdForResult)
+            {
+                Debug.Assert(operation.Type!.IsAnonymousType);
+                SpillEvalStack(); // before entering a new region, we ensure that anything that needs spilling was spilled
+
+                // The outer region holds captures for all the values for the anonymous object creation
+                var outerCaptureRegion = CurrentRegionRequired;
+
+                // The inner region holds the capture for the operand (ie. old value)
+                var innerCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+                EnterRegion(innerCaptureRegion);
+
+                var initializers = operation.Initializer.Initializers;
+
+                var properties = operation.Type.GetMembers()
+                    .Where(m => m.Kind == SymbolKind.Property)
+                    .Select(m => (IPropertySymbol)m);
+
+                int oldValueCaptureId;
+                if (setsAllProperties(initializers, properties))
+                {
+                    // Avoid capturing the old value since we won't need it
+                    oldValueCaptureId = -1;
+                    AddStatement(VisitRequired(operation.Operand));
+                }
+                else
+                {
+                    oldValueCaptureId = GetNextCaptureId(innerCaptureRegion);
+                    VisitAndCapture(operation.Operand, oldValueCaptureId);
+                }
+                // calls to Visit may enter regions, so we reset things
+                LeaveRegionsUpTo(innerCaptureRegion);
+
+                var explicitProperties = new Dictionary<IPropertySymbol, IOperation>(SymbolEqualityComparer.IgnoreAll);
+                var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(initializers.Length);
+
+                // Visit and capture all the values, and construct assignments using capture references
+                foreach (IOperation initializer in initializers)
+                {
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        AddStatement(VisitRequired(initializer));
+                        continue;
+                    }
+
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
+                    {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
+
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+
+                    Debug.Assert(propertyReference != null);
+                    Debug.Assert(propertyReference.Arguments.IsEmpty);
+                    Debug.Assert(propertyReference.Instance != null);
+                    Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
+                    Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
+
+                    var property = propertyReference.Property;
+                    if (explicitProperties.ContainsKey(property))
+                    {
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
+
+                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
+                    LeaveRegionsUpTo(innerCaptureRegion);
+                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
+                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                    var assignment = makeAssignment(property, valueCaptureRef, operation);
+
+                    explicitProperties.Add(property, assignment);
+                }
+
+                // Make a sequence for all properties (in order), constructing assignments for the implicitly set properties
+                var type = (INamedTypeSymbol)operation.Type;
+                foreach (IPropertySymbol property in properties)
+                {
+                    if (explicitProperties.TryGetValue(property, out var assignment))
+                    {
+                        initializerBuilder.Add(assignment);
+                    }
+                    else
+                    {
+                        Debug.Assert(oldValueCaptureId >= 0);
+
+                        // `oldInstance`
+                        var oldInstance = new FlowCaptureReferenceOperation(oldValueCaptureId, operation.Operand.Syntax,
+                            operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                        // `oldInstance.Property`
+                        var visitedValue = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, oldInstance,
+                            semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
+
+                        int extraValueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                        AddStatement(new FlowCaptureOperation(extraValueCaptureId, operation.Syntax, visitedValue));
+
+                        var extraValueCaptureRef = new FlowCaptureReferenceOperation(extraValueCaptureId, operation.Operand.Syntax,
+                            operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                        assignment = makeAssignment(property, extraValueCaptureRef, operation);
+                        initializerBuilder.Add(assignment);
+                    }
+                }
+                LeaveRegionsUpTo(outerCaptureRegion);
+
+                return new AnonymousObjectCreationOperation(initializerBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
+            }
+
+            // Build an operation for `<implicitReceiver>.Property = <capturedValue>`
+            SimpleAssignmentOperation makeAssignment(IPropertySymbol property, IOperation capturedValue, WithOperation operation)
+            {
+                // <implicitReceiver>
+                var implicitReceiver = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver,
+                    semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
+
+                // <implicitReceiver>.Property
+                var target = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, implicitReceiver,
+                    semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
+
+                // <implicitReceiver>.Property = <capturedValue>
+                return new SimpleAssignmentOperation(isRef: false, target, capturedValue,
+                    semanticModel: null, operation.Syntax, property.Type, constantValue: null, isImplicit: true);
+            }
+
+            static bool setsAllProperties(ImmutableArray<IOperation> initializers, IEnumerable<IPropertySymbol> properties)
+            {
+                var set = new HashSet<IPropertySymbol>(SymbolEqualityComparer.IgnoreAll);
+                foreach (var initializer in initializers)
+                {
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        continue;
+                    }
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
+                    {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
+                        continue;
+                    }
+
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                    Debug.Assert(properties.Contains(propertyReference.Property, SymbolEqualityComparer.IgnoreAll));
+                    set.Add(propertyReference.Property);
+                }
+
+                return set.Count == properties.Count();
+            }
         }
     }
 }

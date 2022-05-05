@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     {
         public static PerLanguageOption2<bool> Enabled =
             new(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
     [ExportOptionProvider(LanguageNames.CSharp), Shared]

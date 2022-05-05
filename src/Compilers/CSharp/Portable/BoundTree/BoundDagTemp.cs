@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#if DEBUG
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+#endif
     partial class BoundDagTemp
     {
         /// <summary>
@@ -29,5 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
+
+#if DEBUG
+        internal new string GetDebuggerDisplay()
+        {
+            var name = Source?.Id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to have a non-null source with id 0
+                // because id 0 is reserved for the original input.
+                // However, we also don't want to assert in a debugger display method.
+                0 => "<error>",
+
+                null => "t0",
+                var id => $"t{id}"
+            };
+            return $"{name}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
+        }
+#endif
     }
 }

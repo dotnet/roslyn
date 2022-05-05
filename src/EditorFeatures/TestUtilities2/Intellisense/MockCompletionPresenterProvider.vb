@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If Not _presenters.ContainsKey(textView) Then
                 _presenters(textView) = New MockCompletionPresenter(textView)
             End If
+
             Return _presenters(textView)
         End Function
     End Class

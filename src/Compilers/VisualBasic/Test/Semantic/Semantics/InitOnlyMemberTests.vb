@@ -141,7 +141,7 @@ Class B
         x.Property0 = 41
 
         Dim z = Sub()
-                  Property5 = 46  
+                  Property5 = 46
                 End Sub
     End Sub
 
@@ -172,7 +172,7 @@ BC37311: Init-only property 'Property0' can only be assigned by an object member
         x.Property0 = 41
         ~~~~~~~~~~~~~~~~
 BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Property5 = 46  
+                  Property5 = 46
                   ~~~~~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -438,7 +438,7 @@ Class B
         x.Property0 = 41
 
         Dim z = Sub()
-                  Property5 = 46  
+                  Property5 = 46
                 End Sub
     End Sub
 
@@ -469,7 +469,7 @@ BC37311: Init-only property 'Property0' can only be assigned by an object member
         x.Property0 = 41
         ~~~~~~~~~~~~~~~~
 BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Property5 = 46  
+                  Property5 = 46
                   ~~~~~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -631,7 +631,7 @@ Class B
         x.Item(0) = 47
 
         Dim z = Sub()
-                  Item(0) = 48 
+                  Item(0) = 48
                   Me(0) = 49
                 End Sub
     End Sub
@@ -669,7 +669,7 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
         x.Item(0) = 47
         ~~~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Item(0) = 48 
+                  Item(0) = 48
                   ~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
                   Me(0) = 49
@@ -968,8 +968,8 @@ Class B
         x.Item(7) = 47
 
         Dim z = Sub()
-                  Item(8) = 48  
-                  Me(9) = 49  
+                  Item(8) = 48
+                  Me(9) = 49
                 End Sub
     End Sub
 
@@ -1006,10 +1006,10 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
         x.Item(7) = 47
         ~~~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Item(8) = 48  
+                  Item(8) = 48
                   ~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Me(9) = 49  
+                  Me(9) = 49
                   ~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -1175,7 +1175,7 @@ Class B
         x.Property0 += 41
 
         Dim z = Sub()
-                  Property5 += 46  
+                  Property5 += 46
                 End Sub
     End Sub
 
@@ -1206,7 +1206,7 @@ BC37311: Init-only property 'Property0' can only be assigned by an object member
         x.Property0 += 41
         ~~~~~~~~~~~~~~~~~
 BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Property5 += 46  
+                  Property5 += 46
                   ~~~~~~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -1368,8 +1368,8 @@ Class B
         x.Item(0) += 47
 
         Dim z = Sub()
-                  Item(0) += 48  
-                  Me(0) += 49  
+                  Item(0) += 48
+                  Me(0) += 49
                 End Sub
     End Sub
 
@@ -1406,10 +1406,10 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
         x.Item(0) += 47
         ~~~~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Item(0) += 48  
+                  Item(0) += 48
                   ~~~~~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Me(0) += 49  
+                  Me(0) += 49
                   ~~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -1796,12 +1796,12 @@ public class C
 Class B1
     Inherits C
 
-    Public Overrides WriteOnly Property P0 As Integer 
+    Public Overrides WriteOnly Property P0 As Integer
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Overrides Property P1 As Integer 
+    Public Overrides Property P1 As Integer
 End Class
 
 Class B2
@@ -1809,7 +1809,7 @@ Class B2
 
     Public Overrides Property P0 As Integer
 
-    Public Overrides ReadOnly Property P1 As Integer 
+    Public Overrides ReadOnly Property P1 As Integer
 End Class
 
 Class B3
@@ -1817,10 +1817,10 @@ Class B3
 
     Public Overrides ReadOnly Property P0 As Integer
 
-    Public Overrides WriteOnly Property P1 As Integer 
+    Public Overrides WriteOnly Property P1 As Integer
         Set
         End Set
-    End Property 
+    End Property
 End Class
 ]]></file>
 </compilation>
@@ -1829,22 +1829,22 @@ End Class
             Dim expected1 =
 <expected>
 BC37312: 'Public Overrides WriteOnly Property P0 As Integer' cannot override init-only 'Public Overridable Overloads WriteOnly Property P0 As Integer'.
-    Public Overrides WriteOnly Property P0 As Integer 
+    Public Overrides WriteOnly Property P0 As Integer
                                         ~~
 BC37312: 'Public Overrides Property P1 As Integer' cannot override init-only 'Public Overridable Overloads Property P1 As Integer'.
-    Public Overrides Property P1 As Integer 
+    Public Overrides Property P1 As Integer
                               ~~
 BC30362: 'Public Overrides Property P0 As Integer' cannot override 'Public Overridable Overloads WriteOnly Property P0 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides Property P0 As Integer
                               ~~
 BC30362: 'Public Overrides ReadOnly Property P1 As Integer' cannot override 'Public Overridable Overloads Property P1 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides ReadOnly Property P1 As Integer 
+    Public Overrides ReadOnly Property P1 As Integer
                                        ~~
 BC30362: 'Public Overrides ReadOnly Property P0 As Integer' cannot override 'Public Overridable Overloads WriteOnly Property P0 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides ReadOnly Property P0 As Integer
                                        ~~
 BC30362: 'Public Overrides WriteOnly Property P1 As Integer' cannot override 'Public Overridable Overloads Property P1 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides WriteOnly Property P1 As Integer 
+    Public Overrides WriteOnly Property P1 As Integer
                                         ~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -1880,18 +1880,18 @@ public class C<T>
 Class B1
     Inherits C(Of Integer)
 
-    Public Overrides WriteOnly Property Item(x as Integer) As Integer 
+    Public Overrides WriteOnly Property Item(x as Integer) As Integer
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Overrides Property Item(x as Short) As Integer 
+    Public Overrides Property Item(x as Short) As Integer
         Get
             Return Nothing
         End Get
         Set
         End Set
-    End Property 
+    End Property
 End Class
 
 Class B2
@@ -1903,13 +1903,13 @@ Class B2
         End Get
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Overrides ReadOnly Property Item(x as Short) As Integer 
+    Public Overrides ReadOnly Property Item(x as Short) As Integer
         Get
             Return Nothing
         End Get
-    End Property 
+    End Property
 End Class
 
 Class B3
@@ -1919,12 +1919,12 @@ Class B3
         Get
             Return Nothing
         End Get
-    End Property 
+    End Property
 
-    Public Overrides WriteOnly Property Item(x as Short) As Integer 
+    Public Overrides WriteOnly Property Item(x as Short) As Integer
         Set
         End Set
-    End Property 
+    End Property
 End Class
 ]]></file>
 </compilation>
@@ -1933,22 +1933,22 @@ End Class
             Dim expected1 =
 <expected>
 BC37312: 'Public Overrides WriteOnly Property Item(x As Integer) As Integer' cannot override init-only 'Public Overridable Overloads WriteOnly Default Property Item(x As Integer) As Integer'.
-    Public Overrides WriteOnly Property Item(x as Integer) As Integer 
+    Public Overrides WriteOnly Property Item(x as Integer) As Integer
                                         ~~~~
 BC37312: 'Public Overrides Property Item(x As Short) As Integer' cannot override init-only 'Public Overridable Overloads Default Property Item(x As Short) As Integer'.
-    Public Overrides Property Item(x as Short) As Integer 
+    Public Overrides Property Item(x as Short) As Integer
                               ~~~~
 BC30362: 'Public Overrides Property Item(x As Integer) As Integer' cannot override 'Public Overridable Overloads WriteOnly Default Property Item(x As Integer) As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides Property Item(x as Integer) As Integer
                               ~~~~
 BC30362: 'Public Overrides ReadOnly Property Item(x As Short) As Integer' cannot override 'Public Overridable Overloads Default Property Item(x As Short) As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides ReadOnly Property Item(x as Short) As Integer 
+    Public Overrides ReadOnly Property Item(x as Short) As Integer
                                        ~~~~
 BC30362: 'Public Overrides ReadOnly Property Item(x As Integer) As Integer' cannot override 'Public Overridable Overloads WriteOnly Default Property Item(x As Integer) As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides ReadOnly Property Item(x as Integer) As Integer
                                        ~~~~
 BC30362: 'Public Overrides WriteOnly Property Item(x As Short) As Integer' cannot override 'Public Overridable Overloads Default Property Item(x As Short) As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides WriteOnly Property Item(x as Short) As Integer 
+    Public Overrides WriteOnly Property Item(x as Short) As Integer
                                         ~~~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -1987,15 +1987,15 @@ public class B : A
 Class C1
     Inherits B
 
-    Public Overrides WriteOnly Property P1 As Integer 
+    Public Overrides WriteOnly Property P1 As Integer
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Overrides WriteOnly Property P2 As Integer 
+    Public Overrides WriteOnly Property P2 As Integer
         Set
         End Set
-    End Property 
+    End Property
 End Class
 
 Class C2
@@ -2003,7 +2003,7 @@ Class C2
 
     Public Overrides Property P1 As Integer
 
-    Public Overrides Property P2 As Integer 
+    Public Overrides Property P2 As Integer
 End Class
 
 Class C3
@@ -2011,7 +2011,7 @@ Class C3
 
     Public Overrides ReadOnly Property P1 As Integer
 
-    Public Overrides ReadOnly Property P2 As Integer 
+    Public Overrides ReadOnly Property P2 As Integer
 End Class
 ]]></file>
 </compilation>
@@ -2020,19 +2020,19 @@ End Class
             Dim expected1 =
 <expected>
 BC30362: 'Public Overrides WriteOnly Property P1 As Integer' cannot override 'Public Overrides ReadOnly Property P1 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides WriteOnly Property P1 As Integer 
+    Public Overrides WriteOnly Property P1 As Integer
                                         ~~
 BC37312: 'Public Overrides WriteOnly Property P2 As Integer' cannot override init-only 'Public Overrides WriteOnly Property P2 As Integer'.
-    Public Overrides WriteOnly Property P2 As Integer 
+    Public Overrides WriteOnly Property P2 As Integer
                                         ~~
 BC30362: 'Public Overrides Property P1 As Integer' cannot override 'Public Overrides ReadOnly Property P1 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
     Public Overrides Property P1 As Integer
                               ~~
 BC30362: 'Public Overrides Property P2 As Integer' cannot override 'Public Overrides WriteOnly Property P2 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides Property P2 As Integer 
+    Public Overrides Property P2 As Integer
                               ~~
 BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Public Overrides WriteOnly Property P2 As Integer' because they differ by 'ReadOnly' or 'WriteOnly'.
-    Public Overrides ReadOnly Property P2 As Integer 
+    Public Overrides ReadOnly Property P2 As Integer
                                        ~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -2060,38 +2060,38 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2147,38 +2147,38 @@ End Class
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2235,38 +2235,38 @@ End Class
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(CL1) P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2295,7 +2295,7 @@ End Class
 
             compilation.AssertTheseDiagnostics(
 <expected>
-BC30935: Member 'Public Overridable Overloads Property P As Integer' that matches this signature cannot be overridden because the class 'CL1' contains multiple members with this same name and signature: 
+BC30935: Member 'Public Overridable Overloads Property P As Integer' that matches this signature cannot be overridden because the class 'CL1' contains multiple members with this same name and signature:
    'Public Overridable Overloads Property P As Integer'
    'Public Overridable Overloads Property P As Integer'
     Overrides Property P As Integer
@@ -2329,38 +2329,38 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(CL1) P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2389,7 +2389,7 @@ End Class
 
             compilation.AssertTheseDiagnostics(
 <expected>
-BC30935: Member 'Public Overridable Overloads Property P As Integer' that matches this signature cannot be overridden because the class 'CL1' contains multiple members with this same name and signature: 
+BC30935: Member 'Public Overridable Overloads Property P As Integer' that matches this signature cannot be overridden because the class 'CL1' contains multiple members with this same name and signature:
    'Public Overridable Overloads Property P As Integer'
    'Public Overridable Overloads Property P As Integer'
     Overrides Property P As Integer
@@ -2423,76 +2423,76 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P1(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P1()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P1()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P1(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 get_P1() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P1(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P1()
     {
       .get instance int32 CL1::get_P1()
       .set instance void CL1::set_P1(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 get_P2() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void set_P2(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P2()
     {
       .get instance int32 CL1::get_P2()
       .set instance void CL1::set_P2(int32)
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P2() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P2(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P2()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P2()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P2(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2520,38 +2520,38 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P1(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P1()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL2::get_P1()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL2::set_P1(int32)
-    } 
+    }
 
     .method public hidebysig virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P2() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P2(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P2()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL2::get_P2()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL2::set_P2(int32)
-    } 
+    }
 }
 
 .class public auto ansi beforefieldinit CL3
@@ -2570,38 +2570,38 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig virtual
             instance void set_P1(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P1()
     {
       .get instance int32 CL3::get_P1()
       .set instance void CL3::set_P1(int32)
-    } 
+    }
 
     .method public hidebysig virtual
             instance int32 get_P2() cil managed
     {
       ldc.i4.s   123
       ret
-    } 
+    }
 
     .method public hidebysig virtual
             instance void set_P2(int32 x) cil managed
     {
       ret
-    } 
+    }
 
     .property instance int32 P2()
     {
       .get instance int32 CL3::get_P2()
       .set instance void CL3::set_P2(int32)
-    } 
+    }
 }
 ]]>.Value
 
@@ -2656,9 +2656,9 @@ Class B1
     Public WriteOnly Property P0 As Integer Implements I.P0
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Property P1 As Integer Implements I.P1 
+    Public Property P1 As Integer Implements I.P1
 End Class
 
 Class B2
@@ -2666,7 +2666,7 @@ Class B2
 
     Public Property P0 As Integer Implements I.P0
 
-    Public ReadOnly Property P1 As Integer Implements I.P1 
+    Public ReadOnly Property P1 As Integer Implements I.P1
 End Class
 
 Class B3
@@ -2674,10 +2674,10 @@ Class B3
 
     Public ReadOnly Property P0 As Integer Implements I.P0
 
-    Public WriteOnly Property P1 As Integer Implements I.P1 
+    Public WriteOnly Property P1 As Integer Implements I.P1
         Set
         End Set
-    End Property 
+    End Property
 End Class
 ]]></file>
 </compilation>
@@ -2689,22 +2689,22 @@ BC37313: Init-only 'WriteOnly Property P0 As Integer' cannot be implemented.
     Public WriteOnly Property P0 As Integer Implements I.P0
                                                        ~~~~
 BC37313: Init-only 'Property P1 As Integer' cannot be implemented.
-    Public Property P1 As Integer Implements I.P1 
+    Public Property P1 As Integer Implements I.P1
                                              ~~~~
 BC37313: Init-only 'WriteOnly Property P0 As Integer' cannot be implemented.
     Public Property P0 As Integer Implements I.P0
                                              ~~~~
 BC31444: 'Property P1 As Integer' cannot be implemented by a ReadOnly property.
-    Public ReadOnly Property P1 As Integer Implements I.P1 
+    Public ReadOnly Property P1 As Integer Implements I.P1
                                                       ~~~~
 BC31444: 'WriteOnly Property P0 As Integer' cannot be implemented by a ReadOnly property.
     Public ReadOnly Property P0 As Integer Implements I.P0
                                                       ~~~~
 BC31444: 'Property P1 As Integer' cannot be implemented by a WriteOnly property.
-    Public WriteOnly Property P1 As Integer Implements I.P1 
+    Public WriteOnly Property P1 As Integer Implements I.P1
                                                        ~~~~
 BC37313: Init-only 'Property P1 As Integer' cannot be implemented.
-    Public WriteOnly Property P1 As Integer Implements I.P1 
+    Public WriteOnly Property P1 As Integer Implements I.P1
                                                        ~~~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -2741,15 +2741,15 @@ Class B1
     Public WriteOnly Property Item(x As Integer) As Integer Implements I.Item
         Set
         End Set
-    End Property 
+    End Property
 
-    Public Property Item(x As Short) As Integer Implements I.Item 
+    Public Property Item(x As Short) As Integer Implements I.Item
         Get
             Return Nothing
         End Get
         Set
         End Set
-    End Property 
+    End Property
 End Class
 
 Class B2
@@ -2761,13 +2761,13 @@ Class B2
         End Get
         Set
         End Set
-    End Property 
+    End Property
 
-    Public ReadOnly Property Item(x As Short) As Integer Implements I.Item 
+    Public ReadOnly Property Item(x As Short) As Integer Implements I.Item
         Get
             Return Nothing
         End Get
-    End Property 
+    End Property
 End Class
 
 Class B3
@@ -2777,12 +2777,12 @@ Class B3
         Get
             Return Nothing
         End Get
-    End Property 
+    End Property
 
-    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item 
+    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item
         Set
         End Set
-    End Property 
+    End Property
 End Class
 ]]></file>
 </compilation>
@@ -2794,22 +2794,22 @@ BC37313: Init-only 'WriteOnly Default Property Item(x As Integer) As Integer' ca
     Public WriteOnly Property Item(x As Integer) As Integer Implements I.Item
                                                                        ~~~~~~
 BC37313: Init-only 'Default Property Item(x As Short) As Integer' cannot be implemented.
-    Public Property Item(x As Short) As Integer Implements I.Item 
+    Public Property Item(x As Short) As Integer Implements I.Item
                                                            ~~~~~~
 BC37313: Init-only 'WriteOnly Default Property Item(x As Integer) As Integer' cannot be implemented.
     Public Property Item(x As Integer) As Integer Implements I.Item
                                                              ~~~~~~
 BC31444: 'Default Property Item(x As Short) As Integer' cannot be implemented by a ReadOnly property.
-    Public ReadOnly Property Item(x As Short) As Integer Implements I.Item 
+    Public ReadOnly Property Item(x As Short) As Integer Implements I.Item
                                                                     ~~~~~~
 BC31444: 'WriteOnly Default Property Item(x As Integer) As Integer' cannot be implemented by a ReadOnly property.
     Public ReadOnly Property Item(x As Integer) As Integer Implements I.Item
                                                                       ~~~~~~
 BC31444: 'Default Property Item(x As Short) As Integer' cannot be implemented by a WriteOnly property.
-    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item 
+    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item
                                                                      ~~~~~~
 BC37313: Init-only 'Default Property Item(x As Short) As Integer' cannot be implemented.
-    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item 
+    Public WriteOnly Property Item(x As Short) As Integer Implements I.Item
                                                                      ~~~~~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -2837,13 +2837,13 @@ public interface I
 Class B2
     Implements I
 
-    Public Property P0 As Integer Implements I.P0, I.P1 
+    Public Property P0 As Integer Implements I.P0, I.P1
 End Class
 
 Class B3
     Implements I
 
-    Public Property P0 As Integer Implements I.P1, I.P0 
+    Public Property P0 As Integer Implements I.P1, I.P0
 End Class
 ]]></file>
 </compilation>
@@ -2852,10 +2852,10 @@ End Class
             Dim expected1 =
 <expected>
 BC37313: Init-only 'Property P1 As Integer' cannot be implemented.
-    Public Property P0 As Integer Implements I.P0, I.P1 
+    Public Property P0 As Integer Implements I.P0, I.P1
                                                    ~~~~
 BC37313: Init-only 'Property P1 As Integer' cannot be implemented.
-    Public Property P0 As Integer Implements I.P1, I.P0 
+    Public Property P0 As Integer Implements I.P1, I.P0
                                              ~~~~
 </expected>
             comp1.AssertTheseDiagnostics(expected1)
@@ -2869,37 +2869,37 @@ BC37313: Init-only 'Property P1 As Integer' cannot be implemented.
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
 {
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance int32 get_P() cil managed
     {
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance void set_P(int32 x) cil managed
     {
-    } 
+    }
 
     .property instance int32 P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -2952,37 +2952,37 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
             Dim ilSource = <![CDATA[
 .class interface public abstract auto ansi CL1
 {
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-    } 
+    }
 
     .property instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) P()
     {
       .get instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) CL1::get_P()
       .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) CL1::set_P(int32)
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance int32 get_P() cil managed
     {
-    } 
+    }
 
-    .method public hidebysig newslot specialname abstract virtual 
+    .method public hidebysig newslot specialname abstract virtual
             instance void set_P(int32 x) cil managed
     {
-    } 
+    }
 
     .property instance int32 P()
     {
       .get instance int32 CL1::get_P()
       .set instance void CL1::set_P(int32)
-    } 
+    }
 } // end of class CL1
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
@@ -3030,8 +3030,7 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
             Assert.NotEmpty(p.ExplicitInterfaceImplementations.Single().TypeCustomModifiers)
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_01()
 
             Dim csSource =
@@ -3119,8 +3118,7 @@ End Class
             CompileAndVerify(comp2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly))>
-        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_02()
 
             Dim csSource =
@@ -4220,7 +4218,7 @@ Class B
         x!c6 = 46
 
         Dim z = Sub()
-                  Me!c9 = 49  
+                  Me!c9 = 49
                 End Sub
     End Sub
 
@@ -4251,7 +4249,7 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
         x!c6 = 46
         ~~~~~~~~~
 BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
-                  Me!c9 = 49  
+                  Me!c9 = 49
                   ~~~~~~~~~~
 </expected>
             comp3.AssertTheseDiagnostics(expected3)
@@ -4568,12 +4566,12 @@ BC30657: 'M' has a return type that is not supported or parameter types that are
     {
         IL_0000: ldnull
         IL_0001: throw
-    } 
+    }
 
     .property instance int32 P()
     {
       .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_P(int32)
-    } 
+    }
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
@@ -5073,12 +5071,12 @@ BC30643: Property 'C.Property1' is of an unsupported type.
     {
         IL_0000: ldnull
         IL_0001: throw
-    } 
+    }
 
     .property instance int32 P()
     {
       .set instance void modopt(System.Runtime.CompilerServices.IsExternalInit) C::set_P(int32)
-    } 
+    }
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
@@ -5140,12 +5138,12 @@ End Class
     {
         IL_0000: ldnull
         IL_0001: throw
-    } 
+    }
 
     .property instance int32 P()
     {
       .set instance void modreq(" + modifierName + ") C::set_P(int32)
-    } 
+    }
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
@@ -5215,7 +5213,7 @@ Class Test1(Of T)
     End Sub
 
     Public Function M2() As System.Action
-        return Sub() 
+        return Sub()
                End Sub
     End Function
 

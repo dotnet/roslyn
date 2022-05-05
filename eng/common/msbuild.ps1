@@ -6,6 +6,7 @@ Param(
   [switch] $ci,
   [switch] $prepareMachine,
   [switch] $excludePrereleaseVS,
+  [string] $msbuildEngine = $null,
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$extraArgs
 )
 
@@ -17,7 +18,7 @@ try {
   }
 
   MSBuild @extraArgs
-} 
+}
 catch {
   Write-Host $_.ScriptStackTrace
   Write-PipelineTelemetryError -Category 'Build' -Message $_

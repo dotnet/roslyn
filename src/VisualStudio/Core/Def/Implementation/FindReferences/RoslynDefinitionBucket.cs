@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -62,8 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     name, expandedByDefault, presenter, context, definitionItem);
             }
 
-            public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => DefinitionItem.TryNavigateTo(
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+                => DefinitionItem.TryNavigateToAsync(
                     _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             public override bool TryGetValue(string key, out object? content)
@@ -114,9 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            public DocumentSpanEntry GetOrAddEntry(DocumentSpan documentSpan, DocumentSpanEntry entry)
+            public DocumentSpanEntry GetOrAddEntry(string? filePath, TextSpan sourceSpan, DocumentSpanEntry entry)
             {
-                var key = (documentSpan.Document.FilePath, documentSpan.SourceSpan);
+                var key = (filePath, sourceSpan);
                 lock (_locationToEntry)
                 {
                     return _locationToEntry.GetOrAdd(key, entry);

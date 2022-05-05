@@ -191,6 +191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              GetMocks(controller).PresenterSession.Verify(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)),
                                                                                                 It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?)), Times.Exactly(2))
                          End Function
+
             Await worker().ConfigureAwait(False)
 
         End Function

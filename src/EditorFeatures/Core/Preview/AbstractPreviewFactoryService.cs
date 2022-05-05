@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -67,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _previewRoleSet = previewRoleSet;
         }
 
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
             => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
-        public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
+        public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -500,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             double zoomLevel,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+            Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
             // openTextDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

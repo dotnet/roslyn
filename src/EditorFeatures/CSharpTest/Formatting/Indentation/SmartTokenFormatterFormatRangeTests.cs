@@ -569,32 +569,35 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
+        [WpfTheory]
         [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AccessorList9()
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task AccessorList9(string accessor)
         {
-            var code = @"class C
-{
+            var code = $@"class C
+{{
     int Prop
-    {
-set
-        {
+    {{
+{accessor}
+        {{
             ;
-        }$$
-    }
-}";
+        }}$$
+    }}
+}}";
 
-            var expected = @"class C
-{
+            var expected = $@"class C
+{{
     int Prop
-    {
-        set
-        {
+    {{
+        {accessor}
+        {{
             ;
-        }
-    }
-}";
+        }}
+    }}
+}}";
 
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }

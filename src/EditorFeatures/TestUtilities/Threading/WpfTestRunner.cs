@@ -100,7 +100,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         internal static void RequireWpfFact(string reason)
         {
-            if (!(TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
+            if (TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is not DispatcherSynchronizationContext)
             {
                 throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }

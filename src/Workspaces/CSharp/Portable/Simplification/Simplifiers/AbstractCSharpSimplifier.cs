@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 symbol = symbol.ContainingType;
             }
 
-            if (node is QualifiedNameSyntax || node is AliasQualifiedNameSyntax)
+            if (node is QualifiedNameSyntax or AliasQualifiedNameSyntax)
             {
                 SyntaxAnnotation aliasAnnotationInfo = null;
 
@@ -196,37 +196,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool HasUsingAliasDirective(SyntaxNode syntax)
         {
-            SyntaxList<UsingDirectiveSyntax> usings;
-            SyntaxList<MemberDeclarationSyntax> members;
-            if (syntax.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
+            var (usings, members) = syntax switch
             {
-                usings = namespaceDeclaration.Usings;
-                members = namespaceDeclaration.Members;
-            }
-            else if (syntax.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
-            {
-                usings = compilationUnit.Usings;
-                members = compilationUnit.Members;
-            }
-            else
-            {
-                return false;
-            }
+                BaseNamespaceDeclarationSyntax ns => (ns.Usings, ns.Members),
+                CompilationUnitSyntax compilationUnit => (compilationUnit.Usings, compilationUnit.Members),
+                _ => default,
+            };
 
             foreach (var usingDirective in usings)
             {
                 if (usingDirective.Alias != null)
-                {
                     return true;
-                }
             }
 
             foreach (var member in members)
             {
                 if (HasUsingAliasDirective(member))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -317,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             // check whether I am under a namespace
-            var @namespace = startNode.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+            var @namespace = startNode.GetAncestorOrThis<BaseNamespaceDeclarationSyntax>();
             if (@namespace != null)
             {
                 // since we have node inside of the root, root should be already there
@@ -345,34 +331,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return token.Parent;
         }
 
-        private static int GetNamespaceId(SyntaxNode container, NamespaceDeclarationSyntax target, ref int index)
+        private static int GetNamespaceId(SyntaxNode container, BaseNamespaceDeclarationSyntax target, ref int index)
             => container switch
             {
                 CompilationUnitSyntax compilation => GetNamespaceId(compilation.Members, target, ref index),
-                NamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
+                BaseNamespaceDeclarationSyntax @namespace => GetNamespaceId(@namespace.Members, target, ref index),
                 _ => throw ExceptionUtilities.UnexpectedValue(container)
             };
 
-        private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, NamespaceDeclarationSyntax target, ref int index)
+        private static int GetNamespaceId(SyntaxList<MemberDeclarationSyntax> members, BaseNamespaceDeclarationSyntax target, ref int index)
         {
             foreach (var member in members)
             {
-                if (!(member is NamespaceDeclarationSyntax childNamespace))
-                {
+                if (member is not BaseNamespaceDeclarationSyntax childNamespace)
                     continue;
-                }
 
                 if (childNamespace == target)
-                {
                     return index;
-                }
 
                 index++;
                 var result = GetNamespaceId(childNamespace, target, ref index);
                 if (result > 0)
-                {
                     return result;
-                }
             }
 
             return -1;

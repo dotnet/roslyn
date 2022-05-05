@@ -8,6 +8,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     });
                 doc = doc.WithSyntaxRoot(root);
             }
+
             return doc;
         }
 
@@ -1204,6 +1208,111 @@ namespace N
         public static void M1(this int a){}
     }
 }", useSymbolAnnotations: true);
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        public System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System.Collections.Generic;
+
+    class C
+    {
+        public System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System.Collections.Generic;
+
+    class C
+    {
+        public List<int> F;
+    }
+}", useSymbolAnnotations,
+    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public List<int> F;
+}", useSymbolAnnotations,
+    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace N1
+{
+    namespace N2
+    {
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}", useSymbolAnnotations,
+    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
         }
 
         #endregion

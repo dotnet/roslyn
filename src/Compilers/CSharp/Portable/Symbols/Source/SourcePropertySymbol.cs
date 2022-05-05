@@ -307,10 +307,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+                else if (!isIndexer)
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
             }
 
             if (containingType.IsStructType())
@@ -321,6 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allowedModifiers |= DeclarationModifiers.Extern;
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+
+            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
             containingType.CheckUnsafeModifier(mods, location, diagnostics);
 

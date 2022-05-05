@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../BuildValidatorResources.resx">
+    <body>
+      <trans-unit id="Assemblies_to_be_excluded_substring_match">
+        <source>Assemblies to be excluded (substring match)</source>
+        <target state="translated">제외할 어셈블리(부분 문자열 일치)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_output_log_information_to_console">
+        <source>Do not output log information to console</source>
+        <target state="translated">콘솔에 로그 정보 출력 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Output_debug_info_when_rebuild_is_not_equal_to_the_original">
+        <source>Output debug info when rebuild is not equal to the original</source>
+        <target state="translated">다시 빌드 시 출력 디버그 정보가 원본과 같지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Output_verbose_log_information">
+        <source>Output verbose log information</source>
+        <target state="translated">자세한 로그 정보 출력</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_assemblies_to_rebuild_can_be_specified_one_or_more_times">
+        <source>Path to assemblies to rebuild (can be specified one or more times)</source>
+        <target state="translated">다시 작성할 어셈블리의 경로입니다(1회 이상 지정할 수 있습니다).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_output_debug_info">
+        <source>Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled.</source>
+        <target state="translated">출력 디버그 정보의 경로입니다. 기본값은 사용자 임시 디렉터리입니다. '--debug'를 사용하도록 설정된 상태로 실행되는 도구의 모든 인스턴스에 대해 고유한 디버그 경로를 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_referenced_assemblies_can_be_specified_zero_or_more_times">
+        <source>Path to referenced assemblies (can be specified zero or more times)</source>
+        <target state="translated">참조된 어셈블리의 경로(0번 이상 지정할 수 있음)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_to_sources_to_use_in_rebuild">
+        <source>Path to sources to use in rebuild</source>
+        <target state="translated">다시 빌드에 사용할 원본의 경로</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

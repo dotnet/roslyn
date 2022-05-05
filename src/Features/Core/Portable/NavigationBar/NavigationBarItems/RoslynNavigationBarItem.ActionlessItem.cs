@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
@@ -13,22 +12,31 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         /// <summary>
         /// An item that is displayed and can be chosen but which has no action.
         /// </summary>
-        public class ActionlessItem : RoslynNavigationBarItem
+        // We suppress this as this type *does* override ComputeAdditionalHashCodeParts
+        public class ActionlessItem : RoslynNavigationBarItem, IEquatable<ActionlessItem>
         {
             public ActionlessItem(
                 string text,
                 Glyph glyph,
-                ImmutableArray<TextSpan> spans,
                 ImmutableArray<RoslynNavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, spans)
+                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems)
             {
             }
 
             protected internal override SerializableNavigationBarItem Dehydrate()
-                => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, Spans, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
+                => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
+
+            public override bool Equals(object? obj)
+                => Equals(obj as ActionlessItem);
+
+            public bool Equals(ActionlessItem? other)
+                => base.Equals(other);
+
+            public override int GetHashCode()
+                => throw new NotImplementedException();
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
+namespace Microsoft.CodeAnalysis.Storage
 {
     /// <summary>
     /// Handle that can be used with <see cref="IChecksummedPersistentStorage"/> to read data for a
@@ -48,5 +48,8 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
 
         public int GetHashCode(DocumentKey obj)
             => obj.Id.GetHashCode();
+
+        public DocumentKey WithWorkspaceKind(string workspaceKind)
+            => new(Project.WithWorkspaceKind(workspaceKind), Id, FilePath, Name);
     }
 }

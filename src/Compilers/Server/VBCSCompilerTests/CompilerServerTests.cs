@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -112,7 +113,7 @@ End Module")
         {
 #if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
-            File.WriteAllBytes(filePath, TestMetadata.ResourcesNetStandard20.netstandard);
+            File.WriteAllBytes(filePath, NetStandard20.Resources.netstandard);
             arguments.Add("/nostdlib");
             arguments.Add("/r:netstandard.dll");
 #endif
@@ -205,11 +206,7 @@ End Module")
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
 
-            // Create a client to run the build.  Infinite timeout is used to account for the
-            // case where these tests are run under extreme load.  In high load scenarios the
-            // client will correctly drop down to a local compilation if the server doesn't respond
-            // fast enough.
-            var client = ServerUtil.CreateBuildClient(language, _logger, timeoutOverride: Timeout.Infinite);
+            var client = ServerUtil.CreateBuildClient(language, _logger);
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
 
