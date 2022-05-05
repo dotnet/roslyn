@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             addCircularStructDiagnostics(compilation.SourceModule.GlobalNamespace);
             methodCompiler.WaitForWorkers();
-            diagnostics.AddRange(compilation.CircularStructDiagnostics);
+            diagnostics.AddRange(compilation.CircularStructDiagnostics, allowMismatchInDependencyAccumulation: true);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
             // we can get unused field warnings only if compiling whole compilation.
