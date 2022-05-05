@@ -3,11 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private static SyntaxToken GetStringToken(string text, bool allowFailure)
+        private static IEnumerable<SyntaxToken>? GetStringTokens(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
             var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
@@ -24,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
             if (expression is LiteralExpressionSyntax literal)
             {
-                return literal.Token;
+                return SpecializedCollections.SingletonEnumerable(literal.Token);
             }
             else if (expression is InterpolatedStringExpressionSyntax interpolation)
             {
-                return ((InterpolatedStringTextSyntax)interpolation.Contents[0]).TextToken;
+                return interpolation.Contents.OfType<InterpolatedStringTextSyntax>().Select(t => t.TextToken);
             }
             else if (allowFailure)
             {
-                return default;
+                return null;
             }
             else
             {
@@ -42,26 +46,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         private static void Test(string stringText, string expected)
         {
-            var token = GetStringToken(stringText, allowFailure: false);
-            var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            foreach (var ch in virtualChars)
+            var tokens = GetStringTokens(stringText, allowFailure: false);
+            Contract.ThrowIfNull(tokens);
+            foreach (var token in tokens)
+                Assert.False(token.ContainsDiagnostics);
+
+            var virtualCharsArray = tokens.Select(CSharpVirtualCharService.Instance.TryConvertToVirtualChars);
+            foreach (var virtualChars in virtualCharsArray)
             {
-                for (var i = ch.Span.Start; i < ch.Span.End; i++)
-                    Assert.Equal(ch, virtualChars.Find(i));
+                foreach (var ch in virtualChars)
+                {
+                    for (var i = ch.Span.Start; i < ch.Span.End; i++)
+                        Assert.Equal(ch, virtualChars.Find(i));
+                }
             }
 
-            var actual = ConvertToString(virtualChars);
+            var actual = string.Join("", virtualCharsArray.Select(ConvertToString));
             AssertEx.Equal(expected, actual);
         }
 
         private static void TestFailure(string stringText)
         {
-            var token = GetStringToken(stringText, allowFailure: true);
-            if (token == default)
+            var tokens = GetStringTokens(stringText, allowFailure: true);
+            if (tokens == null)
                 return;
 
-            var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            Assert.True(virtualChars.IsDefault);
+            foreach (var token in tokens)
+            {
+                var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+                Assert.True(virtualChars.IsDefault);
+            }
+        }
+
+        private static string ConvertToString(VirtualCharSequence virtualChars)
+        {
+            using var _ = ArrayBuilder<string>.GetInstance(out var strings);
+            foreach (var ch in virtualChars)
+                strings.Add(ConvertToString(ch));
+
+            return string.Join("", strings);
+        }
+
+        private static string ConvertToString(VirtualChar vc)
+            => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
+
+        private static string ConvertRuneToString(VirtualChar c)
+            => PrintAsUnicodeEscape(c)
+                ? c <= char.MaxValue ? $"'\\u{c.Value:X4}'" : $"'\\U{c.Value:X8}'"
+                : $"'{(char)c.Value}'";
+
+        private static bool PrintAsUnicodeEscape(VirtualChar c)
+        {
+            if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
+                return false;
+
+            if (c == '{' || c == '}')
+                return false;
+
+            return true;
         }
 
         [Fact]
@@ -194,75 +236,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         [Fact]
         public void TestValidLongEscape1_NotInCharRange()
-        {
-            var token = GetStringToken(@"""\U00010000""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\U00010000""", @"['\U00010000',[1,11]]");
-        }
+            => Test(@"""\U00010000""", @"['\U00010000',[1,11]]");
 
         [Fact]
         public void TestValidLongEscape2_NotInCharRange()
-        {
-            var token = GetStringToken(@"""\U0002A6A5𪚥""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
-        }
+            => Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
 
         [Fact]
         public void TestSurrogate1()
-        {
-            var token = GetStringToken(@"""😊""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""😊""", @"['\U0001F60A',[1,3]]");
-        }
+            => Test(@"""😊""", @"['\U0001F60A',[1,3]]");
 
         [Fact]
         public void TestSurrogate2()
-        {
-            var token = GetStringToken(@"""\U0001F60A""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\U0001F60A""", @"['\U0001F60A',[1,11]]");
-        }
+            => Test(@"""\U0001F60A""", @"['\U0001F60A',[1,11]]");
 
         [Fact]
         public void TestSurrogate3()
-        {
-            var token = GetStringToken(@"""\ud83d\ude0a""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\ud83d\ude0a""", @"['\U0001F60A',[1,13]]");
-        }
+            => Test(@"""\ud83d\ude0a""", @"['\U0001F60A',[1,13]]");
 
         [Fact]
         public void TestHighSurrogate()
-        {
-            var token = GetStringToken(@"""\ud83d""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\ud83d""", @"['\uD83D',[1,7]]");
-        }
+            => Test(@"""\ud83d""", @"['\uD83D',[1,7]]");
 
         [Fact]
         public void TestLowSurrogate()
-        {
-            var token = GetStringToken(@"""\ude0a""", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test(@"""\ude0a""", @"['\uDE0A',[1,7]]");
-        }
+            => Test(@"""\ude0a""", @"['\uDE0A',[1,7]]");
 
         [Fact]
         public void TestMixedSurrogate1()
-        {
-            var token = GetStringToken("\"\ud83d\\ude0a\"", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
-        }
+            => Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
 
         [Fact]
         public void TestMixedSurrogate2()
-        {
-            var token = GetStringToken("\"\\ud83d\ude0a\"", allowFailure: false);
-            Assert.False(token.ContainsDiagnostics);
-            Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
-        }
+            => Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
 
         [Fact]
         public void TestEscapedQuoteInVerbatimString()
@@ -416,33 +422,5 @@ bar
             => Test(@"""""""  
     goo
     """"""", @"['g',[11,12]]['o',[12,13]]['o',[13,14]]");
-
-        private static string ConvertToString(VirtualCharSequence virtualChars)
-        {
-            using var _ = ArrayBuilder<string>.GetInstance(out var strings);
-            foreach (var ch in virtualChars)
-                strings.Add(ConvertToString(ch));
-
-            return string.Join("", strings);
-        }
-
-        private static string ConvertToString(VirtualChar vc)
-            => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
-
-        private static string ConvertRuneToString(VirtualChar c)
-            => PrintAsUnicodeEscape(c)
-                ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
-                : $"'{(char)c.Value}'";
-
-        private static bool PrintAsUnicodeEscape(VirtualChar c)
-        {
-            if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
-                return false;
-
-            if (c == '{' || c == '}')
-                return false;
-
-            return true;
-        }
     }
 }
