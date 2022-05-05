@@ -4,5 +4,5 @@
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
 </Project>
