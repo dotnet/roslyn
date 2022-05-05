@@ -217,12 +217,8 @@ namespace Microsoft.CodeAnalysis.Completion
             private sealed class ProjectCompletionProvider
                 : AbstractProjectExtensionProvider<ProjectCompletionProvider, CompletionProvider, ExportCompletionProviderAttribute>
             {
-                protected override bool SupportsLanguage(ExportCompletionProviderAttribute exportAttribute, string language)
-                {
-                    return exportAttribute.Language == null
-                        || exportAttribute.Language.Length == 0
-                        || exportAttribute.Language.Contains(language);
-                }
+                protected override ImmutableArray<string> GetLanguages(ExportCompletionProviderAttribute exportAttribute)
+                    => ImmutableArray.Create(exportAttribute.Language);
 
                 protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
                 {

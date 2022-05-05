@@ -220,12 +220,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private class ProjectCodeRefactoringProvider
             : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
         {
-            protected override bool SupportsLanguage(ExportCodeRefactoringProviderAttribute exportAttribute, string language)
-            {
-                return exportAttribute.Languages == null
-                    || exportAttribute.Languages.Length == 0
-                    || exportAttribute.Languages.Contains(language);
-            }
+            protected override ImmutableArray<string> GetLanguages(ExportCodeRefactoringProviderAttribute exportAttribute)
+                => exportAttribute.Languages.ToImmutableArray();
 
             protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeRefactoringProvider> extensions)
             {
