@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
 
-                if (tokenText.Length >= 2 && tokenText[endIndexExclusive - 1] == '8' && tokenText[endIndexExclusive - 2] is 'u' or 'U')
+                if (tokenText is [.., 'u' or 'U', '8'])
                     endIndexExclusive -= 2;
 
                 while (tokenText[startIndexInclusive] == '"')
