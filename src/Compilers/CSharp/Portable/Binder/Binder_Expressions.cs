@@ -1577,17 +1577,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(diagnostics, ErrorCode.ERR_InterfacesCantContainFields, node);
                             }
-
-                            var property = ((SourcePropertyAccessorSymbol)ContainingMember()).Property;
-                            if (property.IsOverride)
-                            {
-                                // semi auto property should override all accessors.
-                                if ((property.SetMethod is null && !property.IsReadOnly) ||
-                                    (property.GetMethod is null && !property.IsWriteOnly))
-                                {
-                                    Error(diagnostics, ErrorCode.ERR_AutoPropertyMustOverrideSet, property.Location);
-                                }
-                            }
                         }
                     }
                 }

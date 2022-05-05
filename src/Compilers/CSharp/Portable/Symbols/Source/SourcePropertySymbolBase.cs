@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
         private object? _lazyBackingFieldSymbol = _lazyBackingFieldSymbolSentinel;
+
+        /// <summary>
+        /// An object to represent whether we reported that a semi auto property
+        /// override must override all accessors.
+        /// If null, we didn't yet report the diagnostic.
+        /// Otherwise, we reported it.
+        /// </summary>
+        private object? _semiAutoPropertyHasGivenMustOverrideDiagnostic;
+
+        private readonly BindingDiagnosticBag _diagnostics;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -119,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _modifiers = modifiers;
             _explicitInterfaceType = explicitInterfaceType;
+            _diagnostics = diagnostics;
 
             if (isExplicitInterfaceImplementation)
             {
@@ -414,6 +425,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void MarkBackingFieldAsCalculated()
         {
             Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+            if (!IsOverride || _lazyBackingFieldSymbol is null)
+            {
+                return;
+            }
+
+            var fieldSymbol = (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
+            if (fieldSymbol.IsCreatedForFieldKeyword &&
+                Interlocked.CompareExchange(ref _semiAutoPropertyHasGivenMustOverrideDiagnostic, new object(), null) == null)
+            {
+                // semi auto property should override all accessors.
+                if ((!HasSetAccessor && !this.IsReadOnly) ||
+                    (!HasGetAccessor && !this.IsWriteOnly))
+                {
+                    _diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                }
+            }
         }
 
         /// <summary>
