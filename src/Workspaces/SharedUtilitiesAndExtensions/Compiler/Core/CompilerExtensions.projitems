@@ -193,6 +193,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -370,7 +371,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\IEditorConfigStorageLocation2.cs" />
@@ -574,7 +574,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DictionaryAnalyzerConfigOptions.cs">
-      <Link>Diagnostics\AnalyzerConfigOptionsDictionary.cs</Link>
+      <Link>Diagnostics\DictionaryAnalyzerConfigOptions.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
