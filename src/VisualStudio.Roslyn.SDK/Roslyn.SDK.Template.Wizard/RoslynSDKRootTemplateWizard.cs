@@ -17,6 +17,6 @@ public partial class RoslynSDKRootTemplateWizard
 
         // add the root project name (the name the user passed in) to the global replacement dictionary
         GlobalDictionary["$saferootprojectname$"] = replacementsDictionary["$safeprojectname$"];
-        GlobalDictionary["$saferootidentifiername$"] = replacementsDictionary["$safeprojectname$"].Replace(".","");
+        GlobalDictionary["$saferootidentifiername$"] = replacementsDictionary["$safeprojectname$"].Replace(".", "");
     }
 }

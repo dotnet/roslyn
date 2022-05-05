@@ -203,7 +203,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         private enum UpdateBehavior
         {
             None,
-            
+
             /// <summary>
             /// Update is triggered from the Color property being updated
             /// </summary>

@@ -20,16 +20,16 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         public static readonly DependencyProperty SaturationProperty
             = DependencyProperty.Register(
-                nameof(Saturation), 
-                typeof(double), 
-                typeof(SaturationBrightnessPicker), 
+                nameof(Saturation),
+                typeof(double),
+                typeof(SaturationBrightnessPicker),
                 new PropertyMetadata(0.0, OnSaturationChanged));
 
         public static readonly DependencyProperty BrightnessProperty
             = DependencyProperty.Register(
-                nameof(Brightness), 
-                typeof(double), 
-                typeof(SaturationBrightnessPicker), 
+                nameof(Brightness),
+                typeof(double),
+                typeof(SaturationBrightnessPicker),
                 new PropertyMetadata(0.0, OnBrightnessChanged));
 
         private readonly SaturationBrightnessPickerAdorner _adorner;

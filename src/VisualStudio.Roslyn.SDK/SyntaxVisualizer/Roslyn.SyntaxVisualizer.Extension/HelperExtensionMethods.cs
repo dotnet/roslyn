@@ -20,7 +20,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             if (vsTextView != null)
             {
                 var guidTextViewHost = DefGuidList.guidIWpfTextViewHost;
-                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK && 
+                if (((IVsUserData)vsTextView).GetData(ref guidTextViewHost, out var textViewHost) == VSConstants.S_OK &&
                     textViewHost != null)
                 {
                     wpfTextView = ((IWpfTextViewHost)textViewHost).TextView;
