@@ -61,13 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             if (token.Kind() == SyntaxKind.CharacterLiteralToken)
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
-                                SyntaxKind.MultiLineRawStringLiteralToken or
-                                SyntaxKind.UTF8SingleLineRawStringLiteralToken or
-                                SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-            {
-                return TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: true);
-            }
+            if (IsAnyRawStringLiteralToken(token))
+                return TryConvertRawStringToVirtualChars(token);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -84,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                         SyntaxKind.InterpolatedVerbatimStringStartToken
                             => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
                         SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            => TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: false),
+                            => TryConvertRawStringToVirtualChars(token),
                         _ => default,
                     };
                 }
@@ -92,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             return default;
         }
+
+        private static bool IsAnyRawStringLiteralToken(SyntaxToken token)
+            => token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
+                               SyntaxKind.MultiLineRawStringLiteralToken or
+                               SyntaxKind.UTF8SingleLineRawStringLiteralToken or
+                               SyntaxKind.UTF8MultiLineRawStringLiteralToken;
 
         private static bool IsInDirective(SyntaxNode? node)
         {
@@ -109,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private static VirtualCharSequence TryConvertRawStringToVirtualChars(
-            SyntaxToken token, bool skipDelimiterQuotes)
+        private static VirtualCharSequence TryConvertRawStringToVirtualChars(SyntaxToken token)
         {
             var tokenText = token.Text;
             var offset = token.SpanStart;
@@ -120,12 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            if (skipDelimiterQuotes)
+            if (IsAnyRawStringLiteralToken(token))
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
 
-                if (tokenText is [.., 'u' or 'U', '8'])
-                    endIndexExclusive -= 2;
+                if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+                {
+                    Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
+                    endIndexExclusive -= "u8".Length;
+                }
 
                 while (tokenText[startIndexInclusive] == '"')
                 {
