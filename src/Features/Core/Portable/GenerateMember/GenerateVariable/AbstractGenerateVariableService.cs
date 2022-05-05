@@ -220,9 +220,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     for (var i = containingMethod.Parameters.Length - 1; i >= 0; i--)
                     {
                         var parameter = containingMethod.Parameters[i];
-                        if (parameter.HasExplicitDefaultValue
+                        if ((parameter.HasExplicitDefaultValue
                             || Equals(parameter.Type, compilation.CancellationTokenType())
-                            || parameter.IsParams)
+                            || parameter.IsParams
+                            || parameter.IsRefOrOut())
+                            && !(containingMethod.IsExtensionMethod && i == 0))
                         {
                             parameterIndex--;
                         }

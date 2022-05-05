@@ -9882,5 +9882,31 @@ class C
     }
 }", index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeThisParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken)
+    {
+        return [|test|];
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, int test)
+    {
+        return test;
+    }
+}", index: 4);
+        }
     }
 }
