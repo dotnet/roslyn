@@ -26,6 +26,6 @@ jobs:
         value: $(Build.SourcesDirectory)\eng\common\sdl\packages.config
       - name: GuardianVersion
         value: ${{ coalesce(parameters.overrideGuardianVersion, '$(DefaultGuardianVersion)') }}
-
+  
     jobs: ${{ parameters.jobs }}
-
+        

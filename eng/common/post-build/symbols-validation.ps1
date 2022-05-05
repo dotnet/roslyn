@@ -44,7 +44,7 @@ else{
 }
 
 $CountMissingSymbols = {
-  param(
+  param( 
     [string] $PackagePath, # Path to a NuGet package
     [string] $WindowsPdbVerificationParam # If we should check for the existence of windows pdbs in addition to portable PDBs
   )
@@ -61,7 +61,7 @@ $CountMissingSymbols = {
       packagePath = $PackagePath
     }
   }
-
+  
   # Extensions for which we'll look for symbols
   $RelevantExtensions = @('.dll', '.exe', '.so', '.dylib')
 
@@ -72,7 +72,7 @@ $CountMissingSymbols = {
   $PackageGuid = New-Guid
   $ExtractPath = Join-Path -Path $using:ExtractPath -ChildPath $PackageGuid
   $SymbolsPath = Join-Path -Path $ExtractPath -ChildPath 'Symbols'
-
+  
   try {
     [System.IO.Compression.ZipFile]::ExtractToDirectory($PackagePath, $ExtractPath)
   }
@@ -95,7 +95,7 @@ $CountMissingSymbols = {
     }
 
     $FirstMatchingSymbolDescriptionOrDefault = {
-      param(
+      param( 
         [string] $FullPath, # Full path to the module that has to be checked
         [string] $TargetServerParam, # Parameter to pass to `Symbol Tool` indicating the server to lookup for symbols
         [string] $WindowsPdbVerificationParam, # Parameter to pass to potential check for windows-pdbs.
@@ -142,10 +142,10 @@ $CountMissingSymbols = {
         }
         elseif ((Test-Path $SODbg) -and (Test-Path $SymbolPath)) {
           return 'So and DBG for SO'
-        }
+        }  
         elseif ((Test-Path $DylibDwarf) -and (Test-Path $SymbolPath)) {
           return 'Dylib and Dwarf for Dylib'
-        }
+        }  
         elseif (Test-Path $SymbolPath) {
           return 'Module'
         }
@@ -154,7 +154,7 @@ $CountMissingSymbols = {
           $totalRetries++
         }
       }
-
+      
       return $null
     }
 
@@ -179,7 +179,7 @@ $CountMissingSymbols = {
           -WindowsPdbVerificationParam $WindowsPdbVerificationParam
 
       Write-Host -NoNewLine "`t Checking file " $FileName "... "
-
+  
       if ($SymbolsOnMSDL -ne $null -and $SymbolsOnSymWeb -ne $null) {
         Write-Host "Symbols found on MSDL ($SymbolsOnMSDL) and SymWeb ($SymbolsOnSymWeb)"
       }
@@ -200,11 +200,11 @@ $CountMissingSymbols = {
       }
     }
   }
-
+  
   if ($using:Clean) {
     Remove-Item $ExtractPath -Recurse -Force
   }
-
+  
   Pop-Location
 
   return [pscustomobject]@{
@@ -214,14 +214,14 @@ $CountMissingSymbols = {
 }
 
 function CheckJobResult(
-  $result,
+  $result, 
   $packagePath,
   [ref]$DupedSymbols,
   [ref]$TotalFailures) {
   if ($result -eq $ERROR_BADEXTRACT) {
     Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "$packagePath has duplicated symbol files"
     $DupedSymbols.Value++
-  }
+  } 
   elseif ($result -eq $ERROR_FILEDOESNOTEXIST) {
     Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "$packagePath does not exist"
     $TotalFailures.Value++
@@ -296,7 +296,7 @@ function CheckSymbolsAvailable {
     if ($DupedSymbols -gt 0) {
       Write-PipelineTelemetryError -Category 'CheckSymbols' -Message "$DupedSymbols/$TotalPackages packages had duplicated symbol files and could not be extracted"
     }
-
+    
     ExitWithExitCode 1
   }
   else {
@@ -323,7 +323,7 @@ function InstallDotnetSymbol {
 
 try {
   . $PSScriptRoot\post-build-utils.ps1
-
+  
   InstallDotnetSymbol
 
   foreach ($Job in @(Get-Job)) {

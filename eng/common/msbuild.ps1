@@ -18,7 +18,7 @@ try {
   }
 
   MSBuild @extraArgs
-}
+} 
 catch {
   Write-Host $_.ScriptStackTrace
   Write-PipelineTelemetryError -Category 'Build' -Message $_
