@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportAspNetCoreEmbeddedLanguageClassifierAttribute : ExportAttribute
+    internal sealed class ExportAspNetCoreEmbeddedLanguageClassifierAttribute : ExportAttribute
     {
         /// <summary>
         /// Name of the classifier.
