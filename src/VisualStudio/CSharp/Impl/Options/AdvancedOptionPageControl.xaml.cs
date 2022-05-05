@@ -96,6 +96,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Outlining
             BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
+            BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_usings_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
@@ -290,6 +293,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, false);
             UpdateInlineHintsOptions();
+        }
+
+        private void EnterOutliningMode_Checked(object sender, RoutedEventArgs e)
+        {
+            Collapse_regions_on_file_open.IsEnabled = true;
+            Collapse_usings_on_file_open.IsEnabled = true;
+            Collapse_metadata_on_file_open.IsEnabled = true;
+        }
+
+        private void EnterOutliningMode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Collapse_regions_on_file_open.IsEnabled = false;
+            Collapse_usings_on_file_open.IsEnabled = false;
+            Collapse_metadata_on_file_open.IsEnabled = false;
         }
     }
 }

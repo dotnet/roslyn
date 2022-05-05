@@ -326,7 +326,6 @@ Delta: Epsilon: Test E
             }
         }
 
-
         [Fact]
         public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself()
         {
