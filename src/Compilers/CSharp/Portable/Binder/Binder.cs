@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
         }
 
-        internal virtual FieldSymbol? GetSymbolForPossibleFieldKeyword(BindingDiagnosticBag diagnostics)
+        internal virtual FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
             RoslynDebug.Assert(Next is object);
-            return this.Next.GetSymbolForPossibleFieldKeyword(diagnostics);
+            return this.Next.GetSymbolForPossibleFieldKeyword();
         }
 
         /// <summary>

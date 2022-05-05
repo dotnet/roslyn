@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
                         ContainingMember().CanHaveFieldKeywordBackingField())
                     {
-                        if (GetSymbolForPossibleFieldKeyword(diagnostics) is { } backingField)
+                        if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                             if (IsInsideNameof)
@@ -1576,6 +1576,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (backingField.ContainingType.IsInterface && !backingField.IsStatic)
                             {
                                 Error(diagnostics, ErrorCode.ERR_InterfacesCantContainFields, node);
+                            }
+
+                            var property = ((SourcePropertyAccessorSymbol)ContainingMember()).Property;
+                            if (property.IsOverride)
+                            {
+                                // semi auto property should override all accessors.
+                                if ((property.SetMethod is null && !property.IsReadOnly) ||
+                                    (property.GetMethod is null && !property.IsWriteOnly))
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_AutoPropertyMustOverrideSet, property.Location);
+                                }
                             }
                         }
                     }

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _accessor = accessor;
         }
 
-        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword(BindingDiagnosticBag diagnostics)
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
-            return _accessor.Property.GetOrCreateBackingFieldForFieldKeyword(diagnostics);
+            return _accessor.Property.GetOrCreateBackingFieldForFieldKeyword();
         }
     }
 }
