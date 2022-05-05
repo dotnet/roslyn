@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal abstract class AbstractVirtualCharService : IVirtualCharService
+    internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     {
         public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
 
@@ -94,11 +94,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         Debug.Assert(currentVC.Span.Start == token.SpanStart, "First span should start on the first char of the string.");
                     }
 
-                    for (var i = 1; i < result.Length; i++)
+                    if (token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken || token.RawKind == syntaxKinds.UTF8MultiLineRawStringLiteralToken)
                     {
-                        var nextVC = result[i];
-                        Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
-                        currentVC = nextVC;
+                        for (var i = 1; i < result.Length; i++)
+                        {
+                            var nextVC = result[i];
+                            Debug.Assert(currentVC.Span.End <= nextVC.Span.Start, "Virtual character spans have to be ordered.");
+                            currentVC = nextVC;
+                        }
+                    }
+                    else
+                    {
+                        for (var i = 1; i < result.Length; i++)
+                        {
+                            var nextVC = result[i];
+                            Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
+                            currentVC = nextVC;
+                        }
                     }
 
                     var lastVC = result.Last();
@@ -185,15 +197,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// Returns the number of characters to jump forward (either 1 or 2);
         /// </summary>
         protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
+            => ConvertTextAtIndexToRune(tokenText, index, new StringTextInfo(), result, offset);
+
+        protected static int ConvertTextAtIndexToRune(SourceText tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
+            => ConvertTextAtIndexToRune(tokenText, index, new SourceTextTextInfo(), result, offset);
+
+        private static int ConvertTextAtIndexToRune<T, TTextInfo>(
+            T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
+            where TTextInfo : struct, ITextInfo<T>
         {
-            if (Rune.TryCreate(tokenText[index], out var rune))
+            var ch = info.Get(tokenText, index);
+
+            if (Rune.TryCreate(ch, out var rune))
             {
                 // First, see if this was a single char that can become a rune (the common case).
                 result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
                 return 1;
             }
-            else if (index + 1 < tokenText.Length &&
-                     Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+            else if (index + 1 < info.Length(tokenText) &&
+                     Rune.TryCreate(ch, info.Get(tokenText, index + 1), out rune))
             {
                 // Otherwise, see if we have a surrogate pair (less common, but possible).
                 result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
@@ -202,8 +224,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             else
             {
                 // Something that couldn't be encoded as runes.
-                Debug.Assert(char.IsSurrogate(tokenText[index]));
-                result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
+                Debug.Assert(char.IsSurrogate(ch));
+                result.Add(VirtualChar.Create(ch, new TextSpan(offset + index, 1)));
                 return 1;
             }
         }

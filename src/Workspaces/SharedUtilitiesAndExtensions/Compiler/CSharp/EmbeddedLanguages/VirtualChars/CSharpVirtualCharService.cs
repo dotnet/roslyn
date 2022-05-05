@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
@@ -139,8 +140,70 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
             }
 
-            for (var index = startIndexInclusive; index < endIndexExclusive;)
-                index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+            {
+                for (var index = startIndexInclusive; index < endIndexExclusive;)
+                    index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
+            }
+            else
+            {
+                var sourceText = SourceText.From(tokenText);
+
+                // safe to index because we know the multiline literal is well formed.
+                var lastLine = sourceText.Lines[^1];
+                var indentationLength = lastLine.GetFirstNonWhitespaceOffset() ?? 0;
+
+                for (var lineNumber = 1; lineNumber < sourceText.Lines.Count - 1; lineNumber++)
+                {
+                    var currentLine = sourceText.Lines[lineNumber];
+                    var lineSpan = currentLine.Span;
+                    var isLastLine = lineNumber == sourceText.Lines.Count - 2;
+
+                    var start = lineSpan.Length > indentationLength
+                        ? lineSpan.Start + indentationLength
+                        : lineSpan.End;
+
+                    var end = isLastLine ? currentLine.End : currentLine.EndIncludingLineBreak;
+
+                    for (var i = start; i < end; )
+                        i += ConvertTextAtIndexToRune(sourceText, i, result, offset);
+                }
+
+#if false
+
+                while (CSharp.SyntaxFacts.IsWhitespace(tokenText[startIndexInclusive]))
+                    startIndexInclusive++;
+
+                Contract.ThrowIfFalse(CSharp.SyntaxFacts.IsNewLine(tokenText[startIndexInclusive]));
+
+                // indexing at +1 is safe because we only get here if the raw literal is well formed, which means it has
+                // to have at least two new lines in it.
+                if (tokenText[startIndexInclusive] is '\r' && tokenText[startIndexInclusive + 1] is '\n')
+                    startIndexInclusive += 2;
+                else
+                    startIndexInclusive++;
+
+                var beforeEndDelimeterPosition = endIndexExclusive;
+                while (CSharp.SyntaxFacts.IsWhitespace(tokenText[endIndexExclusive - 1]))
+                    endIndexExclusive--;
+
+                Contract.ThrowIfFalse(CSharp.SyntaxFacts.IsNewLine(tokenText[endIndexExclusive - 1]));
+
+                var indentationToSkip = beforeEndDelimeterPosition - endIndexExclusive;
+
+                if (tokenText[endIndexExclusive - 1] is '\n' && tokenText[endIndexExclusive - 2] is '\r')
+                    endIndexExclusive -= 2;
+                else
+                    endIndexExclusive--;
+
+                var index = startIndexInclusive;
+                while (index < endIndexExclusive)
+                {
+                    // first, skip the leading whitespace on a line.
+                    index += indentationToSkip;
+                }
+#endif
+            }
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
