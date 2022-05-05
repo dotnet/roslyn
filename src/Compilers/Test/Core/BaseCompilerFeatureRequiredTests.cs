@@ -211,6 +211,12 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
                 extends [mscorlib]System.Object
             {
                 {{attributeApplication}}
+                // Methods
+                .method public hidebysig static
+                    void M () cil managed 
+                {
+                    ret
+                } // end of method OnMethod::M
             } // end of class OnType
             
             .class public auto ansi beforefieldinit OnMethod
@@ -555,6 +561,53 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
                 }
             
             } // end of class OnIndexedPropertyParameter
+
+            .class public auto ansi beforefieldinit OnThisIndexerParameter
+                extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+                    01 00 04 49 74 65 6d 00 00
+                )
+                // Methods
+                .method public hidebysig specialname 
+                    instance int32 get_Item (
+                        int32 i
+                    ) cil managed 
+                {
+                    .param [1]
+                        {{attributeApplication}}
+                    ldc.i4.0
+                    ret
+                } // end of method OnThisIndexerParameter::get_Item
+
+                .method public hidebysig specialname 
+                    instance void set_Item (
+                        int32 i,
+                        int32 'value'
+                    ) cil managed 
+                {
+                    .param [1]
+                        {{attributeApplication}}
+                    ret
+                } // end of method OnThisIndexerParameter::set_Item
+
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor () cil managed 
+                {
+                    ldarg.0
+                    call instance void [mscorlib]System.Object::.ctor()
+                    ret
+                } // end of method OnThisIndexerParameter::.ctor
+
+                // Properties
+                .property instance int32 Item(
+                    int32 i
+                )
+                {
+                    .get instance int32 OnThisIndexerParameter::get_Item(int32)
+                    .set instance void OnThisIndexerParameter::set_Item(int32, int32)
+                }
+            } // end of class OnThisIndexerParameter
             """;
     }
 

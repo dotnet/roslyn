@@ -11,6 +11,7 @@ using System.Diagnostics;
 
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -62,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Assembly's custom attributes
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+
+        private UnsupportedCompilerFeature _lazyUnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel;
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
@@ -280,5 +283,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
+
+        public override string GetUnsupportedCompilerFeature()
+        {
+            if (_lazyUnsupportedCompilerFeature == UnsupportedCompilerFeature.Sentinel)
+            {
+                var unsupportedCompilerFeature = PrimaryModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(_assembly.Handle, new MetadataDecoder(PrimaryModule), CompilerFeatureRequiredFeatures.None);
+                Interlocked.CompareExchange(ref _lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedCompilerFeature), UnsupportedCompilerFeature.Sentinel);
+            }
+
+            return _lazyUnsupportedCompilerFeature.FeatureName;
+        }
     }
 }

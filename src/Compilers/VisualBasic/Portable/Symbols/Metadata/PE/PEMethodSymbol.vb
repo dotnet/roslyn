@@ -1064,16 +1064,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Return ImmutableArray(Of TypeParameterSymbol).Empty
                 Else
                     Dim ownedParams = ImmutableArray.CreateBuilder(Of TypeParameterSymbol)(gpHandles.Count)
-                    Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
                     For i = 0 To gpHandles.Count - 1
-                        Dim typeParam As New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i))
-                        useSiteInfo = MergeUseSiteInfo(useSiteInfo, typeParam.GetUseSiteInfo())
-                        ownedParams.Add(typeParam)
+                        ownedParams.Add(New PETypeParameterSymbol(moduleSymbol, Me, CUShort(i), gpHandles(i)))
                     Next
-
-                    If useSiteInfo.DiagnosticInfo IsNot Nothing Then
-                        errorInfo = useSiteInfo.DiagnosticInfo
-                    End If
 
                     Return ownedParams.ToImmutable()
                 End If
@@ -1150,11 +1143,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
+                Dim decoder As New MetadataDecoder(DirectCast(ContainingModule, PEModuleSymbol))
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
                 Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
-                CheckParameterUseSiteInfo(errorInfo)
+                CheckParameterAndTypeParameterUseSiteInfo(errorInfo, decoder)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
@@ -1176,7 +1170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
         End Sub
 
-        Private Sub CheckParameterUseSiteInfo(ByRef errorInfo As DiagnosticInfo)
+        Private Sub CheckParameterAndTypeParameterUseSiteInfo(ByRef errorInfo As DiagnosticInfo, decoder As MetadataDecoder)
             If errorInfo IsNot Nothing Then
                 Return
             End If
@@ -1184,10 +1178,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
 
             For Each parameter In Parameters
-                info = MergeUseSiteInfo(info, parameter.GetUseSiteInfo())
+                If DirectCast(parameter, PEParameterSymbol).DeriveUseSiteInfo(info, decoder) Then
+                    errorInfo = info.DiagnosticInfo
+                    Return
+                End If
             Next
 
-            errorInfo = info.DiagnosticInfo
+            For Each typeParameter In TypeParameters
+                If DirectCast(typeParameter, PETypeParameterSymbol).DeriveUseSiteInfo(info, decoder) Then
+                    errorInfo = info.DiagnosticInfo
+                    Return
+                End If
+            Next
         End Sub
 
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)

@@ -161,8 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private PackedFlags _packedFlags;
 
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
-
         internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEMethodSymbol containingSymbol,
@@ -1073,18 +1071,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        internal bool DeriveUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, MetadataDecoder decoder)
         {
-            AssemblySymbol primaryDependency = PrimaryDependency;
-
-            if (!_lazyCachedUseSiteInfo.IsInitialized)
-            {
-                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None);
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
-            }
-
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None, decoder);
+            return result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
         }
     }
 }

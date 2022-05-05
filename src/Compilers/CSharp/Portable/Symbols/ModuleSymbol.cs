@@ -414,5 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ModuleSymbol(this);
         }
+
+#nullable enable
+        IAssemblySymbolInternal IModuleSymbolInternal.ContainingAssembly => ContainingAssembly;
+
+        public virtual string? GetUnsupportedCompilerFeature() => null;
     }
 }

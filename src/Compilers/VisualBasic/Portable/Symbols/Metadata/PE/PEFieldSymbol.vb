@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
 
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(fieldUseSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(fieldUseSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None)
 
                 ' if there was no previous use site error for this symbol, check the constant value
                 If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then

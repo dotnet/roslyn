@@ -79,6 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyTypeNames As ICollection(Of String)
         Private _lazyNamespaceNames As ICollection(Of String)
 
+        Private _lazyUnsupportedCompilerFeature As UnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel
+
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
             Debug.Assert(ordinal >= 0)
@@ -483,6 +485,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return _module.GetNonDisposableMetadata()
+        End Function
+
+        Friend Overrides Function GetUnsupportedCompilerFeature() As String
+            If _lazyUnsupportedCompilerFeature Is UnsupportedCompilerFeature.Sentinel Then
+                Dim unsupportedFeature = [Module].GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle.ModuleDefinition, New MetadataDecoder(Me), CompilerFeatureRequiredFeatures.None)
+                Interlocked.CompareExchange(_lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedFeature), UnsupportedCompilerFeature.Sentinel)
+            End If
+
+            Return _lazyUnsupportedCompilerFeature.FeatureName
         End Function
     End Class
 End Namespace

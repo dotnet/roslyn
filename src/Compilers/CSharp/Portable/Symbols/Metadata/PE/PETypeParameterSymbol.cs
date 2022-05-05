@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         internal PETypeParameterSymbol(
             PEModuleSymbol moduleSymbol,
@@ -709,18 +708,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        internal bool DeriveUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, MetadataDecoder decoder)
         {
-            AssemblySymbol primaryDependency = PrimaryDependency;
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, CompilerFeatureRequiredFeatures.None, decoder);
 
-            if (!_lazyCachedUseSiteInfo.IsInitialized)
-            {
-                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None);
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
-            }
-
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+            return result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
         }
     }
 }

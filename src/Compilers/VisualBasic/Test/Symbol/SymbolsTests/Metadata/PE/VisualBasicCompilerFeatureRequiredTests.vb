@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Class C
     Public Sub M()
         Dim onType As OnType
+        OnType.M()
         OnMethod.M()
         OnMethodReturn.M()
         OnParameter.M(1)
@@ -55,6 +56,9 @@ Class C
         Dim onDelegateType As OnDelegateType 
         OnIndexedPropertyParameter.Property(1) = 1
         Dim _6 = OnIndexedPropertyParameter.Property(1)
+        Dim onThis = New OnThisIndexerParameter()
+        onThis(1) = 1
+        Dim _7 = onThis(1)
     End Sub
 
     Sub EmptySub()
@@ -80,9 +84,12 @@ End Class
         Protected Overrides Sub AssertNormalErrors(comp As VisualBasicCompilation)
             comp.AssertTheseDiagnostics(<errors>
                                             <![CDATA[
-BC37319: 'OnType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+                                                BC37319: 'OnType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onType As OnType
                       ~~~~~~
+BC37319: 'OnType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        OnType.M()
+        ~~~~~~~~~~
 BC37319: 'Public Shared Overloads Sub M()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
         ~~~~~~~~~~~~
@@ -137,6 +144,12 @@ BC37319: 'param As Integer' requires compiler feature 'test', which is not suppo
 BC37319: 'param As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37319: 'i As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        onThis(1) = 1
+        ~~~~~~~~~
+BC37319: 'i As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        Dim _7 = onThis(1)
+                 ~~~~~~~~~
 ]]>
                                         </errors>)
         End Sub
@@ -147,6 +160,9 @@ BC37319: 'param As Integer' requires compiler feature 'test', which is not suppo
 BC37319: 'OnType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onType As OnType
                       ~~~~~~
+BC37319: 'Public Shared Overloads Sub M()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        OnType.M()
+        ~~~~~~~~~~
 BC37319: 'OnMethod' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
         ~~~~~~~~
@@ -249,7 +265,7 @@ BC37319: 'OnEnum' requires compiler feature 'test', which is not supported by th
 BC37319: 'OnEnumMember' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _5 = OnEnumMember.A
                  ~~~~~~~~~~~~
-BC37319: 'A' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+BC37319: 'OnEnumMember' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _5 = OnEnumMember.A
                  ~~~~~~~~~~~~~~
 BC37319: 'OnClassTypeParameter(Of T)' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
@@ -258,7 +274,7 @@ BC37319: 'OnClassTypeParameter(Of T)' requires compiler feature 'test', which is
 BC37319: 'OnMethodTypeParameter' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodTypeParameter.M(Of Integer)()
         ~~~~~~~~~~~~~~~~~~~~~
-BC37319: 'T' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+BC37319: 'Public Shared Overloads Sub M(Of T)()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodTypeParameter.M(Of Integer)()
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
@@ -276,6 +292,18 @@ BC37319: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is
 BC37319: 'Public Shared Property [Property](param As Integer) As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37319: 'Public Overloads Sub New()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        Dim onThis = New OnThisIndexerParameter()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37319: 'OnThisIndexerParameter' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        Dim onThis = New OnThisIndexerParameter()
+                         ~~~~~~~~~~~~~~~~~~~~~~
+BC37319: 'Public Overloads Default Property Item(i As Integer) As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        onThis(1) = 1
+        ~~~~~~~~~
+BC37319: 'Public Overloads Default Property Item(i As Integer) As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        Dim _7 = onThis(1)
+                 ~~~~~~~~~
 ]]>
                                         </errors>)
         End Sub

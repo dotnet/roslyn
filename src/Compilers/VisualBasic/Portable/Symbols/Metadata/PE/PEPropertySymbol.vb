@@ -546,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
+                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None)
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
             End If
 

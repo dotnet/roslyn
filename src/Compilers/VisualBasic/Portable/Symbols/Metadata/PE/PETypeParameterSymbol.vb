@@ -310,16 +310,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCachedBoundsUseSiteInfo.ToUseSiteInfo(PrimaryDependency)
         End Function
 
-        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
-            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
-
-            If Not _lazyCachedUseSiteInfo.IsInitialized Then
-                Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
-            End If
-
-            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
+        Friend Function DeriveUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), decoder As MetadataDecoder) As Boolean
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Return result.DiagnosticInfo IsNot Nothing
         End Function
 
         ''' <remarks>

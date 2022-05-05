@@ -1275,12 +1275,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
             Dim useSiteInfo = CalculateUseSiteInfo()
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Handle, CompilerFeatureRequiredFeatures.None)
+            Dim decoder = New MetadataDecoder(ContainingPEModule)
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
 
                 For Each typeParameter In Me.TypeParameters
-                    useSiteInfo = MergeUseSiteInfo(useSiteInfo, typeParameter.GetUseSiteInfo())
+                    If DirectCast(typeParameter, PETypeParameterSymbol).DeriveUseSiteInfo(useSiteInfo, decoder) Then
+                        Return useSiteInfo
+                    End If
                 Next
 
                 ' Check if this type Is marked by RequiredAttribute attribute.

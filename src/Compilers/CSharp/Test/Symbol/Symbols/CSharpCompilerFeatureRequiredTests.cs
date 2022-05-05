@@ -20,6 +20,7 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
     protected override CSharpTestSource GetUsage() => """
         #pragma warning disable 168 // Unused local
         OnType onType;
+        OnType.M();
         OnMethod.M();
         OnMethodReturn.M();
         OnParameter.M(1);
@@ -43,6 +44,8 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
         OnDelegateType onDelegateType;
         OnIndexedPropertyParameter.set_Property(1, 1);
         _ = OnIndexedPropertyParameter.get_Property(1);
+        new OnThisIndexerParameter()[1] = 1;
+        _ = new OnThisIndexerParameter()[1];
         """;
 
     internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
@@ -71,54 +74,63 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (2,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType onType;
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(2, 1),
-            // (3,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (3,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(3, 1),
+            // (4,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(3, 1),
-            // (5,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(4, 1),
+            // (6,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("int", "test").WithLocation(5, 1),
-            // (6,13): error CS9512: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("int", "test").WithLocation(6, 1),
+            // (7,13): error CS9512: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(6, 13),
-            // (7,12): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(7, 13),
+            // (8,12): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnProperty.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(7, 12),
-            // (8,16): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(8, 12),
+            // (9,16): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnProperty.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(8, 16),
-            // (9,18): error CS9512: 'OnPropertySetter.Property.set' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(9, 16),
+            // (10,18): error CS9512: 'OnPropertySetter.Property.set' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertySetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property.set", "test").WithLocation(9, 18),
-            // (12,22): error CS9512: 'OnPropertyGetter.Property.get' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property.set", "test").WithLocation(10, 18),
+            // (13,22): error CS9512: 'OnPropertyGetter.Property.get' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertyGetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property.get", "test").WithLocation(12, 22),
-            // (13,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property.get", "test").WithLocation(13, 22),
             // (14,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event -= () => {};
+            // OnEvent.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(14, 9),
-            // (19,1): error CS9512: 'OnEnum' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (15,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(15, 9),
+            // (20,1): error CS9512: 'OnEnum' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEnum onEnum;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnEnum", "test").WithLocation(19, 1),
-            // (20,18): error CS9512: 'OnEnumMember.A' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnEnum", "test").WithLocation(20, 1),
+            // (21,18): error CS9512: 'OnEnumMember.A' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnEnumMember.A;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnEnumMember.A", "test").WithLocation(20, 18),
-            // (21,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnClassTypeParameter<int> onClassTypeParameter;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("T", "test").WithLocation(21, 1),
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnEnumMember.A", "test").WithLocation(21, 18),
             // (22,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnClassTypeParameter<int> onClassTypeParameter;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("T", "test").WithLocation(22, 1),
+            // (23,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodTypeParameter.M<int>();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("T", "test").WithLocation(22, 1),
-            // (23,1): error CS9512: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("T", "test").WithLocation(23, 1),
+            // (24,1): error CS9512: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnDelegateType onDelegateType;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(23, 1),
-            // (24,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(24, 1),
+            // (25,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("int", "test").WithLocation(24, 1),
-            // (25,5): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("int", "test").WithLocation(25, 1),
+            // (26,5): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("int", "test").WithLocation(25, 5)
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("int", "test").WithLocation(26, 5),
+            // (27,29): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // new OnThisIndexerParameter()[1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[1]").WithArguments("int", "test").WithLocation(27, 29),
+            // (28,33): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = new OnThisIndexerParameter()[1];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[1]").WithArguments("int", "test").WithLocation(28, 33)
         );
     }
 
@@ -128,135 +140,153 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (2,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType onType;
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(2, 1),
-            // (3,1): error CS9512: 'OnMethod' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (3,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(3, 1),
+            // (3,1): error CS9512: 'OnType.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType.M").WithArguments("OnType.M()", "test").WithLocation(3, 1),
+            // (4,1): error CS9512: 'OnMethod' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod").WithArguments("OnMethod", "test").WithLocation(3, 1),
-            // (3,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod").WithArguments("OnMethod", "test").WithLocation(4, 1),
+            // (4,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(3, 1),
-            // (4,1): error CS9512: 'OnMethodReturn' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(4, 1),
+            // (5,1): error CS9512: 'OnMethodReturn' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodReturn.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn").WithArguments("OnMethodReturn", "test").WithLocation(4, 1),
-            // (4,1): error CS9512: 'OnMethodReturn.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn").WithArguments("OnMethodReturn", "test").WithLocation(5, 1),
+            // (5,1): error CS9512: 'OnMethodReturn.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodReturn.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn.M").WithArguments("OnMethodReturn.M()", "test").WithLocation(4, 1),
-            // (5,1): error CS9512: 'OnParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn.M").WithArguments("OnMethodReturn.M()", "test").WithLocation(5, 1),
+            // (6,1): error CS9512: 'OnParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter").WithArguments("OnParameter", "test").WithLocation(5, 1),
-            // (5,1): error CS9512: 'OnParameter.M(int)' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter").WithArguments("OnParameter", "test").WithLocation(6, 1),
+            // (6,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("OnParameter.M(int)", "test").WithLocation(5, 1),
-            // (6,5): error CS9512: 'OnField' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("int", "test").WithLocation(6, 1),
+            // (7,5): error CS9512: 'OnField' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnField").WithArguments("OnField", "test").WithLocation(6, 5),
-            // (6,13): error CS9512: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnField").WithArguments("OnField", "test").WithLocation(7, 5),
+            // (7,13): error CS9512: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(6, 13),
-            // (7,1): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(7, 13),
+            // (8,1): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnProperty.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(7, 1),
-            // (7,12): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(8, 1),
+            // (8,12): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnProperty.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(7, 12),
-            // (8,5): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(8, 12),
+            // (9,5): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnProperty.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(8, 5),
-            // (8,16): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(9, 5),
+            // (9,16): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnProperty.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(8, 16),
-            // (9,1): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(9, 16),
+            // (10,1): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertySetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(9, 1),
-            // (9,18): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(10, 1),
+            // (10,18): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertySetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(9, 18),
-            // (10,5): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(10, 18),
+            // (11,5): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertySetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(10, 5),
-            // (10,22): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(11, 5),
+            // (11,22): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertySetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(10, 22),
-            // (11,1): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(11, 22),
+            // (12,1): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertyGetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(11, 1),
-            // (11,18): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(12, 1),
+            // (12,18): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertyGetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(11, 18),
-            // (12,5): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(12, 18),
+            // (13,5): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertyGetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(12, 5),
-            // (12,22): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(13, 5),
+            // (13,22): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertyGetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(12, 22),
-            // (13,1): error CS9512: 'OnEvent' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnEvent", "test").WithLocation(13, 1),
-            // (13,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(13, 22),
             // (14,1): error CS9512: 'OnEvent' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event -= () => {};
+            // OnEvent.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnEvent", "test").WithLocation(14, 1),
             // (14,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEvent.Event -= () => {};
+            // OnEvent.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(14, 9),
-            // (15,1): error CS9512: 'OnEventAdder' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventAdder.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnEventAdder", "test").WithLocation(15, 1),
-            // (15,14): error CS9512: 'OnEventAdder.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventAdder.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventAdder.Event", "test").WithLocation(15, 14),
+            // (15,1): error CS9512: 'OnEvent' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnEvent", "test").WithLocation(15, 1),
+            // (15,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(15, 9),
             // (16,1): error CS9512: 'OnEventAdder' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventAdder.Event -= () => {};
+            // OnEventAdder.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnEventAdder", "test").WithLocation(16, 1),
             // (16,14): error CS9512: 'OnEventAdder.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventAdder.Event -= () => {};
+            // OnEventAdder.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventAdder.Event", "test").WithLocation(16, 14),
-            // (17,1): error CS9512: 'OnEventRemover' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventRemover.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnEventRemover", "test").WithLocation(17, 1),
-            // (17,16): error CS9512: 'OnEventRemover.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventRemover.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventRemover.Event", "test").WithLocation(17, 16),
+            // (17,1): error CS9512: 'OnEventAdder' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnEventAdder", "test").WithLocation(17, 1),
+            // (17,14): error CS9512: 'OnEventAdder.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventAdder.Event", "test").WithLocation(17, 14),
             // (18,1): error CS9512: 'OnEventRemover' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventRemover.Event -= () => {};
+            // OnEventRemover.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnEventRemover", "test").WithLocation(18, 1),
             // (18,16): error CS9512: 'OnEventRemover.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnEventRemover.Event -= () => {};
+            // OnEventRemover.Event += () => {};
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventRemover.Event", "test").WithLocation(18, 16),
-            // (19,1): error CS9512: 'OnEnum' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (19,1): error CS9512: 'OnEventRemover' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnEventRemover", "test").WithLocation(19, 1),
+            // (19,16): error CS9512: 'OnEventRemover.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventRemover.Event", "test").WithLocation(19, 16),
+            // (20,1): error CS9512: 'OnEnum' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEnum onEnum;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnEnum", "test").WithLocation(19, 1),
-            // (20,5): error CS9512: 'OnEnumMember' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnEnum", "test").WithLocation(20, 1),
+            // (21,5): error CS9512: 'OnEnumMember' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnEnumMember.A;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnumMember").WithArguments("OnEnumMember", "test").WithLocation(20, 5),
-            // (20,18): error CS9512: 'OnEnumMember.A' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnumMember").WithArguments("OnEnumMember", "test").WithLocation(21, 5),
+            // (21,18): error CS9512: 'OnEnumMember.A' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnEnumMember.A;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnEnumMember.A", "test").WithLocation(20, 18),
-            // (21,1): error CS9512: 'OnClassTypeParameter<T>' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnClassTypeParameter<int> onClassTypeParameter;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("OnClassTypeParameter<T>", "test").WithLocation(21, 1),
-            // (22,1): error CS9512: 'OnMethodTypeParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
-            // OnMethodTypeParameter.M<int>();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter").WithArguments("OnMethodTypeParameter", "test").WithLocation(22, 1),
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnEnumMember.A", "test").WithLocation(21, 18),
             // (22,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnClassTypeParameter<int> onClassTypeParameter;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("T", "test").WithLocation(22, 1),
+            // (23,1): error CS9512: 'OnMethodTypeParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodTypeParameter.M<int>();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("T", "test").WithLocation(22, 1),
-            // (23,1): error CS9512: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter").WithArguments("OnMethodTypeParameter", "test").WithLocation(23, 1),
+            // (23,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodTypeParameter.M<int>();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("T", "test").WithLocation(23, 1),
+            // (24,1): error CS9512: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnDelegateType onDelegateType;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(23, 1),
-            // (24,1): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(24, 1),
+            // (25,1): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(24, 1),
-            // (24,1): error CS9512: 'OnIndexedPropertyParameter.set_Property(int, int)' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(25, 1),
+            // (25,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("OnIndexedPropertyParameter.set_Property(int, int)", "test").WithLocation(24, 1),
-            // (25,5): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("int", "test").WithLocation(25, 1),
+            // (26,5): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(25, 5),
-            // (25,5): error CS9512: 'OnIndexedPropertyParameter.get_Property(int)' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(26, 5),
+            // (26,5): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("OnIndexedPropertyParameter.get_Property(int)", "test").WithLocation(25, 5)
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("int", "test").WithLocation(26, 5),
+            // (27,5): error CS9512: 'OnThisIndexerParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // new OnThisIndexerParameter()[1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter", "test").WithLocation(27, 5),
+            // (27,5): error CS9512: 'OnThisIndexerParameter.OnThisIndexerParameter()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // new OnThisIndexerParameter()[1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter.OnThisIndexerParameter()", "test").WithLocation(27, 5),
+            // (28,9): error CS9512: 'OnThisIndexerParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = new OnThisIndexerParameter()[1];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter", "test").WithLocation(28, 9),
+            // (28,9): error CS9512: 'OnThisIndexerParameter.OnThisIndexerParameter()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = new OnThisIndexerParameter()[1];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter.OnThisIndexerParameter()", "test").WithLocation(28, 9)
         );
     }
 

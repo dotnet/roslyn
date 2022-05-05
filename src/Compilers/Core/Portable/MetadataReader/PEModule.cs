@@ -1166,45 +1166,70 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        internal ImmutableArray<string> GetCompilerFeatureRequiredFeatures(EntityHandle token)
+        internal string? GetUnsupportedCompilerFeature(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, IModuleSymbolInternal containingModule, CompilerFeatureRequiredFeatures allowedFeatures)
+        {
+            string? unsupportedFeature = null;
+            if (!token.IsNil)
+            {
+                unsupportedFeature = GetFirstUnsupportedCompilerFeatureFromToken(token, attributeNamedArgumentDecoder, allowedFeatures);
+            }
+
+            // Check the containing module and assembly as well, if the symbol itself was fine
+            return unsupportedFeature ?? containingModule.GetUnsupportedCompilerFeature() ?? containingModule.ContainingAssembly.GetUnsupportedCompilerFeature();
+        }
+
+        internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
         {
             List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
 
             if (infos == null)
             {
-                return ImmutableArray<string>.Empty;
+                return null;
             }
-
-            ArrayBuilder<string> builder = ArrayBuilder<string>.GetInstance();
 
             foreach (var info in infos)
             {
-                if (TryExtractStringAndNamedArgBoolFromAttribute(info.Handle, out string? featureName, out bool isOptional, out string? namedArg, out bool isField))
+                if (!info.HasValue || !TryGetAttributeReader(info.Handle, out BlobReader sigReader) || !CrackStringInAttributeValue(out string? featureName, ref sigReader))
                 {
-                    if (namedArg != "IsOptional" || isField)
+                    continue;
+                }
+
+                bool isOptional = false;
+                if (sigReader.RemainingBytes >= 2)
+                {
+                    try
                     {
-                        isOptional = false;
+                        var numNamedArgs = sigReader.ReadUInt16();
+                        for (uint i = 0; i < numNamedArgs; i++)
+                        {
+                            (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                            if (namedArgValues is ({ Key: "IsOptional" }, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                            {
+                                isOptional = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                break;
+                            }
+                        }
                     }
-                }
-                else if (TryExtractStringValueFromAttribute(info.Handle, out featureName))
-                {
-                    isOptional = false;
-                }
-                else
-                {
-                    // Bad metadata.
-                    continue;
+                    catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
                 }
 
-                if (featureName is null || isOptional)
+                if (!isOptional && (allowedFeatures & getFeatureKind(featureName)) == 0)
                 {
-                    continue;
+                    return featureName;
                 }
-
-                builder.Add(featureName);
             }
 
-            return builder.ToImmutableAndFree();
+            return null;
+
+            static CompilerFeatureRequiredFeatures getFeatureKind(string? feature)
+                => feature switch
+                {
+                    nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
+                    nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    _ => CompilerFeatureRequiredFeatures.None,
+                };
         }
 
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(

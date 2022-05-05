@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+        private UnsupportedCompilerFeature _lazyUnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel;
+
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
         {
@@ -754,6 +756,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return false;
+        }
+
+        public override string GetUnsupportedCompilerFeature()
+        {
+            if (_lazyUnsupportedCompilerFeature == UnsupportedCompilerFeature.Sentinel)
+            {
+                var unsupportedCompilerFeature = Module.GetFirstUnsupportedCompilerFeatureFromToken(Token, new MetadataDecoder(this), CompilerFeatureRequiredFeatures.None);
+                Interlocked.CompareExchange(ref _lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedCompilerFeature), UnsupportedCompilerFeature.Sentinel);
+            }
+
+            return _lazyUnsupportedCompilerFeature.FeatureName;
         }
     }
 }

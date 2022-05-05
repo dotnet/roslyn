@@ -1199,18 +1199,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-#nullable enable
-        internal void DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref UseSiteInfo<AssemblySymbol> result, System.Reflection.Metadata.EntityHandle handle, CompilerFeatureRequiredFeatures allowedFeatures)
-        {
-            string? disallowedFeature = CompilerFeatureRequiredHelpers.GetUnsupportedCompilerFeature(handle, ((PEModuleSymbol)this.ContainingModule).Module, allowedFeatures);
-            if (disallowedFeature != null)
-            {
-                // '{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.
-                result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCompilerFeature, this, disallowedFeature));
-            }
-        }
-#nullable disable
-
         internal static bool GetUnificationUseSiteDiagnosticRecursive<T>(ref DiagnosticInfo result, ImmutableArray<T> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) where T : TypeSymbol
         {
             foreach (var t in types)
@@ -1459,11 +1447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilerFeatureRequiredAttribute))
-            {
-                // This is always disallowed, so we don't bother with a flag.
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.CompilerFeatureRequiredAttribute);
             }
             else
             {

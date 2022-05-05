@@ -320,6 +320,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IModuleSymbolInternal_ContainingAssembly As IAssemblySymbolInternal Implements IModuleSymbolInternal.ContainingAssembly
+            Get
+                Return ContainingAssembly
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitModule(Me)
         End Sub
@@ -338,6 +344,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitModule(Me)
+        End Function
+
+        Friend Overridable Function GetUnsupportedCompilerFeature() As String Implements IModuleSymbolInternal.GetUnsupportedCompilerFeature
+            Return Nothing
         End Function
 
 #End Region

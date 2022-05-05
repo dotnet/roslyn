@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -64,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+
+        Private _lazyUnsupportedCompilerFeature As UnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
@@ -256,6 +259,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _assembly.GetNonDisposableMetadata()
+        End Function
+
+        Public Overrides Function GetUnsupportedCompilerFeature() As String
+            If _lazyUnsupportedCompilerFeature Is UnsupportedCompilerFeature.Sentinel Then
+                Dim unsupportedFeature = PrimaryModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(_assembly.Handle, New MetadataDecoder(PrimaryModule), CompilerFeatureRequiredFeatures.None)
+                Interlocked.CompareExchange(_lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedFeature), UnsupportedCompilerFeature.Sentinel)
+            End If
+
+            Return _lazyUnsupportedCompilerFeature.FeatureName
         End Function
     End Class
 End Namespace

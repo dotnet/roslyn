@@ -2064,7 +2064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None);
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None);
         }
 
         internal string DefaultMemberName
@@ -2530,9 +2530,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return;
                 }
 
+
+                var decoder = new MetadataDecoder((PEModuleSymbol)ContainingModule);
                 foreach (var typeParameter in this.TypeParameters)
                 {
-                    if (MergeUseSiteInfo(ref result, typeParameter.GetUseSiteInfo()))
+                    if (((PETypeParameterSymbol)typeParameter).DeriveUseSiteInfo(ref result, decoder))
                     {
                         return;
                     }

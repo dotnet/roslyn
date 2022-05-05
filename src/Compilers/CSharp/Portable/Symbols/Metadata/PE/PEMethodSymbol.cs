@@ -887,17 +887,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 else
                 {
                     var ownedParams = ImmutableArray.CreateBuilder<TypeParameterSymbol>(gpHandles.Count);
-                    UseSiteInfo<AssemblySymbol> typeParamUseSiteInfo = default;
                     for (int i = 0; i < gpHandles.Count; i++)
                     {
-                        var typeParam = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]);
-                        ownedParams.Add(typeParam);
-                        MergeUseSiteInfo(ref typeParamUseSiteInfo, typeParam.GetUseSiteInfo());
-                    }
-
-                    if (typeParamUseSiteInfo.DiagnosticInfo != null)
-                    {
-                        diagnosticInfo = typeParamUseSiteInfo.DiagnosticInfo;
+                        ownedParams.Add(new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, gpHandles[i]));
                     }
 
                     return ownedParams.ToImmutable();
@@ -1365,16 +1357,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None);
+                var decoder = new MetadataDecoder((PEModuleSymbol)ContainingModule);
+                PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
 
-                if (result.DiagnosticInfo == null || !IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+                foreach (var param in Parameters)
                 {
-                    foreach (var param in Parameters)
+                    if (((PEParameterSymbol)param).DeriveUseSiteInfo(ref result, decoder))
                     {
-                        if (MergeUseSiteInfo(ref result, param.GetUseSiteInfo()))
-                        {
-                            break;
-                        }
+                        break;
+                    }
+                }
+
+                foreach (var typeParam in TypeParameters)
+                {
+                    if (((PETypeParameterSymbol)typeParam).DeriveUseSiteInfo(ref result, decoder))
+                    {
+                        break;
                     }
                 }
 

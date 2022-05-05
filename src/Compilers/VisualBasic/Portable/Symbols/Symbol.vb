@@ -1110,18 +1110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Protected Sub DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ByRef result As UseSiteInfo(Of AssemblySymbol), handle As System.Reflection.Metadata.EntityHandle, allowedFeatures As CompilerFeatureRequiredFeatures)
-            If (result.DiagnosticInfo IsNot Nothing) Then
-                Debug.Assert(result.DiagnosticInfo.Severity = DiagnosticSeverity.Error)
-            End If
-
-            Dim unsupportedFeature = CompilerFeatureRequiredHelpers.GetUnsupportedCompilerFeature(handle, DirectCast(ContainingModule, PEModuleSymbol).Module, allowedFeatures)
-            If unsupportedFeature IsNot Nothing Then
-                ' '{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.
-                result = result.AdjustDiagnosticInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedCompilerFeature, Me, unsupportedFeature))
-            End If
-        End Sub
-
 #End Region
 
 #Region "ISymbol"
