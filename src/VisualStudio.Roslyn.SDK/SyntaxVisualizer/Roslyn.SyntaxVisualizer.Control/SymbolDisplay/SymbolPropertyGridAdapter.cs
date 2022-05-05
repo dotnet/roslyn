@@ -44,7 +44,7 @@ namespace Roslyn.SyntaxVisualizer.Control.SymbolDisplay
                 }
                 catch
                 {
-                    
+
                 }
             }
 

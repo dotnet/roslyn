@@ -105,9 +105,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                 colorItem.crForeground = BitConverter.ToUInt32(
                     new byte[] {
-                        selectedColor.R, 
-                        selectedColor.G, 
-                        selectedColor.B,  
+                        selectedColor.R,
+                        selectedColor.G,
+                        selectedColor.B,
                         0 // Alpha
                     }, 0);
 
