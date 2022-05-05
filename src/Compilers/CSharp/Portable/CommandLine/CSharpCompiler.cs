@@ -601,9 +601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // Close logs.
-                    serviceProviderBuilder.ServiceProvider.GetLoggerFactory().Dispose();
-
                     // Report usage.
                     try
                     {
@@ -615,6 +612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
                     }
+
+                    // Close logs.
+                    // Logging has to be disposed as the last one, so it could be used until now.
+                    serviceProviderBuilder.ServiceProvider.GetLoggerFactory().Dispose();
                 }
             }
             catch (Exception e)
