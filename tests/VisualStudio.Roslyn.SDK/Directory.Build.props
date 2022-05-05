@@ -37,7 +37,6 @@
   <!-- StyleCop Analyzers configuration -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)..\..\RoslynSDK.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   
   <ItemGroup>
