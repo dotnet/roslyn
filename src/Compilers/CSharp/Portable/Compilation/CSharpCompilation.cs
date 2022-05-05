@@ -2593,7 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
-        private readonly BindingDiagnosticBag _circularStructDiagnostics = new BindingDiagnosticBag();
+        private readonly BindingDiagnosticBag _circularStructDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), new ConcurrentSet<AssemblySymbol>());
 
         internal DeclarationTable Declarations
         {
