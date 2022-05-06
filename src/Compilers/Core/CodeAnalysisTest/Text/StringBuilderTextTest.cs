@@ -20,11 +20,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         {
             var stringBuilder = new StringBuilder(6);
 
-            // This way, the StringBuilder should have at least two chunks of length 6 at the beginning. We want to test writes
-            // across their boundaries.
+            // This way, the StringBuilder should have at least two chunks of length 6 at the beginning.
             stringBuilder.Append("chunk1");
             stringBuilder.Append("chunk2");
             stringBuilder.Append("chunk3");
+
+#if NETCOREAPP
+            // We are relying on implementation details of StringBuilder here because the method itself enumerates individual
+            // chunks and we want to verify that it behaves well across chunk boundaries. If this ever fails, this test should
+            // be updated based on the new chunk sizes so that it still tests behavior across chunks.
+            int index = 0;
+            foreach (var chunk in stringBuilder.GetChunks())
+            {
+                if (index <= 1)
+                    Assert.Equal(6, chunk.Length);
+
+                ++index;
+            }
+
+            Assert.Equal(2, index);
+#endif
 
             var text = new StringBuilderText(stringBuilder, encodingOpt: null, SourceHashAlgorithm.Sha1);
 
