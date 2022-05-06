@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
         {
+            if (identifier.Length == 0)
+            {
+                throw new ArgumentException($"{nameof(identifier)} must not be an empty string.");
+            }
+
             Identifier = identifier;
             PlaceHolderPositions = placeholderPositions;
         }

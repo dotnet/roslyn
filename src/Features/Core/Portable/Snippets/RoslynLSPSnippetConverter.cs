@@ -51,17 +51,6 @@ namespace Microsoft.CodeAnalysis.Snippets
                 if (i == caretPosition - textChangeStart)
                 {
                     lspSnippetString.Append("$0");
-
-                    // Special case for cursor position since they will occur between positions
-                    // so we still wants to insert the character following the cursor position.
-                    // Will not happen for placeholders since they have a direct mapping from position
-                    // of the identifier to their position in the TextChange text.
-                    if (i < textChangeText.Length)
-                    {
-                        lspSnippetString.Append(textChangeText[i]);
-                    }
-
-                    i++;
                 }
 
                 //Tries to see if a value exists at that position in the map, and if so it

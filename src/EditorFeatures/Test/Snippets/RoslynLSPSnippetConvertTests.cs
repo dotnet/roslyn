@@ -416,6 +416,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestIfSnippetSamePlaceholderCursorLocation()
+        {
+            var markup =
+@"public void Method()
+{
+    var x = 5;
+    [|if ({|placeholder:true|}$$)
+    {
+    }|]
+    
+    x = 3;
+}";
+
+            var expectedLSPSnippet =
+@"if (${1:true}$0)
+    {
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestIfSnippetSameCursorPlaceholderLocation()
+        {
+            var markup =
+@"public void Method()
+{
+    var x = 5;
+    [|if ($${|placeholder:true|})
+    {
+    }|]
+    
+    x = 3;
+}";
+
+            var expectedLSPSnippet =
+@"if ($0${1:true})
+    {
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
         #endregion
 
         protected static TestWorkspace CreateWorkspaceFromCode(string code)
