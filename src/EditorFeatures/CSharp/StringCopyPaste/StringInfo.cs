@@ -54,20 +54,13 @@ internal readonly struct StringInfo
     /// </summary>
     public readonly ImmutableArray<TextSpan> ContentSpans;
 
-    /// <summary>
-    /// Similar to <see cref="ContentSpans"/> except that whitespace in a raw-string-literal that is not considered part
-    /// of the final content will not be included.
-    /// </summary>
-    public readonly ImmutableArray<TextSpan> WithoutIndentationContentSpans;
-
     public StringInfo(
         int delimiterQuoteCount,
         int delimiterDollarCount,
         TextSpan startDelimiterSpan,
         TextSpan endDelimiterSpan,
         TextSpan endDelimiterSpanWithoutSuffix,
-        ImmutableArray<TextSpan> contentSpans,
-        ImmutableArray<TextSpan> withoutIndentationContentSpans)
+        ImmutableArray<TextSpan> contentSpans)
     {
         DelimiterQuoteCount = delimiterQuoteCount;
         DelimiterDollarCount = delimiterDollarCount;
@@ -75,7 +68,6 @@ internal readonly struct StringInfo
         EndDelimiterSpan = endDelimiterSpan;
         EndDelimiterSpanWithoutSuffix = endDelimiterSpanWithoutSuffix;
         ContentSpans = contentSpans;
-        WithoutIndentationContentSpans = withoutIndentationContentSpans;
     }
 
     public static StringInfo GetStringInfo(SourceText text, ExpressionSyntax stringExpression)
@@ -123,8 +115,7 @@ internal readonly struct StringInfo
                 startDelimiterSpan: TextSpan.FromBounds(literal.SpanStart, start),
                 endDelimiterSpan: TextSpan.FromBounds(end, literal.Span.End),
                 endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(end, endBeforeU8Suffix),
-                contentSpans,
-                withoutIndentationContentSpans: contentSpans);
+                contentSpans);
         }
         else if (literal.Token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
         {
@@ -149,8 +140,6 @@ internal readonly struct StringInfo
             while (SyntaxFacts.IsWhitespace(SafeCharAt(text, rawEnd - 1)))
                 rawEnd--;
 
-            var indentationLength = end - rawEnd;
-
             if (SafeCharAt(text, rawEnd - 2) == '\r' && SafeCharAt(text, rawEnd - 1) == '\n')
             {
                 rawEnd -= 2;
@@ -161,38 +150,13 @@ internal readonly struct StringInfo
                 rawEnd--;
             }
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var withoutIndentationBuilder);
-
-            var contentLineStart = text.Lines.GetLineFromPosition(rawStart).LineNumber;
-            var contentLineEnd = text.Lines.GetLineFromPosition(rawEnd).LineNumber;
-
-            for (var currentLineNumber = contentLineStart; currentLineNumber <= contentLineEnd; currentLineNumber++)
-            {
-                var currentLine = text.Lines[currentLineNumber];
-                if (currentLine.Span.Length < indentationLength)
-                {
-                    // this is a blank line.  Don't include any of it in the content spans except its newline.
-                    withoutIndentationBuilder.Add(TextSpan.FromBounds(currentLine.Span.End, currentLine.SpanIncludingLineBreak.End));
-                }
-                else
-                {
-                    // Normal line, include the contents after the indentation whitespace.  If this is not the last
-                    // line, include the linebreak as well, otherwise ignore it (it's not part of a raw string's
-                    // content).
-                    withoutIndentationBuilder.Add(TextSpan.FromBounds(
-                        start: currentLine.Start + indentationLength,
-                        end: currentLineNumber == contentLineEnd ? currentLine.Span.End : currentLine.SpanIncludingLineBreak.End));
-                }
-            }
-
             return new StringInfo(
                 delimiterQuoteCount,
                 delimiterDollarCount: 0,
                 TextSpan.FromBounds(literal.SpanStart, rawStart),
                 TextSpan.FromBounds(rawEnd, literal.Span.End),
                 TextSpan.FromBounds(rawEnd, endBeforeU8Suffix),
-                contentSpans: ImmutableArray.Create(TextSpan.FromBounds(start, end)),
-                withoutIndentationContentSpans: withoutIndentationBuilder.ToImmutable());
+                contentSpans: ImmutableArray.Create(TextSpan.FromBounds(start, end)));
         }
         else
         {
@@ -216,16 +180,13 @@ internal readonly struct StringInfo
         if (end > start && text[end - 1] == '"')
             end--;
 
-        var contentSpans = ImmutableArray.Create(TextSpan.FromBounds(start, end));
-
         return new StringInfo(
             delimiterQuoteCount,
             delimiterDollarCount: 0,
             startDelimiterSpan: TextSpan.FromBounds(literal.SpanStart, start),
             endDelimiterSpan: TextSpan.FromBounds(end, literal.Span.End),
             endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(end, endBeforeU8Suffix),
-            contentSpans,
-            contentSpans);
+            ImmutableArray.Create(TextSpan.FromBounds(start, end)));
     }
 
     private static StringInfo GetInterpolatedStringInfo(
@@ -261,17 +222,14 @@ internal readonly struct StringInfo
             }
         }
 
-        var startDelimiterSpan = TextSpan.FromBounds(interpolatedString.SpanStart, interpolatedString.StringStartToken.Span.End);
-        var endDelimiterSpan = TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, interpolatedString.Span.End);
-        var endDelimiterSpanWithoutSuffix = TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, endBeforeU8Suffix);
-
         // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
         result.Add(TextSpan.FromBounds(currentPosition, end));
-        var contentSpans = result.ToImmutableAndClear();
 
-        // todo: implement withoutIndentationSpans properly
-        var withoutIndentationSpans = contentSpans;
-
-        return new StringInfo(delimiterQuoteCount, delimiterDollarCount, startDelimiterSpan, endDelimiterSpan, endDelimiterSpanWithoutSuffix, contentSpans, withoutIndentationSpans);
+        return new StringInfo(
+            delimiterQuoteCount, delimiterDollarCount,
+            startDelimiterSpan: TextSpan.FromBounds(interpolatedString.SpanStart, interpolatedString.StringStartToken.Span.End),
+            endDelimiterSpan: TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, interpolatedString.Span.End),
+            endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, endBeforeU8Suffix),
+            contentSpans: result.ToImmutableAndClear());
     }
 }
