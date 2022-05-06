@@ -28,24 +28,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
         {
-            private static readonly TestComposition s_compositionWithUnknownCopy =
+            private static readonly TestComposition s_composition =
                 EditorTestCompositions.EditorFeaturesWpf
+                    .RemoveExcludedPartTypes(typeof(WpfStringCopyPasteService))
+                    .AddParts(typeof(TestStringCopyPasteService))
                     .AddParts(typeof(StringCopyPasteCommandHandler));
-
-            private static readonly TestComposition s_compositionWithKnownCopy =
-                s_compositionWithUnknownCopy;
 
             private readonly StringCopyPasteCommandHandler _commandHandler;
 
-            public StringCopyPasteTestState(XElement workspaceElement, bool unknownCopy)
-                : base(workspaceElement, unknownCopy ? s_compositionWithUnknownCopy : s_compositionWithKnownCopy)
+            public StringCopyPasteTestState(XElement workspaceElement)
+                : base(workspaceElement, s_composition)
             {
                 _commandHandler = (StringCopyPasteCommandHandler)GetExportedValues<ICommandHandler>().
                     Single(c => c is StringCopyPasteCommandHandler);
             }
 
             public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup)
-                => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), unknownCopy: copyFileMarkup == null);
+                => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup));
 
             public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
                 => XElement.Parse(($@"
@@ -79,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             {
                 var workspace = this.Workspace;
 
+                // Ensure we clear out the clipboard so that a prior copy/paste doesn't corrupt the test.
+                var service = workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                service.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, "");
+
                 var copyDocument = this.Workspace.Documents.FirstOrDefault(d => d.AnnotatedSpans.ContainsKey("Copy"));
                 if (copyDocument != null)
                 {
@@ -98,10 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 {
                     // If we don't have a file to copy text from, then the paste text must be explicitly provided.");
                     Assert.NotNull(pasteText);
-
-                    // Ensure we clear out the clipboard so that a prior copy/paste doesn't corrupt the test.
-                    var service = workspace.Services.GetRequiredService<IStringCopyPasteService>();
-                    service.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, "");
                 }
 
                 if (pasteText == null)
