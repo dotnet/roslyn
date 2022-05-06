@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -88,6 +90,46 @@ namespace Microsoft.CodeAnalysis.Text
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
+        }
+
+        public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default)
+        {
+#if NETCOREAPP
+            if (span.Start == 0 && span.Length == this.Length)
+            {
+                textWriter.Write(_builder);
+            }
+            else
+            {
+                if (span.Length == 0)
+                    return;
+
+                int chunkOffset = 0;
+
+                foreach (var chunk in _builder.GetChunks())
+                {
+                    var startFromChunk = span.Start - chunkOffset;
+                    if (startFromChunk < chunk.Length)
+                    {
+                        var endFromChunk = span.End - chunkOffset;
+
+                        var startIndex = Math.Max(startFromChunk, 0);
+                        var endIndex = Math.Min(endFromChunk, chunk.Length);
+
+                        textWriter.Write(chunk.Span.Slice(startIndex, endIndex - startIndex));
+
+                        if (endFromChunk <= chunk.Length)
+                            break;
+                    }
+
+                    chunkOffset += chunk.Length;
+                }
+            }
+#else
+            // On .NET Framework, passing StringBuilder to TextWriter.Write might seem to work, but it has no StringBuilder overload,
+            // so it would call the object one, which slower than the base implementation.
+            base.Write(textWriter, span, cancellationToken);
+#endif
         }
     }
 }

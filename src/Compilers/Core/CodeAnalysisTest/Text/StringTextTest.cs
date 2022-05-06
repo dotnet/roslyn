@@ -279,5 +279,23 @@ bar baz";
             var checksum = source.GetChecksum();
             AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
         }
+
+        [Fact]
+        public void Write()
+        {
+            var text = new StringText("text", encodingOpt: null);
+
+            assertWriteEquals(0, text.Length, "text");
+            assertWriteEquals(0, 2, "te");
+            assertWriteEquals(2, 1, "x");
+            assertWriteEquals(1, 0, "");
+
+            void assertWriteEquals(int start, int length, string expected)
+            {
+                using var textWriter = new StringWriter();
+                text.Write(textWriter, new TextSpan(start, length));
+                Assert.Equal(expected, textWriter.ToString());
+            }
+        }
     }
 }
