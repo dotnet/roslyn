@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.Snippets
                 {
                     // i + 1 since the placeholder priority is set according to the index in the
                     // placeholders array, starting at 1.
+                    // We should never be adding two placeholders in the same position since identifiers
+                    // must have a length greater than 0.
                     dictionary.Add(position - textChangeStart, (placeholder.Identifier, i + 1));
                 }
             }
