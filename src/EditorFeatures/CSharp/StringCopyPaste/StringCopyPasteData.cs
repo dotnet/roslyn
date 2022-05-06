@@ -65,15 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         /// <summary>
         /// Given a <paramref name="stringExpression"/> for a string literal or interpolated string, and the <paramref
-        /// name="span"/> the user has selected in it, tries to determine the interpreted content within that expression
-        /// that has been copied.  "interpreted" in this context means the actual value of the content that was selected,
-        /// with things like escape characters embedded as the actual characters they represent.
+        /// name="selectionSpan"/> the user has selected in it, tries to determine the interpreted content within that
+        /// expression that has been copied.  "interpreted" in this context means the actual value of the content that
+        /// was selected, with things like escape characters embedded as the actual characters they represent.
         /// </summary>
-        public static StringCopyPasteData? TryCreate(IVirtualCharLanguageService virtualCharService, ExpressionSyntax stringExpression, TextSpan span)
+        public static StringCopyPasteData? TryCreate(IVirtualCharLanguageService virtualCharService, ExpressionSyntax stringExpression, TextSpan selectionSpan)
             => stringExpression switch
             {
-                LiteralExpressionSyntax literal => TryCreateForLiteral(virtualCharService, literal, span),
-                InterpolatedStringExpressionSyntax interpolatedString => TryCreateForInterpolatedString(virtualCharService, interpolatedString, span),
+                LiteralExpressionSyntax literal => TryCreateForLiteral(virtualCharService, literal, selectionSpan),
+                InterpolatedStringExpressionSyntax interpolatedString => TryCreateForInterpolatedString(virtualCharService, interpolatedString, selectionSpan),
                 _ => throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind()),
             };
 
@@ -83,15 +83,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 : null;
 
         /// <summary>
-        /// Given a string <paramref name="token"/>, and the <paramref name="span"/> the user has selected that overlaps
-        /// with it, tries to determine the interpreted content within that token that has been copied. "interpreted" in
-        /// this context means the actual value of the content that was selected, with things like escape characters
-        /// embedded as the actual characters they represent.
+        /// Given a string <paramref name="token"/>, and the <paramref name="selectionSpan"/> the user has selected that
+        /// overlaps with it, tries to determine the interpreted content within that token that has been copied.
+        /// "interpreted" in this context means the actual value of the content that was selected, with things like
+        /// escape characters embedded as the actual characters they represent.
         /// </summary>
         private static bool TryGetNormalizedStringForSpan(
             IVirtualCharLanguageService virtualCharService,
             SyntaxToken token,
-            TextSpan span,
+            TextSpan selectionSpan,
             [NotNullWhen(true)] out string? normalizedText)
         {
             normalizedText = null;
@@ -102,17 +102,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return false;
 
             // Then find the start/end of the token's characters that overlap with the selection span.
-            var firstOverlappingChar = virtualChars.FirstOrNull(vc => vc.Span.OverlapsWith(span));
-            var lastOverlappingChar = virtualChars.LastOrNull(vc => vc.Span.OverlapsWith(span));
+            var firstOverlappingChar = virtualChars.FirstOrNull(vc => vc.Span.OverlapsWith(selectionSpan));
+            var lastOverlappingChar = virtualChars.LastOrNull(vc => vc.Span.OverlapsWith(selectionSpan));
 
             if (firstOverlappingChar is null || lastOverlappingChar is null)
                 return false;
 
             // Don't allow partial selection of an escaped character.  e.g. if they select 'n' in '\n'
-            if (span.Start > firstOverlappingChar.Value.Span.Start)
+            if (selectionSpan.Start > firstOverlappingChar.Value.Span.Start)
                 return false;
 
-            if (span.End < lastOverlappingChar.Value.Span.End)
+            if (selectionSpan.End < lastOverlappingChar.Value.Span.End)
                 return false;
 
             var firstCharIndexInclusive = virtualChars.IndexOf(firstOverlappingChar.Value);
@@ -127,10 +127,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private static bool TryGetContentForSpan(
             IVirtualCharLanguageService virtualCharService,
             SyntaxToken token,
-            TextSpan span,
+            TextSpan selectionSpan,
             out StringCopyPasteContent content)
         {
-            if (!TryGetNormalizedStringForSpan(virtualCharService, token, span, out var text))
+            if (!TryGetNormalizedStringForSpan(virtualCharService, token, selectionSpan, out var text))
             {
                 content = default;
                 return false;
@@ -145,27 +145,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private static StringCopyPasteData? TryCreateForInterpolatedString(
             IVirtualCharLanguageService virtualCharService,
             InterpolatedStringExpressionSyntax interpolatedString,
-            TextSpan span)
+            TextSpan selectionSpan)
         {
             using var _ = ArrayBuilder<StringCopyPasteContent>.GetInstance(out var result);
 
             foreach (var interpolatedContent in interpolatedString.Contents)
             {
-                if (interpolatedContent.Span.OverlapsWith(span))
+                // Only consider portions of the interpolated string that overlap the selection.
+                if (interpolatedContent.Span.OverlapsWith(selectionSpan))
                 {
                     if (interpolatedContent is InterpolationSyntax interpolation)
                     {
-                        // If the user copies a portion of an interpolation, just treat this as a non-smart copy paste for simplicity.
-                        if (!span.Contains(interpolation.Span))
+                        // If the user copies a portion of an interpolation, just treat this as a non-smart copy paste
+                        // for simplicity.
+                        if (!selectionSpan.Contains(interpolation.Span))
                             return null;
 
+                        // The format clause needs to be written differently depending on what sort of interpolated
+                        // string we have (normal, verbatim, raw).  So grab the token for it and determine it's actual
+                        // interpreted value so we can paste it properly at the destination side.
                         var formatClause = (string?)null;
                         if (interpolation.FormatClause != null &&
-                            !TryGetNormalizedStringForSpan(virtualCharService, interpolation.FormatClause.FormatStringToken, span, out formatClause))
+                            !TryGetNormalizedStringForSpan(virtualCharService, interpolation.FormatClause.FormatStringToken, selectionSpan, out formatClause))
                         {
                             return null;
                         }
 
+                        // Can grab the expression and alignment-clause as is.  That's just normal C# code, and will
+                        // remain the same no matter what we past into.
                         result.Add(StringCopyPasteContent.ForInterpolation(
                             interpolation.Expression.ToFullString(),
                             interpolation.AlignmentClause?.ToFullString(),
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     }
                     else if (interpolatedContent is InterpolatedStringTextSyntax stringText)
                     {
-                        if (!TryGetContentForSpan(virtualCharService, stringText.TextToken, span, out var content))
+                        if (!TryGetContentForSpan(virtualCharService, stringText.TextToken, selectionSpan, out var content))
                             return null;
 
                         result.Add(content);
@@ -183,72 +190,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             return new StringCopyPasteData(result.ToImmutable());
         }
-    }
-
-    internal enum StringCopyPasteContentKind
-    {
-        Text,           // When text content is copied.
-        Interpolation,  // When an interpolation is copied.
-    }
-
-    internal readonly struct StringCopyPasteContent
-    {
-        public StringCopyPasteContentKind Kind { get; }
-
-        /// <summary>
-        /// The actual string value for <see cref="StringCopyPasteContentKind.Text"/>.  <see langword="null"/> for <see
-        /// cref="StringCopyPasteContentKind.Interpolation"/>.
-        /// </summary>
-        public string? TextValue { get; }
-
-        /// <summary>
-        /// The actual string value for <see cref="InterpolationSyntax.Expression"/> for <see
-        /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
-        /// cref="StringCopyPasteContentKind.Text"/>.
-        /// </summary>
-        public string? InterpolationExpression { get; }
-
-        /// <summary>
-        /// The actual string value for <see cref="InterpolationSyntax.AlignmentClause"/> for <see
-        /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
-        /// cref="StringCopyPasteContentKind.Text"/>.
-        /// </summary>
-        public string? InterpolationAlignmentClause { get; }
-
-        /// <summary>
-        /// The actual string value for <see cref="InterpolationSyntax.FormatClause"/> for <see
-        /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
-        /// cref="StringCopyPasteContentKind.Text"/>.
-        /// </summary>
-        public string? InterpolationFormatClause { get; }
-
-        [JsonConstructor]
-        public StringCopyPasteContent(
-            StringCopyPasteContentKind kind,
-            string? textValue,
-            string? interpolationExpression,
-            string? interpolationAlignmentClause,
-            string? interpolationFormatClause)
-        {
-            Kind = kind;
-            TextValue = textValue;
-            InterpolationExpression = interpolationExpression;
-            InterpolationAlignmentClause = interpolationAlignmentClause;
-            InterpolationFormatClause = interpolationFormatClause;
-        }
-
-        [JsonIgnore]
-        [MemberNotNullWhen(true, nameof(TextValue))]
-        public bool IsText => Kind == StringCopyPasteContentKind.Text;
-
-        [JsonIgnore]
-        [MemberNotNullWhen(true, nameof(InterpolationExpression))]
-        public bool IsInterpolation => Kind == StringCopyPasteContentKind.Interpolation;
-
-        public static StringCopyPasteContent ForText(string text)
-            => new(StringCopyPasteContentKind.Text, text, null, null, null);
-
-        public static StringCopyPasteContent ForInterpolation(string expression, string? alignmentClause, string? formatClause)
-            => new(StringCopyPasteContentKind.Interpolation, null, expression, alignmentClause, formatClause);
     }
 }
