@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -544,43 +545,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_methodDefs, methodDef);
                 var methodChange = _changes.GetChange(methodDef);
 
-                if (methodChange == SymbolChange.Added)
-                {
-                    _firstParamRowMap.Add(GetMethodDefinitionHandle(methodDef), _parameterDefs.NextRowId);
-                    foreach (var paramDef in this.GetParametersToEmit(methodDef))
-                    {
-                        _parameterDefs.Add(paramDef);
-                        _parameterDefList.Add(paramDef, methodDef);
-                    }
-                }
-                else if (methodChange == SymbolChange.Updated)
-                {
-                    // If we're re-emitting parameters for an existing method we need to find their original row numbers
-                    // and reuse them so the EnCLog, EnCMap and CustomAttributes tables refer to the right rows
+                EmitMethod(methodDef, methodChange);
+            }
 
-                    // Unfortunately we have to check the original metadata and deltas separately as nothing tracks the aggregate data
-                    // in a way that we can use
-                    var handle = GetMethodDefinitionHandle(methodDef);
-                    if (_previousGeneration.OriginalMetadata.MetadataReader.GetTableRowCount(TableIndex.MethodDef) >= MetadataTokens.GetRowNumber(handle))
-                    {
-                        EmitParametersFromOriginalMetadata(methodDef, handle);
-                    }
-                    else
-                    {
-                        EmitParametersFromDelta(methodDef, handle);
-                    }
-                }
+            foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
+            {
+                var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
+                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, methodDef);
+                _methodDefs.AddUpdated(newMethodDef);
 
-                if (methodChange == SymbolChange.Added)
-                {
-                    if (methodDef.GenericParameterCount > 0)
-                    {
-                        foreach (var typeParameter in methodDef.GenericParameters)
-                        {
-                            _genericParameters.Add(typeParameter);
-                        }
-                    }
-                }
+                EmitMethod(newMethodDef, SymbolChange.Updated);
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -631,6 +605,47 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             implementingMethods.Free();
+        }
+
+        private void EmitMethod(IMethodDefinition methodDef, SymbolChange methodChange)
+        {
+            if (methodChange == SymbolChange.Added)
+            {
+                _firstParamRowMap.Add(GetMethodDefinitionHandle(methodDef), _parameterDefs.NextRowId);
+                foreach (var paramDef in this.GetParametersToEmit(methodDef))
+                {
+                    _parameterDefs.Add(paramDef);
+                    _parameterDefList.Add(paramDef, methodDef);
+                }
+            }
+            else if (methodChange == SymbolChange.Updated)
+            {
+                // If we're re-emitting parameters for an existing method we need to find their original row numbers
+                // and reuse them so the EnCLog, EnCMap and CustomAttributes tables refer to the right rows
+
+                // Unfortunately we have to check the original metadata and deltas separately as nothing tracks the aggregate data
+                // in a way that we can use
+                var handle = GetMethodDefinitionHandle(methodDef);
+                if (_previousGeneration.OriginalMetadata.MetadataReader.GetTableRowCount(TableIndex.MethodDef) >= MetadataTokens.GetRowNumber(handle))
+                {
+                    EmitParametersFromOriginalMetadata(methodDef, handle);
+                }
+                else
+                {
+                    EmitParametersFromDelta(methodDef, handle);
+                }
+            }
+
+            if (methodChange == SymbolChange.Added)
+            {
+                if (methodDef.GenericParameterCount > 0)
+                {
+                    foreach (var typeParameter in methodDef.GenericParameters)
+                    {
+                        _genericParameters.Add(typeParameter);
+                    }
+                }
+            }
         }
 
         private void EmitParametersFromOriginalMetadata(IMethodDefinition methodDef, MethodDefinitionHandle handle)

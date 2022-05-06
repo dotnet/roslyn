@@ -641,12 +641,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Emit throwing methods for methods that have been deleted in an edit and continue session
-            if (_moduleBeingBuiltOpt != null && _moduleBeingBuiltOpt.IsEncDelta)
-            {
-                CompileDeletedMethods(containingType, compilationState);
-            }
-
             // Emit synthesized methods produced during lowering if any
             if (_moduleBeingBuiltOpt != null)
             {
@@ -809,23 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)associatedPropertyOrEvent != null &&
                 associatedPropertyOrEvent.Kind == SymbolKind.Event &&
                 ((EventSymbol)associatedPropertyOrEvent).HasAssociatedField;
-        }
-
-        private void CompileDeletedMethods(NamedTypeSymbol containingType, TypeCompilationState compilationState)
-        {
-            Debug.Assert(_moduleBeingBuiltOpt != null);
-            Debug.Assert(_moduleBeingBuiltOpt.EncSymbolChanges != null);
-
-            var methodsToDelete = _moduleBeingBuiltOpt.EncSymbolChanges.GetDeletedMethods(containingType.GetCciAdapter());
-            foreach (var deletedMethod in methodsToDelete)
-            {
-                var methodSymbol = deletedMethod.GetISymbol().GetSymbol<MethodSymbol>();
-                var method = new SynthesizedDeletedMethod(methodSymbol, containingType);
-
-                method.GenerateMethodBody(compilationState, _diagnostics);
-
-                _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, method.GetCciAdapter());
-            }
         }
 
         /// <summary>
