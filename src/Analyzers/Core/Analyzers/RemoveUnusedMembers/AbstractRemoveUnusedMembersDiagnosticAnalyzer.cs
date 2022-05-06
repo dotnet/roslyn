@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+        // Internal for testing
+        internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
             EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -67,8 +68,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
-            private readonly List<IPropertySymbol> _propertiesWithShadowGetAccessorUsages;
+            // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            // List of properies, which has a 'get' accessor usage, while the property itself is not used, e.g.:
+            //
+            // class C
+            // {
+            //     private int P { get; set; }
+            //     public void M() { P++; }
+            // }
+            //
+            // Here 'get' accessor is used in increment operation, but 'P' itself is not used anywhere else, so it can be safely removed
+            private readonly List<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
@@ -81,11 +92,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 _gate = new object();
                 _analyzer = analyzer;
-
-                // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
-                _symbolValueUsageStateMap = new();
-                // List of properies, which has a 'get' accessor usage, while the property itself is not used.
-                _propertiesWithShadowGetAccessorUsages = new();
 
                 _taskType = compilation.TaskType();
                 _genericTaskType = compilation.TaskOfTType();
@@ -500,9 +506,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             break;
 
                         case IPropertySymbol property:
+                            // We change the message only if both 'get' and 'set' accessors are present and
+                            // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
                             if (property.GetMethod != null && property.SetMethod != null &&
-                                // We change the message only if there are no shadow 'get' accessor usages.
-                                // Otherwise the message will be confusing
                                 !_propertiesWithShadowGetAccessorUsages.Contains(property))
                             {
                                 messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;

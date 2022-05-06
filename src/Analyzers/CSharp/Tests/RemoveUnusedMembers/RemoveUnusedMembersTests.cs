@@ -1496,6 +1496,22 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1() { ++P; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 18)
+                .WithArguments("MyClass.P"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncrementedAndValueUsed()
         {
@@ -1518,6 +1534,22 @@ class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x) => ++this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 21)
+                .WithArguments("MyClass.this[]"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1592,6 +1624,22 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1(int x) { P += x; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 18)
+                .WithArguments("MyClass.P"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueUsed()
         {
@@ -1614,6 +1662,22 @@ class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x, int y) => this[x] += y;
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 21)
+                .WithArguments("MyClass.this[]"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
