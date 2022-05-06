@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -63,13 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public StringCopyPasteCommandHandler(
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            ITextBufferFactoryService3 textBufferFactoryService,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
-            _textBufferFactoryService = textBufferFactoryService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
         }
@@ -220,8 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste,
                     selectionsBeforePaste[0],
-                    copyPasteData,
-                    _textBufferFactoryService);
+                    copyPasteData);
                 return knownProcessor.GetEdits(cancellationToken);
             }
         }
