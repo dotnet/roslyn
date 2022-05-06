@@ -124,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Contract.ThrowIfTrue(StringExpressionBeforePasteInfo.ContentSpans.IsEmpty);
         }
 
+        /// <summary>
+        /// Determine the edits that should be made to smartly handle pasting hte data that is on the clipboard.
+        /// </summary>
         public abstract ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken);
 
         /// <summary>
