@@ -91,12 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 {
                     return interpolatedString.StringStartToken.Kind() switch
                     {
-                        SyntaxKind.InterpolatedStringStartToken
-                            => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedVerbatimStringStartToken
-                            => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedSingleLineRawStringStartToken
-                            => TryConvertSingleLineRawStringToVirtualChars(token),
+                        SyntaxKind.InterpolatedStringStartToken => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
+                        SyntaxKind.InterpolatedVerbatimStringStartToken => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
+                        SyntaxKind.InterpolatedSingleLineRawStringStartToken => TryConvertSingleLineRawStringToVirtualChars(token),
                         SyntaxKind.InterpolatedMultiLineRawStringStartToken
                             // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
