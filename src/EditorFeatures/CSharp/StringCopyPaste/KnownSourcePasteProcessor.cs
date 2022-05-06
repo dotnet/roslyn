@@ -110,9 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     builder.Append('{');
                     builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationExpression));
 
-                    if (content.InterpolationAlignmentClause != null)
-                        builder.Append(content.InterpolationAlignmentClause);
-
+                    builder.Append(content.InterpolationAlignmentClause);
                     if (content.InterpolationFormatClause != null)
                     {
                         builder.Append(':');
@@ -145,9 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     builder.Append('{');
                     builder.Append(content.InterpolationExpression);
 
-                    if (content.InterpolationAlignmentClause != null)
-                        builder.Append(content.InterpolationAlignmentClause);
-
+                    builder.Append(content.InterpolationAlignmentClause);
                     if (content.InterpolationFormatClause != null)
                     {
                         builder.Append(':');
