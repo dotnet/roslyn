@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     {
         public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
 
-        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
-
         protected abstract ISyntaxFacts SyntaxFacts { get; }
+
+        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+        protected abstract bool IsMultiLineRawStringToken(SyntaxToken token);
 
         /// <summary>
         /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
@@ -89,12 +90,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
                     }
-                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
-                    {
-                        Debug.Assert(currentVC.Span.Start == token.SpanStart, "First span should start on the first char of the string.");
-                    }
 
-                    if (token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken || token.RawKind == syntaxKinds.UTF8MultiLineRawStringLiteralToken)
+                    if (IsMultiLineRawStringToken(token))
                     {
                         for (var i = 1; i < result.Length; i++)
                         {
@@ -123,10 +120,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     else if (token.RawKind == syntaxKinds.UTF8StringLiteralToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
-                    }
-                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
-                    {
-                        Debug.Assert(lastVC.Span.End == token.Span.End, "Last span has to end right before the end of the string token.");
                     }
                 }
             }

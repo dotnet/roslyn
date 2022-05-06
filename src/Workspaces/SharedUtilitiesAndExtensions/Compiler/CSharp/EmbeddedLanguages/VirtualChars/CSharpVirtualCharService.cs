@@ -29,6 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+        protected override bool IsMultiLineRawStringToken(SyntaxToken token)
+        {
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+                return true;
+
+            if (token.Parent?.Parent is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken })
+                return true;
+
+            return false;
+        }
+
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
             // C# preprocessor directives can contain string literals.  However, these string literals do not behave
@@ -67,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return TryConvertSingleLineRawStringToVirtualChars(token);
 
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), isFirstChunk: true, isLastChunk: true);
+                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), hasDelimiters: true);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -90,9 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                             // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
                                 ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString,
-                                    isFirstChunk: token.Parent == interpolatedString.Contents.First(),
-                                    isLastChunk: token.Parent == interpolatedString.Contents.Last()),
+                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, hasDelimiters: false),
                         _ => default,
                     };
                 }
@@ -153,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
-            SyntaxToken token, ExpressionSyntax parentExpression, bool isFirstChunk, bool isLastChunk)
+            SyntaxToken token, ExpressionSyntax parentExpression, bool hasDelimiters)
         {
             if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return default;
@@ -167,11 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             // If we're on the very first chunk of the multi-line raw string, then we want to start on line 1 so we skip
             // the space and newline that follow the initial `"""`.
-            var startLineInclusive = isFirstChunk ? 1 : 0;
+            var startLineInclusive = hasDelimiters ? 1 : 0;
 
             // Similarly, if we're on the very last chunk of hte multi-line string, then we don't want to include the
             // line contents for the line that has the final `    """` on it.
-            var lastLineExclusive = isLastChunk ? sourceText.Lines.Count - 1 : sourceText.Lines.Count;
+            var lastLineExclusive = hasDelimiters ? sourceText.Lines.Count - 1 : sourceText.Lines.Count;
 
             for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
             {
@@ -183,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     : lineSpan.End;
 
                 // The last line of the last chunk does not include the final newline on the line.
-                var lineEnd = isLastChunk && lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
+                var lineEnd = hasDelimiters && lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
 
                 for (var i = lineStart; i < lineEnd;)
                     i += ConvertTextAtIndexToRune(sourceText, i, result, token.SpanStart);
