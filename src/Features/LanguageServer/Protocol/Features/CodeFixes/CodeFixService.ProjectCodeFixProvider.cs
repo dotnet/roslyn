@@ -14,12 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private class ProjectCodeFixProvider
             : AbstractProjectExtensionProvider<ProjectCodeFixProvider, CodeFixProvider, ExportCodeFixProviderAttribute>
         {
-            protected override bool SupportsLanguage(ExportCodeFixProviderAttribute exportAttribute, string language)
-            {
-                return exportAttribute.Languages == null
-                    || exportAttribute.Languages.Length == 0
-                    || exportAttribute.Languages.Contains(language);
-            }
+            protected override ImmutableArray<string> GetLanguages(ExportCodeFixProviderAttribute exportAttribute)
+                => exportAttribute.Languages.ToImmutableArray();
 
             protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
             {

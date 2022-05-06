@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Classification
         internal readonly ClassificationOptions Options;
         private readonly ArrayBuilder<ClassifiedSpan> _result;
 
+        public Project? Project { get; }
+
         /// <summary>
         /// The string or character token to classify.
         /// </summary>
@@ -27,12 +29,14 @@ namespace Microsoft.CodeAnalysis.Classification
         public CancellationToken CancellationToken { get; }
 
         internal EmbeddedLanguageClassificationContext(
+            Project? project,
             SemanticModel semanticModel,
             SyntaxToken syntaxToken,
             ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
+            Project = project;
             SemanticModel = semanticModel;
             SyntaxToken = syntaxToken;
             Options = options;

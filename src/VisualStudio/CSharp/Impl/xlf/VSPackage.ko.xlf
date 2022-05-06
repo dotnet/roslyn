@@ -53,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -91,7 +94,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="translated">다시 할당된 변수에 밑줄 긋기;
+        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;
 인라인 힌트 표시;
 닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
