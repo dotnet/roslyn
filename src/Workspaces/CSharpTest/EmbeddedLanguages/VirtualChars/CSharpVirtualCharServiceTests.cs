@@ -607,5 +607,319 @@ bar
             => Test(@"$""""""  
     goo
     """"""", @"['g',[12,13]]['o',[13,14]]['o',[14,15]]");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString20()
+            => Test(@"$""""""
+    goo
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString21()
+            => Test(@"$""""""
+    goo{1}
+    """"""", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString22()
+            => Test(@"$""""""
+    {1}goo
+    """"""", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString23()
+            => Test(@"$""""""
+    {1}
+    goo
+    """"""", @"['g',[10,11]]['o',[11,12]]['o',[12,13]]");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString24()
+            => Test(@"$""""""
+      goo
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString25()
+            => Test(@"$""""""
+    goo
+      {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString26()
+            => Test(@"$""""""
+      goo
+      {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString27()
+            => Test(@"$""""""
+
+    goo
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString28()
+            => Test(@"$""""""
+    
+    goo
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString29()
+            => Test(@"$""""""
+      
+    goo
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString30()
+            => Test(@"$""""""
+    goo
+
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString31()
+            => Test(@"$""""""
+    goo
+    
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString32()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString33()
+            => Test(@"$""""""
+    goo
+    {1}
+
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString34()
+            => Test(@"$""""""
+    goo
+    {1}
+    
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString35()
+            => Test(@"$""""""
+    goo
+    {1}
+      
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString36()
+            => Test(@"$""""""
+      
+    goo
+    {1}
+      
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString37()
+            => Test(@"$""""""
+      
+    goo
+      
+    {1}
+      
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString38()
+            => Test(@"$""""""  
+      
+    goo
+      
+    {1}
+      
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString39()
+            => Test(@"$""""""
+    goo{1}bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString40()
+            => Test(@"$""""""
+    goo
+    {1}bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString41()
+            => Test(@"$""""""
+    goo{1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString42()
+            => Test(@"$""""""
+    goo
+    {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString43()
+            => Test(@"$""""""
+      goo
+    {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString44()
+            => Test(@"$""""""
+    goo
+      {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString45()
+            => Test(@"$""""""
+    goo
+    {1}
+      bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString46()
+            => Test(@"$""""""
+    goo
+
+    {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString47()
+            => Test(@"$""""""
+    goo
+    
+    {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString48()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString49()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString50()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+    
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString51()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+      
+    bar
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString52()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+      
+    bar
+
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString53()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+      
+    bar
+    
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString54()
+            => Test(@"$""""""
+    goo
+      
+    {1}
+      
+    bar
+      
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString55()
+            => Test(@"$""""""
+    goo{1}bar{2}baz
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString56()
+            => Test(@"$""""""  
+    goo{1}bar{2}baz
+    """"""", @"");
+
+        [Fact]
+        public void TestMultiLineInterpolatedRawString57()
+            => Test(@"$""""""  
+    goo
+
+    {1}
+    
+      bar{2}
+        
+            baz
+    """"""", @"");
     }
 }
