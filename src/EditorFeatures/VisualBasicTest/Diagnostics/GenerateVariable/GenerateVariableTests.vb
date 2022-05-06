@@ -3118,5 +3118,30 @@ Class Test
     End Function
 End Class", index:=4)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateParameterExtensionMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Runtime.CompilerServices
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Test
+    <Extension()>
+    Private Async Function Test(ByVal cancellationToken As CancellationToken) As Task
+        Await Task.Delay([|time|])
+    End Function
+End Module",
+"Imports System.Runtime.CompilerServices
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Test
+    <Extension()>
+    Private Async Function Test(ByVal cancellationToken As CancellationToken, time As System.TimeSpan) As Task
+        Await Task.Delay(time)
+    End Function
+End Module", index:=4)
+        End Function
     End Class
 End Namespace
