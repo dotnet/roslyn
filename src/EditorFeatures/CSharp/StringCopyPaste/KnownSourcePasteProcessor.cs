@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,79 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
             {
-                var isVerbatim = literal.Token.IsVerbatimStringLiteral();
-                foreach (var content in _copyPasteData.Contents)
-                {
-                    if (content.IsText)
-                    {
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.TextValue));
-                    }
-                    else if (content.IsInterpolation)
-                    {
-                        // we're copying an interpolation from an interpolated string to a string literal. For example,
-                        // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in
-                        // the future is split the literal into `"goo" + $"{x + y}" + "bar"`, or just making the
-                        // containing literal into an interpolation itself.  However, for now, we do the simple thing
-                        // and just treat the interpolation as raw text that should just be escaped as appropriate into
-                        // the destination.
-                        builder.Append('{');
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationExpression));
-
-                        if (content.InterpolationAlignmentClause != null)
-                            builder.Append(content.InterpolationAlignmentClause);
-
-                        if (content.InterpolationFormatClause != null)
-                        {
-                            builder.Append(':');
-                            builder.Append(EscapeForNonRawStringLiteral(
-                                isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationFormatClause));
-                        }
-
-                        builder.Append('}');
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(content.Kind);
-                    }
-                }
+                AppendContentForLiteral(builder, literal);
             }
             else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
-                var isVerbatim = interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken;
-                foreach (var content in _copyPasteData.Contents)
-                {
-                    if (content.IsText)
-                    {
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.TextValue));
-                    }
-                    else if (content.IsInterpolation)
-                    {
-                        // we're moving an interpolation from one interpolation to another.  This can just be copied
-                        // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
-                        // for the destination type.
-                        builder.Append('{');
-                        builder.Append(content.InterpolationExpression);
-
-                        if (content.InterpolationAlignmentClause != null)
-                            builder.Append(content.InterpolationAlignmentClause);
-
-                        if (content.InterpolationFormatClause != null)
-                        {
-                            builder.Append(':');
-                            builder.Append(EscapeForNonRawStringLiteral(
-                                isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.InterpolationFormatClause));
-                        }
-
-                        builder.Append('}');
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(content.Kind);
-                    }
-                }
+                AppendContentForInterpolatedString(builder, interpolatedString);
             }
             else
             {
@@ -155,6 +88,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             return ImmutableArray.Create(new TextChange(_selectionBeforePaste.Span.ToTextSpan(), builder.ToString()));
+        }
+
+        private void AppendContentForLiteral(StringBuilder builder, LiteralExpressionSyntax literal)
+        {
+            var isVerbatim = literal.Token.IsVerbatimStringLiteral();
+            foreach (var content in _copyPasteData.Contents)
+            {
+                if (content.IsText)
+                {
+                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.TextValue));
+                }
+                else if (content.IsInterpolation)
+                {
+                    // we're copying an interpolation from an interpolated string to a string literal. For example,
+                    // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in
+                    // the future is split the literal into `"goo" + $"{x + y}" + "bar"`, or just making the
+                    // containing literal into an interpolation itself.  However, for now, we do the simple thing
+                    // and just treat the interpolation as raw text that should just be escaped as appropriate into
+                    // the destination.
+                    builder.Append('{');
+                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationExpression));
+
+                    if (content.InterpolationAlignmentClause != null)
+                        builder.Append(content.InterpolationAlignmentClause);
+
+                    if (content.InterpolationFormatClause != null)
+                    {
+                        builder.Append(':');
+                        builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                    }
+
+                    builder.Append('}');
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                }
+            }
+        }
+
+        private void AppendContentForInterpolatedString(StringBuilder builder, InterpolatedStringExpressionSyntax interpolatedString)
+        {
+            var isVerbatim = interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken;
+            foreach (var content in _copyPasteData.Contents)
+            {
+                if (content.IsText)
+                {
+                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.TextValue));
+                }
+                else if (content.IsInterpolation)
+                {
+                    // we're moving an interpolation from one interpolation to another.  This can just be copied
+                    // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
+                    // for the destination type.
+                    builder.Append('{');
+                    builder.Append(content.InterpolationExpression);
+
+                    if (content.InterpolationAlignmentClause != null)
+                        builder.Append(content.InterpolationAlignmentClause);
+
+                    if (content.InterpolationFormatClause != null)
+                    {
+                        builder.Append(':');
+                        builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                    }
+
+                    builder.Append('}');
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                }
+            }
         }
     }
 }
