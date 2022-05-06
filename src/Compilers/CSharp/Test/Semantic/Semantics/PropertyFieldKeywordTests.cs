@@ -144,8 +144,12 @@ public class Derived4 : Base
             if (callSemanticModel)
             {
                 var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
-                var typeInfo = model.GetTypeInfo(comp.SyntaxTrees.Single().GetRoot().DescendantNodes().First(n => n is IdentifierNameSyntax identifier && identifier.Identifier.ContextualKind() == SyntaxKind.FieldKeyword));
-                Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                var nodes = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().Where(n => n is IdentifierNameSyntax identifier && identifier.Identifier.ContextualKind() == SyntaxKind.FieldKeyword);
+                foreach (var node in nodes)
+                {
+                    var typeInfo = model.GetTypeInfo(node);
+                    Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                }
             }
 
             comp.VerifyDiagnostics(
