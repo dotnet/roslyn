@@ -186,17 +186,212 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
-        public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
+        public Task TestExtendSnippetTextChangeInMethodForwardsForCaret()
         {
             var markup =
-@"{|placeholder:test|} [|if (true)
+@"public void Method()
 {
-}|] $$";
+    [|if ({|placeholder:true|})
+    {
+    }|] $$
+}";
+
+            var expectedLSPSnippet =
+@"if (${1:true})
+    {
+    } $0";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForCaret()
+        {
+            var markup =
+@"public void Method()
+{
+    $$ [|if ({|placeholder:true|})
+    {
+    }|]
+}";
+
+            var expectedLSPSnippet =
+@"$0 if (${1:true})
+    {
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholder()
+        {
+            var markup =
+@"public void Method()
+{
+    [|if (true)
+     {$$
+     }|] {|placeholder:test|}
+}";
+
+            var expectedLSPSnippet =
+@"if (true)
+     {$0
+     } ${1:test}";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholder()
+        {
+            var markup =
+@"public void Method()
+{
+    {|placeholder:test|} [|if (true)
+    {$$
+    }|]";
 
             var expectedLSPSnippet =
 @"${1:test} if (true)
+    {$0
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodForwardsForPlaceholderThenCaret()
+        {
+            var markup =
+@"public void Method()
 {
-} $0";
+    [|if (true)
+    {
+    }|] {|placeholder:test|} $$
+}";
+
+            var expectedLSPSnippet =
+@"if (true)
+    {
+    } ${1:test} $0";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodForwardsForCaretThenPlaceholder()
+        {
+            var markup =
+@"public void Method()
+{
+    [|if (true)
+    {
+    }|] $$ {|placeholder:test|}
+}";
+
+            var expectedLSPSnippet =
+@"if (true)
+    {
+    } $0 ${1:test}";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderThenCaret()
+        {
+            var markup =
+@"public void Method()
+{
+    {|placeholder:test|} $$ [|if (true)
+    {
+    }|]
+}";
+
+            var expectedLSPSnippet =
+@"${1:test} $0 if (true)
+    {
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretThenPlaceholder()
+        {
+            var markup =
+@"public void Method()
+{
+    $$ {|placeholder:test|} [|if (true)
+    {
+    }|]
+}";
+
+            var expectedLSPSnippet =
+@"$0 ${1:test} if (true)
+    {
+    }";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForCaretForwardsForPlaceholder()
+        {
+            var markup =
+@"public void Method()
+{
+    $$ [|if (true)
+    {
+    }|] {|placeholder:test|}
+}";
+
+            var expectedLSPSnippet =
+@"$0 if (true)
+    {
+    } ${1:test}";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
+        {
+            var markup =
+@"public void Method()
+{
+    {|placeholder:test|} [|if (true)
+    {
+    }|] $$
+}";
+
+            var expectedLSPSnippet =
+@"${1:test} if (true)
+    {
+    } $0";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodWithCodeBeforeAndAfterBackwardsForPlaceholderForwardsForCaret()
+        {
+            var markup =
+@"public void Method()
+{
+    var x = 5;
+    {|placeholder:test|} [|if (true)
+    {
+    }|] $$
+    
+    x = 3;
+}";
+
+            var expectedLSPSnippet =
+@"${1:test} if (true)
+    {
+    } $0";
 
             return TestAsync(markup, expectedLSPSnippet);
         }
