@@ -30,17 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
             {
                 var dataObject = Clipboard.GetDataObject();
 
-                var storedFormat = GetFormat(key);
-                var copy = new DataObject(storedFormat, data);
+                var copy = new DataObject();
 
                 foreach (var format in dataObject.GetFormats())
                 {
-                    if (format == storedFormat)
-                        continue;
-
                     if (dataObject.GetDataPresent(format))
                         copy.SetData(format, dataObject.GetData(format));
                 }
+
+                copy.SetData(GetFormat(key), data);
 
                 Clipboard.SetDataObject(copy);
                 return true;
