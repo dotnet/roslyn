@@ -75,6 +75,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 : GetEditsForNonRawString();
         }
 
+        private string EscapeForNonRawStringLiteral(string value)
+            => EscapeForNonRawStringLiteral_DoNotCallDirectly(
+                IsVerbatimStringExpression(StringExpressionBeforePaste),
+                StringExpressionBeforePaste is InterpolatedStringExpressionSyntax,
+                // We do not want to try skipping escapes in the 'value'.  We don't know where it came from, and if it
+                // had some escapes in it, it's probably a good idea to remove to keep the final pasted text clean.
+                trySkipExistingEscapes: true,
+                value);
+
         private bool ShouldAlwaysEscapeTextForNonRawString()
         {
             // Pasting a control character into a normal string literal is normally not desired.  So even if this
@@ -84,9 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
-            var isVerbatim = IsVerbatimStringExpression(StringExpressionBeforePaste);
-            var isInterpolated = StringExpressionBeforePaste is InterpolatedStringExpressionSyntax;
-
             using var textChanges = TemporaryArray<TextChange>.Empty;
 
             foreach (var change in Changes)
@@ -95,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // instead of escaping it one more time upon paste.
                 textChanges.Add(new TextChange(
                     change.OldSpan.ToTextSpan(),
-                    EscapeForNonRawStringLiteral(isVerbatim, isInterpolated, trySkipExistingEscapes: true, change.NewText)));
+                    EscapeForNonRawStringLiteral(change.NewText)));
             }
 
             return textChanges.ToImmutableAndClear();

@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        public static string EscapeForNonRawStringLiteral(bool isVerbatim, bool isInterpolated, bool trySkipExistingEscapes, string value)
+        public static string EscapeForNonRawStringLiteral_DoNotCallDirectly(bool isVerbatim, bool isInterpolated, bool trySkipExistingEscapes, string value)
         {
             if (isVerbatim)
                 return EscapeForNonRawVerbatimStringLiteral(isInterpolated, trySkipExistingEscapes, value);

@@ -70,17 +70,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return GetEditsForNonRawString();
         }
 
+        private string EscapeForNonRawStringLiteral(string value)
+            => EscapeForNonRawStringLiteral_DoNotCallDirectly(
+                IsVerbatimStringExpression(StringExpressionBeforePaste),
+                StringExpressionBeforePaste is InterpolatedStringExpressionSyntax,
+                // We do not want to try skipping escapes in the 'value'.  We know exactly what 'value' means and don't
+                // want it touched.
+                trySkipExistingEscapes: false,
+                value);
+
         private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
             {
-                AppendContentForLiteral(builder, literal);
+                AppendContentForLiteral(builder);
             }
             else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
-                AppendContentForInterpolatedString(builder, interpolatedString);
+                AppendContentForInterpolatedString(builder);
             }
             else
             {
@@ -90,14 +99,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return ImmutableArray.Create(new TextChange(_selectionBeforePaste.Span.ToTextSpan(), builder.ToString()));
         }
 
-        private void AppendContentForLiteral(StringBuilder builder, LiteralExpressionSyntax literal)
+        private void AppendContentForLiteral(StringBuilder builder)
         {
-            var isVerbatim = literal.Token.IsVerbatimStringLiteral();
             foreach (var content in _copyPasteData.Contents)
             {
                 if (content.IsText)
                 {
-                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.TextValue));
+                    builder.Append(EscapeForNonRawStringLiteral(content.TextValue));
                 }
                 else if (content.IsInterpolation)
                 {
@@ -108,13 +116,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // and just treat the interpolation as raw text that should just be escaped as appropriate into
                     // the destination.
                     builder.Append('{');
-                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationExpression));
+                    builder.Append(EscapeForNonRawStringLiteral(content.InterpolationExpression));
 
                     builder.Append(content.InterpolationAlignmentClause);
                     if (content.InterpolationFormatClause != null)
                     {
                         builder.Append(':');
-                        builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationFormatClause));
                     }
 
                     builder.Append('}');
@@ -126,14 +134,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private void AppendContentForInterpolatedString(StringBuilder builder, InterpolatedStringExpressionSyntax interpolatedString)
+        private void AppendContentForInterpolatedString(StringBuilder builder)
         {
-            var isVerbatim = interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken;
             foreach (var content in _copyPasteData.Contents)
             {
                 if (content.IsText)
                 {
-                    builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.TextValue));
+                    builder.Append(EscapeForNonRawStringLiteral(content.TextValue));
                 }
                 else if (content.IsInterpolation)
                 {
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     if (content.InterpolationFormatClause != null)
                     {
                         builder.Append(':');
-                        builder.Append(EscapeForNonRawStringLiteral(isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationFormatClause));
                     }
 
                     builder.Append('}');

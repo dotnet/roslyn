@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return default;
 
             var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
-            var stringData = TryGetStringCopyPasteData(virtualCharService, stringExpression, span.Span.ToTextSpan());
+            var stringData = StringCopyPasteData.TryCreate(virtualCharService, stringExpression, span.Span.ToTextSpan());
 
             return (stringData?.ToJson(), copyPasteService);
         }
