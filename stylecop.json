@@ -10,6 +10,9 @@
       },
       "fileNamingConvention": "metadata",
       "xmlHeader": false
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace"
     }
   }
 }
