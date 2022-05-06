@@ -84,6 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly string NewLine;
 
+        /// <summary>
+        /// Users preferred indentation options.  Used when dealing with raw strings that we have to convert from
+        /// single-line to multiline.
+        /// </summary>
         protected readonly IndentationOptions IndentationOptions;
 
         /// <summary>
