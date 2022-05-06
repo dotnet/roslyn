@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly ExpressionSyntax StringExpressionBeforePaste;
 
+        /// <summary>
+        /// Information about the relevant pieces of <see cref="StringExpressionBeforePaste"/> (like where its
+        /// delimiters are).
+        /// </summary>
         protected readonly StringInfo StringExpressionBeforePasteInfo;
 
         /// <summary>
