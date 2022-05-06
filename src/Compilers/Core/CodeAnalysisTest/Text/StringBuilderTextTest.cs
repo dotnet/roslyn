@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             assertWriteEquals(6, 6, "chunk2");
             assertWriteEquals(7, 0, "");
 
+            using (var textWriter = new StringWriter())
+                Assert.Throws<ArgumentOutOfRangeException>("span", () => text.Write(textWriter, new TextSpan(0, text.Length + 1)));
+
             void assertWriteEquals(int start, int length, string expected)
             {
                 using var textWriter = new StringWriter();

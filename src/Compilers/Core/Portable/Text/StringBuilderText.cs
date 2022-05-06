@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default)
         {
+            CheckSubSpan(span);
+
 #if NETCOREAPP
             if (span.Start == 0 && span.Length == this.Length)
             {

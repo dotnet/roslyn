@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
+            CheckSubSpan(span);
+
             if (span.Start == 0 && span.End == this.Length)
             {
                 // Even on .NET Core, prefer the string overload, because in case the writer is a custom TextWriter that doesn't

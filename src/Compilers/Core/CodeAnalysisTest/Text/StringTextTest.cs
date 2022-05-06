@@ -290,6 +290,9 @@ bar baz";
             assertWriteEquals(2, 1, "x");
             assertWriteEquals(1, 0, "");
 
+            using (var textWriter = new StringWriter())
+                Assert.Throws<ArgumentOutOfRangeException>("span", () => text.Write(textWriter, new TextSpan(0, text.Length + 1)));
+
             void assertWriteEquals(int start, int length, string expected)
             {
                 using var textWriter = new StringWriter();
