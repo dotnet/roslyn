@@ -57,51 +57,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             Debug.Assert(!token.ContainsDiagnostics);
 
-            if (token.Kind() == SyntaxKind.StringLiteralToken)
+            switch (token.Kind())
             {
-                return token.IsVerbatimStringLiteral()
-                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
-                    : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
-            }
+                case SyntaxKind.CharacterLiteralToken:
+                    return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.UTF8StringLiteralToken)
-            {
-                return token.IsVerbatimStringLiteral()
-                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
-                    : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
-            }
+                case SyntaxKind.StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
-                return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
+                case SyntaxKind.UTF8StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
-                return TryConvertSingleLineRawStringToVirtualChars(token);
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                    return TryConvertSingleLineRawStringToVirtualChars(token);
 
-            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                return TryConvertMultiLineRawStringToVirtualChars(token, (LiteralExpressionSyntax)token.GetRequiredParent(), tokenIncludeDelimiters: true);
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                    return TryConvertMultiLineRawStringToVirtualChars(token, (LiteralExpressionSyntax)token.GetRequiredParent(), tokenIncludeDelimiters: true);
 
-            if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
-            {
-                var parent = token.GetRequiredParent();
-                var isFormatClause = parent is InterpolationFormatClauseSyntax;
-                if (isFormatClause)
-                    parent = parent.GetRequiredParent();
-
-                if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
-                {
-                    return interpolatedString.StringStartToken.Kind() switch
+                case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        SyntaxKind.InterpolatedStringStartToken => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedVerbatimStringStartToken => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedSingleLineRawStringStartToken => TryConvertSingleLineRawStringToVirtualChars(token),
-                        SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            // Format clauses must be single line, even when in a multi-line interpolation.
-                            => isFormatClause
-                                ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, tokenIncludeDelimiters: false),
-                        _ => default,
-                    };
-                }
+                        var parent = token.GetRequiredParent();
+                        var isFormatClause = parent is InterpolationFormatClauseSyntax;
+                        if (isFormatClause)
+                            parent = parent.GetRequiredParent();
+
+                        var interpolatedString = (InterpolatedStringExpressionSyntax)parent.GetRequiredParent();
+
+                        return interpolatedString.StringStartToken.Kind() switch
+                        {
+                            SyntaxKind.InterpolatedStringStartToken => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedVerbatimStringStartToken => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedSingleLineRawStringStartToken => TryConvertSingleLineRawStringToVirtualChars(token),
+                            SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                                // Format clauses must be single line, even when in a multi-line interpolation.
+                                => isFormatClause
+                                    ? TryConvertSingleLineRawStringToVirtualChars(token)
+                                    : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, tokenIncludeDelimiters: false),
+                            _ => default,
+                        };
+                    }
             }
 
             return default;
