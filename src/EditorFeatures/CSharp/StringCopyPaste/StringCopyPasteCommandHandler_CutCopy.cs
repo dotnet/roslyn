@@ -125,6 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (firstOverlappingChar is null || lastOverlappingChar is null)
                 return false;
 
+            // Don't allow partial selection of an escaped character.  e.g. if they select 'n' in '\n'
+            if (span.Start > firstOverlappingChar.Value.Span.Start)
+                return false;
+
+            if (span.End < lastOverlappingChar.Value.Span.End)
+                return false;
+
             var firstCharIndexInclusive = virtualChars.IndexOf(firstOverlappingChar.Value);
             var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
 
