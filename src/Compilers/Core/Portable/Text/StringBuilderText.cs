@@ -96,40 +96,40 @@ namespace Microsoft.CodeAnalysis.Text
         {
             CheckSubSpan(span);
 
+            if (span.Length == 0)
+                return;
+
 #if NETCOREAPP
             if (span.Start == 0 && span.Length == this.Length)
             {
-                textWriter.Write(_builder);
+                textWriter.Write(this.Builder);
+                return;
             }
-            else
+
+            // Index of the start of the current chunk in the text.
+            int chunkOffset = 0;
+
+            foreach (var chunk in this.Builder.GetChunks())
             {
-                if (span.Length == 0)
-                    return;
-
-                int chunkOffset = 0;
-
-                foreach (var chunk in _builder.GetChunks())
+                var startIndexFromChunk = span.Start - chunkOffset;
+                if (startIndexFromChunk < chunk.Length)
                 {
-                    var startFromChunk = span.Start - chunkOffset;
-                    if (startFromChunk < chunk.Length)
-                    {
-                        var endFromChunk = span.End - chunkOffset;
+                    var endIndexFromChunk = span.End - chunkOffset;
 
-                        var startIndex = Math.Max(startFromChunk, 0);
-                        var endIndex = Math.Min(endFromChunk, chunk.Length);
+                    var startIndex = Math.Max(startIndexFromChunk, 0);
+                    var endIndex = Math.Min(endIndexFromChunk, chunk.Length);
 
-                        textWriter.Write(chunk.Span.Slice(startIndex, endIndex - startIndex));
+                    textWriter.Write(chunk.Span[startIndex..endIndex]);
 
-                        if (endFromChunk <= chunk.Length)
-                            break;
-                    }
-
-                    chunkOffset += chunk.Length;
+                    if (endIndexFromChunk <= chunk.Length)
+                        break;
                 }
+
+                chunkOffset += chunk.Length;
             }
 #else
-            // On .NET Framework, passing StringBuilder to TextWriter.Write might seem to work, but it has no StringBuilder overload,
-            // so it would call the object one, which slower than the base implementation.
+            // On .NET Framework, passing a StringBuilder to TextWriter.Write might seem to work, but it has no StringBuilder
+            // overload, so it would call the object one, which would be slower than the base implementation.
             base.Write(textWriter, span, cancellationToken);
 #endif
         }

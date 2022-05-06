@@ -92,20 +92,22 @@ namespace Microsoft.CodeAnalysis.Text
         {
             CheckSubSpan(span);
 
+            if (span.Length == 0)
+                return;
+
             if (span.Start == 0 && span.End == this.Length)
             {
-                // Even on .NET Core, prefer the string overload, because in case the writer is a custom TextWriter that doesn't
-                // override the ReadOnlySpan<char> overload, it delegates to the array one under the hood.
-                textWriter.Write(_source);
+                // Even on .NET Core, prefer the string overload of Write, because in case the writer is a custom TextWriter that
+                // doesn't override the ReadOnlySpan<char> overload, it delegates to the array one under the hood.
+                textWriter.Write(this.Source);
+                return;
             }
-            else
-            {
+
 #if NETCOREAPP
-                textWriter.Write(_source.AsSpan(span.Start, span.Length));
+            textWriter.Write(this.Source.AsSpan(span.Start, span.Length));
 #else
-                base.Write(textWriter, span, cancellationToken);
+            base.Write(textWriter, span, cancellationToken);
 #endif
-            }
         }
     }
 }
