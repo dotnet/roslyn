@@ -20,6 +20,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
+    /// <summary>
+    /// Data about a string that a user has copied a subsection of. This will itself be placed on the clipboard so that
+    /// it can be retrieved later on if the user pastes.
+    /// </summary>
     internal class StringCopyPasteData
     {
         public ImmutableArray<StringCopyPasteContent> Contents { get; }
