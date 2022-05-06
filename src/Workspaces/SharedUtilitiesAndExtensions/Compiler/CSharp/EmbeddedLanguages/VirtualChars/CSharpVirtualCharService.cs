@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return TryConvertSingleLineRawStringToVirtualChars(token);
 
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), hasDelimiters: true, isFirstChunk: true);
+                return TryConvertMultiLineRawStringToVirtualChars(token);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -101,9 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                             // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
                                 ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(
-                                    token, interpolatedString, hasDelimiters: false,
-                                    isFirstChunk: interpolatedString.Contents.First() == parent),
+                                : TryConvertMultiLineRawStringToVirtualChars(token),
                         _ => default,
                     };
                 }
@@ -163,30 +161,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
-        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
-            SyntaxToken token, ExpressionSyntax parentExpression, bool hasDelimiters, bool isFirstChunk)
+        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(SyntaxToken token)
         {
+            // The containing expression for this token.  This is needed so that we can determine the indentation
+            // whitespace based on the last line of the containing multiline literal.
+            ExpressionSyntax parentExpression = token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken
+                ? (LiteralExpressionSyntax)token.GetRequiredParent()
+                : (InterpolatedStringExpressionSyntax)token.GetRequiredParent().GetRequiredParent();
+
+            // Whether or not the token contains the delimiters, or if the parent owns them.  This will affect if we
+            // need to skip looking at the start/end line of the token.
+            var hasDelimiters = parentExpression is LiteralExpressionSyntax;
+
+            // if this is the first text content chunk of the multi-line literal.  The first chunk contains the leading
+            // indentation of the line it's on (which thus must be trimmed), while all subsequent chunks do not (because
+            // they start right after some `{...}` interpolation
+            var isFirstChunk =
+                parentExpression is LiteralExpressionSyntax ||
+                (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+
             if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return default;
 
-            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-
+            // Use the parent multi-line expression to determine what whitespace to remove from the start of each line.
             var parentSourceText = parentExpression.SyntaxTree.GetText();
             var indentationLength = parentSourceText.Lines.GetLineFromPosition(parentExpression.Span.End).GetFirstNonWhitespaceOffset() ?? 0;
 
-            var sourceText = SourceText.From(token.Text);
+            // Create a source-text view over the token.  This makes it very easy to treat the token as a set of lines
+            // that can be processed sensibly.
+            var tokenSourceText = SourceText.From(token.Text);
 
-            // If we're on the very first chunk of the multi-line raw string, then we want to start on line 1 so we skip
-            // the space and newline that follow the initial `"""`.
+            // If we're on the very first chunk of the multi-line raw string literal, then we want to start on line 1 so
+            // we skip the space and newline that follow the initial `"""`.
             var startLineInclusive = hasDelimiters ? 1 : 0;
 
-            // Similarly, if we're on the very last chunk of hte multi-line string, then we don't want to include the
-            // line contents for the line that has the final `    """` on it.
-            var lastLineExclusive = hasDelimiters ? sourceText.Lines.Count - 1 : sourceText.Lines.Count;
+            // Similarly, if we're on the very last chunk of hte multi-line raw string literal, then we don't want to
+            // include the line contents for the line that has the final `    """` on it.
+            var lastLineExclusive = hasDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
 
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
             for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
             {
-                var currentLine = sourceText.Lines[lineNumber];
+                var currentLine = tokenSourceText.Lines[lineNumber];
                 var lineSpan = currentLine.Span;
                 var lineStart = lineSpan.Start;
 
@@ -200,10 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 // The last line of the last chunk does not include the final newline on the line.
-                var lineEnd = hasDelimiters && lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
+                var lineEnd = lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
 
+                // Now that we've found the start and end portions of that line, convert all the characters within to
+                // virtual chars and return.
                 for (var i = lineStart; i < lineEnd;)
-                    i += ConvertTextAtIndexToRune(sourceText, i, result, token.SpanStart);
+                    i += ConvertTextAtIndexToRune(tokenSourceText, i, result, token.SpanStart);
             }
 
             return VirtualCharSequence.Create(result.ToImmutable());
