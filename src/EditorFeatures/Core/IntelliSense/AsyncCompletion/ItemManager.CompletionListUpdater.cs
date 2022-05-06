@@ -729,7 +729,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     for (var i = 0; i < inferiorItemIndex; ++i)
                     {
                         if (items[i].RoslynCompletionItem.DisplayText == defaultText)
-                            return intialSelection with { SelectedItemIndex = i };
+                        {
+                            // If user hasn't typed anything, we'd like to hard select the default item.
+                            // This way, they can easily commit the default item which matches what WLC shows.
+                            var selectionHint = _filterText.Length == 0 ? UpdateSelectionHint.Selected : intialSelection.SelectionHint;
+                            return intialSelection with { SelectedItemIndex = i, SelectionHint = selectionHint };
+                        }
                     }
                 }
 
