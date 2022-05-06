@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
                 ++index;
             }
 
-            Assert.Equal(2, index);
+            Assert.Equal(3, index);
 #endif
 
             var text = new StringBuilderText(stringBuilder, encodingOpt: null, SourceHashAlgorithm.Sha1);
