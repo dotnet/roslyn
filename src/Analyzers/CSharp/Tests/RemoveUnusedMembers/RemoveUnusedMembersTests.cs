@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1482,16 +1483,17 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsIncrementedAndValueDropped()
         {
             var code = @"class MyClass
 {
-    private int {|IDE0052:P|} { get; set; }
+    private int P { get; set; }
     public void M1() { ++P; }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(code, code);
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1506,16 +1508,17 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncrementedAndValueDropped()
         {
             var code = @"class MyClass
 {
-    private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
+    private int this[int x] { get { return 0; } set { } }
     public void M1(int x) => ++this[x];
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(code, code);
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1578,16 +1581,17 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped()
         {
             var code = @"class MyClass
 {
-    private int {|IDE0052:P|} { get; set; }
+    private int P { get; set; }
     public void M1(int x) { P += x; }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(code, code);
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1602,16 +1606,17 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped()
         {
             var code = @"class MyClass
 {
-    private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
+    private int this[int x] { get { return 0; } set { } }
     public void M1(int x, int y) => this[x] += y;
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(code, code);
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]

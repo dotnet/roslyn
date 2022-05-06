@@ -297,8 +297,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that the increment operation '_f1++' is child of an expression statement, which drops the result of the increment.
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
+                        //
+                        // This behaviour should not apply to properties because otherwise analyzer will report 'get' accessor as unused, which is not true.
+                        // See https://github.com/dotnet/roslyn/issues/43191.
 
-                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
+                        if (memberReference.Parent.Parent is IExpressionStatementOperation &&
+                            memberSymbol is not IPropertySymbol)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
                         }
