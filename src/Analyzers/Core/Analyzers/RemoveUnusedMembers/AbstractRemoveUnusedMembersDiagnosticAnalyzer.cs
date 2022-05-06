@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
+            private readonly List<IPropertySymbol> _propertiesWithShadowGetAccessorUsages;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
@@ -82,7 +83,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _analyzer = analyzer;
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
-                _symbolValueUsageStateMap = new Dictionary<ISymbol, ValueUsageInfo>();
+                _symbolValueUsageStateMap = new();
+                // List of properies, which has a 'get' accessor usage, while the property itself is not used.
+                _propertiesWithShadowGetAccessorUsages = new();
 
                 _taskType = compilation.TaskType();
                 _genericTaskType = compilation.TaskOfTType();
@@ -297,14 +300,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that the increment operation '_f1++' is child of an expression statement, which drops the result of the increment.
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
-                        //
-                        // This behaviour should not apply to properties because otherwise analyzer will report 'get' accessor as unused, which is not true.
-                        // See https://github.com/dotnet/roslyn/issues/43191.
 
-                        if (memberReference.Parent.Parent is IExpressionStatementOperation &&
-                            memberSymbol is not IPropertySymbol)
+                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
+
+                            // If the symbol is a property, than mark it as having shadow 'get' accessor usages.
+                            // Later we will produce message "Private member X can be removed as the value assigned to it is never read"
+                            // rather than "Private property X can be converted to a method as its get accessor is never invoked" depending on this information.
+                            if (memberSymbol is IPropertySymbol propertySymbol)
+                            {
+                                lock (_gate)
+                                {
+                                    _propertiesWithShadowGetAccessorUsages.Add(propertySymbol);
+                                }
+                            }
                         }
                     }
 
@@ -475,7 +485,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return;
             }
 
-            private static LocalizableString GetMessage(
+            private LocalizableString GetMessage(
                DiagnosticDescriptor rule,
                ISymbol member)
             {
@@ -490,7 +500,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             break;
 
                         case IPropertySymbol property:
-                            if (property.GetMethod != null && property.SetMethod != null)
+                            if (property.GetMethod != null && property.SetMethod != null &&
+                                // We change the message only if there are no shadow 'get' accessor usages.
+                                // Otherwise the message will be confusing
+                                !_propertiesWithShadowGetAccessorUsages.Contains(property))
                             {
                                 messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
                             }
