@@ -4,7 +4,7 @@ parameters:
 steps:
 
 - task: NuGetAuthenticate@0
-  displayName: Authenticate NuGet feeds
+  displayName: 🔏 Authenticate NuGet feeds
   inputs:
     forceReinstallCredentialProvider: true
 
@@ -17,9 +17,9 @@ steps:
     if (Get-Command mono -ErrorAction SilentlyContinue) {
       mono --version
     }
-  displayName: Install prerequisites
+  displayName: ⚙ Install prerequisites
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
-  displayName: Set pipeline variables based on source
+  displayName: ⚙ Set pipeline variables based on source
   name: SetPipelineVariables

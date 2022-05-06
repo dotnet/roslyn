@@ -4,15 +4,15 @@ parameters:
 steps:
 - download: current
   artifact: coverageResults-Windows
-  displayName: Download Windows code coverage results
+  displayName: 🔻 Download Windows code coverage results
   continueOnError: true
 - download: current
   artifact: coverageResults-Linux
-  displayName: Download Linux code coverage results
+  displayName: 🔻 Download Linux code coverage results
   continueOnError: true
 - download: current
   artifact: coverageResults-macOS
-  displayName: Download macOS code coverage results
+  displayName: 🔻 Download macOS code coverage results
   continueOnError: true
   condition: ${{ parameters.includeMacOS }}
 - powershell: |
@@ -26,9 +26,9 @@ steps:
     }
     $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_ }))
     obj/reportgenerator -reports:"$Inputs" -targetdir:coveragereport -reporttypes:Cobertura
-  displayName: Merge coverage
+  displayName: ⚙ Merge coverage
 - task: PublishCodeCoverageResults@1
-  displayName: Publish code coverage results to Azure DevOps
+  displayName: 📢 Publish code coverage results to Azure DevOps
   inputs:
     codeCoverageTool: cobertura
     summaryFileLocation: 'coveragereport/Cobertura.xml'

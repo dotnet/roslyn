@@ -6,19 +6,19 @@ steps:
   inputs:
     artifact: symbols-Windows
     path: $(Pipeline.Workspace)/symbols/Windows
-  displayName: Download Windows symbols
+  displayName: 🔻 Download Windows symbols
   continueOnError: true
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: symbols-Linux
     path: $(Pipeline.Workspace)/symbols/Linux
-  displayName: Download Linux symbols
+  displayName: 🔻 Download Linux symbols
   continueOnError: true
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: symbols-macOS
     path: $(Pipeline.Workspace)/symbols/macOS
-  displayName: Download macOS symbols
+  displayName: 🔻 Download macOS symbols
   continueOnError: true
   condition: ${{ parameters.includeMacOS }}
 
@@ -26,19 +26,19 @@ steps:
   inputs:
     artifact: test_symbols-Windows
     path: $(Pipeline.Workspace)/test_symbols/Windows
-  displayName: Download Windows test symbols
+  displayName: 🔻 Download Windows test symbols
   continueOnError: true
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: test_symbols-Linux
     path: $(Pipeline.Workspace)/test_symbols/Linux
-  displayName: Download Linux test symbols
+  displayName: 🔻 Download Linux test symbols
   continueOnError: true
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: test_symbols-macOS
     path: $(Pipeline.Workspace)/test_symbols/macOS
-  displayName: Download macOS test symbols
+  displayName: 🔻 Download macOS test symbols
   continueOnError: true
   condition: ${{ parameters.includeMacOS }}
 
@@ -48,7 +48,7 @@ steps:
     SearchPattern: '**/*.pdb'
     IndexSources: false
     SymbolServerType: TeamServices
-  displayName: Publish symbols
+  displayName: 📢 Publish symbols
 
 - task: PublishSymbols@2
   inputs:
@@ -56,4 +56,4 @@ steps:
     SearchPattern: '**/*.pdb'
     IndexSources: false
     SymbolServerType: TeamServices
-  displayName: Publish test symbols
+  displayName: 📢 Publish test symbols

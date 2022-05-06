@@ -25,18 +25,18 @@ jobs:
       } else {
         Write-Host "##vso[task.setvariable variable=IsPrerelease]false"
       }
-    displayName: Set up pipeline
+    displayName: ⚙ Set up pipeline
   - task: UseDotNet@2
-    displayName: Install .NET SDK
+    displayName: ⚙ Install .NET SDK
     inputs:
       packageType: sdk
       version: 6.x
   - download: CI
     artifact: deployables-Windows
-    displayName: Download deployables-Windows artifact
+    displayName: 🔻 Download deployables-Windows artifact
     patterns: 'deployables-Windows/*'
   - task: GitHubRelease@1
-    displayName: GitHub release (create)
+    displayName: 📢 GitHub release (create)
     inputs:
       gitHubConnection: # TODO: fill in service connection here
       repositoryName: $(Build.Repository.Name)
@@ -55,5 +55,5 @@ jobs:
           { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
         ]
   - script: dotnet nuget push $(Pipeline.Workspace)/CI/deployables-Windows/*.nupkg -s https://api.nuget.org/v3/index.json --api-key $(NuGetOrgApiKey) --skip-duplicate
-    displayName: Push packages to nuget.org
+    displayName: 📦 Push packages to nuget.org
     condition: and(succeeded(), ne(variables['NuGetOrgApiKey'], ''))
