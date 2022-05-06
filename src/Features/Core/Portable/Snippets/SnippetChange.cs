@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             if (textChanges.IsEmpty)
             {
-                throw new ArgumentException($"textChanges must not be empty");
+                throw new ArgumentException($"{nameof(textChanges)} must not be empty");
             }
 
             TextChanges = textChanges;

@@ -74,11 +74,26 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
         }
 
+        /// <summary>
+        /// Tries to get the location after the open parentheses in the argument list.
+        /// If it can't, then we default to the end of the snippet's span.
+        /// </summary>
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            var openParenToken = GetOpenParenToken(caretTarget, syntaxFacts);
-            Contract.ThrowIfNull(openParenToken);
-            return openParenToken.Value.Span.End;
+            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
+            if (invocationExpression is null)
+            {
+                return caretTarget.Span.End;
+            }
+
+            var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
+            if (argumentListNode is null)
+            {
+                return caretTarget.Span.End;
+            }
+
+            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
+            return openParenToken.Span.End;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,

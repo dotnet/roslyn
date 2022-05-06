@@ -185,6 +185,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public Task TestExtendSnippetTextChangeInMethodBackwardsForPlaceholderForwardsForCaret()
+        {
+            var markup =
+@"{|placeholder:test|} [|if (true)
+{
+}|] $$";
+
+            var expectedLSPSnippet =
+@"${1:test} if (true)
+{
+} $0";
+
+            return TestAsync(markup, expectedLSPSnippet);
+        }
+
         #endregion
 
         #region LSP Snippet generation tests
@@ -217,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             var textChange = new TextChange(new TextSpan(stringSpan.Start, 0), text.Substring(stringSpan.Start, stringSpan.Length));
             var placeholders = GetSnippetPlaceholders(text, placeholderDictionary);
             using var workspace = CreateWorkspaceFromCode(markup);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document!, cursorPosition!.Value, placeholders, textChange, CancellationToken.None).ConfigureAwait(false);
+            var lspSnippetString = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, cursorPosition!.Value, placeholders, textChange, CancellationToken.None).ConfigureAwait(false);
             AssertEx.EqualOrDiff(output, lspSnippetString);
         }
 
@@ -237,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
                 }
             }
 
-            return arrayBuilder.AsImmutable();
+            return arrayBuilder.ToImmutable();
         }
     }
 }

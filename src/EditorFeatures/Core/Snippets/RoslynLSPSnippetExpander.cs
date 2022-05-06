@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
         }
 
-        public bool TryExpand(TextSpan textSpan, string lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
+        public void TryExpand(TextSpan textSpan, string lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
         {
             Contract.ThrowIfFalse(CanExpandSnippet());
 
@@ -63,13 +63,9 @@ namespace Microsoft.CodeAnalysis.Snippets
                 {
                     throw new Exception("The invoked LSP snippet expander came back as false.");
                 }
-
-                return true;
             }
-            catch (Exception e)
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
-                FatalError.ReportAndCatch(e);
-                return false;
             }
         }
 

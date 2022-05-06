@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             var textChangeText = textChange.NewText;
             Contract.ThrowIfNull(textChangeText);
 
-            using var _ = PooledStringBuilder.GetInstance(out var lspSnippetString);
-            using var disposer = PooledDictionary<int, (string identifier, int priority)>.GetInstance(out var dictionary);
-            GetMapOfSpanStartsToLSPStringItem(ref dictionary, placeholders, textChangeStart);
+            using var _1 = PooledStringBuilder.GetInstance(out var lspSnippetString);
+            using var _2 = PooledDictionary<int, (string identifier, int priority)>.GetInstance(out var dictionary);
+            PopulateMapOfSpanStartsToLSPStringItem(dictionary, placeholders, textChangeStart);
 
             // Need to go through the length + 1 since caret postions occur before and after the
             // character position.
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Preprocesses the list of placeholders into a dictionary that maps the insertion position
         /// in the string to the placeholder's identifier and the priority associated with it.
         /// </summary>
-        private static void GetMapOfSpanStartsToLSPStringItem(ref PooledDictionary<int, (string identifier, int priority)> dictionary, ImmutableArray<SnippetPlaceholder> placeholders, int textChangeStart)
+        private static void PopulateMapOfSpanStartsToLSPStringItem(Dictionary<int, (string identifier, int priority)> dictionary, ImmutableArray<SnippetPlaceholder> placeholders, int textChangeStart)
         {
             for (var i = 0; i < placeholders.Length; i++)
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 startPosition = Math.Min(startPosition, placeholders.Min(placeholder => placeholder.PlaceHolderPositions.Min()));
                 endPosition = Math.Max(endPosition, placeholders.Max(placeholder => placeholder.PlaceHolderPositions.Max()));
             }
-                
+
             startPosition = Math.Min(startPosition, caretPosition);
             endPosition = Math.Max(endPosition, caretPosition);
 

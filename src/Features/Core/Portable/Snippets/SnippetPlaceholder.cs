@@ -24,11 +24,14 @@ namespace Microsoft.CodeAnalysis.Snippets
         public readonly ImmutableArray<int> PlaceHolderPositions;
 
         /// <summary>
-        /// Example:
+        /// <example> 
         /// For loop would have two placeholders:
-        /// for (var {1:i} = 0; {1:i} &lt; {2:length}; {i}++)
-        /// Identifier: i, 3 associated  positions 
-        /// IdentifierL length, 1 associated position
+        /// <code>
+        ///     for (var {1:i} = 0; {1:i} &lt; {2:length}; {1:i}++)
+        /// </code>
+        /// Identifier: i, 3 associated positions <br/>
+        /// Identifier: length, 1 associated position <br/>
+        /// </example>
         /// </summary>
         public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
         {
