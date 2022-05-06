@@ -225,33 +225,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         // Keep moving the insertion position for the generated parameter backwards
                         // until we get to a parameter that does not need to be at the end of the
                         // parameter list.
-                        if (parameter.HasExplicitDefaultValue)
+                        if (parameter.HasExplicitDefaultValue ||
+                           parameter.IsParams ||
+                           parameter.RefKind is RefKind.Out ||
+                           Equals(parameter.Type, cancellationTokenType))
                         {
-                            parameterIndex--;
+                            parameterIndex = i;
+                            continue;
                         }
-                        else if (parameter.IsParams)
-                        {
-                            parameterIndex--;
-                        }
-                        else if (parameter.RefKind is RefKind.Out)
-                        {
-                            parameterIndex--;
-                        }
-                        else if (Equals(parameter.Type, cancellationTokenType))
-                        {
-                            parameterIndex--;
-                        }
-                        else
-                        {
-                            break;
-                        }
+
+                        break;
                     }
 
                     // If we are in an extension method, then we want to make sure to insert after
                     // the first parameter.
                     if (containingMethod.IsExtensionMethod && parameterIndex == 0)
                     {
-                        parameterIndex++;
+                        parameterIndex = 1;
                     }
                 }
 
