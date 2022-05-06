@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return TryConvertSingleLineRawStringToVirtualChars(token);
 
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), hasDelimiters: true);
+                return TryConvertMultiLineRawStringToVirtualChars(token, (ExpressionSyntax)token.GetRequiredParent(), hasDelimiters: true, isFirstChunk: true);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                             // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
                                 ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, hasDelimiters: false),
+                                : TryConvertMultiLineRawStringToVirtualChars(
+                                    token, interpolatedString, hasDelimiters: false,
+                                    isFirstChunk: interpolatedString.Contents.First() == parent),
                         _ => default,
                     };
                 }
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
-            SyntaxToken token, ExpressionSyntax parentExpression, bool hasDelimiters)
+            SyntaxToken token, ExpressionSyntax parentExpression, bool hasDelimiters, bool isFirstChunk)
         {
             if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return default;
@@ -186,10 +188,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             {
                 var currentLine = sourceText.Lines[lineNumber];
                 var lineSpan = currentLine.Span;
+                var lineStart = lineSpan.Start;
 
-                var lineStart = lineSpan.Length > indentationLength
-                    ? lineSpan.Start + indentationLength
-                    : lineSpan.End;
+                // If we're on the second line onwards, we want to trim the indentation if we have it.  We also always
+                // do this for the first line of the first chunk as that will contain the initial leading whitespace.
+                if (isFirstChunk || lineNumber > startLineInclusive)
+                {
+                    lineStart = lineSpan.Length > indentationLength
+                        ? lineSpan.Start + indentationLength
+                        : lineSpan.End;
+                }
 
                 // The last line of the last chunk does not include the final newline on the line.
                 var lineEnd = hasDelimiters && lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
