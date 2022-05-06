@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
+using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -30,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             private static readonly TestComposition s_compositionWithUnknownCopy =
                 EditorTestCompositions.EditorFeaturesWpf
                     .AddParts(typeof(StringCopyPasteCommandHandler));
-            // .AddExcludedPartTypes(typeof(WpfStringCopyPasteService));
+
             private static readonly TestComposition s_compositionWithKnownCopy =
-                s_compositionWithUnknownCopy;//.AddParts(typeof(MockStringCopyPasteService));
+                s_compositionWithUnknownCopy;
 
             private readonly StringCopyPasteCommandHandler _commandHandler;
 
@@ -97,6 +98,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 {
                     // If we don't have a file to copy text from, then the paste text must be explicitly provided.");
                     Assert.NotNull(pasteText);
+
+                    // Ensure we clear out the clipboard so that a prior copy/paste doesn't corrupt the test.
+                    var service = workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                    service.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, "");
                 }
 
                 if (pasteText == null)

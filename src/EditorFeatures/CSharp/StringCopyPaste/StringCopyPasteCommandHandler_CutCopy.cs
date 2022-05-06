@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         IChainedCommandHandler<CutCommandArgs>,
         IChainedCommandHandler<CopyCommandArgs>
     {
-        private const string KeyAndVersion = nameof(StringCopyPasteCommandHandler) + "V1";
+        public const string KeyAndVersion = nameof(StringCopyPasteCommandHandler) + "V1";
 
         public CommandState GetCommandState(CutCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();

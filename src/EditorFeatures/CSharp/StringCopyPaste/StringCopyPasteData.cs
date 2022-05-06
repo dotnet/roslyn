@@ -11,41 +11,46 @@ using System.Text;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
-    [DataContract]
     internal class StringCopyPasteData
     {
-        private static readonly DataContractJsonSerializer s_serializer = new(typeof(StringCopyPasteData), new[] { typeof(StringCopyPasteContent) });
+        public ImmutableArray<StringCopyPasteContent> Contents { get; }
 
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<StringCopyPasteContent> Contents;
-
+        [JsonConstructor]
         public StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
         {
             Contents = contents;
         }
 
-        public string ToJson()
+        public string? ToJson()
         {
-            using var stream = new MemoryStream();
-            s_serializer.WriteObject(stream, this);
+            try
+            {
+                return JsonSerializer.Serialize(this, typeof(StringCopyPasteData));
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+            }
 
-            stream.Position = 0;
-            using var reader = new StreamReader(stream);
-            return reader.ReadToEnd();
+            return null;
         }
 
         public static StringCopyPasteData? FromJson(string? json)
         {
-            if (json == null)
+            if (string.IsNullOrWhiteSpace(json))
                 return null;
 
-            using var stringStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             try
             {
-                return (StringCopyPasteData)s_serializer.ReadObject(stringStream);
+                var value = JsonSerializer.Deserialize(JsonDocument.Parse(json), typeof(StringCopyPasteData));
+                if (value is null)
+                    return null;
+
+                return (StringCopyPasteData)value;
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
@@ -61,43 +66,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         Interpolation,  // When an interpolation is copied.
     }
 
-    [DataContract]
     internal readonly struct StringCopyPasteContent
     {
-        [DataMember(Order = 0)]
-        public readonly StringCopyPasteContentKind Kind;
+        public StringCopyPasteContentKind Kind { get; }
 
         /// <summary>
         /// The actual string value for <see cref="StringCopyPasteContentKind.Text"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.
         /// </summary>
-        [DataMember(Order = 1)]
-        public readonly string? TextValue;
+        public string? TextValue { get; }
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.Expression"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        [DataMember(Order = 2)]
-        public readonly string? InterpolationExpression;
+        public string? InterpolationExpression { get; }
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.AlignmentClause"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        [DataMember(Order = 3)]
-        public readonly string? InterpolationAlignmentClause;
+        public string? InterpolationAlignmentClause { get; }
 
         /// <summary>
         /// The actual string value for <see cref="InterpolationSyntax.FormatClause"/> for <see
         /// cref="StringCopyPasteContentKind.Interpolation"/>.  <see langword="null"/> for <see
         /// cref="StringCopyPasteContentKind.Text"/>.
         /// </summary>
-        [DataMember(Order = 4)]
-        public readonly string? InterpolationFormatClause;
+        public string? InterpolationFormatClause { get; }
 
+        [JsonConstructor]
         public StringCopyPasteContent(
             StringCopyPasteContentKind kind,
             string? textValue,
@@ -112,9 +112,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             InterpolationFormatClause = interpolationFormatClause;
         }
 
+        [JsonIgnore]
         [MemberNotNullWhen(true, nameof(TextValue))]
         public bool IsText => Kind == StringCopyPasteContentKind.Text;
 
+        [JsonIgnore]
         [MemberNotNullWhen(true, nameof(InterpolationExpression))]
         public bool IsInterpolation => Kind == StringCopyPasteContentKind.Interpolation;
 
