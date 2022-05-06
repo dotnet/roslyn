@@ -70,6 +70,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return default;
 
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
+
+            // We only support smart copy/paste when a single selection is copied (and a single selection is pasted
+            // over).  This vastly simplifies the logic we need, and it means we don't have to try to reimplement the 
+            // editor logic for what it means when you are copying X selections and pasting over Y selections.
             if (spans.Count != 1)
                 return default;
 
