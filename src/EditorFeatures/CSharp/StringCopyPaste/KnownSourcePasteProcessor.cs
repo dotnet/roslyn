@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Smart Pasting into raw string not supported yet.  
             if (IsAnyRawStringExpression(StringExpressionBeforePaste))
-                // return default;
-                return GetEditsForRawString(cancellationToken);
+                return default;
+                // return GetEditsForRawString(cancellationToken);
 
             return GetEditsForNonRawString();
         }
@@ -332,6 +332,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             throw new NotImplementedException();
         }
 #endif
+
+#if false
 
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {

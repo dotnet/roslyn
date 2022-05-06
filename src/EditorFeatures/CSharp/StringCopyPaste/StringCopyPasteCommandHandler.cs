@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             {
                 // See if we can determine the information about the code the user copied from.
                 var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
+
+#if false
                 if (service != null &&
                     _lastSelectedSpans?.Count > 0 &&
                     _lastClipboardSequenceNumber != null &&
@@ -233,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         }
                     }
                 }
+#endif
 
                 return default;
             }

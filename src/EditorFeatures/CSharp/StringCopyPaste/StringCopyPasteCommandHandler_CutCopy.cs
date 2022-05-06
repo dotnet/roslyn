@@ -7,13 +7,12 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 copyPasteService.TrySetClipboardData(KeyAndVersion, dataToStore);
         }
 
-        private (string dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
+        private static (string dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
             ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -65,8 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (copyPasteService == null)
                 return default;
 
-            //var editorOptions = textView.Options;
-            //var  editorOptions.GetOptionValue<bool>(DefaultTextViewOptions.CutOrCopyBlankLineIfNoSelectionId);
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
             if (spans.Count != 1)
                 return default;
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return default;
 
             var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
-            var stringData = TryGetStringCopyPasteData(virtualCharService, snapshot.AsText(), stringExpression, span.Span.ToTextSpan());
+            var stringData = TryGetStringCopyPasteData(virtualCharService, stringExpression, span.Span.ToTextSpan());
             if (stringData is null)
                 return default;
 
@@ -99,38 +96,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             using var reader = new StreamReader(stream);
             var json = reader.ReadToEnd();
 
-            copyPasteService.TrySetClipboardData(KeyAndVersion, json);
+            return (json, copyPasteService);
         }
 
-        private StringCopyPasteData? TryGetStringCopyPasteData(IVirtualCharLanguageService virtualCharService, SourceText text, ExpressionSyntax stringExpression, TextSpan span)
+        private static StringCopyPasteData? TryGetStringCopyPasteData(IVirtualCharLanguageService virtualCharService, ExpressionSyntax stringExpression, TextSpan span)
             => stringExpression switch
             {
-                LiteralExpressionSyntax literal => TryGetStringCopyPasteDataForLiteral(virtualCharService, text, literal, span),
-                InterpolatedStringExpressionSyntax interpolatedString => TryGetStringCopyPasteDataForInterpolatedString(text, interpolatedString, span),
+                LiteralExpressionSyntax literal => TryGetStringCopyPasteDataForLiteral(virtualCharService, literal, span),
+                InterpolatedStringExpressionSyntax interpolatedString => TryGetStringCopyPasteDataForInterpolatedString(virtualCharService, interpolatedString, span),
                 _ => throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind()),
             };
 
-        private StringCopyPasteData? TryGetStringCopyPasteDataForLiteral(
-            IVirtualCharLanguageService virtualCharService, SourceText text, LiteralExpressionSyntax literal, TextSpan span)
+        private static StringCopyPasteData? TryGetStringCopyPasteDataForLiteral(
+            IVirtualCharLanguageService virtualCharService, LiteralExpressionSyntax literal, TextSpan span)
         {
-            var virtualChars = virtualCharService.TryConvertToVirtualChars(literal.Token);
-            if (virtualChars.IsDefaultOrEmpty)
+            if (!TryGetContentForSpan(virtualCharService, literal.Token, span, out var content))
                 return null;
 
-            var firstChar = virtualChars.FirstOrNull(vc => vc.Span.Start == span.Start);
-            var lastChar = virtualChars.LastOrNull(vc => vc.Span.End == span.End);
-
-            if (firstChar is null || lastChar is null)
-                return null;
-
-            var firstCharIndex = virtualChars.IndexOf(firstChar.Value);
-            var lastCharIndex = virtualChars.IndexOf(lastChar.Value);
-
+            return new StringCopyPasteData(ImmutableArray.Create(content));
         }
 
-        private StringCopyPasteData? TryGetStringCopyPasteDataForInterpolatedString(SourceText text, InterpolatedStringExpressionSyntax interpolatedString, TextSpan span)
+        private static bool TryGetContentForSpan(
+            IVirtualCharLanguageService virtualCharService,
+            SyntaxToken token,
+            TextSpan span,
+            out StringCopyPasteContent content)
         {
-            return null;
+            content = default;
+            var virtualChars = virtualCharService.TryConvertToVirtualChars(token);
+            if (virtualChars.IsDefaultOrEmpty)
+                return false;
+
+            var firstOverlappingChar = virtualChars.FirstOrNull(vc => vc.Span.OverlapsWith(span));
+            var lastOverlappingChar = virtualChars.LastOrNull(vc => vc.Span.OverlapsWith(span));
+
+            if (firstOverlappingChar is null || lastOverlappingChar is null)
+                return false;
+
+            var firstCharIndexInclusive = virtualChars.IndexOf(firstOverlappingChar.Value);
+            var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
+
+            var subsequence = virtualChars.GetSubSequence(TextSpan.FromBounds(firstCharIndexInclusive, lastCharIndexInclusive + 1));
+            content = new StringCopyPasteContent(StringCopyPasteContentKind.Text, subsequence.CreateString());
+            return true;
+        }
+
+        private static StringCopyPasteData? TryGetStringCopyPasteDataForInterpolatedString(
+            IVirtualCharLanguageService virtualCharService, InterpolatedStringExpressionSyntax interpolatedString, TextSpan span)
+        {
+            using var _ = ArrayBuilder<StringCopyPasteContent>.GetInstance(out var result);
+
+            foreach (var interpolatedContent in interpolatedString.Contents)
+            {
+                if (interpolatedContent.Span.OverlapsWith(span))
+                {
+                    if (interpolatedContent is InterpolationSyntax interpolation)
+                    {
+                        result.Add(new StringCopyPasteContent(StringCopyPasteContentKind.InterpolationCode, interpolation.ToString()));
+                    }
+                    else if (interpolatedContent is InterpolatedStringTextSyntax stringText)
+                    {
+                        if (!TryGetContentForSpan(virtualCharService, stringText.TextToken, span, out var content))
+                            return null;
+
+                        result.Add(content);
+                    }
+                }
+            }
+
+            return new StringCopyPasteData(result.ToImmutable());
         }
     }
 

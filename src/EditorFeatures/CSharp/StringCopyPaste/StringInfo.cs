@@ -244,9 +244,8 @@ internal readonly struct StringInfo
             start++;
         var delimiterQuoteCount = start - position;
 
-        var end = interpolatedString.Span.End;
-
-        end = SkipU8Suffix(text, end);
+        var end = SkipU8Suffix(text, interpolatedString.Span.End);
+        var endBeforeU8Suffix = end;
         while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
             end--;
 
@@ -264,6 +263,7 @@ internal readonly struct StringInfo
 
         var startDelimiterSpan = TextSpan.FromBounds(interpolatedString.SpanStart, interpolatedString.StringStartToken.Span.End);
         var endDelimiterSpan = TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, interpolatedString.Span.End);
+        var endDelimiterSpanWithoutSuffix = TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, endBeforeU8Suffix);
 
         // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
         result.Add(TextSpan.FromBounds(currentPosition, end));
@@ -272,6 +272,6 @@ internal readonly struct StringInfo
         // todo: implement withoutIndentationSpans properly
         var withoutIndentationSpans = contentSpans;
 
-        return new StringInfo(delimiterQuoteCount, delimiterDollarCount, startDelimiterSpan, endDelimiterSpan, contentSpans, withoutIndentationSpans);
+        return new StringInfo(delimiterQuoteCount, delimiterDollarCount, startDelimiterSpan, endDelimiterSpan, endDelimiterSpanWithoutSuffix, contentSpans, withoutIndentationSpans);
     }
 }
