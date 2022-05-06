@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return TryConvertSingleLineRawStringToVirtualChars(token);
 
             if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                return TryConvertMultiLineRawStringToVirtualChars(token);
+                return TryConvertMultiLineRawStringToVirtualChars(token, (LiteralExpressionSyntax)token.GetRequiredParent(), tokenIncludeDelimiters: true);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                             // Format clauses must be single line, even when in a multi-line interpolation.
                             => isFormatClause
                                 ? TryConvertSingleLineRawStringToVirtualChars(token)
-                                : TryConvertMultiLineRawStringToVirtualChars(token),
+                                : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, tokenIncludeDelimiters: false),
                         _ => default,
                     };
                 }
@@ -161,18 +161,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
-        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(SyntaxToken token)
+        /// <summary>
+        /// Creates the sequence for the <b>content</b> characters in this <paramref name="token"/>.  This will not
+        /// include indentation whitespace that the language specifies is not part of the content.
+        /// </summary>
+        /// <param name="parentExpression">The containing expression for this token.  This is needed so that we can
+        /// determine the indentation whitespace based on the last line of the containing multiline literal.</param>
+        /// <param name="tokenIncludeDelimiters">If this token includes the quote (<c>"</c>) characters for the
+        /// delimiters inside of it or not.  If so, then those quotes will need to be skipped when determining the
+        /// content</param>
+        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
+            SyntaxToken token, ExpressionSyntax parentExpression, bool tokenIncludeDelimiters)
         {
-            // The containing expression for this token.  This is needed so that we can determine the indentation
-            // whitespace based on the last line of the containing multiline literal.
-            ExpressionSyntax parentExpression = token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken
-                ? (LiteralExpressionSyntax)token.GetRequiredParent()
-                : (InterpolatedStringExpressionSyntax)token.GetRequiredParent().GetRequiredParent();
-
-            // Whether or not the token contains the delimiters, or if the parent owns them.  This will affect if we
-            // need to skip looking at the start/end line of the token.
-            var hasDelimiters = parentExpression is LiteralExpressionSyntax;
-
             // if this is the first text content chunk of the multi-line literal.  The first chunk contains the leading
             // indentation of the line it's on (which thus must be trimmed), while all subsequent chunks do not (because
             // they start right after some `{...}` interpolation
@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             // If we're on the very first chunk of the multi-line raw string literal, then we want to start on line 1 so
             // we skip the space and newline that follow the initial `"""`.
-            var startLineInclusive = hasDelimiters ? 1 : 0;
+            var startLineInclusive = tokenIncludeDelimiters ? 1 : 0;
 
             // Similarly, if we're on the very last chunk of hte multi-line raw string literal, then we don't want to
             // include the line contents for the line that has the final `    """` on it.
-            var lastLineExclusive = hasDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
+            var lastLineExclusive = tokenIncludeDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
 
             var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
             for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
