@@ -30,15 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// </summary>
     internal class KnownSourcePasteProcessor : AbstractPasteProcessor
     {
-        /// <summary>
-        /// The original string expression in some document that we were cut/copying text from.
-        /// </summary>
-        private readonly ExpressionSyntax _stringExpressionCopiedFrom;
-
-        /// <summary>
-        /// The text snapshot of the document the original text was cut/copied from.
-        /// </summary>
-        private readonly ITextSnapshot _snapshotCopiedFrom;
+        private readonly SnapshotSpan _selectionBeforePaste;
+        private readonly StringCopyPasteData _copyPasteData;
         private readonly ITextBufferFactoryService3 _textBufferFactoryService;
 
         public KnownSourcePasteProcessor(
@@ -49,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
-            ExpressionSyntax stringExpressionCopiedFrom,
-            ITextSnapshot snapshotCopiedFrom,
+            SnapshotSpan selectionBeforePaste,
+            StringCopyPasteData copyPasteData,
             ITextBufferFactoryService3 textBufferFactoryService)
             : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
-            _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
-            _snapshotCopiedFrom = snapshotCopiedFrom;
+            _selectionBeforePaste = selectionBeforePaste;
+            _copyPasteData = copyPasteData;
             _textBufferFactoryService = textBufferFactoryService;
         }
 
@@ -75,6 +68,91 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
+            {
+                var isVerbatim = literal.Token.IsVerbatimStringLiteral();
+                foreach (var content in _copyPasteData.Contents)
+                {
+                    if (content.IsText)
+                    {
+                        builder.Append(EscapeForNonRawStringLiteral(
+                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.TextValue));
+                    }
+                    else if (content.IsInterpolation)
+                    {
+                        // we're copying an interpolation from an interpolated string to a string literal. For example,
+                        // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in
+                        // the future is split the literal into `"goo" + $"{x + y}" + "bar"`, or just making the
+                        // containing literal into an interpolation itself.  However, for now, we do the simple thing
+                        // and just treat the interpolation as raw text that should just be escaped as appropriate into
+                        // the destination.
+                        builder.Append('{');
+                        builder.Append(EscapeForNonRawStringLiteral(
+                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationExpression));
+
+                        if (content.InterpolationAlignmentClause != null)
+                            builder.Append(content.InterpolationAlignmentClause);
+
+                        if (content.InterpolationFormatClause != null)
+                        {
+                            builder.Append(':');
+                            builder.Append(EscapeForNonRawStringLiteral(
+                                isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                        }
+
+                        builder.Append('}');
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                    }
+                }
+            }
+            else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                var isVerbatim = interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken;
+                foreach (var content in _copyPasteData.Contents)
+                {
+                    if (content.IsText)
+                    {
+                        builder.Append(EscapeForNonRawStringLiteral(
+                            isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.TextValue));
+                    }
+                    else if (content.IsInterpolation)
+                    {
+                        // we're moving an interpolation from one interpolation to another.  This can just be copied
+                        // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
+                        // for the destination type.
+                        builder.Append('{');
+                        builder.Append(content.InterpolationExpression);
+
+                        if (content.InterpolationAlignmentClause != null)
+                            builder.Append(content.InterpolationAlignmentClause);
+
+                        if (content.InterpolationFormatClause != null)
+                        {
+                            builder.Append(':');
+                            builder.Append(EscapeForNonRawStringLiteral(
+                                isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, content.InterpolationFormatClause));
+                        }
+
+                        builder.Append('}');
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                    }
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            return ImmutableArray.Create(new TextChange(_selectionBeforePaste.Span.ToTextSpan(), builder.ToString()));
+#if false
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
             foreach (var change in Changes)
@@ -185,7 +263,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return builder.ToString();
                 }
             }
+
+#endif
         }
+
+#if false
 
         /// <summary>
         /// Takes a chunk of pasted text and reparses it as if it was surrounded by the original quotes it had in the
@@ -248,6 +330,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // successfully parse).
             return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
         }
+
+#endif
 
 #if false
 

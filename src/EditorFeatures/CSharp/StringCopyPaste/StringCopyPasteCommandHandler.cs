@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -50,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         IChainedCommandHandler<PasteCommandArgs>
     {
         private const string CopyId = "RoslynStringCopyPasteId";
-
-        private static int s_sequenceNumber = 1;
 
         private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -206,38 +205,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(string newLine, IndentationOptions indentationOptions, CancellationToken cancellationToken)
             {
+                // For simplicity, we only support smart copy/paste when we are pasting into a single contiguous region.
+                if (selectionsBeforePaste.Count != 1)
+                    return default;
+
                 // See if we can determine the information about the code the user copied from.
                 var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
 
-#if false
-                if (service != null &&
-                    _lastSelectedSpans?.Count > 0 &&
-                    _lastClipboardSequenceNumber != null &&
-                    service.TryGetClipboardSequenceNumber(out var sequenceNumber) &&
-                    _lastClipboardSequenceNumber == sequenceNumber)
-                {
-                    var lastSelectedSnapshot = _lastSelectedSpans[0].Snapshot;
-                    var lastSelectedDocument = lastSelectedSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (lastSelectedDocument != null)
-                    {
-                        var stringExpressionCopiedFrom = TryGetCompatibleContainingStringExpression(
-                            lastSelectedDocument, _lastSelectedSpans, cancellationToken);
-                        if (stringExpressionCopiedFrom != null)
-                        {
-                            var knownProcessor = new KnownSourcePasteProcessor(
-                                newLine, indentationOptions,
-                                snapshotBeforePaste, snapshotAfterPaste,
-                                documentBeforePaste, documentAfterPaste,
-                                stringExpressionBeforePaste, stringExpressionCopiedFrom,
-                                _lastSelectedSpans[0].Snapshot,
-                                _textBufferFactoryService);
-                            return knownProcessor.GetEdits(cancellationToken);
-                        }
-                    }
-                }
-#endif
+                var clipboardData = service?.TryGetClipboardData(KeyAndVersion);
+                var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
-                return default;
+                if (copyPasteData == null)
+                    return default;
+
+                var knownProcessor = new KnownSourcePasteProcessor(
+                    newLine, indentationOptions,
+                    snapshotBeforePaste, snapshotAfterPaste,
+                    documentBeforePaste, documentAfterPaste,
+                    stringExpressionBeforePaste,
+                    selectionsBeforePaste[0],
+                    copyPasteData,
+                    _textBufferFactoryService);
+                return knownProcessor.GetEdits(cancellationToken);
             }
         }
 

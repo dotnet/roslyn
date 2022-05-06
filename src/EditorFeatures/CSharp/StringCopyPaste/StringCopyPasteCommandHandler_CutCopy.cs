@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 copyPasteService.TrySetClipboardData(KeyAndVersion, dataToStore);
         }
 
-        private static (string dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
+        private static (string? dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
             ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -84,19 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var virtualCharService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
             var stringData = TryGetStringCopyPasteData(virtualCharService, stringExpression, span.Span.ToTextSpan());
-            if (stringData is null)
-                return default;
 
-            using var stream = new MemoryStream();
-            var serializer = new DataContractJsonSerializer(
-                typeof(StringCopyPasteData), new[] { typeof(StringCopyPasteContent) });
-            serializer.WriteObject(stream, stringData);
-
-            stream.Position = 0;
-            using var reader = new StreamReader(stream);
-            var json = reader.ReadToEnd();
-
-            return (json, copyPasteService);
+            return (stringData?.ToJson(), copyPasteService);
         }
 
         private static StringCopyPasteData? TryGetStringCopyPasteData(IVirtualCharLanguageService virtualCharService, ExpressionSyntax stringExpression, TextSpan span)
@@ -116,13 +108,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return new StringCopyPasteData(ImmutableArray.Create(content));
         }
 
-        private static bool TryGetContentForSpan(
+        private static bool TryGetNormalizedStringForSpan(
             IVirtualCharLanguageService virtualCharService,
             SyntaxToken token,
             TextSpan span,
-            out StringCopyPasteContent content)
+            [NotNullWhen(true)] out string? normalizedText)
         {
-            content = default;
+            normalizedText = null;
             var virtualChars = virtualCharService.TryConvertToVirtualChars(token);
             if (virtualChars.IsDefaultOrEmpty)
                 return false;
@@ -137,12 +129,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
 
             var subsequence = virtualChars.GetSubSequence(TextSpan.FromBounds(firstCharIndexInclusive, lastCharIndexInclusive + 1));
-            content = new StringCopyPasteContent(StringCopyPasteContentKind.Text, subsequence.CreateString());
+            normalizedText = subsequence.CreateString();
             return true;
         }
 
+        private static bool TryGetContentForSpan(
+            IVirtualCharLanguageService virtualCharService,
+            SyntaxToken token,
+            TextSpan span,
+            out StringCopyPasteContent content)
+        {
+            if (!TryGetNormalizedStringForSpan(virtualCharService, token, span, out var text))
+            {
+                content = default;
+                return false;
+            }
+            else
+            {
+                content = StringCopyPasteContent.ForText(text);
+                return true;
+            }
+        }
+
         private static StringCopyPasteData? TryGetStringCopyPasteDataForInterpolatedString(
-            IVirtualCharLanguageService virtualCharService, InterpolatedStringExpressionSyntax interpolatedString, TextSpan span)
+            IVirtualCharLanguageService virtualCharService,
+            InterpolatedStringExpressionSyntax interpolatedString,
+            TextSpan span)
         {
             using var _ = ArrayBuilder<StringCopyPasteContent>.GetInstance(out var result);
 
@@ -152,7 +164,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 {
                     if (interpolatedContent is InterpolationSyntax interpolation)
                     {
-                        result.Add(new StringCopyPasteContent(StringCopyPasteContentKind.InterpolationCode, interpolation.ToString()));
+                        // If the user copies a portion of an interpolation, just treat this as a non-smart copy paste for simplicity.
+                        if (!span.Contains(interpolation.Span))
+                            return null;
+
+                        var formatClause = (string?)null;
+                        if (interpolation.FormatClause != null &&
+                            !TryGetNormalizedStringForSpan(virtualCharService, interpolation.FormatClause.FormatStringToken, span, out formatClause))
+                        {
+                            return null;
+                        }
+
+                        result.Add(StringCopyPasteContent.ForInterpolation(
+                            interpolation.Expression.ToFullString(),
+                            interpolation.AlignmentClause?.ToFullString(),
+                            formatClause));
                     }
                     else if (interpolatedContent is InterpolatedStringTextSyntax stringText)
                     {
@@ -165,40 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             return new StringCopyPasteData(result.ToImmutable());
-        }
-    }
-
-    [DataContract]
-    internal class StringCopyPasteData
-    {
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<StringCopyPasteContent> Contents;
-
-        public StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
-        {
-            Contents = contents;
-        }
-    }
-
-    internal enum StringCopyPasteContentKind
-    {
-        Text,
-        InterpolationCode, // When an interpolation is copied.
-    }
-
-    [DataContract]
-    internal readonly struct StringCopyPasteContent
-    {
-        [DataMember(Order = 0)]
-        public readonly StringCopyPasteContentKind Kind;
-
-        [DataMember(Order = 1)]
-        public readonly string Data;
-
-        public StringCopyPasteContent(StringCopyPasteContentKind kind, string data)
-        {
-            Kind = kind;
-            Data = data;
         }
     }
 }
